@@ -8,7 +8,6 @@
     "workbench.colorTheme": "Night Owl (No Italics)",
     "[python]": {
       "editor.defaultFormatter": "ms-python.black-formatter"
-    },
-    "python.formatting.provider": "none"
+    }
   }
 }
