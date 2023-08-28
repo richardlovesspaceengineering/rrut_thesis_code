@@ -10,7 +10,7 @@ def cv_mdl(objvar, decvar):
     # Fit linear model to decision variable, CV data.
     mdl = LinearRegression().fit(decvar, objvar)
 
-    # R2 (adjusted).
+    # R2 (adjusted) has to be computed from the unadjusted value.
     num_obs = objvar.shape[0]
     num_coef = objvar.shape[1]
     r2_unadj = mdl.score(decvar, objvar)
