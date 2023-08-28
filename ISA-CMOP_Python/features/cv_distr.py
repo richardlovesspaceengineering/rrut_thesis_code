@@ -8,11 +8,13 @@ def cv_distr(objvar):
     """
 
     # Need to get Pythonic equivalent of this cleaning + figure out what it's doing.
-    
-    rmimg = [ctr for ctr, x in np.sum(np.imag(objvar) ~= 0,2)]
+
+    # Remove rows which have at least one imaginary value in them.
+    rmimg = np.nonzero(np.sum(np.imag(objvar) != 0, axis=1))
+    objvar = np.delete(objvar, rmimg, axis=0)
 
     # Setting axis = 0 ensures computation columnwise. Output is a row vector.
-    mean_f = np.mean(objvar, axis=None)  # want mean of entire matrix.
+    mean_f = np.mean(objvar, axis=None)  # want mean of entire matrix? Surely not.
     std_f = np.std(objvar, axis=0)
     min_f = np.min(objvar, axis=0)
     max_f = np.max(objvar, axis=0)
