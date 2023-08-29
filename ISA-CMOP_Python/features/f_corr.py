@@ -23,9 +23,9 @@ def f_corr(objvar, significance_level=0.05):
     # Signficance test. Alsouly does p > alpha for some reason.
     if pvalue < significance_level:
         corr_obj = 0
-    elif np.isnan(corr_obj):
-        corr_obj = 0
 
-    # Make correlation 0 if there is no change in one vector.
+    elif np.isnan(corr_obj):
+        # Make correlation 0 if there is no change in one vector.
+        corr_obj = 0
 
     return corr_obj
