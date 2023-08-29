@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.stats import kurtosis, skew
+from feature_helpers import remove_imag_rows
 
 
 def cv_distr(objvar):
@@ -7,11 +8,8 @@ def cv_distr(objvar):
     Y-distribution of constraints violations. For now, since only min_f is needed to substitute into Eq. (13) in Alsouly2022, we only need min_f. @Richard has left in the remaining calculations since they are easy.
     """
 
-    # Need to get Pythonic equivalent of this cleaning + figure out what it's doing.
-
-    # Remove rows which have at least one imaginary value in them.
-    rmimg = np.nonzero(np.sum(np.imag(objvar) != 0, axis=1))
-    objvar = np.delete(objvar, rmimg, axis=0)
+    # Remove any rows with imaginary values.
+    objvar = remove_imag_rows(objvar)
 
     # Setting axis = 0 ensures computation columnwise. Output is a row vector.
     mean_f = np.mean(
