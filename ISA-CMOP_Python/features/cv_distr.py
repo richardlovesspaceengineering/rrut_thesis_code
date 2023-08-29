@@ -6,6 +6,8 @@ from feature_helpers import remove_imag_rows
 def cv_distr(objvar):
     """
     Y-distribution of constraints violations. For now, since only min_f is needed to substitute into Eq. (13) in Alsouly2022, we only need min_f. @Richard has left in the remaining calculations since they are easy.
+
+    Might want to change name of objvar to be more appropriate to constraints violations.
     """
 
     # Remove any rows with imaginary values.
