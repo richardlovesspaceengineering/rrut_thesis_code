@@ -22,10 +22,17 @@ def PiIZ(pop):
     decvar = remove_imag_rows(decvar)
 
     # Defining the ideal zone.
-    minobjs = min(objvar)
-    maxobjs = max(objvar)
-    mincv = min(cv)
-    maxcv = max(cv)
+    minobjs = np.min(objvar, axis=0)
+    maxobjs = np.max(objvar, axis=0)
+    mincv = np.min(cv, axis=0)
+    maxcv = np.max(cv, axis=0)
     mconsIdealPoint = mincv + (0.25 * (maxcv - mincv))
+    conZone = np.nonzero(np.all(cv <= mconsIdealPoint, axis=1))
+
+    # Find PiZ for each objXcon
+    piz_ob = np.zeros(1, objvar.shape[1])
+
+    for i in range(objvar.shape[1]):
+        objIdealPoint = minobjs(i)
 
     return [piz_ob, piz_f]

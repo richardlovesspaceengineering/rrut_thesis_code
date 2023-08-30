@@ -33,7 +33,7 @@ def f_decdist(pop, n1, n2):
         )
 
         # Compute statistics on this dist_matrix.
-        PSdecdist_max = max(max(dist_matrix))
+        PSdecdist_max = np.max(np.max(dist_matrix, axis=0))
         PSdecdist_mean = np.mean(dist_matrix, axis=None)
 
         # Take IQR of each column, then take mean of IQRs to get a scalar.

@@ -11,7 +11,7 @@ def f_skew(objvar):
 
     if objvar.size > 0:
         skew_avg = np.mean(skew(objvar, axis=0))
-        skew_max = max(skew(objvar, axis=0))
-        skew_min = min(skew(objvar, axis=0))
+        skew_max = np.max(skew(objvar, axis=0))
+        skew_min = np.min(skew(objvar, axis=0))
         skew_rnge = skew_max - skew_min
     return [skew_avg, skew_min, skew_max, skew_rnge]

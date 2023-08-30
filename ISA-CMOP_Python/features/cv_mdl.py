@@ -20,6 +20,6 @@ def cv_mdl(objvar, decvar):
 
     # Why isn't this taking individual absolute values as the paper suggests? Maybe because all coefficients are positive?
 
-    range_coeff = max(mdl.coef[1:]) - min(mdl.coef[1:])
+    range_coeff = np.max(mdl.coef[1:]) - np.min(mdl.coef[1:])
 
     return [mdl_r2, range_coeff]
