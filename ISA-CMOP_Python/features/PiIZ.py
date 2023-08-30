@@ -6,6 +6,8 @@ import numpy as np
 def PiIZ(pop):
     """
     Compute proportion of solutions in the ideal zone (the lower left quadrant of the fitness-violation scatterplot) for each objective and for unconstrained fronts-violation scatterplot.
+
+    May need to play around with the axis definitions while debugging.
     """
 
     # Extracting matrices.
