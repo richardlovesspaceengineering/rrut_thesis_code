@@ -21,9 +21,9 @@ def dist_corr(pop, NonDominated):
     decvar = remove_imag_rows(decvar)
     consvar = remove_imag_rows(consvar)
 
-    # Get CV, a row vector containing the norm of the constraint violations. Assuming this can be standardised for any given problem setup.
+    # Get CV, a column vector containing the norm of the constraint violations. Assuming this can be standardised for any given problem setup.
     consvar[consvar <= 0] = 0
-    cv = np.sum(consvar, axis=1)
+    cv = np.norm(consvar, axis=1)
 
     # For each ND decision variable, find the smallest distance to the nearest population decision variable.
     dist_matrix = cdist(NonDominated.extract_var(), decvar, "euclidean")

@@ -15,9 +15,9 @@ def fvc(pop):
     objvar = remove_imag_rows(objvar)
     consvar = remove_imag_rows(consvar)  # may be able to remove this.
 
-    # Get CV, a row vector containing the norm of the constraint violations. Assuming this can be standardised for any given problem setup.
+    # Get CV, a column vector containing the norm of the constraint violations. Assuming this can be standardised for any given problem setup.
     consvar[consvar <= 0] = 0
-    cv = np.sum(consvar, axis=1)
+    cv = np.norm(consvar, axis=1)
 
     # Initialise correlation between objectives.
     corr_obj = np.zeros(1, objvar.shape[0])
