@@ -28,3 +28,18 @@ dist_mat = cdist(A, B)
 print(dist_mat)
 print(np.min(dist_mat, axis=0))
 # print(np.take_along_axis(dist_mat, np.argmin(dist_mat, axis=0), axis=0))
+
+# ranksort = np.array([[3, 1, 5]])
+# n1 = 3
+# print(ranksort == n1)
+# print(A[ranksort == n1, :])
+# # print(A[ranksort == n1, :])
+
+import numpy as np
+
+A = np.array([[0.8147, 0.9134], [0.9058, 0.6324], [0.127, 0.0975]])
+ranksort = np.array([3, 1, 5])
+n1 = 3
+
+print(ranksort == n1)
+print(A[ranksort == n1, :])

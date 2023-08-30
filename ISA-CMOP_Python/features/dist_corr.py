@@ -3,7 +3,6 @@ from scipy.spatial.distance import cdist
 import numpy as np
 import warnings
 import scipy
-import copy
 
 
 def dist_corr(pop, NonDominated, significance_level=0.05):
