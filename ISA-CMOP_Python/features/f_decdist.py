@@ -37,6 +37,6 @@ def f_decdist(pop, n1, n2):
         PSdecdist_mean = np.mean(dist_matrix, axis=None)
 
         # Take IQR of each column, then take mean of IQRs to get a scalar.
-        PSdecdist_iqr_mean = np.mean(iqr(dist_matrix, axis=0))
+        PSdecdist_iqr_mean = np.mean(iqr(dist_matrix, axis=0), axis=None)
 
     return [PSdecdist_max, PSdecdist_mean, PSdecdist_iqr_mean]
