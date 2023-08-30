@@ -3,6 +3,7 @@ from scipy.spatial.distance import cdist
 import numpy as np
 import warnings
 import scipy
+import copy
 
 
 def dist_corr(pop, NonDominated, significance_level=0.05):
@@ -16,22 +17,26 @@ def dist_corr(pop, NonDominated, significance_level=0.05):
 
     objvar = pop.extract_obj()
     decvar = pop.extract_var()
-    consvar = pop.extract_cons()
+    consvar = pop.extract_cons()  # constraint matrix.
 
-    # Remove imaginary rows.
+    # Remove imaginary rows. Deep copies are created here.
     objvar = remove_imag_rows(objvar)
     decvar = remove_imag_rows(decvar)
     consvar = remove_imag_rows(consvar)
+
+    # Get CV, a row vector containing the norm of the constraint violations. Assuming this can be standardised for any given problem setup.
+    consvar[consvar <= 0] = 0
+    cv = np.sum(consvar, axis=1)
 
     # For each ND decision variable, find the smallest distance to the nearest population decision variable.
     dist_matrix = cdist(NonDominated.extract_var(), decvar, "euclidean")
     min_dist = np.min(dist_matrix, axis=0)
 
-    # Then compute correlation coefficient. Assumed that all values in the correlation matrix are the same, meaning we only need one scalar. See f_corr for a similar implementation.
+    # Then compute correlation coefficient between CV and . Assumed that all values in the correlation matrix are the same, meaning we only need one scalar. See f_corr for a similar implementation.
     with warnings.catch_warnings():
         # Suppress warnings where corr is NaN - will just set to 0 in this case.
         warnings.simplefilter("ignore", scipy.stats.ConstantInputWarning)
-        result = scipy.stats.pearsonr(NORMCVS, min_dist)
+        result = scipy.stats.pearsonr(cv, min_dist)
 
     dist_c_corr = result.statistic
     pvalue = result.pvalue
