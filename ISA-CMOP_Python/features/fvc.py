@@ -9,7 +9,6 @@ def fvc(pop):
     """
 
     objvar = pop.extract_obj()
-    decvar = pop.extract_var()
     consvar = pop.extract_cons()
 
     # Remove imaginary rows. Deep copies are created here.

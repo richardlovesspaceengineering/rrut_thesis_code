@@ -3,7 +3,7 @@ from scipy.spatial.distance import cdist
 import numpy as np
 
 
-def dist_corr(pop, NonDominated, significance_level=0.05):
+def dist_corr(pop, NonDominated):
     """
     Distance correlation.
 
