@@ -1,8 +1,6 @@
-from feature_helpers import remove_imag_rows
+from feature_helpers import remove_imag_rows, corr_coef
 from scipy.spatial.distance import cdist
 import numpy as np
-import warnings
-import scipy
 
 
 def dist_corr(pop, NonDominated, significance_level=0.05):
@@ -32,20 +30,5 @@ def dist_corr(pop, NonDominated, significance_level=0.05):
     min_dist = np.min(dist_matrix, axis=0)
 
     # Then compute correlation coefficient between CV and . Assumed that all values in the correlation matrix are the same, meaning we only need one scalar. See f_corr for a similar implementation.
-    with warnings.catch_warnings():
-        # Suppress warnings where corr is NaN - will just set to 0 in this case.
-        warnings.simplefilter("ignore", scipy.stats.ConstantInputWarning)
-        result = scipy.stats.pearsonr(cv, min_dist)
-
-    dist_c_corr = result.statistic
-    pvalue = result.pvalue
-
-    # Signficance test. Alsouly does p > alpha for some reason.
-    if pvalue < significance_level:
-        corr_obj = 0
-
-    elif np.isnan(dist_c_corr):
-        # Make correlation 0 if there is no change in one vector.
-        dist_c_corr = 0
-
+    dist_c_corr = corr_coef(cv, min_dist)
     return [dist_c_corr]

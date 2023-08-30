@@ -27,7 +27,7 @@ def f_decdist(pop, n1, n2):
         # NDSort. Need to make sure this outputs a NumPy array for conditional indexing to work.
         ranksort = NonDominatedSorting.fast_non_dominated_sort(objvar)
 
-        # Distance across and between n1 and n2 rank fronts in decision space. Each argument in cdist is a row vector.
+        # Distance across and between n1 and n2 rank fronts in decision space. Each argument of cdist should be arrays corresponding to the DVs on front n1 and front n2.
         dist_matrix = cdist(
             decvar[ranksort == n1, :], decvar[ranksort == n2, :], "euclidean"
         )

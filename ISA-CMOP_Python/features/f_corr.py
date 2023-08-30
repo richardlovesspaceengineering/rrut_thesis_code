@@ -1,9 +1,7 @@
-import scipy
-import numpy as np
-import warnings
+from feature_helpers import corr_coef
 
 
-def f_corr(objvar, significance_level=0.05):
+def f_corr(objvar):
     """
     Significant correlation between objective values.
 
@@ -11,21 +9,6 @@ def f_corr(objvar, significance_level=0.05):
 
     Since correlations are assumed to be equal across all objectives, we can just compute one pairwise correlation coefficient. Alsouly finds the same but computes the symmetric 2x2 correlation coefficient and pvalue matrices before extracting the upper-right value.
     """
-
-    with warnings.catch_warnings():
-        # Suppress warnings where corr is NaN - will just set to 0 in this case.
-        warnings.simplefilter("ignore", scipy.stats.ConstantInputWarning)
-        result = scipy.stats.pearsonr(objvar[:, 0], objvar[:, 1])
-
-    corr_obj = result.statistic
-    pvalue = result.pvalue
-
-    # Signficance test. Alsouly does p > alpha for some reason.
-    if pvalue < significance_level:
-        corr_obj = 0
-
-    elif np.isnan(corr_obj):
-        # Make correlation 0 if there is no change in one vector.
-        corr_obj = 0
+    corr_obj = corr_coef(objvar[:, 0], objvar[:, 1])
 
     return corr_obj
