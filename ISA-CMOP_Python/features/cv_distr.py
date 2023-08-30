@@ -16,7 +16,6 @@ def cv_distr(objvar):
     # Setting axis = 0 ensures computation columnwise. Output is a row vector.
     # want mean of entire matrix? Surely not. Maybe this is okay because the CV matrix is really just a column vector.
     mean_f = np.mean(objvar, axis=None)
-
     std_f = np.std(objvar, axis=0)
     min_f = np.min(objvar, axis=0)
     max_f = np.max(objvar, axis=0)

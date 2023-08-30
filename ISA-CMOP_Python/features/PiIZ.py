@@ -31,8 +31,22 @@ def PiIZ(pop):
 
     # Find PiZ for each objXcon
     piz_ob = np.zeros(1, objvar.shape[1])
-
     for i in range(objvar.shape[1]):
-        objIdealPoint = minobjs(i)
+        objIdealPoint = minobjs[i] + (0.25 * (maxobjs[i] - minobjs[i]))
+        objx = objvar[:, i]
+        iz = np.nonzero(np.all(objx[conZone] <= objIdealPoint, axis=1))
+        piz_ob[i] = iz.size / pop.extract_obj().size
+
+    # Find PiZ for each frontsXcon
+
+    # May need to transpose.
+    ranksort = np.transpose(NonDominatedSorting.fast_non_dominated_sort(objvar))
+
+    # Axes may need to change depending on the structure of ranksort. Right now we are taking the min of a column vector.
+    minrank = np.min(ranksort, axis=0)
+    maxrank = np.max(ranksort, axis=0)
+    rankIdealPoint = minrank + (0.25 * (maxrank - minrank))
+    iz = np.nonzero(np.all(ranksort[conZone] <= rankIdealPoint, axis=1))
+    piz_f = iz.size / pop.extract_obj().size
 
     return [piz_ob, piz_f]

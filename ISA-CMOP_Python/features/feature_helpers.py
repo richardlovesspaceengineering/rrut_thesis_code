@@ -9,10 +9,10 @@ def remove_imag_rows(matrix):
     Remove rows which have at least one imaginary value in them
     """
 
-    matrix = copy.deepcopy(matrix)
-    rmimg = np.nonzero(np.sum(np.imag(matrix) != 0, axis=1))
-    matrix = np.delete(matrix, rmimg, axis=0)
-    return matrix
+    new_matrix = copy.deepcopy(matrix)
+    rmimg = np.nonzero(np.sum(np.imag(new_matrix) != 0, axis=1))
+    new_matrix = np.delete(new_matrix, rmimg, axis=0)
+    return new_matrix
 
 
 def corr_coef(xdata, ydata, significance_level=0.05):

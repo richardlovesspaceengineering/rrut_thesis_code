@@ -45,3 +45,8 @@ n1 = 3
 
 # print(ranksort == n1)
 # print(A[ranksort == n1, :])
+
+from features.feature_helpers import remove_imag_rows
+
+A = np.array([[2 + 2j, -2j], [3, 6]])
+rmag = np.nonzero(np.sum(np.imag(A) != 0, axis=1))
