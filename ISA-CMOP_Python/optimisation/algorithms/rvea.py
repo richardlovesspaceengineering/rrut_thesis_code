@@ -21,7 +21,7 @@ import matplotlib.pyplot as plt
 import matplotlib
 plt.style.use('seaborn-talk')
 np.set_printoptions(suppress=True)
-matplotlib.use('TkAgg')
+# matplotlib.use('TkAgg')
 line_colors = ['green', 'blue', 'red', 'orange', 'cyan', 'lawngreen', 'm', 'orangered','sienna', 'gold', 'violet', 'indigo', 'cornflowerblue']
 
 

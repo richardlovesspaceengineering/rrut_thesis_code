@@ -23,7 +23,6 @@ class Survival:
             # Split population
             feasible, infeasible = split_by_feasibility(cons_array, sort_infeasible_by_cv=True)
 
-            # If feasible solutions exist
             if len(feasible) == 1:
                 # Domination-based survival methods can only function with > 1 feasible solution
                 survivors = feasible

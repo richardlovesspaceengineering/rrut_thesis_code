@@ -15,7 +15,6 @@ class SupportVectorClassification(Surrogate):
         self.kernel = kernel
         self.model = SVC(C=self.C, kernel=self.kernel, probability=True)
 
-
     def _train(self):
 
         # Compute mean and std of training function values
@@ -26,6 +25,18 @@ class SupportVectorClassification(Surrogate):
         self.model.fit(self._x, self.y)
 
     def _predict(self, x):
+
+        x = np.atleast_2d(x)
+
+        # Scale input data by variable bounds
+        _x = (x - self.l_b) / (self.u_b - self.l_b)
+
+        # Predict function values & re-scale
+        y = self.model.predict(_x)
+
+        return y
+
+    def _predict_proba(self, x):
 
         x = np.atleast_2d(x)
 

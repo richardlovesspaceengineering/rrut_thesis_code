@@ -93,7 +93,7 @@ class CTAEA(EvolutionaryAlgorithm):
         self.offspring = self.mating.do(self.problem, hybrid_population, self.n_offspring)
 
         # Evaluate offspring
-        self.offspring = self.evaluator.do(self.problem.obj_func,self.problem, self.offspring, self.max_abs_con_vals)
+        self.offspring = self.evaluator.do(self.problem.obj_func, self.problem, self.offspring, self.max_abs_con_vals)
 
         # Merge the offspring with the current population
         self.population = Population.merge(self.population, self.offspring)

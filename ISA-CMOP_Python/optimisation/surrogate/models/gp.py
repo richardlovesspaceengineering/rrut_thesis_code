@@ -154,3 +154,77 @@ class GaussianProcess(Surrogate):
             model.fit(self._x[~np.in1d(np.arange(self.n_pts), self.cv_training_indices[i]), :],
                       self.y[~np.in1d(np.arange(self.n_pts), self.cv_training_indices[i])])
 
+
+class GP(object):
+    def __init__(self, n_dim, cov_type='RBF', scale_kernel=True, p_type=None, apply_noise=True,
+                 n_lml_opt_restarts=5):
+
+        self.n_dim = n_dim
+
+        self.x = np.zeros((0, self.n_dim))
+        self.y = np.zeros(self.n_dim)
+
+        # Covariance function
+        if cov_type == 'RBF':
+            cov_func = RBF(length_scale=0.5*np.ones(self.n_dim,), length_scale_bounds=(0.05, 2.0))
+        elif cov_type == 'matern_52':
+            cov_func = Matern(length_scale=0.5*np.ones(self.n_dim,), length_scale_bounds=(0.05, 2.0), nu=2.5)
+        elif cov_type == 'matern_32':
+            cov_func = Matern(length_scale=0.5*np.ones(self.n_dim,), length_scale_bounds=(0.05, 2.0), nu=1.5)
+        else:
+            cov_func = None
+            raise Exception('Undefined covariance function')
+
+        # Scale function
+        if scale_kernel:
+            scale_func = ConstantKernel(constant_value=1.0, constant_value_bounds=(0.01, 100.0))
+        else:
+            scale_func = None
+
+        # Global polynomial function
+        if p_type is not None:
+            if p_type == 'constant':
+                global_func = ConstantKernel(constant_value=0.0, constant_value_bounds=(0.05, 1e6))
+            else:
+                raise Exception('Undefined global function')
+        else:
+            global_func = None
+
+        # Noise function
+        if apply_noise:
+            noise_func = WhiteKernel(noise_level=1e-4, noise_level_bounds=(1e-6, 1e-2))
+        else:
+            noise_func = None
+
+        # Form full kernel
+        kernel = cov_func
+        if scale_func is not None:
+            kernel *= scale_func
+        if global_func is not None:
+            kernel += global_func
+        if noise_func is not None:
+            kernel += noise_func
+
+        # Model instance (pySOT)
+        self.kernel = kernel
+        self.n_lml_opt_restarts = n_lml_opt_restarts
+        self.model = GaussianProcessRegressor(kernel=self.kernel, n_restarts_optimizer=self.n_lml_opt_restarts)
+
+        self._mu = 0.0
+        self._sigma = 0.0
+
+    def fit(self, x, y):
+
+        self.x = np.array(x)
+        self.y = np.array(y)
+
+        # Train model
+        self.model.fit(self.x, self.y)
+
+    def predict(self, x):
+        _x = np.array(x)
+
+        # Predict model
+        y = self.model.predict(np.atleast_2d(_x))
+
+        return y

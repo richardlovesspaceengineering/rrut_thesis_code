@@ -99,7 +99,10 @@ class CADASurvival:
 
             # Survivors are feasible population plus required number of sorted infeasible individuals
             survival_idxs = np.concatenate(survival_idxs)
-            survivors = feasible_pop + infeasible_pop[survival_idxs]
+            if len(feasible_pop) > 0:
+                survivors = Population.merge(feasible_pop, infeasible_pop[survival_idxs])
+            else:
+                survivors = infeasible_pop[survival_idxs]
             obj_array = survivors.extract_obj()
             fronts, rank = NonDominatedSorting().do(obj_array, return_rank=True)
             # Assign ranks
@@ -197,7 +200,7 @@ class CADASurvival:
                         current_da = np.where(niche_hybrid_pop == i)[0]
                         if current_da.size > 0:
                             # Extract objective function
-                            obj_array = hybrid_pop[current_da].extract_obj()
+                            obj_array = np.atleast_2d(hybrid_pop[current_da].extract_obj())
                             nd = NonDominatedSorting().do(obj_array, only_non_dominated_front=True, n_stop_if_ranked=0)
                             # Extract best individual
                             i_best = current_da[nd[np.argmin(fv[current_da[nd]])]]

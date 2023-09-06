@@ -1,3 +1,5 @@
+import copy
+
 import numpy as np
 import multiprocess
 
@@ -35,7 +37,7 @@ class Evaluator(object):
             problem.comm.bcast(0, root=0)
 
             # Broadcast obj_func
-            obj_fun = problem.comm.bcast(obj_fun, root=0)
+            # obj_fun = problem.comm.bcast(obj_fun, root=0)  # TODO: Comment for bbob-biobj
 
             # Broadcast pop object
             pop_obj = problem.comm.bcast(pop_obj, root=0)
@@ -78,9 +80,10 @@ class Evaluator(object):
 
         # Scaling constraint values & summing them for each individual
         for idx in range(len(pop)):
-            cons_temp = pop[idx].cons
+            cons_temp = copy.deepcopy(pop[idx].cons)
             cons_temp[cons_temp <= 0.0] = 0.0
             pop[idx].cons_sum = np.sum(cons_temp/max_abs_con_vals)
+            pop[idx].cons_viol = np.amax(np.abs(cons_temp/max_abs_con_vals), axis=0)
 
         return pop
 
@@ -110,8 +113,8 @@ class Evaluator(object):
             pop_var_dict.append(pop[idx].var_dict)
 
         # Map population inputs across objective function
-        # result = problem.pool.map_async(obj_fun, pop_var_dict)
-        result = problem.pool.starmap_async(obj_fun, zip(pop_var_dict, [i for i in range(len(pop))]))
+        result = problem.pool.map_async(obj_fun, pop_var_dict)
+        # result = problem.pool.starmap_async(obj_fun, zip(pop_var_dict, [i for i in range(len(pop))]))
         temp = result.get()
 
         # Extract results
@@ -127,8 +130,7 @@ class Evaluator(object):
         # Evaluate objective function
         out = [(0, 0, 0, 0)] * np.shape(idx_arr)[0]
         for i, idx in enumerate(idx_arr):
-            # obj, cons, performance = obj_fun(pop[idx].var_dict, **kwargs)
-            obj, cons, performance = obj_fun(pop[idx].var_dict, idx=i, **kwargs)
+            obj, cons, performance = obj_fun(pop[idx].var_dict, **kwargs)
             out[i] = (idx, obj, cons, performance)
 
         return out

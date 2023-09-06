@@ -42,6 +42,7 @@ class BoundsRepair(Repair):
 class BasicBoundsRepair(BoundsRepair):
 
     def repair_out_of_bounds(self, problem, var_array, **kwargs):
+        var_array = np.atleast_2d(var_array)
 
         # Upper and lower bounds masks
         upper_mask = var_array > problem.x_upper

@@ -29,6 +29,18 @@ class Population(np.ndarray):
         else:
             raise Exception('Both a and b must be Population instances')
 
+    @classmethod
+    def merge_multiple(cls, *args):
+        base = None
+        for item in args:
+            if isinstance(item, Population):
+                if isinstance(base, Population):
+                    base = np.concatenate([base, item]).view(Population)
+                else:
+                    base = item
+
+        return base
+
     def extract_var(self):
 
         var_array = []
@@ -100,6 +112,10 @@ class Population(np.ndarray):
 
         for i in range(len(self)):
             self[i].cons = cons_array[i, :]
+
+    def assign_cons_sum(self, cons_sum_array):
+        for i in range(len(self)):
+            self[i].cons_sum = cons_sum_array[i]
 
     def assign_rank_and_crowding(self):
 

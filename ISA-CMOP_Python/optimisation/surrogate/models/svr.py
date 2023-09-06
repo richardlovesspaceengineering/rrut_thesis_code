@@ -89,3 +89,34 @@ class SupportVectorRegression(Surrogate):
                       self.y[~np.in1d(np.arange(self.n_pts), self.cv_training_indices[i])])
 
 
+class SVRModel(object):
+    def __init__(self, n_dim, kernel='rbf', c=1.0, epsilon=0.1):
+
+        self.n_dim = n_dim
+
+        self.x = np.zeros((0, self.n_dim))
+        self.y = np.zeros(self.n_dim)
+
+        self.kernel = kernel
+        # NOTE: The c parameter has a very large influence on the outcome of the SVR model - lower increases the
+        # smoothing
+        self.c = c
+        self.epsilon = epsilon
+
+        self.model = SVR(kernel=self.kernel, C=self.c, epsilon=self.epsilon)
+
+    def fit(self, x, y):
+
+        self.x = np.array(x)
+        self.y = np.array(y)
+
+        # Train model
+        self.model.fit(self.x, self.y)
+
+    def predict(self, x):
+        _x = np.array(x)
+
+        # Predict model
+        y = self.model.predict(np.atleast_2d(_x))
+
+        return y

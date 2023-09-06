@@ -41,7 +41,7 @@ class SelfAdaptiveFeasibleRatioEpsilonSurvival(Survival):
         cons_val_modified = cons_val
 
         # Feasibility ratio (fraction of population that is feasible)
-        self.r_f = np.count_nonzero((cons_val <= 0.0))/len(pop)
+        self.r_f = np.count_nonzero((cons_val <= 0.0)) / len(pop)
         if self.gen == 0:
             self.r_f_0 = self.r_f
 
@@ -100,7 +100,7 @@ class SelfAdaptiveFeasibleRatioEpsilonSurvival(Survival):
                     self.g_if = self.gen
 
             # Calculate epsilon
-            self.epsilon = self.epsilon_0*(1.0 - (self.gen - self.g_if)/(self.max_gen - self.g_if))**self.cp
+            self.epsilon = self.epsilon_0*(1.0 - (self.gen - self.g_if) / (self.max_gen - self.g_if))**self.cp
 
             # Re-classify solutions with cons_val below threshold as feasible
             cons_val_modified[cons_val_modified < self.epsilon] = 0.0
@@ -112,7 +112,9 @@ class SelfAdaptiveFeasibleRatioEpsilonSurvival(Survival):
         feasible, infeasible = split_by_feasibility(cons_val_modified, sort_infeasible_by_cv=True)
 
         # If feasible solutions exist
-        if len(feasible) > 0:
+        if len(feasible) == 1:
+            survivors = feasible
+        elif len(feasible) > 0:
             # Calculate survivors using feasible solutions
             survival_idxs = rank_by_front_and_crowding(pop[feasible], min(len(feasible), n_survive), **kwargs)
             survivors = feasible[survival_idxs]

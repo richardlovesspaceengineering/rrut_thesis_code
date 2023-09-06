@@ -15,19 +15,27 @@ class MultipleConstraintsRankingSurvival(Survival):
     Stored locally as dePaulaGarcia2017
     """
 
-    def __init__(self, filter_infeasible=False):
+    def __init__(self, filter_infeasible=False, use_generalised_mcr=False):
 
         super().__init__(filter_infeasible=filter_infeasible)
 
         self.filter_infeasible = filter_infeasible
 
+        # Generalised MCR additions
+        self.use_generalised_mcr = use_generalised_mcr
+        self.beta1 = 1
+        self.beta2 = 1
+        self.eta = 1
+        self.gamma = 1
+        self.alpha = np.array([1])
+
     def _do(self, problem, pop, n_survive, cons_val=None, gen=None, max_gen=None, **kwargs):
 
         if problem.n_con > 0:
-            # Extract the total constraint violation from the population
-            cons_array = pop.extract_cons_sum()
-            cons_pos = cons_array
-            cons_pos[cons_pos <= 0.0] = 0.0
+            # # Extract the total constraint violation from the population
+            # cons_array = pop.extract_cons_sum()
+            # cons_pos = cons_array
+            # cons_pos[cons_pos <= 0.0] = 0.0
 
             # Extract the constraint values from the population
             cons_values = pop.extract_cons()
@@ -53,19 +61,28 @@ class MultipleConstraintsRankingSurvival(Survival):
             nr_violated_cons_fronts = NonDominatedSorting().do(nr_cons_violated.reshape((len(pop), 1)), n_stop_if_ranked=len(pop))
             rank_nr_violated_cons = self.rank_front_only(nr_violated_cons_fronts, (len(pop)))
 
+            # Modify standard G-MCR coefficients if specified
+            if self.use_generalised_mcr:
+                zeta = feasible_fraction
+                self.beta1 = np.sqrt(1 - (zeta - 1) ** 2)
+                self.beta2 = 1 - self.beta1
+                self.alpha = nr_cons_violated / len(pop)
+                self.eta = 0
+                self.gamma = 1 / np.sum(self.alpha)
+
             # Conduct ranking for each constraint
             rank_for_cons = np.zeros(cons_values.shape)
             for cntr in range(problem.n_con):
                 cons_to_be_ranked = cons_values[:, cntr]
                 fronts_to_be_ranked = NonDominatedSorting().do(cons_to_be_ranked.reshape((len(pop), 1)), n_stop_if_ranked=len(pop))
                 rank_for_cons[:, cntr] = self.rank_front_only(fronts_to_be_ranked, (len(pop)))
-            rank_constraints = np.sum(rank_for_cons, axis=1)
+            rank_constraints = np.sum(self.alpha[:, None] * rank_for_cons, axis=1)
 
             # Create the fitness function for the final ranking
             if feasible_fraction == 0.0:
-                fitness_for_ranking = rank_constraints + rank_nr_violated_cons
-            else:
-                fitness_for_ranking = rank_constraints + rank_nr_violated_cons + rank_objective_value
+                self.beta1 = 0.0
+            fitness_for_ranking = self.beta1 * rank_objective_value + \
+                                  self.beta2 * (self.eta * rank_nr_violated_cons + self.gamma * rank_constraints)
 
         else:
             warnings.warn('you should not use this selection method if your problem is not constrained')

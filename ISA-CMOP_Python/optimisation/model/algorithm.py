@@ -4,6 +4,11 @@ import copy
 
 import os
 from optimisation.model.evaluator import Evaluator
+from optimisation.output.benchmark_plot import benchmark_plot_function
+from optimisation.output.data_output import data_to_file
+
+import matplotlib
+# matplotlib.use('TkAgg')
 
 
 class Algorithm:
@@ -85,6 +90,12 @@ class Algorithm:
             _print = True
         self.print = _print
 
+        ## MY CHANGES
+        if 'save_results' in kwargs:
+            self.save_results = kwargs['save_results']
+        else:
+            self.save_results = False
+
     def setup(self,
               problem,
               seed=None,
@@ -96,6 +107,13 @@ class Algorithm:
 
         # Problem
         self.problem = problem
+
+        ## ## STORING OPTIMUM VALUE
+        self.opt_var = np.zeros((0, self.problem.n_var))
+        self.opt_hist = np.zeros((0, self.problem.n_obj + self.problem.n_con))
+        self.old_opt = None
+        self.opt_count = np.array([0.0])
+        self.benchmark_plot = data_to_file  # benchmark_plot_function
 
         # Evaluation
         if evaluator is None:
@@ -134,6 +152,9 @@ class Algorithm:
             # Complete the next iteration
             self._next()
             self.each_iteration()
+
+        ## TODO: run real func for final budget
+        # self._finalise()
 
         # Finalise & post-process
         self.finalise()
@@ -176,11 +197,14 @@ class Algorithm:
                 print('====================')
                 print('n_gen\t|\t n_eval')
                 print('====================')
+
+                # ## Keep track of old optimum
+                # self.old_opt = copy.deepcopy(self.opt)
             else:
                 print('%d\t\t|\t %d' % (self.n_gen, self.evaluator.n_eval))
+                self.opt_count = np.hstack((self.opt_count, np.array([self.evaluator.n_eval])))
 
         if self.save_history:
-
             # Append current population to history
             self.history.append(copy.deepcopy(self.population))
 
@@ -208,12 +232,15 @@ class Algorithm:
 
     def finalise(self):
 
-        if self.plot and self.problem.n_obj > 1:
+        if self.plot and self.problem.n_obj >= 1:
             self.plot_results()
-        if self.problem.n_obj == 1:
-            self.print_results()
+        if self.save_results:
+            # pass
+            self.benchmark_plot(self)
+            # self.print_results()
 
         if self.save_history:
+            # pass
             # Write history
             self.write_history(write_format='ab')
 
@@ -252,13 +279,18 @@ class Algorithm:
 
     def write_history(self, write_format):
 
-        # Serialise population history
+        # Output save name
+        if self.save_name is None:
+            output_name = self.problem.name
+        else:
+            output_name = f"{self.problem.name}_{self.save_name}"
 
+        # Serialise population history
         directory = os.path.dirname('./results/')
         if not os.path.exists(directory):
             os.makedirs(directory)
 
-        with open('./results/optimisation_history_' + self.problem.name + '.pkl', 'wb') as f:
+        with open('./results/optimisation_history_' + output_name + '.pkl', 'wb') as f:
             pickle.dump(self.history, f, pickle.HIGHEST_PROTOCOL)
 
         # Extract variable, objective & constraint arrays from population
@@ -267,60 +299,44 @@ class Algorithm:
         cons_array = self.population.extract_cons()
 
         # Save variable history
-        with open('./results/var_history_' + self.problem.name + '.txt', write_format) as f:
+        with open('./results/var_history_' + output_name + '.txt', write_format) as f:
             temp = np.hstack((var_array, self.n_gen * np.ones((self.n_population, 1))))
             np.savetxt(f, temp, fmt=['%.16f'] * self.problem.n_var + ['%d'])
 
         # Save objective history
-        with open('./results/obj_history_' + self.problem.name + '.txt', write_format) as f:
+        with open('./results/obj_history_' + output_name + '.txt', write_format) as f:
             temp = np.hstack((obj_array, self.n_gen * np.ones((self.n_population, 1))))
             np.savetxt(f, temp, fmt=['%.16f'] * self.problem.n_obj + ['%d'])
 
         # Save constraint history
         if self.problem.n_con > 0:
-            with open('./results/cons_history_' + self.problem.name + '.txt', write_format) as f:
+            with open('./results/cons_history_' + output_name + '.txt', write_format) as f:
                 temp = np.hstack((cons_array, self.n_gen * np.ones((self.n_population, 1))))
                 np.savetxt(f, temp, fmt=['%.16f'] * self.problem.n_con + ['%d'])
 
     def plot_results(self):
-
+        # Juan add ons
         pareto_front = None
-        if self.problem.name[:17] == 'test_problem_' + 'zdt2':
-            x = np.linspace(0, 1, 100)
-            pareto_front = np.array([x, 1.0 - x ** 2.0]).T
-        elif self.problem.name[:17] == 'test_problem_' + 'zdt1':
-            x = np.linspace(0, 1, 100)
-            pareto_front = np.array([x, 1.0 - x ** 0.5]).T
-
-        ## Juan add ons
-        if 'ZDT' in self.problem.name:
-            pareto_front = self.problem.variables['x_vars'][0].f_opt
-        elif 'DTLZ' in self.problem.name:
-            pareto_front = self.problem.variables['x_vars'][0].f_opt
-        elif 'MW' in self.problem.name:
-            pareto_front = self.problem.variables['x_vars'][0].f_opt
-        elif 'WFG' in self.problem.name:
-            pareto_front = self.problem.variables['x_vars'][0].f_opt
-        elif 'DASCMOP' in self.problem.name:
-            pareto_front = self.problem.variables['x_vars'][0].f_opt
-        elif 'LSMOP' in self.problem.name:
-            pareto_front = self.problem.variables['x_vars'][0].f_opt
-        elif 'LIRCMOP' in self.problem.name:
-            pareto_front = self.problem.variables['x_vars'][0].f_opt
-        elif 'LYO' in self.problem.name:
-            pareto_front = self.problem.variables['x_vars'][0].f_opt
+        accepted_problems = ['ZDT', 'DTLZ', 'MW', 'WFG', 'DASCMOP', 'LSMOP', 'LIRCMOP', 'LYO', 'biobj', 'modact']
+        if any(name.lower() in self.problem.name.lower() for name in accepted_problems):
+            pareto_front = self.problem.pareto_set
 
         pop = self.population
         pop_obj_arr = pop.extract_obj()
+        pop_obj_arr = np.atleast_2d(pop_obj_arr)
+
+        if pareto_front is not None:
+            pareto_front_arr = pareto_front.extract_obj()
+            pareto_front_arr = np.atleast_2d(pareto_front_arr)
 
         import matplotlib
         import matplotlib.pyplot as plt
 
         if self.problem.n_obj == 2:
             fig, ax = plt.subplots()
-            ax.scatter(pop_obj_arr[:, 0], pop_obj_arr[:, 1], facecolor='C0', alpha=0.5, label='Final population')
             if pareto_front is not None:
-                ax.scatter(pareto_front[:, 0], pareto_front[:, 1], color='C1', alpha=0.8, label='Pareto front')
+                ax.scatter(pareto_front_arr[:, 0], pareto_front_arr[:, 1], color='C1', alpha=0.8, label='Pareto front')
+            ax.scatter(pop_obj_arr[:, 0], pop_obj_arr[:, 1], facecolor='C0', alpha=0.5, label='Final population')
             ax.set_xlabel('f_0')
             ax.set_ylabel('f_1')
             ax.grid(True)
@@ -328,9 +344,9 @@ class Algorithm:
         elif self.problem.n_obj == 3:
             fig = plt.figure()
             ax = plt.axes(projection='3d')
-            ax.scatter3D(pop_obj_arr[:, 0], pop_obj_arr[:, 1], pop_obj_arr[:, 2], facecolor='C0', alpha=0.5, label='Final population')
             if pareto_front is not None:
-                ax.scatter3D(pareto_front[:, 0], pareto_front[:, 1], pareto_front[:, 2], alpha=0.8, color='C1', label='Pareto front')
+                ax.scatter3D(pareto_front_arr[:, 0], pareto_front_arr[:, 1], pareto_front_arr[:, 2], alpha=0.2, color='C1', label='Pareto front')
+            ax.scatter3D(pop_obj_arr[:, 0], pop_obj_arr[:, 1], pop_obj_arr[:, 2], facecolor='C0', alpha=0.8, label='Final population')
             ax.set_xlabel('f_0')
             ax.set_ylabel('f_1')
             ax.set_zlabel('f_2')
@@ -354,7 +370,6 @@ class Algorithm:
 
         plt.show()
         plt.close()
-
 
     def print_results(self):
 

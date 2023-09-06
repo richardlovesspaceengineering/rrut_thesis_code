@@ -28,22 +28,31 @@ class AdaptiveSampling(object):
         NOTE: Constraints are ignored because to improve the fit of each surrogate, infeasible regions of those
         surrogates may need more data to improve the fit overall """
 
-        # Setup instance
-        setup = AdaptiveSamplingSetup(models=models, alpha=alpha, cons_models=cons_models,
-                                      use_constraints=use_constraints)
+         # Setup instance
+        setup = AdaptiveSamplingSetup(models=models, alpha=self.alpha, cons_models=cons_models,
+                                      use_constraints=use_constraints, weight=weight)
 
         # Problem instance
         if self.acquisition_criteria == 'lcb':
-            opt_prob = Problem('adaptive_sampling', obj_func=setup.lcb_func, map_internally=True,
+            opt_prob = Problem('adaptive_sampling', obj_func=setup.lcb_func, map_internally=False,
                                n_processors=n_processors)
         elif self.acquisition_criteria == 'normalised_lcb':
-            opt_prob = Problem('adaptive_sampling', obj_func=setup.normalised_lcb_func, map_internally=True,
+            opt_prob = Problem('adaptive_sampling', obj_func=setup.normalised_lcb_func, map_internally=False,
                                n_processors=n_processors)
         elif self.acquisition_criteria == 'idw':
-            opt_prob = Problem('adaptive_sampling', obj_func=setup.idw_func, map_internally=True,
+            opt_prob = Problem('adaptive_sampling', obj_func=setup.idw_func, map_internally=False,
                                n_processors=n_processors)
         elif self.acquisition_criteria == 'ei':
             opt_prob = Problem('adaptive_sampling', obj_func=setup.ei_func, map_internally=False,
+                               n_processors=1)
+        elif self.acquisition_criteria == 'mwee':
+            opt_prob = Problem('adaptive_sampling', obj_func=setup.wee_func, map_internally=False,
+                               n_processors=1)
+        elif self.acquisition_criteria == 'wb2s':
+            opt_prob = Problem('adaptive_sampling', obj_func=setup.wb2s_func, map_internally=False,
+                               n_processors=1)
+        elif self.acquisition_criteria == 'wei':
+            opt_prob = Problem('adaptive_sampling', obj_func=setup.wei_func, map_internally=False,
                                n_processors=1)
         else:
             opt_prob = None
@@ -84,7 +93,7 @@ class AdaptiveSampling(object):
 
 class AdaptiveSamplingSetup(Setup):
 
-    def __init__(self, models, alpha=0.5, delta=2, ksi=0.01, use_iqr=False, cons_models=None, use_constraints=False):
+    def __init__(self, models, alpha=0.5, delta=2, ksi=0.01, weight=0, wei_weight=0.186,  use_iqr=False, cons_models=None, use_constraints=False):
         super().__init__()
         self.models = models
         self.cons_models = cons_models
@@ -92,6 +101,8 @@ class AdaptiveSamplingSetup(Setup):
         self.alpha = alpha
         self.delta = delta
         self.ksi = ksi
+        self.weight = weight
+        self.wei_weight = wei_weight
 
         self.use_iqr = use_iqr
         self.use_constraints = use_constraints
@@ -207,6 +218,49 @@ class AdaptiveSamplingSetup(Setup):
         performance = None
 
         return obj, cons, performance
+
+    def wee_func(self, x_dict):
+        # Form design vector from input dict
+        x = x_dict['x_vars']
+        x = x.astype(np.float32)
+
+        # Calculating objective function values
+        obj = np.zeros(len(self.models))
+        for i, model in enumerate(self.models):
+            obj[i] = model.predict_wee(x, weight=self.weight)
+
+        if self.cons_models is not None and self.use_constraints:
+            cons = np.ones(len(self.cons_models))
+            for i, model in enumerate(self.cons_models):
+                cons[i] = model.predict(x)
+        else:
+            cons = None
+
+        performance = None
+
+        return obj, cons, performance
+
+    def wb2s_func(self, x_dict):
+        # Form design vector from input dict
+        x = x_dict['x_vars']
+        x = x.astype(np.float32)
+
+        # Calculating objective function values
+        obj = np.zeros(len(self.models))
+        for i, model in enumerate(self.models):
+            obj[i] = model.predict_wb2s(x, weight=self.scale)
+
+        if self.cons_models is not None and self.use_constraints:
+            cons = np.ones(len(self.cons_models))
+            for i, model in enumerate(self.cons_models):
+                cons[i] = model.predict(x)
+        else:
+            cons = None
+
+        performance = None
+
+        return obj, cons, performance
+
 
 
 def extract_var_groups(vars):

@@ -10,7 +10,7 @@ from optimisation.model.surrogate import Surrogate
 
 class BaggingRegression(Surrogate):
 
-    def __init__(self, n_dim, l_b, u_b, base_estimator=SVR(), n_estimators=10, random_state=42, **kwargs):
+    def __init__(self, n_dim, l_b, u_b, base_estimator=None, n_estimators=10, random_state=42, **kwargs):
 
         super().__init__(n_dim=n_dim, l_b=l_b, u_b=u_b, **kwargs)
 
@@ -19,7 +19,6 @@ class BaggingRegression(Surrogate):
         self.base_estimator = base_estimator
         self.n_estimators = n_estimators
         self.random_state = random_state
-
 
         self.model = BaggingRegressor(base_estimator=self.base_estimator, n_estimators=self.n_estimators,
                                       random_state=self.random_state)

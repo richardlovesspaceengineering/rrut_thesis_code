@@ -23,13 +23,16 @@ class ReferenceDirectionSurvival(Survival):
         obj_array = pop.extract_obj()
 
         # Calculate the Pareto fronts from the population
-        fronts, rank = NonDominatedSorting().do(obj_array, cons_val=cons_val, return_rank=True, n_stop_if_ranked=n_survive)
+        fronts, rank = NonDominatedSorting(domination='pareto').do(obj_array, cons_val=cons_val, return_rank=True, n_stop_if_ranked=n_survive)
         non_dominated, last_front = fronts[0], fronts[-1]
 
         # Update the hyperplane based boundary estimation
-        hyp_norm = self.norm
-        hyp_norm.update(obj_array, nds=non_dominated)
-        ideal, nadir = hyp_norm.ideal_point, hyp_norm.nadir_point
+        if 'ideal' in kwargs and 'nadir' in kwargs:
+            ideal, nadir = kwargs['ideal'], kwargs['nadir']
+        else:
+            hyp_norm = self.norm
+            hyp_norm.update(obj_array, nds=non_dominated)
+            ideal, nadir = hyp_norm.ideal_point, hyp_norm.nadir_point
 
         # Consider the whole population
         idxs = np.concatenate(fronts)

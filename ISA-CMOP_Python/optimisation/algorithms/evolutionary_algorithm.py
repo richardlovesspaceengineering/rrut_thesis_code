@@ -20,6 +20,7 @@ class EvolutionaryAlgorithm(Algorithm):
                  eliminate_duplicates=DefaultDuplicateElimination(),
                  mating=None,
                  surrogate=None,
+                 n_infill_criteria=None,
                  **kwargs):
 
         super().__init__(**kwargs)
@@ -31,6 +32,9 @@ class EvolutionaryAlgorithm(Algorithm):
         if n_offspring is None:
             n_offspring = self.n_population
         self.n_offspring = n_offspring
+
+        ## ADD n of infill criteria
+        self.n_infill_criteria = n_infill_criteria
 
         # Generation parameters
         self.max_f_eval = (self.max_gen+1)*self.n_population
@@ -78,7 +82,7 @@ class EvolutionaryAlgorithm(Algorithm):
                 self.surrogate.initialise(self.problem, self.sampling)
 
             # Compute sampling
-            self.sampling.do(self.n_population, self.problem.x_lower, self.problem.x_upper)
+            self.sampling.do(self.n_population, self.problem.x_lower, self.problem.x_upper, seed=self.seed) #, seed=self.surrogate.sampling_seed)
 
             # Assign sampled design variables to population
             self.population.assign_var(self.problem, self.sampling.x)
@@ -105,7 +109,10 @@ class EvolutionaryAlgorithm(Algorithm):
         self.population.assign_rank_and_crowding()
 
         # Update optimum
-        opt = RankAndCrowdingSurvival().do(self.problem, self.population, 1, None, None)
+        if self.surrogate is not None:
+            opt = RankAndCrowdingSurvival().do(self.problem, self.surrogate.population, 1, None, None)
+        else:
+            opt = RankAndCrowdingSurvival().do(self.problem, self.population, 1, None, None)
         self.opt = opt[0]
 
     def _next(self):
@@ -140,6 +147,9 @@ class EvolutionaryAlgorithm(Algorithm):
         self.population.assign_rank_and_crowding()
 
         # Update optimum
-        opt = RankAndCrowdingSurvival().do(self.problem, self.population, 1, None, None)
+        if self.surrogate is not None:
+            opt = RankAndCrowdingSurvival().do(self.problem, self.surrogate.population, 1, None, None)
+        else:
+            opt = RankAndCrowdingSurvival().do(self.problem, self.population, 1, None, None)
         self.opt = opt[0]
 

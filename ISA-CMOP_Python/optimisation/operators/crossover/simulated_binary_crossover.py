@@ -47,7 +47,6 @@ class SimulatedBinaryCrossover(Crossover):
         beta = 1.0 + (2.0*(y_1 - x_l)/delta)
         beta_q = self.calculate_beta_q(beta, rand)
         c_1 = 0.5*((y_1 + y_2) - beta_q*delta)
-
         beta = 1.0 + (2.0*(x_u - y_2)/delta)
         beta_q = self.calculate_beta_q(beta, rand)
         c_2 = 0.5*((y_1 + y_2) + beta_q*delta)

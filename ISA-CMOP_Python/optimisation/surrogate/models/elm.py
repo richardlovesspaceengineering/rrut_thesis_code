@@ -18,12 +18,22 @@ from optimisation.model.surrogate import Surrogate
 
 class ELMRegression(Surrogate):
 
-    def __init__(self, n_dim, l_b, u_b, alpha=1e-07, **kwargs):
+    def __init__(self, n_dim, l_b, u_b, alpha=1e-07, kernel='tanh', n_neurons=None, **kwargs):
 
         super().__init__(n_dim=n_dim, l_b=l_b, u_b=u_b, **kwargs)
 
+        if n_neurons is None:
+            self.n_neurons = n_dim
+        else:
+            self.n_neurons = n_neurons
+
+        if kernel not in ['tanh', 'sigm', 'relu', 'lin']:
+            raise Exception('Undefined transformation function')
+        else:
+            self.ufunc = kernel
+
         self.alpha = alpha
-        self.model = ELMRegressor(alpha=self.alpha)
+        self.model = ELMRegressor(alpha=self.alpha, ufunc=self.ufunc, n_neurons=self.n_neurons)
 
     def _train(self):
 

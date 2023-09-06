@@ -1,8 +1,10 @@
 import numpy as np
 
-
 from optimisation.model.surrogate import Surrogate
 from optimisation.surrogate.models.rbf import RBF
+from optimisation.surrogate.models.mars import MARSRegression
+from optimisation.surrogate.models.svr import SupportVectorRegression
+
 
 class EnsembleSurrogate(Surrogate):
     def __init__(self, n_dim, l_b, u_b, c=0.5, p_type='linear', kernel_types=None, **kwargs):
@@ -14,9 +16,13 @@ class EnsembleSurrogate(Surrogate):
         # TODO: expand beyond RBF's
 
         if kernel_types is None:
+            # self.kernel_types = ["gaussian", "cubic", "multiquadratic", "inverse_multiquadratic",
+            #            "matern_32", "matern_52",  # "exp",#"periodic",
+            #            "matern_12"]
             self.kernel_types = ["gaussian", "cubic", "multiquadratic", "inverse_multiquadratic",
-                       "matern_32", "matern_52",  # "exp",#"periodic",
-                       "matern_12"]
+                                 "matern_32", "matern_52", "thin_plate_spline",
+                                 "matern_12"]
+            # self.kernel_types = ["gaussian", "cubic",  "thin_plate_spline", "linear", "matern_52"]
         else:
             self.kernel_types = kernel_types
         self.c = c
@@ -26,25 +32,37 @@ class EnsembleSurrogate(Surrogate):
         k = len(self.kernel_types)
         ensemble = [RBF(n_dim=n_dim, c=self.c, p_type=self.p_type, kernel_type=self.kernel_types[j]) for j in range(k)]
 
-        self.model = ensemble
+        # extra_model = MARSRegression(n_dim=n_dim, l_b=l_b,u_b=u_b, max_terms=5*n_dim, max_degree=3)
+        # # extra_model.x = self.x
+        # # extra_model.y = self.y
+        # ensemble.append(extra_model)
 
+        # newer_model = SupportVectorRegression(n_dim=n_dim,l_b=l_b, u_b=u_b, kernel='rbf', c=1, epsilon=0.1)
+        # ensemble.append(newer_model)
+
+        self.model = ensemble
 
     def _train(self):
 
         # Compute mean and std of training function values
-        self._mu = np.mean(self.y)
+        # self._mu = np.mean(self.y)
+        self._mu = np.median(self.y)
         self._sigma = max([np.std(self.y), 1e-6])
 
         # Scale training data by variable bounds
-        self._x = (self.x - self.l_b)/(self.u_b - self.l_b)
+        self._x = (self.x - self.l_b) / (self.u_b - self.l_b)
 
         for i, model in enumerate(self.model):
-            if model.p_type is None:
-                # Normalise function values
-                _y = self.y - self._mu
+            if isinstance(model, RBF):
+                if model.p_type is None:
+                    # Normalise function values
+                    _y = self.y - self._mu
 
-                # Train model
-                model.fit(self._x, _y)
+                    # Train model
+                    model.fit(self._x, _y)
+                else:
+                    # Train model
+                    model.fit(self._x, self.y)
             else:
                 # Train model
                 model.fit(self._x, self.y)
@@ -54,14 +72,19 @@ class EnsembleSurrogate(Surrogate):
         _x = (x - self.l_b) / (self.u_b - self.l_b)
 
         for i, model in enumerate(self.model):
-            if model.p_type is None:
-                # Train model
-                y[i] = model.predict(_x) + self._mu
+            if isinstance(model, RBF):
+                if model.p_type is None:
+                    # Train model
+                    y[i] = model.predict(_x) + self._mu
+                else:
+                    # Train model
+                    y[i] = model.predict(_x)
             else:
                 # Train model
-                y[i] = model.predict(_x)
+                y[i] = model._predict(_x)
 
-        y_mean = np.mean(y)
+        # y_mean = np.mean(y)
+        y_mean = np.median(y)
         return y_mean
 
     def _predict_model(self, x, model):
@@ -77,13 +100,16 @@ class EnsembleSurrogate(Surrogate):
 
         # Predict function values & re-scale
         # Predict function values
-        y = np.zeros((_x.shape[0],1))
+        y = np.zeros((_x.shape[0], 1))
         for cntr in range(_x.shape[0]):
-            _xtemp = _x[cntr,:]
-            if model.p_type is None:
-                y[cntr] = model.predict(_xtemp) + self._mu
+            _xtemp = _x[cntr, :]
+            if isinstance(model, RBF):
+                if model.p_type is None:
+                    y[cntr] = model.predict(_xtemp) + self._mu
+                else:
+                    y[cntr] = model.predict(_xtemp)
             else:
-                y[cntr] = model.predict(_xtemp)
+                y[cntr] = model._predict(_xtemp)
 
         if len(x.shape) > 2:
             y = y.reshape(x.shape[0], x.shape[1])
@@ -99,11 +125,15 @@ class EnsembleSurrogate(Surrogate):
         _x = (x - self.l_b) / (self.u_b - self.l_b)
 
         # Predict function values
-        if model.p_type is None:
-            _mu = np.mean(model_y)
-            y = model.predict(_x) + _mu
+        if isinstance(model, RBF):
+            if model.p_type is None:
+                # _mu = np.mean(model_y)
+                _mu = np.median(model_y)
+                y = model.predict(_x) + _mu
+            else:
+                y = model.predict(_x)
         else:
-            y = model.predict(_x)
+            y = model._predict(_x)
 
         return y
 
@@ -112,7 +142,8 @@ class EnsembleSurrogate(Surrogate):
         for i, model in enumerate(self.model):
             y[i] = self._predict_model(x, model)
 
-        y_mean = np.mean(y)
+        # y_mean = np.mean(y)
+        y_mean = np.median(y)
         y_std = np.std(y)
         return y_mean, y_std, y
 
@@ -124,7 +155,14 @@ class EnsembleSurrogate(Surrogate):
         y_std = np.std(y)
         if model.p_type is None:
             y_std *= self._sigma
-        return y_std**2
+        return y_std ** 2
+
+    def _predict_median(self, x):
+        y = np.zeros(len(self.model))
+        for i, model in enumerate(self.model):
+            y[i] = self._predict_model(x, model)
+
+        return y
 
     def update_cv_models(self):
 

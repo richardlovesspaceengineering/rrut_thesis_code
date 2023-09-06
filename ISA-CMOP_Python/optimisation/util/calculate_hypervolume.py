@@ -2,8 +2,10 @@ import numpy as np
 
 from optimisation.util.misc import find_duplicates
 
+from pygmo import hypervolume as hvv
 
-def calculate_hypervolume(obj, filter_out_duplicates=True):
+
+def calculate_hypervolume(obj, nadir=None, filter_out_duplicates=True):
 
     # Extracting size of passed population and number of objective functions
     n_points, n_obj = obj.shape
@@ -24,9 +26,12 @@ def calculate_hypervolume(obj, filter_out_duplicates=True):
         _obj = obj[is_unique]
 
         # Calculate nadir point (the worst objective function value in each of the dimensions)
-        nadir_pt = np.array([np.max(obj[:, i]) for i in range(n_obj)])
-        # Calculate reference point (minimisation is assumed here) - shifted to a slightly worse location than nadir pt
-        ref_pt = nadir_pt + np.ones(len(nadir_pt))
+        if nadir is None:
+            nadir_pt = np.array([np.max(obj[:, i]) for i in range(n_obj)])
+            # Calculate reference point (minimisation is assumed here) - shifted to a slightly worse location than nadir pt
+            ref_pt = nadir_pt + np.ones(len(nadir_pt))
+        else:
+            ref_pt = nadir
 
         # Delta S-metric (delta hypervolume measure)
         _delta_s = np.zeros(len(_obj))
@@ -55,4 +60,12 @@ def calculate_hypervolume(obj, filter_out_duplicates=True):
         delta_s[is_unique] = _delta_s
 
     return delta_s
+
+
+def calculate_hypervolume_pygmo(obj_arr, nadir):
+
+    hv = hvv(obj_arr)
+    contribution = hv.compute(nadir)
+
+    return contribution
 

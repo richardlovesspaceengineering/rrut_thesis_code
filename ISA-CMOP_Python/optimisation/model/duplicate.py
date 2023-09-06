@@ -66,7 +66,7 @@ class DefaultDuplicateElimination(DuplicateElimination):
 
     def calc_dist(self, pop, other=None):
 
-        pop_var = pop.extract_var()
+        pop_var = np.atleast_2d(pop.extract_var())
 
         if other is None:
             dist = scipy.spatial.distance.cdist(pop_var, pop_var)

@@ -2,12 +2,22 @@ import numpy as np
 
 from optimisation.util import dominator
 
+from optimisation.cython import cython_loader
 
-class NonDominatedSorting(object):
 
+class FastNonDominatedSorting(object):
     def __init__(self, method='fast_non_dominated_sort'):
 
         self.method = method
+        self.func = cython_loader(self.method)
+
+
+class NonDominatedSorting(object):
+
+    def __init__(self, method='fast_non_dominated_sort', domination='pareto'):
+
+        self.method = method
+        self.domination = domination
 
     def do(self, obj_val, cons_val=None, return_rank=False, only_non_dominated_front=False, n_stop_if_ranked=None):
 
@@ -19,8 +29,11 @@ class NonDominatedSorting(object):
         if n_stop_if_ranked is None:
             n_stop_if_ranked = int(1e8)
 
+        # Ensure obj_val is two-dimensional array
+        obj_val = np.atleast_2d(obj_val)
+
         # Calculate each front using fast non-dominated sort
-        fronts = func(obj_val, cons_val)
+        fronts = func(obj_val, cons_val, first_front_only=only_non_dominated_front)
 
         # Convert each front to a numpy array, and filter by n_stop_if_ranked if desired
         _fronts = []
@@ -51,11 +64,11 @@ class NonDominatedSorting(object):
 
         return fronts
 
-    @staticmethod
-    def fast_non_dominated_sort(obj_val, cons_val=None):
+    # @staticmethod
+    def fast_non_dominated_sort(self, obj_val, cons_val=None, first_front_only=False):
 
         # Calculate domination matrix
-        m = dominator.calculate_domination_matrix(obj_val, cons_val)
+        m = dominator.calculate_domination_matrix(obj_val, cons_val, domination_type=self.domination)
 
         # Domination matrix shape
         n = m.shape[0]
@@ -72,7 +85,7 @@ class NonDominatedSorting(object):
         ranked = np.zeros(n, dtype=np.int)
 
         # For each individual, create a list of all individuals dominated by that particular individual
-        is_dominating = [[] for idx in range(n)]
+        is_dominating = [[] for _ in range(n)]
 
         # Storing number of solutions dominated by each individual
         n_dominated = np.zeros(n)
@@ -95,6 +108,10 @@ class NonDominatedSorting(object):
 
         # Append the first front to the current front
         fronts.append(current_front)
+
+        # If only first front is requested, return
+        if first_front_only:
+            return fronts
 
         # While not all solutions are assigned to a Pareto front
         while n_ranked < n:

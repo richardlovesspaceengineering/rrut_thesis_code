@@ -23,7 +23,7 @@ class RadialBasisFunctions(Surrogate):
         self._sigma = max([np.std(self.y), 1e-6])
 
         # Scale training data by variable bounds
-        self._x = (self.x - self.l_b)/(self.u_b - self.l_b)
+        self._x = (self.x - self.l_b) / (self.u_b - self.l_b)
 
         if self.model.p_type is None:
             # Normalise function values
@@ -49,9 +49,9 @@ class RadialBasisFunctions(Surrogate):
 
         # Predict function values & re-scale
         # Predict function values
-        y = np.zeros((_x.shape[0],1))
+        y = np.zeros((_x.shape[0], 1))
         for cntr in range(_x.shape[0]):
-            _xtemp = _x[cntr,:]
+            _xtemp = _x[cntr, :]
             if self.model.p_type is None:
                 y[cntr] = self.model.predict(_xtemp) + self._mu
             else:
@@ -86,7 +86,8 @@ class RadialBasisFunctions(Surrogate):
 
         # k-fold LSO cross-validation indices
         random_state = np.random.default_rng()
-        self.cv_training_indices = np.array_split(random_state.choice(self.n_pts, size=self.n_pts, replace=False), self.cv_k)
+        self.cv_training_indices = np.array_split(random_state.choice(self.n_pts, size=self.n_pts, replace=False),
+                                                  self.cv_k)
         self.cv_models = [RBF(n_dim=self.n_dim, c=self.c, p_type='linear') for _ in range(self.cv_k)]
 
         # Training each of the cross-validation models
@@ -137,6 +138,8 @@ class RBF(object):
             self.psi = self.gaussian_basis(dist)
         elif self.kernel_type.lower() == 'cubic':
             self.psi = self.cubic_basis(dist)
+        elif self.kernel_type.lower() == 'mod_cubic':
+            self.psi = self.modified_cubic_basis(dist)
         elif self.kernel_type.lower() == 'linear':
             self.psi = self.linear_basis(dist)
         elif self.kernel_type.lower() == 'tps':
@@ -155,6 +158,12 @@ class RBF(object):
             self.psi = self.exponential_basis(dist)
         elif self.kernel_type.lower() == 'periodic':
             self.psi = self.periodic_basis(dist)
+        elif self.kernel_type.lower() == 'logistic':
+            self.psi = self.logistic_basis(dist)
+        elif self.kernel_type.lower() == 'hyperbolic_tangent_sigmoid':
+            self.psi = self.hyperbolic_tangent_sigmoid_basis(dist)
+        elif self.kernel_type.lower() == 'cauchy':
+            self.psi = self.cauchy_basis(dist)
         else:
             self.psi = self.gaussian_basis(dist)
 
@@ -185,7 +194,6 @@ class RBF(object):
             self.w_p = x[len(self.x):]
 
     def predict(self, x):
-
         x = np.array(x)
 
         # Compute influence matrix of RBF from training points to sample point
@@ -194,6 +202,8 @@ class RBF(object):
             psi = self.gaussian_basis(dist)
         elif self.kernel_type.lower() == 'cubic':
             psi = self.cubic_basis(dist)
+        elif self.kernel_type.lower() == 'mod_cubic':
+            psi = self.modified_cubic_basis(dist)
         elif self.kernel_type.lower() == 'linear':
             psi = self.linear_basis(dist)
         elif self.kernel_type.lower() == 'tps':
@@ -212,8 +222,15 @@ class RBF(object):
             psi = self.exponential_basis(dist)
         elif self.kernel_type.lower() == 'periodic':
             psi = self.periodic_basis(dist)
+        elif self.kernel_type.lower() == 'logistic':
+            psi = self.logistic_basis(dist)
+        elif self.kernel_type.lower() == 'hyperbolic_tangent_sigmoid':
+            psi = self.hyperbolic_tangent_sigmoid_basis(dist)
+        elif self.kernel_type.lower() == 'cauchy':
+            psi = self.cauchy_basis(dist)
         else:
             psi = self.gaussian_basis(dist)
+
         # Compute function output at sample point
         if self.p_type is None:
             y = np.dot(psi, self.w)
@@ -231,38 +248,34 @@ class RBF(object):
         return y
 
     def gaussian_basis(self, dist):
-
         # Gaussian kernel
-        return np.exp(-self.c*dist**2.0)
+        return np.exp(-self.c * dist ** 2.0)
 
     def linear_basis(self, dist):
-
         # Linear kernel
         return dist
 
     def cubic_basis(self, dist):
-
         # Cubic kernel
-        return dist**3.0
+        return dist ** 3.0
+
+    def modified_cubic_basis(self, dist):
+        return (self.c * dist) ** 3.0
 
     def thin_plate_spline_basis(self, dist):
-
         # Thin plate spline kernel
-        phi = dist**2.0*np.log(self.c*dist, where=dist != 0)
+        phi = dist ** 2.0 * np.log(self.c * dist, where=dist != 0)
         return np.nan_to_num(phi)
 
     def multiquadratic_basis(self, dist):
-
         # Multiquadratic kernel
-        return np.sqrt(dist**2.0 + self.c**2.0)
+        return np.sqrt(dist ** 2.0 + self.c ** 2.0)
 
     def inverse_multiquadratic_basis(self, dist):
-
         # Inverse multiquadratic kernel
-        return 1.0/np.sqrt(dist ** 2.0 + self.c ** 2.0)
+        return 1.0 / np.sqrt(dist ** 2.0 + self.c ** 2.0)
 
     def matern3_2_basis(self, dist):
-
         # Matern 3/2 kernel
         exp_component = np.exp(-np.sqrt(1.5 * 2) * dist)
         constant_component = (np.sqrt(3) * dist)
@@ -271,7 +284,6 @@ class RBF(object):
         return constant_component * exp_component
 
     def matern5_2_basis(self, dist):
-
         exp_component = np.exp(-np.sqrt(2.5 * 2) * dist)
         constant_component = (np.sqrt(5) * dist)
         constant_component += 1
@@ -280,17 +292,31 @@ class RBF(object):
         return constant_component * exp_component
 
     def matern1_2_basis(self, dist):
-
         exp_component = np.exp(-np.sqrt(0.5 * 2) * dist)
         constant_component = 1
         return constant_component * exp_component
 
     def exponential_basis(self, dist):
-
-        return np.exp(-self.c*dist)
+        return np.exp(-self.c * dist)
 
     def periodic_basis(self, dist):
         # http://proceedings.mlr.press/v28/wilson13.pdf eq 15
 
-        phi = np.exp(-2*(np.sin(2*np.pi*self.c))**2/dist**2, where=dist != 0)
+        phi = np.exp(-2 * (np.sin(2 * np.pi * self.c)) ** 2 / dist ** 2, where=dist != 0)
         return np.nan_to_num(phi)
+
+    def logistic_basis(self, dist):
+        # ANN Transfer Function : "An efficient multi-objective optimization method based on the adaptive approximation model of the radial basis function"
+
+        return 1 / (1 + np.exp(-self.c * dist))
+
+    def hyperbolic_tangent_sigmoid_basis(self, dist):
+        # ANN Transfer Function : "A Critical Review of Surrogate Assisted Robust Design Optimization"
+
+        phi = (np.exp(dist) - np.exp(-dist)) / (np.exp(dist) + np.exp(-dist))
+        return phi
+
+    def cauchy_basis(self, dist):
+        # ANN Transfer Function : "A Critical Review of Surrogate Assisted Robust Design Optimization"
+
+        return 1.0 / (dist ** 2.0 + self.c ** 2.0)

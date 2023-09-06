@@ -40,6 +40,12 @@ class SHAMODE(EvolutionaryAlgorithm):
                  dither='vector',
                  jitter=False,
                  **kwargs):
+        
+        if 'save_results' in kwargs:
+            self.save_results = kwargs['save_results']
+            
+        if 'save_name' in kwargs:
+            self.save_name = kwargs['save_name']
 
         # DE parameters
         self.var_selection = var_selection
@@ -213,7 +219,6 @@ class SHAMODE(EvolutionaryAlgorithm):
             offspring = self.evaluator.do(self.surrogate.obj_func, self.problem, offspring)
         else:
             offspring = self.evaluator.do(self.problem.obj_func, self.problem, offspring)
-
 
         return cr_array, f_array, offspring, trial_array
 

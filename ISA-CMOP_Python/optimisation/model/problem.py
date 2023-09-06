@@ -7,6 +7,7 @@ from optimisation.variable import Variable
 from optimisation.constraint import Constraint
 from optimisation.objective import Objective
 
+from optimisation.model.population import Population
 
 class Problem(object):
 
@@ -57,6 +58,9 @@ class Problem(object):
         # Specified variable set
         self.x_value = []
         self.x_value_additional = []
+
+        # Optional pareto front set
+        self.pareto_set = None
 
     def add_specific_funcs(self, setup):
 
@@ -254,3 +258,6 @@ class Problem(object):
         self.finalise_constraints()
         self.finalise_objectives()
 
+    def add_pareto_set(self, prob, pareto_set):
+        self.pareto_set = Population(prob, len(pareto_set))
+        self.pareto_set.assign_obj(pareto_set)

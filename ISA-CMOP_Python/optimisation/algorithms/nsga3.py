@@ -23,6 +23,12 @@ class NSGA3(EvolutionaryAlgorithm):
 
         self.ref_dirs = ref_dirs
 
+        if 'save_results' in kwargs:
+            self.save_results = kwargs['save_results']
+
+        if 'save_name' in kwargs:
+            self.save_name = kwargs['save_name']
+
         # Have to define here given the need to pass ref_dirs
         if 'survival' in kwargs:
             survival = kwargs['survival']

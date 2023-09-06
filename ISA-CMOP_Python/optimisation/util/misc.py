@@ -1,5 +1,6 @@
 import numpy as np
 import scipy.spatial
+from scipy.special import erf
 
 
 def random_permutations(n, x):
@@ -83,6 +84,50 @@ def to_1d_array_if_possible(x):
 
     return x
 
+
+def bilog_transform(obj, beta=1):
+    bilog_obj = np.zeros(np.shape(obj))
+
+    for i in range(len(obj)):
+        bilog_obj[i] = np.sign(obj[i])*(np.log(beta + np.abs(obj[i])) - np.log(beta))
+
+    return bilog_obj
+
+
+def reverse_bilog_transform(bilog_obj, beta=1):
+    obj = np.zeros(np.shape(bilog_obj))
+
+    for i in range(len(bilog_obj)):
+        obj[i] = np.sign(bilog_obj[i])*(np.exp(bilog_obj[i])**np.sign(bilog_obj[i]) - beta)
+
+    return obj
+
+
+
+def sp2log_transform(obj_arr, k1=0.0, k2=1.0):
+    plog_obj = np.sign(obj_arr + k1) * np.log(1.0 + k2 * np.abs(obj_arr))
+
+    return plog_obj
+
+
+def vectorized_cdist(A, B, fill_diag_with_inf=False):
+    assert A.ndim <= 2 and B.ndim <= 2
+
+    A = at_least_2d_array(A, extend_as="row")
+    B = at_least_2d_array(B, extend_as="row")
+
+    u = np.repeat(A, B.shape[0], axis=0)
+    v = np.tile(B, (A.shape[0], 1))
+
+    D = np.sqrt(((u - v) ** 2).sum(axis=1))
+    M = np.reshape(D, (A.shape[0], B.shape[0]))
+
+    if fill_diag_with_inf:
+        np.fill_diagonal(M, np.inf)
+
+    return M
+
+
 def calc_gamma(V):
     gamma = np.arccos((- np.sort(-1 * V @ V.T))[:, 1])
     gamma = np.maximum(gamma, 1e-64)
@@ -91,3 +136,25 @@ def calc_gamma(V):
 
 def calc_V(ref_dirs):
     return ref_dirs / np.linalg.norm(ref_dirs, axis=1)[:, None]
+
+
+def min_prob_of_improvement(population, representatives):
+    pop_obj = np.atleast_2d(population.extract_obj())
+    reps_obj = np.atleast_2d(representatives.extract_obj())
+    n = len(population)
+    m = len(representatives)
+
+    mpoi_arr = np.zeros(n)
+    for i in range(n):
+        prob = np.zeros(m)
+        for j in range(m):
+            prob[j] = predict_mpoi(f1=pop_obj[i], f2=reps_obj[j])
+        mpoi_arr[i] = np.min(prob)
+
+    return mpoi_arr
+
+
+def predict_mpoi(f1, f2, s1=0.1, s2=0.0):
+    term = (f1 - f2) / 0.1  # TODO: np.sqrt(s1 - s2)
+
+    return 1.0 - 0.5 * np.prod(1.0 + erf(term / np.sqrt(2)))

@@ -16,6 +16,7 @@ class Setup:
         self.set_variables(prob, **kwargs)
         self.set_constraints(prob, **kwargs)
         self.set_objectives(prob, **kwargs)
+        self.set_pareto(prob, **kwargs)
 
         prob.finalise()
 
@@ -29,6 +30,9 @@ class Setup:
         pass
 
     def obj_func(self, x_dict, **kwargs):
+        pass
+
+    def set_pareto(self, prob, pareto_set, **kwargs):
         pass
 
 

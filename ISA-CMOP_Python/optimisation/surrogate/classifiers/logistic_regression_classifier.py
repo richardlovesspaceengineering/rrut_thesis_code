@@ -16,7 +16,6 @@ class LogisticRegressionClassification(Surrogate):
         self.C = C
         self.model = LogisticRegression(penalty='l1', C=self.C)
 
-
     def _train(self):
 
         # Compute mean and std of training function values

@@ -20,6 +20,12 @@ class NSGA2(EvolutionaryAlgorithm):
                  eliminate_duplicates=DefaultDuplicateElimination(),
                  **kwargs):
 
+        if 'save_results' in kwargs:
+            self.save_results = kwargs['save_results']
+
+        if 'save_name' in kwargs:
+            self.save_name = kwargs['save_name']
+
         super().__init__(n_population=n_population,
                          sampling=sampling,
                          selection=selection,
