@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.spatial.distance import cdist
 from optimisation.util.non_dominated_sorting import NonDominatedSorting
-from optimisation.util.calculate_hypervolume import calculate_hypervolume
+from optimisation.util.calculate_hypervolume import calculate_hypervolume_pygmo
 
 
 def randomwalkfeatures(Populations, Instances, PF):
@@ -40,10 +40,15 @@ def randomwalkfeatures(Populations, Instances, PF):
         distcons = cdist(cv, cv, "euclidean")
         dist_c_avg[i] = np.mean(distcons, axis=None)  # why global mean?
 
-        #
+        # Calculate hypervolume between the best ranked objectives and the known Pareto front.
         ranksort = NonDominatedSorting.fast_non_dominated_sort(objvar, consvar)
         bestrankobjs = objvar[ranksort == 0, :]
-        bhv[i] = calculate_hypervolume(bestrankobjs)
+        nadir = np.array([np.max(objvar[:, i]) for i in range(objvar.shape[1])])
+
+        # Hypervolume we want is HV(PF, nadir) - HV(bestrankobjs, nadir)
+        hv_nadir_pf = calculate_hypervolume_pygmo(PF, nadir)
+        hv_nadir_bestrankobjs = calculate_hypervolume_pygmo(bestrankobjs, nadir)
+        bhv[i] = hv_nadir_pf - hv_nadir_bestrankobjs
 
     # Apply elementwise division to get ratios.
     dist_f_dist_x_avg = dist_f_avg / dist_x_avg
