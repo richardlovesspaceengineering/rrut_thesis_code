@@ -1,4 +1,4 @@
-from feature_helpers import remove_imag_rows, corr_coef
+from features.feature_helpers import remove_imag_rows, corr_coef
 from scipy.spatial.distance import cdist
 import numpy as np
 
