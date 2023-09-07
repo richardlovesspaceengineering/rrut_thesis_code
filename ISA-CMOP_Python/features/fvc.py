@@ -1,4 +1,4 @@
-from feature_helpers import remove_imag_rows, corr_coef
+from features.feature_helpers import remove_imag_rows, corr_coef
 from optimisation.util.non_dominated_sorting import NonDominatedSorting
 import numpy as np
 

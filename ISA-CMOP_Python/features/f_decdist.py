@@ -1,5 +1,5 @@
 import numpy as np
-from feature_helpers import remove_imag_rows
+from features.feature_helpers import remove_imag_rows
 from optimisation.util.non_dominated_sorting import NonDominatedSorting
 from scipy.spatial.distance import cdist
 from scipy.stats import iqr

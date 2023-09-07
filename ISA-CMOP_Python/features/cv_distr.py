@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.stats import kurtosis, skew
-from feature_helpers import remove_imag_rows
+from features.feature_helpers import remove_imag_rows
 
 
 def cv_distr(objvar):

@@ -1,4 +1,4 @@
-from feature_helpers import corr_coef
+from features.feature_helpers import corr_coef
 
 
 def f_corr(objvar):

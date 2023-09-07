@@ -17,7 +17,6 @@ def cv_mdl(objvar, decvar):
     mdl_r2 = 1 - (1 - r2_unadj) * (num_obs - 1) / (num_obs - num_coef - 1)
 
     # Range. Ignore the intercepts.
-
     # Why isn't this taking individual absolute values as the paper suggests? Maybe because all coefficients are positive?
     range_coeff = np.max(mdl.coef[1:]) - np.min(mdl.coef[1:])
 
