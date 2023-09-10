@@ -11,38 +11,37 @@ def PiIZ(pop):
     """
 
     # Extracting matrices.
-    objvar = pop.extract_obj()
-    decvar = pop.extract_var()
-    consvar = pop.extract_cons()
-
-    # Get CV, a column vector containing the norm of the constraint violations. Assuming this can be standardised for any given problem setup.
-    consvar[consvar <= 0] = 0
-    cv = np.norm(consvar, axis=1)
+    obj = pop.extract_obj()
+    var = pop.extract_var()
+    cons = pop.extract_cons()
+    cv = pop.extract_cv()
 
     # Remove imaginary rows. Deep copies are created here.
-    objvar = remove_imag_rows(objvar)
-    decvar = remove_imag_rows(decvar)
+    obj = remove_imag_rows(obj)
+    var = remove_imag_rows(var)
 
     # Defining the ideal zone.
-    minobjs = np.min(objvar, axis=0)
-    maxobjs = np.max(objvar, axis=0)
+    minobjs = np.min(obj, axis=0)
+    maxobjs = np.max(obj, axis=0)
     mincv = np.min(cv, axis=0)
     maxcv = np.max(cv, axis=0)
     mconsIdealPoint = mincv + (0.25 * (maxcv - mincv))
     conZone = np.nonzero(np.all(cv <= mconsIdealPoint, axis=1))
 
     # Find PiZ for each objXcon
-    piz_ob = np.zeros(1, objvar.shape[1])
-    for i in range(objvar.shape[1]):
+    piz_ob = np.zeros(1, obj.shape[1])
+    for i in range(obj.shape[1]):
         objIdealPoint = minobjs[i] + (0.25 * (maxobjs[i] - minobjs[i]))
-        objx = objvar[:, i]
+        objx = obj[:, i]
         iz = np.nonzero(np.all(objx[conZone] <= objIdealPoint, axis=1))
         piz_ob[i] = iz.size / pop.extract_obj().size
 
     # Find PiZ for each frontsXcon
 
     # May need to transpose.
-    ranksort = np.transpose(NonDominatedSorting.fast_non_dominated_sort(objvar))
+    ranksort = np.transpose(
+        NonDominatedSorting().do(obj, cons_val=None, n_stop_if_ranked=obj.shape[0])
+    )
 
     # Axes may need to change depending on the structure of ranksort. Right now we are taking the min of a column vector.
     minrank = np.min(ranksort, axis=0)

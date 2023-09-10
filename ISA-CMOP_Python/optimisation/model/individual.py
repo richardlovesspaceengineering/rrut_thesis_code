@@ -1,73 +1,72 @@
 import numpy as np
-from collections import OrderedDict
+import copy
 
 
 class Individual(object):
-
     def __init__(self, problem):
+        """
+        Initialize an instance of the problem.
 
-        # Design variables
-        self.var = np.zeros(problem.n_var)
-        self.var_dict = OrderedDict()
+        Problem is an instance of the Setup class.
+        """
 
-        # Objective and constraint values
-        self.obj = 100.0*np.ones(problem.n_obj)
-        self.cons = np.zeros(problem.n_con)
-        self.cons_sum = 0.0
-        self.cons_viol = 0.0 # based on Shi2019
+        # Problem characteristics
+        self.problem = problem
+        self.n_var = problem.dim
+        self.n_obj = problem.n_objectives
+        self.n_cons = problem.n_constraints
 
-        # Rank, crowding distance & hypervolume
-        self.rank = np.nan
-        self.crowding_distance = 0.0
-        self.hypervolume = 0.0
+        self.var_lower = problem.lb
+        self.var_upper = problem.ub
 
-        # Performance
-        self.performance = []
+        # Initialize arrays.
+        self.var = np.zeros((1, self.n_var))
+        self.obj = np.zeros((1, self.n_obj))
+        self.cons = np.zeros((1, self.n_cons))
+        self.cv = np.zeros((1, 1))
 
-    def set_var(self, problem, var):
+        # Exact/approximated pareto front
+        self.pareto_front = problem.f_opt
 
-        # Set variable values
+    ### SETTERS
+    def set_var(self, var):
+        # var should be a row vector.
         self.var = var
 
-        # Set ordered dict according to design variable sequence in problem
-        current_var_idx = 0
-        for key in problem.variables.keys():
-            n = len(problem.variables[key])
-            self.var_dict[key] = np.copy(self.var[current_var_idx:current_var_idx+n])
-            current_var_idx += n
+    def set_obj(self, obj):
+        # obj should be a row vector.
+        self.obj = obj
 
-    def descale_var(self, problem):
+    def set_cons(self, cons):
+        # cons should be a row vector.
+        self.cons = cons
 
-        # De-scale variables in ordered dict according to design variable sequence in problem
-        for key in problem.variables.keys():
-            temp = []
-            for var_idx in range(len(problem.variables[key])):
-                if problem.variables[key][var_idx].type == 'c':
-                    self.var_dict[key][var_idx] = self.var_dict[key][var_idx]/problem.variables[key][var_idx].scale
-                elif problem.variables[key][var_idx].type == 'i':
-                    self.var_dict[key][var_idx] = round(self.var_dict[key][var_idx]/problem.variables[key][var_idx].scale)
-                elif problem.variables[key][var_idx].type == 'd':
-                    idx = int(round(self.var_dict[key][var_idx]/problem.variables[key][var_idx].scale))
-                    temp.append(problem.variables[key][var_idx].choices[idx])
-                    if var_idx == len(problem.variables[key]) - 1:
-                        self.var_dict[key] = temp
-                else:
-                    raise Exception('Unknown variable type: ', problem.variables[key][var_idx].type)
+    def set_cv(self, cv):
+        # cv should be a scalar.
+        self.cv = cv
 
-    def scale_var(self, problem):
+    ### EVALUATION FUNCTIONS
+    def eval_obj_cons(self):
+        # Returns a tuple (obj, cons)
+        return self.problem.obj_func_specific(self.var)
 
-        # Scale variables in ordered dict according to design variable sequence in problem
-        for key in problem.variables.keys():
-            temp = []
-            for var_idx in range(len(problem.variables[key])):
-                if problem.variables[key][var_idx].type == 'c':
-                    self.var_dict[key][var_idx] = self.var_dict[key][var_idx]*problem.variables[key][var_idx].scale
-                elif problem.variables[key][var_idx].type == 'i':
-                    self.var_dict[key][var_idx] = np.double(self.var_dict[key][var_idx])*problem.variables[key][var_idx].scale
-                elif problem.variables[key][var_idx].type == 'd':
-                    temp.append(problem.variables[key][var_idx].choices.index(self.var_dict[key][var_idx]))
-                    if var_idx == len(problem.variables[key]) - 1:
-                        self.var_dict[key] = np.asarray(np.double(temp))*problem.variables[key][var_idx].scale
-                else:
-                    raise Exception('Unknown variable type: ', problem.variables[key][var_idx].type)
+    def eval_obj(self):
+        # evaluates objectives
+        return self.eval_obj_cons()[0]
 
+    def eval_cons(self):
+        # evaluates constraints
+        return self.eval_obj_cons()[1]
+
+    def eval_cv(self, use_norm=True):
+        # Find the constraint violation.
+
+        if use_norm:
+            cons = copy.deepcopy(self.cons)
+            cons[cons <= 0] = 0  # assuming >= constraints
+            return np.linalg.norm(cons)
+
+    def eval_instance(self):
+        self.set_obj(self.eval_obj())
+        self.set_cons(self.eval_cons())
+        self.set_cv(self.eval_cv())

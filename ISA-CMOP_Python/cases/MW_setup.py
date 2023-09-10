@@ -79,7 +79,10 @@ class MW1(MWSetup):
         super().__init__(dim=n_dim, n_objectives=self.n_objectives)
 
         # Optimum Pareto Front
-        self.f_opt = np.genfromtxt("./cases/MW_files/MW1_pf.txt", delimiter="")
+        import os
+
+        print(os.getcwd())
+        self.f_opt = np.genfromtxt("cases/MW_files/MW1_pf.txt", delimiter="")
         self.var_opt = None
 
         self.int_var = np.array([])
@@ -223,7 +226,7 @@ class MW3(MWSetup):
         super().__init__(dim=n_dim, n_objectives=self.n_objectives)
 
         # Optimum Pareto Front
-        self.f_opt = np.genfromtxt("../cases/MW_files/MW3_pf.txt", delimiter="")
+        self.f_opt = np.genfromtxt("cases/MW_files/MW3_pf.txt", delimiter="")
         self.var_opt = None
 
         self.int_var = np.array([])

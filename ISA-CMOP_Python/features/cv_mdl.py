@@ -2,18 +2,20 @@ import numpy as np
 from sklearn.linear_model import LinearRegression
 
 
-def cv_mdl(objvar, decvar):
+def cv_mdl(pop):
     """
     Fit a linear model to decision variables-constraint violation, then take the R2 and difference between the max and min of the absolute values of the linear model coefficients.
     """
+    var = pop.extract_var()
+    obj = pop.extract_obj()
 
     # Fit linear model to decision variable, CV data.
-    mdl = LinearRegression().fit(decvar, objvar)
+    mdl = LinearRegression().fit(var, obj)
 
     # R2 (adjusted) has to be computed from the unadjusted value.
-    num_obs = objvar.shape[0]
-    num_coef = objvar.shape[1]
-    r2_unadj = mdl.score(decvar, objvar)
+    num_obs = obj.shape[0]
+    num_coef = obj.shape[1]
+    r2_unadj = mdl.score(var, obj)
     mdl_r2 = 1 - (1 - r2_unadj) * (num_obs - 1) / (num_obs - num_coef - 1)
 
     # Range. Ignore the intercepts.

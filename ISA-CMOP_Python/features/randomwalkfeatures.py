@@ -20,20 +20,17 @@ def randomwalkfeatures(Populations, Instances, PF):
     bhv = np.zeros(1, len(Populations))
 
     for i, pop in enumerate(Populations):
-        decvar = pop.extract_var()
-        objvar = pop.extract_obj()
-        consvar = pop.extract_cons()
-
-        # Get CV, a column vector containing the norm of the constraint violations. Assuming this can be standardised for any given problem setup.
-        consvar[consvar <= 0] = 0
-        cv = np.norm(consvar, axis=1)
+        var = pop.extract_var()
+        obj = pop.extract_obj()
+        cons = pop.extract_cons()
+        cv = pop.extract_cv()
 
         # Average distance between neighbours in variable space.
-        distdec = cdist(decvar, decvar, "euclidean")
+        distdec = cdist(var, var, "euclidean")
         dist_x_avg[i] = np.mean(distdec, axis=None)  # why global mean?
 
         # Average distance between neighbours in objective space.
-        distobj = cdist(objvar, objvar, "euclidean")
+        distobj = cdist(obj, obj, "euclidean")
         dist_f_avg[i] = np.mean(distobj, axis=None)  # why global mean?
 
         # Average distance between neighbours in constraint-norm space.
@@ -41,9 +38,11 @@ def randomwalkfeatures(Populations, Instances, PF):
         dist_c_avg[i] = np.mean(distcons, axis=None)  # why global mean?
 
         # Calculate hypervolume between the best ranked objectives and the known Pareto front.
-        ranksort = NonDominatedSorting.fast_non_dominated_sort(objvar, consvar)
-        bestrankobjs = objvar[ranksort == 0, :]
-        nadir = np.array([np.max(objvar[:, i]) for i in range(objvar.shape[1])])
+        ranksort = NonDominatedSorting().do(
+            obj, cons_val=cv, n_stop_if_ranked=obj.shape[0]
+        )
+        bestrankobjs = obj[ranksort == 0, :]
+        nadir = np.array([np.max(obj[:, i]) for i in range(obj.shape[1])])
 
         # Hypervolume we want is HV(PF, nadir) - HV(bestrankobjs, nadir)
         hv_nadir_pf = calculate_hypervolume_pygmo(PF, nadir)

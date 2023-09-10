@@ -12,21 +12,18 @@ def dist_corr(pop, NonDominated):
     Fairly certain that NonDominated is an instance of the Population class containing the non-dominated solutions
     """
 
-    objvar = pop.extract_obj()
-    decvar = pop.extract_var()
-    consvar = pop.extract_cons()  # constraint matrix.
+    obj = pop.extract_obj()
+    var = pop.extract_var()
+    cons = pop.extract_cons()  # constraint matrix.
+    cv = pop.extract_cv()
 
     # Remove imaginary rows. Deep copies are created here.
-    objvar = remove_imag_rows(objvar)
-    decvar = remove_imag_rows(decvar)
-    consvar = remove_imag_rows(consvar)
-
-    # Get CV, a column vector containing the norm of the constraint violations. Assuming this can be standardised for any given problem setup.
-    consvar[consvar <= 0] = 0
-    cv = np.norm(consvar, axis=1)
+    obj = remove_imag_rows(obj)
+    var = remove_imag_rows(var)
+    cons = remove_imag_rows(cons)
 
     # For each ND decision variable, find the smallest distance to the nearest population decision variable.
-    dist_matrix = cdist(NonDominated.extract_var(), decvar, "euclidean")
+    dist_matrix = cdist(NonDominated.extract_var(), var, "euclidean")
     min_dist = np.min(dist_matrix, axis=0)
 
     # Then compute correlation coefficient between CV and . Assumed that all values in the correlation matrix are the same, meaning we only need one scalar. See f_corr for a similar implementation.

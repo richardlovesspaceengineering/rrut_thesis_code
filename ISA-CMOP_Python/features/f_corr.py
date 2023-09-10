@@ -1,7 +1,7 @@
 from features.feature_helpers import corr_coef
 
 
-def f_corr(objvar):
+def f_corr(pop):
     """
     Significant correlation between objective values.
 
@@ -9,6 +9,7 @@ def f_corr(objvar):
 
     Since correlations are assumed to be equal across all objectives, we can just compute one pairwise correlation coefficient. Alsouly finds the same but computes the symmetric 2x2 correlation coefficient and pvalue matrices before extracting the upper-right value.
     """
-    corr_obj = corr_coef(objvar[:, 0], objvar[:, 1])
+    obj = pop.extract_obj()
+    corr_obj = corr_coef(obj[:, 0], obj[:, 1])
 
     return corr_obj

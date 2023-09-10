@@ -7,6 +7,7 @@ from optimisation.util.calculate_crowding_distance import calculate_crowding_dis
 
 
 class Population(np.ndarray):
+
     def __new__(cls, problem, n_individuals=0):
         obj = super(Population, cls).__new__(cls, n_individuals, dtype=cls).view(cls)
         for i in range(n_individuals):
@@ -16,6 +17,7 @@ class Population(np.ndarray):
 
     @classmethod
     def merge(cls, a, b):
+
         if isinstance(a, Population) and isinstance(b, Population):
             if len(a) == 0:
                 return b
@@ -25,7 +27,7 @@ class Population(np.ndarray):
                 obj = np.concatenate([a, b]).view(Population)
                 return obj
         else:
-            raise Exception("Both a and b must be Population instances")
+            raise Exception('Both a and b must be Population instances')
 
     @classmethod
     def merge_multiple(cls, *args):
@@ -39,9 +41,8 @@ class Population(np.ndarray):
 
         return base
 
-    ### GETTERS
     def extract_var(self):
-        # Extract decision variables from each individual. Should return an n x m array where n is the number of individuals, m is the number of objectives.
+
         var_array = []
         for i in range(len(self)):
             if i == 0:
@@ -52,7 +53,7 @@ class Population(np.ndarray):
         return var_array
 
     def extract_obj(self):
-        # Extract objectives from each individual. Should return an n x m array where n is the number of individuals, m is the number of objectives.
+
         obj_array = []
         for i in range(len(self)):
             if i == 0:
@@ -63,7 +64,7 @@ class Population(np.ndarray):
         return obj_array
 
     def extract_cons(self):
-        # Extract constraints from each individual. Should return an n x m array where n is the number of individuals, m is the number of constraints.
+
         cons_array = []
         for i in range(len(self)):
             if i == 0:
@@ -73,18 +74,16 @@ class Population(np.ndarray):
 
         return cons_array
 
-    def extract_cv(self):
-        # Extract CV from each individual. Should return an n x 1 array where n is the number of individuals.
-        cv_array = []
-        for i in range(len(self)):
-            if i == 0:
-                cv_array = self[i].cv
-            else:
-                cv_array = np.vstack((cv_array, self[i].cv))
+    def extract_cons_sum(self):
 
-        return cv_array
+        obj_array = []
+        for i in range(len(self)):
+            obj_array.append(self[i].cons_sum)
+
+        return np.asarray(obj_array)
 
     def extract_rank(self):
+
         rank_array = []
         for i in range(len(self)):
             rank_array.append(self[i].rank)
@@ -92,45 +91,44 @@ class Population(np.ndarray):
         return np.asarray(rank_array)
 
     def extract_crowding(self):
+
         crowding_array = []
         for i in range(len(self)):
             crowding_array.append(self[i].crowding_distance)
 
         return np.asarray(crowding_array)
 
-    # def set_problem(self, problem):
-    #     for i in range(len(self)):
-    #         self[i].problem = problem
+    def assign_var(self, problem, var_array):
 
-    ### SETTERS
-    def set_var(self, var_array):
         for i in range(len(self)):
-            self[i].set_var(var_array[i, :])
+            self[i].set_var(problem, var_array[i, :])
 
-    def set_obj(self, obj_array):
+    def assign_obj(self, obj_array):
+
         for i in range(len(self)):
-            self[i].set_obj(obj_array[i, :])
+            self[i].obj = obj_array[i, :]
 
-    def set_cons(self, cons_array):
+    def assign_cons(self, cons_array):
+
         for i in range(len(self)):
-            self[i].set_cons(cons_array[i, :])
+            self[i].cons = cons_array[i, :]
 
-    def set_cv(self, cv_array):
+    def assign_cons_sum(self, cons_sum_array):
         for i in range(len(self)):
-            self[i].set_cv(cv_array[i, :])
+            self[i].cons_sum = cons_sum_array[i]
 
-    def set_rank_and_crowding(self):
+    def assign_rank_and_crowding(self):
+
         # Extract the objective function values from the population
         obj_array = self.extract_obj()
-        cv_array = self.extract_cons()
+        cons_array = self.extract_cons_sum()
 
         # Conduct non-dominated sorting (considering constraints & objectives)
-        fronts = NonDominatedSorting().do(
-            obj_array, cons_val=cv_array, n_stop_if_ranked=len(self)
-        )
+        fronts = NonDominatedSorting().do(obj_array, cons_val=cons_array, n_stop_if_ranked=len(self))
 
         # Cycle through fronts
         for k, front in enumerate(fronts):
+
             # Calculate crowding distance of the front
             front_crowding_distance = calculate_crowding_distance(obj_array[front, :])
 
@@ -139,11 +137,3 @@ class Population(np.ndarray):
                 self[i].rank = k
                 self[i].crowding_distance = front_crowding_distance[j]
 
-    ### EVALUATE AT A GIVEN SET OF POINTS.
-    def evaluate(self, var_array):
-        for i in range(len(self)):
-            # Assign decision variables.
-            self[i].set_var(var_array[i, :])
-
-            # Run evaluation of objectives, constraints and CV.
-            self[i].eval_instance()
