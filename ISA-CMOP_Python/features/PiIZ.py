@@ -29,7 +29,7 @@ def PiIZ(pop):
     conZone = np.nonzero(np.all(cv <= mconsIdealPoint, axis=1))
 
     # Find PiZ for each objXcon
-    piz_ob = np.zeros(1, obj.shape[1])
+    piz_ob = np.zeros(obj.shape[1])
     for i in range(obj.shape[1]):
         objIdealPoint = minobjs[i] + (0.25 * (maxobjs[i] - minobjs[i]))
         objx = obj[:, i]

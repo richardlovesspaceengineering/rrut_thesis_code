@@ -6,25 +6,28 @@ from optimisation.cython import cython_loader
 
 
 class FastNonDominatedSorting(object):
-    def __init__(self, method='fast_non_dominated_sort'):
-
+    def __init__(self, method="fast_non_dominated_sort"):
         self.method = method
         self.func = cython_loader(self.method)
 
 
 class NonDominatedSorting(object):
-
-    def __init__(self, method='fast_non_dominated_sort', domination='pareto'):
-
+    def __init__(self, method="fast_non_dominated_sort", domination="pareto"):
         self.method = method
         self.domination = domination
 
-    def do(self, obj_val, cons_val=None, return_rank=False, only_non_dominated_front=False, n_stop_if_ranked=None):
-
-        if self.method == 'fast_non_dominated_sort':
+    def do(
+        self,
+        obj_val,
+        cons_val=None,
+        return_rank=False,
+        only_non_dominated_front=False,
+        n_stop_if_ranked=None,
+    ):
+        if self.method == "fast_non_dominated_sort":
             func = self.fast_non_dominated_sort
         else:
-            raise Exception('Unknown non-dominated sorting method: %s' % self.method)
+            raise Exception("Unknown non-dominated sorting method: %s" % self.method)
 
         if n_stop_if_ranked is None:
             n_stop_if_ranked = int(1e8)
@@ -39,9 +42,8 @@ class NonDominatedSorting(object):
         _fronts = []
         n_ranked = 0
         for front in fronts:
-
             # Convert front to numpy array
-            _fronts.append(np.asarray(front, dtype=np.int))
+            _fronts.append(np.asarray(front, dtype=int))
 
             # Increment the n_ranked solution counter
             n_ranked += len(front)
@@ -66,9 +68,10 @@ class NonDominatedSorting(object):
 
     # @staticmethod
     def fast_non_dominated_sort(self, obj_val, cons_val=None, first_front_only=False):
-
         # Calculate domination matrix
-        m = dominator.calculate_domination_matrix(obj_val, cons_val, domination_type=self.domination)
+        m = dominator.calculate_domination_matrix(
+            obj_val, cons_val, domination_type=self.domination
+        )
 
         # Domination matrix shape
         n = m.shape[0]
@@ -82,7 +85,7 @@ class NonDominatedSorting(object):
 
         # Final rank
         n_ranked = 0
-        ranked = np.zeros(n, dtype=np.int)
+        ranked = np.zeros(n, dtype=int)
 
         # For each individual, create a list of all individuals dominated by that particular individual
         is_dominating = [[] for _ in range(n)]
@@ -92,7 +95,7 @@ class NonDominatedSorting(object):
 
         current_front = []
         for i in range(n):
-            for j in range(i+1, n):
+            for j in range(i + 1, n):
                 rel = m[i, j]
                 if rel == 1:
                     is_dominating[i].append(j)
@@ -115,12 +118,10 @@ class NonDominatedSorting(object):
 
         # While not all solutions are assigned to a Pareto front
         while n_ranked < n:
-
             next_front = []
 
             # For each individual in the current front
             for i in current_front:
-
                 # All solutions that are dominated by this individual
                 for j in is_dominating[i]:
                     n_dominated[j] -= 1
@@ -137,7 +138,7 @@ class NonDominatedSorting(object):
 
 def rank_from_fronts(fronts, n):
     # create the rank array and set values
-    rank = np.full(n, 1e16, dtype=np.int)
+    rank = np.full(n, 1e16, dtype=int)
     for i, front in enumerate(fronts):
         rank[front] = i
 

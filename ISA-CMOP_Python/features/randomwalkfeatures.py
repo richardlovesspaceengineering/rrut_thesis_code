@@ -4,7 +4,7 @@ from optimisation.util.non_dominated_sorting import NonDominatedSorting
 from optimisation.util.calculate_hypervolume import calculate_hypervolume_pygmo
 
 
-def randomwalkfeatures(Populations, Instances, PF):
+def randomwalkfeatures(Populations, PF, Instances=None):
     """
     Calculate all the features that could be generated from random walk samples.
 
@@ -14,10 +14,10 @@ def randomwalkfeatures(Populations, Instances, PF):
     """
 
     # Initialize arrays.
-    dist_x_avg = np.zeros(1, len(Populations))
-    dist_f_avg = np.zeros(1, len(Populations))
-    dist_c_avg = np.zeros(1, len(Populations))
-    bhv = np.zeros(1, len(Populations))
+    dist_x_avg = np.zeros(len(Populations))
+    dist_f_avg = np.zeros(len(Populations))
+    dist_c_avg = np.zeros(len(Populations))
+    bhv = np.zeros(len(Populations))
 
     for i, pop in enumerate(Populations):
         var = pop.extract_var()

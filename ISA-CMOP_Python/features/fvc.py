@@ -17,7 +17,7 @@ def fvc(pop):
     cons = remove_imag_rows(cons)  # may be able to remove this.
 
     # Initialise correlation between objectives.
-    corr_obj = np.zeros(1, obj.shape[0])
+    corr_obj = np.zeros(obj.shape[0])
 
     # Find correlations of each objective function with the CVs.
     for i in range(obj.shape[1]):

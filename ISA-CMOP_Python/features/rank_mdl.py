@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.linear_model import LinearRegression
 from optimisation.util.non_dominated_sorting import NonDominatedSorting
-from cv_mdl import cv_mdl
+from features.cv_mdl import cv_mdl
 
 
 def rank_mdl(pop):

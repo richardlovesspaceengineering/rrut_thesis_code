@@ -9,7 +9,7 @@ def dist_corr(pop, NonDominated):
 
     Distance for each solution to nearest global solution in decision space. Correlation of distance and constraints norm.
 
-    Fairly certain that NonDominated is an instance of the Population class containing the non-dominated solutions
+    Fairly certain that NonDominated is an instance of the Population class containing the non-dominated solutions.
     """
 
     obj = pop.extract_obj()
@@ -28,4 +28,4 @@ def dist_corr(pop, NonDominated):
 
     # Then compute correlation coefficient between CV and . Assumed that all values in the correlation matrix are the same, meaning we only need one scalar. See f_corr for a similar implementation.
     dist_c_corr = corr_coef(cv, min_dist)
-    return [dist_c_corr]
+    return dist_c_corr

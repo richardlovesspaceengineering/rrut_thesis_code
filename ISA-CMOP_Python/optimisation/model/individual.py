@@ -28,7 +28,15 @@ class Individual(object):
         # Exact/approximated pareto front
         self.pareto_front = problem.f_opt
 
-    ### SETTERS
+        # Rank, crowding distance & hypervolume
+        self.rank = np.nan
+        self.crowding_distance = 0.0
+        self.hypervolume = 0.0
+
+        # Performance
+        self.performance = []
+
+    ### SETTERS (IN CASE WE MAKE ATTRIBUTES PRIVATE)
     def set_var(self, var):
         # var should be a row vector.
         self.var = var
@@ -44,6 +52,19 @@ class Individual(object):
     def set_cv(self, cv):
         # cv should be a scalar.
         self.cv = cv
+
+    def set_rank(self, rank):
+        # rank should be a scalar.
+        self.rank = rank
+
+    def set_crowding_distance(self, crowding_distance):
+        self.crowding_distance = crowding_distance
+
+    def set_hypervolume(self, hypervolume):
+        self.hypervolume = hypervolume
+
+    def set_performance(self, performance):
+        self.performance = performance
 
     ### EVALUATION FUNCTIONS
     def eval_obj_cons(self):

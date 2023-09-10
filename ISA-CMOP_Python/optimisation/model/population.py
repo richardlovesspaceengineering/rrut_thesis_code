@@ -49,7 +49,7 @@ class Population(np.ndarray):
             else:
                 var_array = np.vstack((var_array, self[i].var))
 
-        return var_array
+        return np.asarray(var_array)
 
     def extract_obj(self):
         # Extract objectives from each individual. Should return an n x m array where n is the number of individuals, m is the number of objectives.
@@ -60,7 +60,7 @@ class Population(np.ndarray):
             else:
                 obj_array = np.vstack((obj_array, self[i].obj))
 
-        return obj_array
+        return np.asarray(obj_array)
 
     def extract_cons(self):
         # Extract constraints from each individual. Should return an n x m array where n is the number of individuals, m is the number of constraints.
@@ -71,7 +71,7 @@ class Population(np.ndarray):
             else:
                 cons_array = np.vstack((cons_array, self[i].cons))
 
-        return cons_array
+        return np.asarray(cons_array)
 
     def extract_cv(self):
         # Extract CV from each individual. Should return an n x 1 array where n is the number of individuals.
@@ -82,7 +82,7 @@ class Population(np.ndarray):
             else:
                 cv_array = np.vstack((cv_array, self[i].cv))
 
-        return cv_array
+        return np.asarray(cv_array)
 
     def extract_rank(self):
         rank_array = []
@@ -98,9 +98,8 @@ class Population(np.ndarray):
 
         return np.asarray(crowding_array)
 
-    # def set_problem(self, problem):
-    #     for i in range(len(self)):
-    #         self[i].problem = problem
+    def extract_pf(self):
+        return self[0].pareto_front
 
     ### SETTERS
     def set_var(self, var_array):
@@ -119,10 +118,10 @@ class Population(np.ndarray):
         for i in range(len(self)):
             self[i].set_cv(cv_array[i, :])
 
-    def set_rank_and_crowding(self):
+    def eval_rank_and_crowding(self):
         # Extract the objective function values from the population
         obj_array = self.extract_obj()
-        cv_array = self.extract_cons()
+        cv_array = self.extract_cv()
 
         # Conduct non-dominated sorting (considering constraints & objectives)
         fronts = NonDominatedSorting().do(
@@ -147,3 +146,6 @@ class Population(np.ndarray):
 
             # Run evaluation of objectives, constraints and CV.
             self[i].eval_instance()
+
+        # Now can find rank and crowding of each individual.
+        self.eval_rank_and_crowding()

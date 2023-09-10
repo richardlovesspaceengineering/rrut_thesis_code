@@ -8,7 +8,7 @@ from cases.MW_setup import MW3
 import numpy as np
 from optimisation.model.individual import Individual
 from optimisation.model.population import Population
-from features.LandscapeFeatures import LandscapeFeatures
+from features.FitnessAnalysis import FitnessAnalysis
 
 
 if __name__ == "__main__":
@@ -31,5 +31,5 @@ if __name__ == "__main__":
     # print(pop.extract_cv())
 
     # Now evaluate metrics.
-    features = LandscapeFeatures(pop)
-    features.compute_landscape_features()
+    features = FitnessAnalysis(pop)
+    features.eval_fitness_features()
