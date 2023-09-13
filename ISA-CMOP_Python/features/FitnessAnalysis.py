@@ -51,7 +51,7 @@ class FitnessAnalysis:
         return rank_mdl(self.pop)[0]
 
     def get_dist_c_corr(self):
-        return dist_corr(self.pop, self.pop.extract_pf())
+        return dist_corr(self.pop, self.pop.extract_nondominated())
 
     def get_min_cv(self):
         return cv_distr(self.pop)[2]

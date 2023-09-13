@@ -66,6 +66,8 @@ class Individual(object):
     def set_performance(self, performance):
         self.performance = performance
 
+    # ADD GETTERS!!!
+
     ### EVALUATION FUNCTIONS
     def eval_obj_cons(self):
         # Returns a tuple (obj, cons)

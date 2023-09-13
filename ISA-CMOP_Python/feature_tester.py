@@ -26,6 +26,8 @@ if __name__ == "__main__":
     pop = Population(problem, n_individuals=n_points)
     pop.evaluate(x)
 
+    # nondominated = pop.extract_nondominated(Population)
+
     # Now evaluate metrics.
     features = FitnessAnalysis(pop)
     features.eval_fitness_features()

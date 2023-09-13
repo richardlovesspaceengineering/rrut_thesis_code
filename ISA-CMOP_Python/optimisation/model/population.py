@@ -101,6 +101,28 @@ class Population(np.ndarray):
     def extract_pf(self):
         return self[0].pareto_front
 
+    def extract_nondominated(self):
+        """
+        Extract non-dominated solutions from the population.
+
+        Can only run once all objectives, constraints have been evaluated i.e after a call to self.evaluate(x).
+
+        Creates a new population which is a subset of the original.
+        """
+        # Number of best-ranked solutions.
+        num_best = np.count_nonzero(self.extract_rank() == 0)
+
+        # Initialize new population.
+        obj = self.__new__(Population, self[0].problem, n_individuals=num_best)
+
+        # Loop through and save.
+        best_ctr = 0
+        for i in range(len(self)):
+            if self[i].rank == 0:
+                obj[best_ctr] = Individual(self[0].problem)
+                best_ctr += 1
+        return obj
+
     ### SETTERS
     def set_var(self, var_array):
         for i in range(len(self)):
