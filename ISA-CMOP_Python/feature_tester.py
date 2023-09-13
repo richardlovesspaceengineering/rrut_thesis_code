@@ -26,10 +26,6 @@ if __name__ == "__main__":
     pop = Population(problem, n_individuals=n_points)
     pop.evaluate(x)
 
-    # print(pop.extract_var())
-    # print(pop.extract_cons())
-    # print(pop.extract_cv())
-
     # Now evaluate metrics.
     features = FitnessAnalysis(pop)
     features.eval_fitness_features()

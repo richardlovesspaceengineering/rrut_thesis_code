@@ -1,5 +1,5 @@
 import numpy as np
-from sklearn.linear_model import LinearRegression
+from features.feature_helpers import fit_linear_mdl
 
 
 def cv_mdl(pop):
@@ -9,17 +9,6 @@ def cv_mdl(pop):
     var = pop.extract_var()
     obj = pop.extract_obj()
 
-    # Fit linear model to decision variable, CV data.
-    mdl = LinearRegression().fit(var, obj)
-
-    # R2 (adjusted) has to be computed from the unadjusted value.
-    num_obs = obj.shape[0]
-    num_coef = obj.shape[1]
-    r2_unadj = mdl.score(var, obj)
-    mdl_r2 = 1 - (1 - r2_unadj) * (num_obs - 1) / (num_obs - num_coef - 1)
-
-    # Range. Ignore the intercepts.
-    # Why isn't this taking individual absolute values as the paper suggests? Maybe because all coefficients are positive?
-    range_coeff = np.max(mdl.coef[1:]) - np.min(mdl.coef[1:])
+    mdl_r2, range_coeff = fit_linear_mdl(var, obj)
 
     return [mdl_r2, range_coeff]

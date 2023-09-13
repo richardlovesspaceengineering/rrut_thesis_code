@@ -38,10 +38,10 @@ def randomwalkfeatures(Populations, PF, Instances=None):
         dist_c_avg[i] = np.mean(distcons, axis=None)  # why global mean?
 
         # Calculate hypervolume between the best ranked objectives and the known Pareto front.
-        ranksort = NonDominatedSorting().do(
-            obj, cons_val=cv, n_stop_if_ranked=obj.shape[0]
+        fronts, ranks = NonDominatedSorting().do(
+            obj, cons_val=cv, n_stop_if_ranked=obj.shape[0], return_rank=True
         )
-        bestrankobjs = obj[ranksort == 0, :]
+        bestrankobjs = obj[ranks == 0, :]
         nadir = np.array([np.max(obj[:, i]) for i in range(obj.shape[1])])
 
         # Hypervolume we want is HV(PF, nadir) - HV(bestrankobjs, nadir)

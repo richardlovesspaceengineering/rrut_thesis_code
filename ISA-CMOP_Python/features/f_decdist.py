@@ -25,12 +25,12 @@ def f_decdist(pop, n1, n2):
 
     if obj.size > 1:
         # NDSort. Need to make sure this outputs a NumPy array for conditional indexing to work.
-        ranksort = NonDominatedSorting().do(
-            obj, cons_val=None, n_stop_if_ranked=obj.shape[0]
+        fronts, ranks = NonDominatedSorting().do(
+            obj, cons_val=None, n_stop_if_ranked=obj.shape[0], return_rank=True
         )
 
         # Distance across and between n1 and n2 rank fronts in decision space. Each argument of cdist should be arrays corresponding to the DVs on front n1 and front n2.
-        dist_matrix = cdist(var[ranksort == n1, :], var[ranksort == n2, :], "euclidean")
+        dist_matrix = cdist(var[ranks == n1, :], var[ranks == n2, :], "euclidean")
 
         # Compute statistics on this dist_matrix.
         PSdecdist_max = np.max(np.max(dist_matrix, axis=0))
