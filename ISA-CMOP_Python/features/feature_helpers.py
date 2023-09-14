@@ -11,8 +11,8 @@ def remove_imag_rows(matrix):
     """
 
     new_matrix = copy.deepcopy(matrix)
-    rmimg = np.nonzero(np.sum(np.imag(new_matrix) != 0, axis=1))
-    new_matrix = np.delete(new_matrix, rmimg, axis=0)
+    rmimg = np.sum(np.imag(new_matrix) != 0, axis=1)
+    new_matrix = new_matrix[np.logical_not(rmimg)]
     return new_matrix
 
 

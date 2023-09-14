@@ -22,7 +22,7 @@ def fvc(pop):
 
     # Find correlations of each objective function with the CVs.
     for i in range(obj.shape[1]):
-        objx = np.asarray(obj[:, i])
+        objx = obj[:, i]
 
         # Compute correlation.
         corr_obj[i] = corr_coef(cv, objx)
@@ -31,6 +31,8 @@ def fvc(pop):
     fronts, ranks = NonDominatedSorting().do(
         obj, cons_val=None, n_stop_if_ranked=obj.shape[0], return_rank=True
     )
+
+    # TODO: check whether we need Spearman's or Pearson's
     corr_f = corr_coef(cv, ranks, spearman=True)
 
     return [corr_obj, corr_f]

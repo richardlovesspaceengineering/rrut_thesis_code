@@ -25,6 +25,7 @@ class FitnessAnalysis:
         self.pop = pop
 
     def eval_fitness_features(self):
+        # TODO: check each of these work properly.
         self.corr_cf = self.get_corr_cf()
         self.f_mdl_r2 = self.get_f_mdl_r2()
         self.dist_c_corr = self.get_dist_c_corr()
@@ -36,13 +37,6 @@ class FitnessAnalysis:
         self.cv_range_coeff = self.get_cv_range_coeff()
         self.corr_obj = self.get_corr_obj()
         self.cv_mdl_r2 = self.get_cv_mdl_r2()
-
-    def get_non_dominated_front(self):
-        """
-        Get the set of non-dominated solutions for this population.
-        """
-
-        return
 
     def get_corr_cf(self):
         return fvc(self.pop)[1]

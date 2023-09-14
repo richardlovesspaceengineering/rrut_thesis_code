@@ -26,30 +26,30 @@ def PiIZ(pop):
     mincv = np.min(cv, axis=0)
     maxcv = np.max(cv, axis=0)
     mconsIdealPoint = mincv + (0.25 * (maxcv - mincv))
-    conZone = np.nonzero(np.all(cv <= mconsIdealPoint, axis=1))
+    conZone = np.all(cv <= mconsIdealPoint, axis=1)
 
     # Find PiZ for each objXcon
     piz_ob = np.zeros(obj.shape[1])
     for i in range(obj.shape[1]):
         objIdealPoint = minobjs[i] + (0.25 * (maxobjs[i] - minobjs[i]))
         objx = obj[:, i]
-        iz = np.nonzero(np.all(objx[conZone] <= objIdealPoint, axis=1))
-        piz_ob[i] = iz.size / pop.extract_obj().size
+        iz = np.asarray(objx[conZone] <= objIdealPoint)
+
+        # TODO: check why denominator is num_objs x num_samples
+        piz_ob[i] = np.count_nonzero(iz) / pop.extract_obj().size
 
     # Find PiZ for each frontsXcon
 
     # May need to transpose.
-    fronts, ranks = np.transpose(
-        NonDominatedSorting().do(
-            obj, cons_val=None, n_stop_if_ranked=obj.shape[0], return_rank=True
-        )
+    fronts, ranks = NonDominatedSorting().do(
+        obj, cons_val=None, n_stop_if_ranked=obj.shape[0], return_rank=True
     )
 
     # Axes may need to change depending on the structure of ranks. Right now we are taking the min of a column vector.
-    minrank = np.min(ranks, axis=0)
-    maxrank = np.max(ranks, axis=0)
+    minrank = np.min(ranks)
+    maxrank = np.max(ranks)
     rankIdealPoint = minrank + (0.25 * (maxrank - minrank))
-    iz = np.nonzero(np.all(ranks[conZone] <= rankIdealPoint, axis=1))
-    piz_f = iz.size / pop.extract_obj().size
+    iz = np.asarray(ranks[conZone] <= rankIdealPoint)
+    piz_f = np.count_nonzero(iz) / pop.extract_obj().size
 
-    return [piz_ob, piz_f]
+    return piz_ob, piz_f
