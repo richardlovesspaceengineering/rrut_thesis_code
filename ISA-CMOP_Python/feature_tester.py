@@ -9,6 +9,8 @@ import numpy as np
 from optimisation.model.individual import Individual
 from optimisation.model.population import Population
 from features.FitnessAnalysis import FitnessAnalysis
+from sampling.RandomSample import RandomSample
+from sampling.RandomWalk import RandomWalk
 
 
 if __name__ == "__main__":
@@ -19,8 +21,11 @@ if __name__ == "__main__":
     # Decision variables - randomly generated in a basic way for now. Will need to consult Alsouly paper later to mimic their method.
     x_lower = problem.lb
     x_upper = problem.ub
-    np.random.seed(1)
-    x = np.random.uniform(x_lower, x_upper, size=(n_points, n_variables))
+    bounds = np.row_stack((x_lower, x_upper))
+
+    # Run random sampling and random walk.
+    sample = RandomSample(bounds, n_points)._do()
+    walk = RandomWalk(bounds, num_steps=100, step_size=0.05)
 
     # Create the population and evalute.
     pop = Population(problem, n_individuals=n_points)
