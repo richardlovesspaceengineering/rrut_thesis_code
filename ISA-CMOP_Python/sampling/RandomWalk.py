@@ -5,11 +5,12 @@ import matplotlib.pyplot as plt
 
 
 class RandomWalk(Sampling):
-    def __init__(self, bounds, num_steps, step_size):
+    def __init__(self, bounds, num_steps, step_size, neighbourhood_size):
         super().__init__()
         self.bounds = bounds
         self.num_steps = num_steps
         self.step_size = step_size
+        self.neighbourhood_size = neighbourhood_size
 
     def random_pm(self, seed=None):
         np.random.seed(seed)
@@ -43,11 +44,12 @@ class RandomWalk(Sampling):
             while i < dim:
                 sign = self.random_pm(seed)  # Determine positive or negative direction
 
-                # Defines range of step sizes.
-                r = (self.bounds[0, i] * self.step_size) + (
-                    (self.bounds[1, i] - self.bounds[0, i]) * self.step_size
-                ) * np.random.random()
-                temp = curr[0, i] + r * sign
+                # Defines range of step sizes based on neighbourhood_size
+                r = (
+                    (self.bounds[0, i] * self.step_size)
+                    + ((self.bounds[1, i] - self.bounds[0, i]) * self.step_size)
+                ) * np.random.random(size=(self.neighbourhood_size, 1))
+                temp = curr[0, i] + np.sum(r) * sign
 
                 # Handling if the walk leaves the bounds.
                 if temp <= self.bounds[1, i] and temp >= self.bounds[0, i]:
@@ -55,9 +57,9 @@ class RandomWalk(Sampling):
                     s = temp
                 else:
                     # Otherwise change direction
-                    s = curr[0, i] - r * sign
+                    s = curr[0, i] - np.sum(r) * sign
 
-                # Saving and iteration to next dimension.
+                # Saving and iteration to the next dimension.
                 x[i] = s
                 i = i + 1
 
@@ -68,13 +70,15 @@ class RandomWalk(Sampling):
 
 if __name__ == "__main__":
     # Create a 4x4 grid of subplots
-    fig, ax = plt.subplots(4, 4, figsize=(10, 10))
-
-    for i in range(4):
+    fig, ax = plt.subplots(5, 4, figsize=(10, 10))
+    neighbourhood_sizes = [1, 2, 3, 4, 5]
+    for i in range(5):
         for j in range(4):
             # Define bounds for each subplot
             bounds = np.array([[-1, 0], [1, 3]])
-            rw = RandomWalk(bounds, 1000, 0.05)
+            rw = RandomWalk(
+                bounds, 1000, 0.05, neighbourhood_size=neighbourhood_sizes[i]
+            )
             walk = rw._do(seed=None)
 
             # Plot the random walk on the current subplot
@@ -99,3 +103,5 @@ if __name__ == "__main__":
 
     # Show the plot
     plt.show()
+
+# %%
