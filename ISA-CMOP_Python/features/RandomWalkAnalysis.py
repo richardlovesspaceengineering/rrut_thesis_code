@@ -49,28 +49,20 @@ class MultipleRandomWalkAnalysis(np.ndarray):
         for i in range(len(self)):
             self[i].eval_rw_features()
 
-    def extract_dist_f_dist_x_avg_array(self):
-        dist_f_dist_x_avg_array = []
+    def generate_array_for_attribute(self, attribute_name):
+        attribute_array = []
         for i in range(len(self)):
-            dist_f_dist_x_avg_array.append(self[i].dist_f_dist_x_avg)
-        return np.asarray(dist_f_dist_x_avg_array)
-
-    def extract_dist_c_dist_x_avg_array(self):
-        dist_c_dist_x_avg_array = []
-        for i in range(len(self)):
-            dist_c_dist_x_avg_array.append(self[i].dist_c_dist_x_avg)
-        return np.asarray(dist_c_dist_x_avg_array)
-
-    def extract_bhv_array(self):
-        bhv_array = []
-        for i in range(len(self)):
-            bhv_array.append(self[i].bhv)
-        return np.asarray(bhv_array)
+            attribute_array.append(getattr(self[i], attribute_name))
+        return np.asarray(attribute_array)
 
     def aggregate_features(self):
         """
         Aggregate features for all populations. Must be run after eval_features_for_all_populations.
         """
-        self.dist_f_dist_x_avg_rws = np.mean(self.extract_dist_f_dist_x_avg_array())
-        self.dist_c_dist_x_avg_rws = np.mean(self.extract_dist_c_dist_x_avg_array())
-        self.bhv_avg_rws = np.mean(self.extract_bhv_array())
+        self.dist_f_dist_x_avg_rws = np.mean(
+            self.generate_array_for_attribute("dist_f_dist_x_avg")
+        )
+        self.dist_c_dist_x_avg_rws = np.mean(
+            self.generate_array_for_attribute("dist_c_dist_x_avg")
+        )
+        self.bhv_avg_rws = np.mean(self.generate_array_for_attribute("bhv"))

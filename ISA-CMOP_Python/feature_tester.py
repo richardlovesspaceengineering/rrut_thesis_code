@@ -1,14 +1,8 @@
-from features.cv_distr import cv_distr
-from features.cv_mdl import cv_mdl
-from features.dist_corr import dist_corr
-from features.f_corr import f_corr
-from features.f_decdist import f_decdist
-from features.f_skew import f_skew
 from cases.MW_setup import MW3
 import numpy as np
 from optimisation.model.individual import Individual
 from optimisation.model.population import Population
-from features.FitnessAnalysis import FitnessAnalysis
+from features.FitnessAnalysis import FitnessAnalysis, MultipleFitnessAnalysis
 from features.RandomWalkAnalysis import RandomWalkAnalysis, MultipleRandomWalkAnalysis
 from sampling.RandomSample import RandomSample
 from sampling.RandomWalk import RandomWalk
@@ -41,7 +35,8 @@ if __name__ == "__main__":
     pop_global.evaluate(sample)
 
     # Now evaluate metrics.
-    global_features = FitnessAnalysis(pop_global)
+    pops = [pop_global]
+    global_features = MultipleFitnessAnalysis([pop_global])
     global_features.eval_fitness_features()
 
     # Random walk
@@ -51,7 +46,7 @@ if __name__ == "__main__":
     # Evaluate along the RW.
     pop_rw.evaluate(walk)
 
-    # Compute RW features.
+    # Compute RW features for each walk then aggregate.
     pops = [pop_rw]
     rw_features = MultipleRandomWalkAnalysis(pops)
     rw_features.eval_features_for_all_populations()
