@@ -40,14 +40,12 @@ if __name__ == "__main__":
     pop_global = Population(problem, n_individuals=n_points)
     pop_global.evaluate(sample)
 
-    # nondominated = pop.extract_nondominated(Population)
-
     # Now evaluate metrics.
     global_features = FitnessAnalysis(pop_global)
     global_features.eval_fitness_features()
 
     # Random walk
-    walk = RandomWalk(bounds, num_steps, step_size, neighbourhood_size)._do()
+    walk = RandomWalk(bounds, num_steps, step_size, neighbourhood_size)._do(seed=123)
     pop_rw = Population(problem, n_individuals=num_steps)
 
     # Evaluate along the RW.
@@ -56,6 +54,3 @@ if __name__ == "__main__":
     # Compute RW features.
     rw_features = RandomWalkAnalysis([pop_rw])
     rw_features.eval_rw_features()
-
-    # Evaluate each population
-    print("hello")
