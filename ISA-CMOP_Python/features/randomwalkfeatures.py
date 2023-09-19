@@ -42,7 +42,9 @@ def randomwalkfeatures(Populations, PF, Instances=None):
             obj, cons_val=cv, n_stop_if_ranked=obj.shape[0], return_rank=True
         )
         bestrankobjs = obj[ranks == 0, :]
-        nadir = np.array([np.max(obj[:, i]) for i in range(obj.shape[1])])
+
+        # Offset nadir from max objectives by 10%
+        nadir = np.array([np.max(obj[:, i]) * 1.1 for i in range(obj.shape[1])])
 
         # Hypervolume we want is HV(PF, nadir) - HV(bestrankobjs, nadir)
         hv_nadir_pf = calculate_hypervolume_pygmo(PF, nadir)
