@@ -17,26 +17,58 @@ class RandomWalkAnalysis:
     Populations is a list of populations that represents a walk, each entry is a solution and its neighbours.
     """
 
-    def __init__(self, pops):
+    def __init__(self, pop):
         """
         Populations must already be evaluated.
         """
-        self.pops = pops
-        self.pareto_front = pops[0][0].pareto_front
+        self.pop = pop
+        self.pareto_front = pop[0].pareto_front
 
     def eval_rw_features(self):
-        dist_f_dist_x_avg_rws, dist_c_dist_x_avg_rws, bhv_avg_rws = randomwalkfeatures(
-            self.pops, self.pareto_front, Instances=None
+        dist_f_dist_x_avg, dist_c_dist_x_avg, bhv = randomwalkfeatures(
+            self.pop, self.pareto_front, Instances=None
         )
-        self.bhv_avg_rws = bhv_avg_rws
-        self.dist_c_dist_x_avg_rws = dist_c_dist_x_avg_rws
-        self.dist_f_dist_x_avg_rws = dist_f_dist_x_avg_rws
+        self.bhv = bhv
+        self.dist_c_dist_x_avg = dist_c_dist_x_avg
+        self.dist_f_dist_x_avg = dist_f_dist_x_avg
 
-    def get_bhv_avg_rws(self):
+
+class MultipleRandomWalkAnalysis(np.ndarray):
+    """
+    Aggregate RW features across populations/walks.
+    """
+
+    def __new__(cls, pops):
+        obj = (
+            super(RandomWalkAnalysis, cls).__new__(cls, len(pops), dtype=cls).view(cls)
+        )
+        for i in range(len(pops)):
+            obj[i] = RandomWalkAnalysis(pops[i])
+
+        return obj
+
+    def eval_features_for_all_populations(self):
+        """
+        Evaluate features for all populations.
+        """
         return
 
-    def get_dist_c_dist_x_avg_rws(self):
+    def extract_dist_f_dist_x_avg_array(self):
         return
 
-    def get_dist_f_dist_x_avg_rws(self):
+    def extract_dist_c_dist_x_avg_array(self):
         return
+
+    def extract_bhv_array(self):
+        return
+
+    def aggregate_features(self):
+        """
+        Aggregate features for all populations. Must be run after eval_features_for_all_populations.
+        """
+        dist_x_avg = np.zeros(len(self.analyses))
+        dist_f_avg = np.zeros(len(self.analyses))
+        dist_c_avg = np.zeros(len(self.analyses))
+        bhv = np.zeros(len(self.analyses))
+
+        # for i, pop in enumerate(self.analyses):

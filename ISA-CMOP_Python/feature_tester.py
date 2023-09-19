@@ -9,7 +9,7 @@ import numpy as np
 from optimisation.model.individual import Individual
 from optimisation.model.population import Population
 from features.FitnessAnalysis import FitnessAnalysis
-from features.RandomWalkAnalysis import RandomWalkAnalysis
+from features.RandomWalkAnalysis import RandomWalkAnalysis, MultipleRandomWalkAnalysis
 from sampling.RandomSample import RandomSample
 from sampling.RandomWalk import RandomWalk
 
@@ -52,5 +52,6 @@ if __name__ == "__main__":
     pop_rw.evaluate(walk)
 
     # Compute RW features.
-    rw_features = RandomWalkAnalysis([pop_rw])
-    rw_features.eval_rw_features()
+    pops = [pop_rw]
+    rw_features = MultipleRandomWalkAnalysis(pops)
+    rw_features.eval_features_for_all_populations()
