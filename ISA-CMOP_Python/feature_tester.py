@@ -9,6 +9,7 @@ import numpy as np
 from optimisation.model.individual import Individual
 from optimisation.model.population import Population
 from features.FitnessAnalysis import FitnessAnalysis
+from features.RandomWalkAnalysis import RandomWalkAnalysis
 from sampling.RandomSample import RandomSample
 from sampling.RandomWalk import RandomWalk
 
@@ -16,23 +17,45 @@ from sampling.RandomWalk import RandomWalk
 if __name__ == "__main__":
     problem = MW3()  # use default dimensionality.
     n_variables = problem.dim
+
+    # Experimental setup of Alsouly
+    # n_points = n_variables * 10**3
+    neighbourhood_size = 2 * n_variables + 1
+    # num_steps = n_points / neighbourhood_size * 10**3
+    # step_size = 0.02  # 2% of the range of the instance domain
+
     n_points = 5
+    num_steps = 5
+    step_size = 0.02
 
     # Decision variables - randomly generated in a basic way for now. Will need to consult Alsouly paper later to mimic their method.
     x_lower = problem.lb
     x_upper = problem.ub
-    bounds = np.row_stack((x_lower, x_upper))
+    bounds = np.vstack((x_lower, x_upper))
 
     # Run random sampling and random walk.
     sample = RandomSample(bounds, n_points)._do()
-    walk = RandomWalk(bounds, num_steps=100, step_size=0.05)
 
-    # Create the population and evalute.
-    pop = Population(problem, n_individuals=n_points)
-    pop.evaluate(x)
+    # Create the population and evaluate.
+    pop_global = Population(problem, n_individuals=n_points)
+    pop_global.evaluate(sample)
 
     # nondominated = pop.extract_nondominated(Population)
 
     # Now evaluate metrics.
-    features = FitnessAnalysis(pop)
-    features.eval_fitness_features()
+    global_features = FitnessAnalysis(pop_global)
+    global_features.eval_fitness_features()
+
+    # Random walk
+    walk = RandomWalk(bounds, num_steps, step_size, neighbourhood_size)._do()
+    pop_rw = Population(problem, n_individuals=num_steps)
+
+    # Evaluate along the RW.
+    pop_rw.evaluate(walk)
+
+    # Compute RW features.
+    rw_features = RandomWalkAnalysis([pop_rw])
+    rw_features.eval_rw_features()
+
+    # Evaluate each population
+    print("hello")

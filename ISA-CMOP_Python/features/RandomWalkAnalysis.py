@@ -22,12 +22,15 @@ class RandomWalkAnalysis:
         Populations must already be evaluated.
         """
         self.pops = pops
+        self.pareto_front = pops[0][0].pareto_front
 
     def eval_rw_features(self):
-        self.bhv_avg_rws = self.get_bhv_avg_rws()
-        self.dist_c_dist_x_avg_rws = self.get_dist_c_dist_x_avg_rws()
-        self.dist_f_dist_x_avg_rws = self.get_dist_f_dist_x_avg_rws()
-        self.cv_mdl_r2 = self.get_cv_mdl_r2()
+        dist_f_dist_x_avg_rws, dist_c_dist_x_avg_rws, bhv_avg_rws = randomwalkfeatures(
+            self.pops, self.pareto_front, Instances=None
+        )
+        self.bhv_avg_rws = bhv_avg_rws
+        self.dist_c_dist_x_avg_rws = dist_c_dist_x_avg_rws
+        self.dist_f_dist_x_avg_rws = dist_f_dist_x_avg_rws
 
     def get_bhv_avg_rws(self):
         return

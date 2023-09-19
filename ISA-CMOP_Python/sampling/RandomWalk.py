@@ -1,12 +1,12 @@
 # %%
-from sampling import Sampling
+from sampling.Sampling import Sampling
 import numpy as np
 import matplotlib.pyplot as plt
 
 
 class RandomWalk(Sampling):
     def __init__(self, bounds, num_steps, step_size, neighbourhood_size):
-        super().__init__()
+        # super().__init__()
         self.bounds = bounds
         self.num_steps = num_steps
         self.step_size = step_size

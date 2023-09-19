@@ -58,4 +58,4 @@ def randomwalkfeatures(Populations, PF, Instances=None):
     dist_c_dist_x_avg_rws = np.mean(dist_c_dist_x_avg)
     bhv_avg_rws = np.mean(bhv)
 
-    return [dist_f_dist_x_avg_rws, dist_c_dist_x_avg_rws, bhv_avg_rws]
+    return dist_f_dist_x_avg_rws, dist_c_dist_x_avg_rws, bhv_avg_rws
