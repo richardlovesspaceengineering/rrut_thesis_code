@@ -55,3 +55,4 @@ if __name__ == "__main__":
     pops = [pop_rw]
     rw_features = MultipleRandomWalkAnalysis(pops)
     rw_features.eval_features_for_all_populations()
+    rw_features.aggregate_features()

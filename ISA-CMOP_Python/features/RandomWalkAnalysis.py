@@ -1,12 +1,4 @@
 import numpy as np
-from features.cv_distr import cv_distr
-from features.cv_mdl import cv_mdl
-from features.rank_mdl import rank_mdl
-from features.dist_corr import dist_corr
-from features.f_corr import f_corr
-from features.f_decdist import f_decdist
-from features.f_skew import f_skew
-from features.fvc import fvc
 from features.randomwalkfeatures import randomwalkfeatures
 
 
@@ -40,7 +32,9 @@ class MultipleRandomWalkAnalysis(np.ndarray):
 
     def __new__(cls, pops):
         obj = (
-            super(RandomWalkAnalysis, cls).__new__(cls, len(pops), dtype=cls).view(cls)
+            super(MultipleRandomWalkAnalysis, cls)
+            .__new__(cls, len(pops), dtype=cls)
+            .view(cls)
         )
         for i in range(len(pops)):
             obj[i] = RandomWalkAnalysis(pops[i])
@@ -51,24 +45,32 @@ class MultipleRandomWalkAnalysis(np.ndarray):
         """
         Evaluate features for all populations.
         """
-        return
+
+        for i in range(len(self)):
+            self[i].eval_rw_features()
 
     def extract_dist_f_dist_x_avg_array(self):
-        return
+        dist_f_dist_x_avg_array = []
+        for i in range(len(self)):
+            dist_f_dist_x_avg_array.append(self[i].dist_f_dist_x_avg)
+        return np.asarray(dist_f_dist_x_avg_array)
 
     def extract_dist_c_dist_x_avg_array(self):
-        return
+        dist_c_dist_x_avg_array = []
+        for i in range(len(self)):
+            dist_c_dist_x_avg_array.append(self[i].dist_c_dist_x_avg)
+        return np.asarray(dist_c_dist_x_avg_array)
 
     def extract_bhv_array(self):
-        return
+        bhv_array = []
+        for i in range(len(self)):
+            bhv_array.append(self[i].bhv)
+        return np.asarray(bhv_array)
 
     def aggregate_features(self):
         """
         Aggregate features for all populations. Must be run after eval_features_for_all_populations.
         """
-        dist_x_avg = np.zeros(len(self.analyses))
-        dist_f_avg = np.zeros(len(self.analyses))
-        dist_c_avg = np.zeros(len(self.analyses))
-        bhv = np.zeros(len(self.analyses))
-
-        # for i, pop in enumerate(self.analyses):
+        self.dist_f_dist_x_avg_rws = np.mean(self.extract_dist_f_dist_x_avg_array())
+        self.dist_c_dist_x_avg_rws = np.mean(self.extract_dist_c_dist_x_avg_array())
+        self.bhv_avg_rws = np.mean(self.extract_bhv_array())
