@@ -43,7 +43,7 @@ class LandscapeAnalysis:
             -0.2466,
         ]
 
-        # Reshape the data into a 13x2 array
+        # Reshape the data into a 14x2 array
         self.projection_matrix = np.array(projection_matrix).reshape(14, 2)
 
     def combine_features(self):
