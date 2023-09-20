@@ -26,6 +26,7 @@ class FitnessAnalysis:
 
     def eval_fitness_features(self):
         # TODO: check each of these work properly.
+        self.feasibility_ratio = self.get_feasibility_ratio()
         self.corr_cf = self.get_corr_cf()
         self.f_mdl_r2 = self.get_f_mdl_r2()
         self.dist_c_corr = self.get_dist_c_corr()
@@ -37,6 +38,10 @@ class FitnessAnalysis:
         self.cv_range_coeff = self.get_cv_range_coeff()
         self.corr_obj = self.get_corr_obj()
         self.cv_mdl_r2 = self.get_cv_mdl_r2()
+
+    def get_feasibility_ratio(self):
+        feasible = self.pop.extract_feasible()
+        return len(feasible) / len(self.pop)
 
     def get_corr_cf(self):
         return fvc(self.pop)[1]
@@ -60,7 +65,14 @@ class FitnessAnalysis:
         return f_decdist(self.pop, 1, 1)[-1]
 
     def get_cpo_upo_n(self):
-        return
+        # Nondominated solutions (with constraints)
+        nondominated = self.pop.extract_nondominated()
+
+        # Nondominated solutions, unconstrained.
+        pop_copy = self.pop
+        pop_copy.eval_rank_and_crowding(constrained=False)
+        nondominated_unconstrained = pop_copy.extract_nondominated()
+        return len(nondominated) / len(nondominated_unconstrained)
 
     def get_cv_range_coeff(self):
         return
@@ -106,6 +118,9 @@ class MultipleFitnessAnalysis(np.ndarray):
         """
         Aggregate features for all populations. Must be run after eval_features_for_all_populations.
         """
+        self.feasibility_ratio = np.mean(
+            self.generate_array_for_attribute("feasibility_ratio")
+        )
         self.f_mdl_r2 = np.mean(self.generate_array_for_attribute("f_mdl_r2"))
         self.dist_c_corr = np.mean(self.generate_array_for_attribute("dist_c_corr"))
         self.min_cv = np.mean(self.generate_array_for_attribute("min_cv"))

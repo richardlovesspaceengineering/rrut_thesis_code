@@ -22,8 +22,13 @@ def dist_corr(pop, NonDominated):
     var = remove_imag_rows(var)
     cons = remove_imag_rows(cons)
 
+    # Reshape nondominated variables array to be 2D if needed.
+    nondominated_var = NonDominated.extract_var()
+    if nondominated_var.ndim == 1:
+        nondominated_var = np.reshape(nondominated_var, (1, -1))
+
     # For each ND decision variable, find the smallest distance to the nearest population decision variable.
-    dist_matrix = cdist(NonDominated.extract_var(), var, "euclidean")
+    dist_matrix = cdist(nondominated_var, var, "euclidean")
     min_dist = np.min(dist_matrix, axis=0)
 
     # Then compute correlation coefficient between CV and . Assumed that all values in the correlation matrix are the same, meaning we only need one scalar. See f_corr for a similar implementation.

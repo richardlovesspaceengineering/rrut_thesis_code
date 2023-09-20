@@ -37,7 +37,7 @@ if __name__ == "__main__":
     # Now evaluate metrics.
     pops = [pop_global]
     global_features = MultipleFitnessAnalysis([pop_global])
-    global_features.eval_fitness_features()
+    global_features.eval_features_for_all_populations()
 
     # Random walk
     walk = RandomWalk(bounds, num_steps, step_size, neighbourhood_size)._do(seed=123)

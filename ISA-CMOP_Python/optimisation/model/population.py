@@ -119,8 +119,30 @@ class Population(np.ndarray):
         best_ctr = 0
         for i in range(len(self)):
             if self[i].rank == 0:
-                obj[best_ctr] = Individual(self[0].problem)
+                obj[best_ctr] = self[i]
                 best_ctr += 1
+        return obj
+
+    def extract_feasible(self):
+        """
+        Extract feasible solutions from the population.
+
+        Can only run once all objectives, constraints have been evaluated i.e after a call to self.evaluate(x).
+
+        Creates a new population which is a subset of the original.
+        """
+        # Number of feasible
+        num_feas = np.count_nonzero(self.extract_cv() <= 0)
+
+        # Initialize new population.
+        obj = self.__new__(Population, self[0].problem, n_individuals=num_feas)
+
+        # Loop through and save.
+        best_ctr = 0
+        for i in range(len(self)):
+            if self[i].cv <= 0:
+                obj[feas_ctr] = self[i]
+                feas_ctr += 1
         return obj
 
     ### SETTERS
@@ -140,14 +162,19 @@ class Population(np.ndarray):
         for i in range(len(self)):
             self[i].set_cv(cv_array[i, :])
 
-    def eval_rank_and_crowding(self):
+    def eval_rank_and_crowding(self, constrained=True):
         # Extract the objective function values from the population
         obj_array = self.extract_obj()
         cv_array = self.extract_cv()
 
         # Conduct non-dominated sorting (considering constraints & objectives)
+        if constrained:
+            cons_val = cv_array
+        else:
+            cons_val = None
+
         fronts = NonDominatedSorting().do(
-            obj_array, cons_val=cv_array, n_stop_if_ranked=len(self)
+            obj_array, cons_val=cons_val, n_stop_if_ranked=len(self)
         )
 
         # Cycle through fronts
