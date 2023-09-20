@@ -2,10 +2,11 @@ from cases.MW_setup import MW3
 import numpy as np
 from optimisation.model.individual import Individual
 from optimisation.model.population import Population
-from features.FitnessAnalysis import FitnessAnalysis, MultipleFitnessAnalysis
-from features.RandomWalkAnalysis import RandomWalkAnalysis, MultipleRandomWalkAnalysis
+from features.FitnessAnalysis import MultipleFitnessAnalysis
+from features.RandomWalkAnalysis import MultipleRandomWalkAnalysis
 from sampling.RandomSample import RandomSample
 from sampling.RandomWalk import RandomWalk
+from features.LandscapeAnalysis import LandscapeAnalysis
 
 
 if __name__ == "__main__":
@@ -18,36 +19,47 @@ if __name__ == "__main__":
     # num_steps = n_points / neighbourhood_size * 10**3
     # step_size = 0.02  # 2% of the range of the instance domain
 
-    n_points = 5
+    n_points = n_variables
     num_steps = 5
     step_size = 0.02
 
-    # Decision variables - randomly generated in a basic way for now. Will need to consult Alsouly paper later to mimic their method.
+    # Bounds of the decision variables.
     x_lower = problem.lb
     x_upper = problem.ub
     bounds = np.vstack((x_lower, x_upper))
 
-    # Run random sampling and random walk.
-    sample = RandomSample(bounds, n_points)._do()
+    num_samples = 2
 
-    # Create the population and evaluate.
-    pop_global = Population(problem, n_individuals=n_points)
-    pop_global.evaluate(sample)
+    # Run feature eval multiple times.
+    pops_global = []
+    pops_rw = []
+    for ctr in range(num_samples):
+        ## Populations for global features.
+        sample = RandomSample(bounds, n_points)._do(seed=ctr)
+        pop_global = Population(problem, n_individuals=n_points)
+        pop_global.evaluate(sample)
+        pops_global.append(pop_global)
 
-    # Now evaluate metrics.
-    pops = [pop_global]
-    global_features = MultipleFitnessAnalysis([pop_global])
+        ## Populations for random walks.
+        walk = RandomWalk(bounds, num_steps, step_size, neighbourhood_size)._do(
+            seed=ctr
+        )
+        pop_rw = Population(problem, n_individuals=num_steps)
+        pop_rw.evaluate(walk)
+        pops_rw.append(pop_rw)
+
+    # Now evaluate metrics for all populations.
+
+    # Global.
+    global_features = MultipleFitnessAnalysis(pops_global)
     global_features.eval_features_for_all_populations()
+    global_features.aggregate_features()
 
-    # Random walk
-    walk = RandomWalk(bounds, num_steps, step_size, neighbourhood_size)._do(seed=123)
-    pop_rw = Population(problem, n_individuals=num_steps)
-
-    # Evaluate along the RW.
-    pop_rw.evaluate(walk)
-
-    # Compute RW features for each walk then aggregate.
-    pops = [pop_rw]
-    rw_features = MultipleRandomWalkAnalysis(pops)
+    # Random walk.
+    rw_features = MultipleRandomWalkAnalysis(pops_rw)
     rw_features.eval_features_for_all_populations()
     rw_features.aggregate_features()
+
+    # Combine all features.
+    landscape = LandscapeAnalysis(global_features, rw_features)
+    landscape.combine_features()

@@ -1,5 +1,4 @@
 import numpy as np
-from optimisation.model.individual import Individual
 from features.cv_distr import cv_distr
 from features.cv_mdl import cv_mdl
 from features.rank_mdl import rank_mdl
@@ -9,7 +8,6 @@ from features.f_decdist import f_decdist
 from features.f_skew import f_skew
 from features.fvc import fvc
 from features.PiIZ import PiIZ
-from optimisation.util.non_dominated_sorting import NonDominatedSorting
 
 
 class FitnessAnalysis:
@@ -25,7 +23,7 @@ class FitnessAnalysis:
         self.pop = pop
 
     def eval_fitness_features(self):
-        # TODO: check each of these work properly.
+        # TODO: check whether FR should be calculated here or in random walk.
         self.feasibility_ratio = self.get_feasibility_ratio()
         self.corr_cf = self.get_corr_cf()
         self.f_mdl_r2 = self.get_f_mdl_r2()
@@ -35,8 +33,11 @@ class FitnessAnalysis:
         self.piz_ob_min = self.get_piz_ob_min()
         self.ps_dist_iqr_mean = self.get_ps_dist_iqr_mean()
         self.cpo_upo_n = self.get_cpo_upo_n()
-        self.cv_range_coeff = self.get_cv_range_coeff()
         self.corr_obj = self.get_corr_obj()
+
+        # Fit linear model then save related features of interest.
+        self.eval_cv_mdl()
+        self.cv_range_coeff = self.get_cv_range_coeff()
         self.cv_mdl_r2 = self.get_cv_mdl_r2()
 
     def get_feasibility_ratio(self):
@@ -74,14 +75,27 @@ class FitnessAnalysis:
         nondominated_unconstrained = pop_copy.extract_nondominated()
         return len(nondominated) / len(nondominated_unconstrained)
 
+    def eval_cv_mdl(self):
+        """
+        Ensures we only need to fit the linear model once per population.
+        """
+        mdl_r2, range_coeff = cv_mdl(self.pop)
+        self.cv_mdl_params = [mdl_r2, range_coeff]
+
     def get_cv_range_coeff(self):
-        return
+        """
+        Only works after eval_cv_mdl is run.
+        """
+        return self.cv_mdl_params[1]
 
     def get_corr_obj(self):
-        return
+        return f_corr(self.pop)
 
     def get_cv_mdl_r2(self):
-        return
+        """
+        Only works after eval_cv_mdl is run.
+        """
+        return self.cv_mdl_params[0]
 
 
 class MultipleFitnessAnalysis(np.ndarray):
@@ -107,6 +121,11 @@ class MultipleFitnessAnalysis(np.ndarray):
 
         for i in range(len(self)):
             self[i].eval_fitness_features()
+            print(
+                "Evaluated global features for population {} of {}".format(
+                    i + 1, len(self)
+                )
+            )
 
     def generate_array_for_attribute(self, attribute_name):
         attribute_array = []
@@ -121,13 +140,14 @@ class MultipleFitnessAnalysis(np.ndarray):
         self.feasibility_ratio = np.mean(
             self.generate_array_for_attribute("feasibility_ratio")
         )
+        self.corr_cf = np.mean(self.generate_array_for_attribute("corr_cf"))
         self.f_mdl_r2 = np.mean(self.generate_array_for_attribute("f_mdl_r2"))
         self.dist_c_corr = np.mean(self.generate_array_for_attribute("dist_c_corr"))
         self.min_cv = np.mean(self.generate_array_for_attribute("min_cv"))
         self.skew_rnge = np.mean(self.generate_array_for_attribute("skew_rnge"))
         self.piz_ob_min = np.mean(self.generate_array_for_attribute("piz_ob_min"))
         self.ps_dist_iqr_mean = np.mean(
-            self.generate_array_for_attribute("get_ps_dist_iqr_mean")
+            self.generate_array_for_attribute("ps_dist_iqr_mean")
         )
         self.cpo_upo_n = np.mean(self.generate_array_for_attribute("cpo_upo_n"))
         self.cv_range_coeff = np.mean(

@@ -48,6 +48,11 @@ class MultipleRandomWalkAnalysis(np.ndarray):
 
         for i in range(len(self)):
             self[i].eval_rw_features()
+            print(
+                "Evaluated random walk features for population {} of {}".format(
+                    i + 1, len(self)
+                )
+            )
 
     def generate_array_for_attribute(self, attribute_name):
         attribute_array = []

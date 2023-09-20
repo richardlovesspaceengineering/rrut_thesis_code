@@ -32,6 +32,6 @@ def fvc(pop):
     )
 
     # TODO: check whether we need Spearman's or Pearson's
-    corr_f = corr_coef(cv, ranks, spearman=True)
+    corr_f = corr_coef(cv, ranks, spearman=False)
 
     return [corr_obj, corr_f]

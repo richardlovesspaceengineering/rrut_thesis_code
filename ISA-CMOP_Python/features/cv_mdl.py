@@ -11,4 +11,4 @@ def cv_mdl(pop):
 
     mdl_r2, range_coeff = fit_linear_mdl(var, obj)
 
-    return [mdl_r2, range_coeff]
+    return mdl_r2, range_coeff
