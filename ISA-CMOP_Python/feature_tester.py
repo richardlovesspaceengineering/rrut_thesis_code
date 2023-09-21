@@ -27,7 +27,7 @@ if __name__ == "__main__":
     x_upper = problem.ub
     bounds = np.vstack((x_lower, x_upper))
 
-    num_samples = 30
+    num_samples = 2
 
     # Run feature eval multiple times.
     pops_global = []
@@ -61,7 +61,7 @@ if __name__ == "__main__":
     PF = pops_global[0].extract_pf()
 
     # Global.
-    global_features = MultipleFitnessAnalysis(pops_global)
+    global_features = MultipleFitnessAnalysis(pops_rw)
     global_features.eval_features_for_all_populations()
     global_features.aggregate_features()
 
