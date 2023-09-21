@@ -3,6 +3,7 @@ import copy
 import warnings
 import scipy.stats
 from sklearn.linear_model import LinearRegression
+import matplotlib.pyplot as plt
 
 
 def remove_imag_rows(matrix):
@@ -28,6 +29,7 @@ def fit_linear_mdl(xdata, ydata):
 
     # Range. Ignore the intercepts.
     # Why isn't this taking individual absolute values as the paper suggests? Maybe because all coefficients are positive?
+    # range_coeff = np.abs(np.max(mdl.coef_)) - np.abs(np.min(mdl.coef_))
     range_coeff = np.max(mdl.coef_) - np.min(mdl.coef_)
 
     return mdl_r2, range_coeff

@@ -180,12 +180,15 @@ class Population(np.ndarray):
         # Cycle through fronts
         for k, front in enumerate(fronts):
             # Calculate crowding distance of the front
-            front_crowding_distance = calculate_crowding_distance(obj_array[front, :])
+
+            # LEFT OUT TO SPEED UP COMPUTATION
+            # front_crowding_distance = calculate_crowding_distance(obj_array[front, :])
 
             # Save rank and crowding to the individuals
             for j, i in enumerate(front):
                 self[i].rank = k
-                self[i].crowding_distance = front_crowding_distance[j]
+                # self[i].crowding_distance = front_crowding_distance[j]
+                self[i].crowding_distance = None
 
     ### EVALUATE AT A GIVEN SET OF POINTS.
     def evaluate(self, var_array):

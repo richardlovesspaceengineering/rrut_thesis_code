@@ -1,5 +1,6 @@
 import numpy as np
 from features.randomwalkfeatures import randomwalkfeatures
+from scipy.stats import yeojohnson
 
 
 class RandomWalkAnalysis:
@@ -58,16 +59,39 @@ class MultipleRandomWalkAnalysis(np.ndarray):
         attribute_array = []
         for i in range(len(self)):
             attribute_array.append(getattr(self[i], attribute_name))
-        return np.asarray(attribute_array)
+        return np.array(attribute_array)
 
-    def aggregate_features(self):
+    def collate_arrays(self):
         """
-        Aggregate features for all populations. Must be run after eval_features_for_all_populations.
+        Collate features into an array. Must be run after eval_features_for_all_populations.
         """
-        self.dist_f_dist_x_avg_rws = np.mean(
-            self.generate_array_for_attribute("dist_f_dist_x_avg")
+        self.dist_f_dist_x_avg_rws_array = self.generate_array_for_attribute(
+            "dist_f_dist_x_avg"
         )
-        self.dist_c_dist_x_avg_rws = np.mean(
-            self.generate_array_for_attribute("dist_c_dist_x_avg")
+        self.dist_c_dist_x_avg_rws_array = self.generate_array_for_attribute(
+            "dist_c_dist_x_avg"
         )
-        self.bhv_avg_rws = np.mean(self.generate_array_for_attribute("bhv"))
+        self.bhv_avg_rws_array = self.generate_array_for_attribute("bhv")
+
+    def aggregate_features(self, YJ_transform=True):
+        """
+        Aggregate features for all populations.
+        """
+
+        # Generate arrays to aggregate from.
+        self.collate_arrays()
+
+        # Apply Yeo-Johnson transform.
+        if YJ_transform:
+            self.dist_c_dist_x_avg_rws_array = yeojohnson(
+                self.dist_c_dist_x_avg_rws_array
+            )[0]
+            self.dist_f_dist_x_avg_rws_array = yeojohnson(
+                self.dist_f_dist_x_avg_rws_array
+            )[0]
+            self.bhv_avg_rws_array = yeojohnson(self.bhv_avg_rws_array)[0]
+
+        # Calculate means.
+        self.dist_c_dist_x_avg_rws = np.mean(self.dist_c_dist_x_avg_rws_array)
+        self.dist_f_dist_x_avg_rws = np.mean(self.dist_f_dist_x_avg_rws_array)
+        self.bhv_avg_rws = np.mean(self.bhv_avg_rws_array)

@@ -26,4 +26,4 @@ def rank_mdl(pop):
     # Fit linear model and compute adjusted R2 and difference between variable coefficients.
     mdl_r2, range_coeff = fit_linear_mdl(var, ranks)
 
-    return [mdl_r2, range_coeff]
+    return mdl_r2, range_coeff

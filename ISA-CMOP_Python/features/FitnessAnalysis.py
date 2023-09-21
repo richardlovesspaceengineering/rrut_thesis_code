@@ -8,6 +8,7 @@ from features.f_decdist import f_decdist
 from features.f_skew import f_skew
 from features.fvc import fvc
 from features.PiIZ import PiIZ
+from scipy.stats import yeojohnson
 
 
 class FitnessAnalysis:
@@ -131,27 +132,59 @@ class MultipleFitnessAnalysis(np.ndarray):
         attribute_array = []
         for i in range(len(self)):
             attribute_array.append(getattr(self[i], attribute_name))
-        return np.asarray(attribute_array)
+        return np.array(attribute_array)
 
-    def aggregate_features(self):
+    def collate_arrays(self):
+        self.feasibility_ratio_array = self.generate_array_for_attribute(
+            "feasibility_ratio"
+        )
+        self.corr_cf_array = self.generate_array_for_attribute("corr_cf")
+        self.f_mdl_r2_array = self.generate_array_for_attribute("f_mdl_r2")
+        self.dist_c_corr_array = self.generate_array_for_attribute("dist_c_corr")
+        self.min_cv_array = self.generate_array_for_attribute("min_cv")
+        self.skew_rnge_array = self.generate_array_for_attribute("skew_rnge")
+        self.piz_ob_min_array = self.generate_array_for_attribute("piz_ob_min")
+        self.ps_dist_iqr_mean_array = self.generate_array_for_attribute(
+            "ps_dist_iqr_mean"
+        )
+        self.cpo_upo_n_array = self.generate_array_for_attribute("cpo_upo_n")
+        self.cv_range_coeff_array = self.generate_array_for_attribute("cv_range_coeff")
+        self.corr_obj_array = self.generate_array_for_attribute("corr_obj")
+        self.cv_mdl_r2_array = self.generate_array_for_attribute("cv_mdl_r2")
+
+    def aggregate_features(self, YJ_transform=True):
         """
-        Aggregate features for all populations. Must be run after eval_features_for_all_populations.
+        Aggregate features for all populations.
         """
-        self.feasibility_ratio = np.mean(
-            self.generate_array_for_attribute("feasibility_ratio")
-        )
-        self.corr_cf = np.mean(self.generate_array_for_attribute("corr_cf"))
-        self.f_mdl_r2 = np.mean(self.generate_array_for_attribute("f_mdl_r2"))
-        self.dist_c_corr = np.mean(self.generate_array_for_attribute("dist_c_corr"))
-        self.min_cv = np.mean(self.generate_array_for_attribute("min_cv"))
-        self.skew_rnge = np.mean(self.generate_array_for_attribute("skew_rnge"))
-        self.piz_ob_min = np.mean(self.generate_array_for_attribute("piz_ob_min"))
-        self.ps_dist_iqr_mean = np.mean(
-            self.generate_array_for_attribute("ps_dist_iqr_mean")
-        )
-        self.cpo_upo_n = np.mean(self.generate_array_for_attribute("cpo_upo_n"))
-        self.cv_range_coeff = np.mean(
-            self.generate_array_for_attribute("cv_range_coeff")
-        )
-        self.corr_obj = np.mean(self.generate_array_for_attribute("corr_obj"))
-        self.cv_mdl_r2 = np.mean(self.generate_array_for_attribute("cv_mdl_r2"))
+
+        # Generate arrays to aggregate from.
+        self.collate_arrays()
+
+        # Apply Yeo-Johnson transform.
+        if YJ_transform:
+            self.feasibility_ratio_array = yeojohnson(self.feasibility_ratio_array)[0]
+            self.corr_cf_array = yeojohnson(self.corr_cf_array)[0]
+            self.f_mdl_r2_array = yeojohnson(self.f_mdl_r2_array)[0]
+            self.dist_c_corr_array = yeojohnson(self.dist_c_corr_array)[0]
+            self.min_cv_array = yeojohnson(self.min_cv_array)[0]
+            self.skew_rnge_array = yeojohnson(self.skew_rnge_array)[0]
+            self.piz_ob_min_array = yeojohnson(self.piz_ob_min_array)[0]
+            self.ps_dist_iqr_mean_array = yeojohnson(self.ps_dist_iqr_mean_array)[0]
+            self.cpo_upo_n_array = yeojohnson(self.cpo_upo_n_array)[0]
+            self.cv_range_coeff_array = yeojohnson(self.cv_range_coeff_array)[0]
+            self.corr_obj_array = yeojohnson(self.corr_obj_array)[0]
+            self.cv_mdl_r2_array = yeojohnson(self.cv_mdl_r2_array)[0]
+
+        # Calculate means.
+        self.feasibility_ratio = np.mean(self.feasibility_ratio_array)
+        self.corr_cf = np.mean(self.corr_cf_array)
+        self.f_mdl_r2 = np.mean(self.f_mdl_r2_array)
+        self.dist_c_corr = np.mean(self.dist_c_corr_array)
+        self.min_cv = np.mean(self.min_cv_array)
+        self.skew_rnge = np.mean(self.skew_rnge_array)
+        self.piz_ob_min = np.mean(self.piz_ob_min_array)
+        self.ps_dist_iqr_mean = np.mean(self.ps_dist_iqr_mean_array)
+        self.cpo_upo_n = np.mean(self.cpo_upo_n_array)
+        self.cv_range_coeff = np.mean(self.cv_range_coeff_array)
+        self.corr_obj = np.mean(self.corr_obj_array)
+        self.cv_mdl_r2 = np.mean(self.cv_mdl_r2_array)
