@@ -52,7 +52,7 @@ class LandscapeAnalysis:
 
         # Initialise features.
         self.feature_names = [
-            "feasibility_ratio",
+            "fsr",
             "corr_cf",
             "f_mdl_r2",
             "dist_c_corr",
@@ -69,14 +69,36 @@ class LandscapeAnalysis:
             "cv_mdl_r2",
         ]
 
-        # TODO: initialize feature arrays.
+        self.initialize_arrays_and_scalars()
+
+    def initialize_arrays_and_scalars(self):
+        for feature in self.feature_names:
+            if feature in self.fitnessanalysis.feature_names:
+                array_length = len(self.fitnessanalysis.pops)
+            else:
+                array_length = len(self.randomwalkanalysis.pops)
+
+            # Initialising feature arrays.
+            setattr(
+                self,
+                (f"{feature}_array"),
+                np.empty(array_length),
+            )
+
+        # Initialising feature values.
+        for feature in self.feature_names:
+            setattr(
+                self,
+                (f"{feature}"),
+                np.nan,
+            )
 
     def extract_feature_arrays(self):
         """
         Save feature arrays into this instance.
         """
         # For self.fitnessanalysis attributes
-        self.feasibility_ratio_array = self.fitnessanalysis.feasibility_ratio_array
+        self.fsr_array = self.fitnessanalysis.fsr_array
         self.corr_cf_array = self.fitnessanalysis.corr_cf_array
         self.f_mdl_r2_array = self.fitnessanalysis.f_mdl_r2_array
         self.dist_c_corr_array = self.fitnessanalysis.dist_c_corr_array
@@ -158,9 +180,13 @@ class LandscapeAnalysis:
         """
         Create a 1-row table of all the features to allow comparison.
         """
-        dat = pd.DataFrame(columns=self.feature_names)
+        dat = pd.DataFrame()
         for feature_name in self.feature_names:
-            dat[feature_name] = getattr(self, f"{feature_name}")
+            dat[feature_name] = [getattr(self, f"{feature_name}")]
+
+        dat["Instances"] = (
+            self.fitnessanalysis.pops[0][0].problem.problem_name + "_rrut"
+        )
         return dat
 
     def make_unaggregated_feature_table(self, feature_names):
@@ -179,3 +205,39 @@ class LandscapeAnalysis:
         return self.make_unaggregated_feature_table(
             self.randomwalkanalysis.feature_names
         )
+
+    def extract_experimental_results(self, csv_name="data/CMOP_M2_features.csv"):
+        problem = self.fitnessanalysis.pops[0][0].problem
+        problem_name = problem.problem_name
+        exp_dat = pd.read_csv(csv_name)
+
+        # Extract relevant problem data
+        exp_dat = exp_dat.loc[
+            (exp_dat["Instances"] == problem_name)
+            & (exp_dat["feature_D"] == problem.dim)
+        ]
+
+        # Slice to columns that we need
+        cols = [
+            col
+            for col in exp_dat.columns
+            if any(feature_name in col for feature_name in self.feature_names)
+        ]
+        exp_dat = exp_dat[["Instances"] + cols]
+
+        # Rename columns to match own naming.
+        new_cols = {
+            item: item[len("feature_") :] if item.startswith("feature_") else item
+            for item in exp_dat.columns
+        }
+
+        # Rename columns to match own naming.
+        new_cols = {
+            item: item[len("pop_") :] if item.startswith("pop_") else item
+            for item in exp_dat.columns
+        }
+
+        exp_dat = exp_dat.rename(columns=new_cols)
+        exp_dat["Instances"] = problem_name + "_experimental"
+
+        return exp_dat

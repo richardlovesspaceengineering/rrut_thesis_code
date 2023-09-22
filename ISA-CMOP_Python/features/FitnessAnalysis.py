@@ -26,7 +26,7 @@ class FitnessAnalysis(Analysis):
 
     def eval_features(self):
         # TODO: check whether FR should be calculated here or in random walk.
-        self.feasibility_ratio = self.get_feasibility_ratio()
+        self.fsr = self.get_fsr()
         self.corr_cf = self.get_corr_cf()
         self.f_mdl_r2 = self.get_f_mdl_r2()
         self.dist_c_corr = self.get_dist_c_corr()
@@ -42,7 +42,7 @@ class FitnessAnalysis(Analysis):
         self.cv_range_coeff = self.get_cv_range_coeff()
         self.cv_mdl_r2 = self.get_cv_mdl_r2()
 
-    def get_feasibility_ratio(self):
+    def get_fsr(self):
         feasible = self.pop.extract_feasible()
         return len(feasible) / len(self.pop)
 
@@ -108,7 +108,7 @@ class MultipleFitnessAnalysis(MultipleAnalysis):
     def __init__(self, pops):
         super().__init__(pops, FitnessAnalysis)
         self.feature_names = [
-            "feasibility_ratio",
+            "fsr",
             "corr_cf",
             "f_mdl_r2",
             "dist_c_corr",
@@ -122,4 +122,4 @@ class MultipleFitnessAnalysis(MultipleAnalysis):
             "cv_mdl_r2",
         ]
 
-        super().initialize_arrays_and_scalars()
+        super().initialize_arrays()

@@ -31,21 +31,13 @@ class MultipleAnalysis:
             self.analyses.append(AnalysisType(pop))
         self.feature_names = []
 
-    def initialize_arrays_and_scalars(self):
+    def initialize_arrays(self):
         # Initialising feature arrays.
         for feature in self.feature_names:
             setattr(
                 self,
                 (f"{feature}_array"),
                 np.empty(len(self.pops)),
-            )
-
-        # Initialising feature values.
-        for feature in self.feature_names:
-            setattr(
-                self,
-                (f"{feature}"),
-                np.nan,
             )
 
     def eval_features_for_all_populations(self):

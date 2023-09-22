@@ -19,8 +19,7 @@ class RandomWalk(Sampling):
             message = "Warning: RandomWalk may result in an infinite loop for a step size greater than 0.02."
             warnings.warn(message)
 
-    def random_pm(self, seed=None):
-        np.random.seed(seed)
+    def random_pm(self):
         return 1 if np.random.random() < 0.5 else -1
 
     def within_bounds(self, point, dim):
@@ -52,7 +51,7 @@ class RandomWalk(Sampling):
             i = 0  # start from first dimension
 
             while i < dim:
-                sign = self.random_pm(seed)  # Determine positive or negative direction
+                sign = self.random_pm()  # Determine positive or negative direction
 
                 # Define the step size for this dimension.
                 step_size = self.step_size_prop * (

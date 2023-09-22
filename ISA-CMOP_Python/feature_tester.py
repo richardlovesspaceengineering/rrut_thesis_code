@@ -9,18 +9,19 @@ from sampling.RandomWalk import RandomWalk
 from features.LandscapeAnalysis import LandscapeAnalysis
 import pickle
 import matplotlib.pyplot as plt
+import pandas as pd
 
 if __name__ == "__main__":
-    problem = MW3()  # use default dimensionality.
+    problem = MW3(n_dim=10)  # use default dimensionality.
     n_variables = problem.dim
 
     # Experimental setup of Alsouly
     # n_points = n_variables * 10**3
     # n_points = 1000
-    n_points = 5
+    n_points = 10
     neighbourhood_size = 2 * n_variables + 1
     # num_steps = int(n_variables / neighbourhood_size * 10**3)
-    num_steps = 5
+    num_steps = 10
     step_size_prop = 0.02  # 2% of the range of the instance domain
 
     # Bounds of the decision variables.
@@ -28,7 +29,7 @@ if __name__ == "__main__":
     x_upper = problem.ub
     bounds = np.vstack((x_lower, x_upper))
 
-    num_samples = 2
+    num_samples = 30
 
     # Run feature eval multiple times.
     pops_global = []
@@ -59,7 +60,7 @@ if __name__ == "__main__":
         pops_rw.append(pop_rw)
 
     # Global.
-    global_features = MultipleFitnessAnalysis(pops_rw)
+    global_features = MultipleFitnessAnalysis(pops_global)
     global_features.eval_features_for_all_populations()
 
     # Random walk.
@@ -82,9 +83,18 @@ if __name__ == "__main__":
     with open("data/MW3_landscape_data.pkl", "wb") as outp:
         pickle.dump(landscape, outp, -1)
 
-    # del landscape
+    alsouly_table = landscape.extract_experimental_results()
 
     # with open("data/MW3_landscape_data.pkl", "rb") as inp:
     #     landscape = pickle.load(inp)
+
+    comp_table = pd.concat(
+        [alsouly_table.loc[:, alsouly_table.columns != "feature_D"], aggregated_table]
+    )
+
+    # Reset the index if needed
+    comp_table.reset_index(drop=True, inplace=True)
+
+    print(aggregated_table)
 
 # %%

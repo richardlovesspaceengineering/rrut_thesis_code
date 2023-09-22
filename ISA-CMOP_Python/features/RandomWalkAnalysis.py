@@ -41,4 +41,4 @@ class MultipleRandomWalkAnalysis(MultipleAnalysis):
         ]
 
         # Initialise values
-        super().initialize_arrays_and_scalars()
+        super().initialize_arrays()

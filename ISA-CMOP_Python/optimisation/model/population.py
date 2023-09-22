@@ -145,23 +145,6 @@ class Population(np.ndarray):
                 feas_ctr += 1
         return obj
 
-    ### SETTERS
-    def set_var(self, var_array):
-        for i in range(len(self)):
-            self[i].set_var(var_array[i, :])
-
-    def set_obj(self, obj_array):
-        for i in range(len(self)):
-            self[i].set_obj(obj_array[i, :])
-
-    def set_cons(self, cons_array):
-        for i in range(len(self)):
-            self[i].set_cons(cons_array[i, :])
-
-    def set_cv(self, cv_array):
-        for i in range(len(self)):
-            self[i].set_cv(cv_array[i, :])
-
     def eval_rank_and_crowding(self, constrained=True):
         # Extract the objective function values from the population
         obj_array = self.extract_obj()

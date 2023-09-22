@@ -73,14 +73,6 @@ class Individual(object):
         # Returns a tuple (obj, cons)
         return self.problem.obj_func_specific(self.var)
 
-    def eval_obj(self):
-        # evaluates objectives
-        return self.eval_obj_cons()[0]
-
-    def eval_cons(self):
-        # evaluates constraints
-        return self.eval_obj_cons()[1]
-
     def eval_cv(self, use_norm=True):
         # Find the constraint violation.
 
@@ -90,8 +82,9 @@ class Individual(object):
             return np.linalg.norm(cons)
 
     def eval_instance(self):
-        self.set_obj(self.eval_obj())
-        self.set_cons(self.eval_cons())
+        obj, cons = self.eval_obj_cons()
+        self.set_obj(obj)
+        self.set_cons(cons)
         self.set_cv(self.eval_cv())
 
     # def is_feasible(self):
