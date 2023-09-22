@@ -1,3 +1,4 @@
+# %%
 from cases.MW_setup import MW3
 import numpy as np
 from optimisation.model.population import Population
@@ -19,7 +20,7 @@ if __name__ == "__main__":
     n_points = 5
     neighbourhood_size = 2 * n_variables + 1
     # num_steps = int(n_variables / neighbourhood_size * 10**3)
-    num_steps = 10
+    num_steps = 5
     step_size_prop = 0.02  # 2% of the range of the instance domain
 
     # Bounds of the decision variables.
@@ -57,23 +58,25 @@ if __name__ == "__main__":
         )
         pops_rw.append(pop_rw)
 
-    # Now evaluate metrics for all populations.
-    PF = pops_global[0].extract_pf()
-
     # Global.
     global_features = MultipleFitnessAnalysis(pops_rw)
     global_features.eval_features_for_all_populations()
-    global_features.aggregate_features()
 
     # Random walk.
     rw_features = MultipleRandomWalkAnalysis(pops_rw)
     rw_features.eval_features_for_all_populations()
-    rw_features.aggregate_features()
 
     # Combine all features.
     landscape = LandscapeAnalysis(global_features, rw_features)
-    landscape.combine_features()
+    landscape.extract_feature_arrays()
+    landscape.aggregate_features(YJ_transform=False)
+    landscape.extract_features_vector()
     landscape.map_features_to_instance_space()
+
+    # %%
+    aggregated_table = landscape.make_aggregated_feature_table()
+    unaggregated_global_table = landscape.make_unaggregated_global_feature_table()
+    unaggregated_rw_table = landscape.make_unaggregated_rw_feature_table()
 
     # Saving results to pickle file.
     with open("data/MW3_landscape_data.pkl", "wb") as outp:
@@ -83,3 +86,5 @@ if __name__ == "__main__":
 
     # with open("data/MW3_landscape_data.pkl", "rb") as inp:
     #     landscape = pickle.load(inp)
+
+# %%

@@ -55,11 +55,11 @@ class MultipleAnalysis:
 
         for ctr, a in enumerate(self.analyses):
             a.eval_features()
+            cls_name = self.__class__.__name__
 
-            # TODO: make string specific to subclass.
             print(
-                "Evaluated features for population {} of {}".format(
-                    ctr + 1, len(self.analyses)
+                "Evaluated {} features for population {} of {}".format(
+                    cls_name, ctr + 1, len(self.analyses)
                 )
             )
 
@@ -81,26 +81,4 @@ class MultipleAnalysis:
                 self,
                 (f"{feature_name}_array"),
                 self.generate_array_for_feature(feature_name),
-            )
-
-    def apply_YJ_transform(self, array):
-        return yeojohnson(array)[0]
-
-    def aggregate_array_for_feature(self, array, YJ_transform=True):
-        if YJ_transform:
-            return np.mean(self.apply_YJ_transform(array))
-        else:
-            return np.mean(array)
-
-    def aggregate_features(self, YJ_transform=True):
-        """
-        Aggregate feature for all populations.
-        """
-        for feature_name in self.feature_names:
-            setattr(
-                self,
-                feature_name,
-                self.aggregate_array_for_feature(
-                    getattr(self, f"{feature_name}_array")
-                ),
             )

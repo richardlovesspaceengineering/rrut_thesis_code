@@ -65,7 +65,7 @@ class FitnessAnalysis(Analysis):
         return np.min(PiIZ(self.pop)[0])
 
     def get_ps_dist_iqr_mean(self):
-        return f_decdist(self.pop, 1, 1)[-1]
+        return f_decdist(self.pop, 0, 0)[-1]
 
     def get_cpo_upo_n(self):
         # Nondominated solutions (with constraints)

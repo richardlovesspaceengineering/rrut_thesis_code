@@ -1,4 +1,6 @@
 import numpy as np
+from scipy.stats import yeojohnson
+import pandas as pd
 
 
 class LandscapeAnalysis:
@@ -48,28 +50,100 @@ class LandscapeAnalysis:
             np.array(projection_matrix).reshape(14, 2)
         )
 
-    def combine_features(self):
+        # Initialise features.
+        self.feature_names = [
+            "feasibility_ratio",
+            "corr_cf",
+            "f_mdl_r2",
+            "dist_c_corr",
+            "min_cv",
+            "bhv_avg_rws",
+            "skew_rnge",
+            "piz_ob_min",
+            "ps_dist_iqr_mean",
+            "dist_c_dist_x_avg_rws",
+            "cpo_upo_n",
+            "cv_range_coeff",
+            "corr_obj",
+            "dist_f_dist_x_avg_rws",
+            "cv_mdl_r2",
+        ]
+
+        # TODO: initialize feature arrays.
+
+    def extract_feature_arrays(self):
         """
-        Combine features into a single vector, ready to be projected by the projection matrix in Eq. (13) of Alsouly.
+        Save feature arrays into this instance.
+        """
+        # For self.fitnessanalysis attributes
+        self.feasibility_ratio_array = self.fitnessanalysis.feasibility_ratio_array
+        self.corr_cf_array = self.fitnessanalysis.corr_cf_array
+        self.f_mdl_r2_array = self.fitnessanalysis.f_mdl_r2_array
+        self.dist_c_corr_array = self.fitnessanalysis.dist_c_corr_array
+        self.min_cv_array = self.fitnessanalysis.min_cv_array
+        self.skew_rnge_array = self.fitnessanalysis.skew_rnge_array
+        self.piz_ob_min_array = self.fitnessanalysis.piz_ob_min_array
+        self.ps_dist_iqr_mean_array = self.fitnessanalysis.ps_dist_iqr_mean_array
+        self.cpo_upo_n_array = self.fitnessanalysis.cpo_upo_n_array
+        self.cv_range_coeff_array = self.fitnessanalysis.cv_range_coeff_array
+        self.corr_obj_array = self.fitnessanalysis.corr_obj_array
+        self.cv_mdl_r2_array = self.fitnessanalysis.cv_mdl_r2_array
+
+        # For self.randomwalkanalysis attributes
+        self.bhv_avg_rws_array = self.randomwalkanalysis.bhv_avg_rws_array
+        self.dist_c_dist_x_avg_rws_array = (
+            self.randomwalkanalysis.dist_c_dist_x_avg_rws_array
+        )
+        self.dist_f_dist_x_avg_rws_array = (
+            self.randomwalkanalysis.dist_f_dist_x_avg_rws_array
+        )
+
+    def apply_YJ_transform(self, array):
+        return yeojohnson(array)[0]
+
+    def aggregate_array_for_feature(self, array, YJ_transform):
+        if YJ_transform:
+            return np.mean(self.apply_YJ_transform(array))
+        else:
+            return np.mean(array)
+
+    def aggregate_features(self, YJ_transform):
+        """
+        Aggregate feature for all populations. Must be called after extract_feature_arrays.
+        """
+        for feature_name in self.feature_names:
+            setattr(
+                self,
+                feature_name,
+                self.aggregate_array_for_feature(
+                    getattr(self, f"{feature_name}_array"), YJ_transform
+                ),
+            )
+
+    def extract_features_vector(self):
+        """
+        Combine aggregated features into a single vector, ready to be projected by the projection matrix in Eq. (13) of Alsouly.
+
+        Must be called after extract_feature_scalars.
 
         Returns a column vector ready for vector operations.
         """
-        self.features = np.array(
+        self.features_vector = np.array(
             [
-                self.fitnessanalysis.corr_cf,
-                self.fitnessanalysis.f_mdl_r2,
-                self.fitnessanalysis.dist_c_corr,
-                self.fitnessanalysis.min_cv,
-                self.randomwalkanalysis.bhv_avg_rws,
-                self.fitnessanalysis.skew_rnge,
-                self.fitnessanalysis.piz_ob_min,
-                self.fitnessanalysis.ps_dist_iqr_mean,
-                self.randomwalkanalysis.dist_c_dist_x_avg_rws,
-                self.fitnessanalysis.cpo_upo_n,
-                self.fitnessanalysis.cv_range_coeff,
-                self.fitnessanalysis.corr_obj,
-                self.randomwalkanalysis.dist_f_dist_x_avg_rws,
-                self.fitnessanalysis.cv_mdl_r2,
+                self.corr_cf,
+                self.f_mdl_r2,
+                self.dist_c_corr,
+                self.min_cv,
+                self.bhv_avg_rws,
+                self.skew_rnge,
+                self.piz_ob_min,
+                self.ps_dist_iqr_mean,
+                self.dist_c_dist_x_avg_rws,
+                self.cpo_upo_n,
+                self.cv_range_coeff,
+                self.corr_obj,
+                self.dist_f_dist_x_avg_rws,
+                self.cv_mdl_r2,
             ],
             ndmin=2,
         ).reshape((-1, 1))
@@ -78,4 +152,30 @@ class LandscapeAnalysis:
         """
         Run after combine_features.
         """
-        self.instance_space = self.projection_matrix @ self.features
+        self.instance_space = self.projection_matrix @ self.features_vector
+
+    def make_aggregated_feature_table(self):
+        """
+        Create a 1-row table of all the features to allow comparison.
+        """
+        dat = pd.DataFrame(columns=self.feature_names)
+        for feature_name in self.feature_names:
+            dat[feature_name] = getattr(self, f"{feature_name}")
+        return dat
+
+    def make_unaggregated_feature_table(self, feature_names):
+        """
+        Create an n-samples-row table of all the features to allow comparison.
+        """
+        dat = pd.DataFrame()
+        for feature_name in feature_names:
+            dat[feature_name] = getattr(self, f"{feature_name}_array")
+        return dat
+
+    def make_unaggregated_global_feature_table(self):
+        return self.make_unaggregated_feature_table(self.fitnessanalysis.feature_names)
+
+    def make_unaggregated_rw_feature_table(self):
+        return self.make_unaggregated_feature_table(
+            self.randomwalkanalysis.feature_names
+        )
