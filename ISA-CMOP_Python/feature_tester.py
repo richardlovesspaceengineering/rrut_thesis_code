@@ -75,26 +75,9 @@ if __name__ == "__main__":
     landscape.map_features_to_instance_space()
 
     # %%
-    aggregated_table = landscape.make_aggregated_feature_table()
-    unaggregated_global_table = landscape.make_unaggregated_global_feature_table()
-    unaggregated_rw_table = landscape.make_unaggregated_rw_feature_table()
 
     # Saving results to pickle file.
     with open("data/MW3_landscape_data.pkl", "wb") as outp:
         pickle.dump(landscape, outp, -1)
-
-    alsouly_table = landscape.extract_experimental_results()
-
-    # with open("data/MW3_landscape_data.pkl", "rb") as inp:
-    #     landscape = pickle.load(inp)
-
-    comp_table = pd.concat(
-        [alsouly_table.loc[:, alsouly_table.columns != "feature_D"], aggregated_table]
-    )
-
-    # Reset the index if needed
-    comp_table.reset_index(drop=True, inplace=True)
-
-    print(aggregated_table)
 
 # %%

@@ -138,7 +138,7 @@ class Population(np.ndarray):
         obj = self.__new__(Population, self[0].problem, n_individuals=num_feas)
 
         # Loop through and save.
-        best_ctr = 0
+        feas_ctr = 0
         for i in range(len(self)):
             if self[i].cv <= 0:
                 obj[feas_ctr] = self[i]
