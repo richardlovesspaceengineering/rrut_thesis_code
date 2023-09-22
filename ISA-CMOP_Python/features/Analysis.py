@@ -29,6 +29,24 @@ class MultipleAnalysis:
         self.analyses = []
         for pop in pops:
             self.analyses.append(AnalysisType(pop))
+        self.feature_names = []
+
+    def initialize_arrays_and_scalars(self):
+        # Initialising feature arrays.
+        for feature in self.feature_names:
+            setattr(
+                self,
+                (f"{feature}_array"),
+                np.empty(len(self.pops)),
+            )
+
+        # Initialising feature values.
+        for feature in self.feature_names:
+            setattr(
+                self,
+                (f"{feature}"),
+                np.nan,
+            )
 
     def eval_features_for_all_populations(self):
         """
@@ -48,31 +66,41 @@ class MultipleAnalysis:
         # Generate corresponding arrays.
         self.generate_feature_arrays()
 
-    def generate_array_for_attribute(self, attribute_name):
-        attribute_array = []
+    def generate_array_for_feature(self, feature_name):
+        feature_array = []
         for analysis in self.analyses:
-            attribute_array.append(getattr(analysis, attribute_name))
-        return np.array(attribute_array)
+            feature_array.append(getattr(analysis, feature_name))
+        return np.array(feature_array)
 
     def generate_feature_arrays(self):
-        pass
+        """
+        Collate features into an array. Must be run after eval_features_for_all_populations.
+        """
+        for feature_name in self.feature_names:
+            setattr(
+                self,
+                (f"{feature_name}_array"),
+                self.generate_array_for_feature(feature_name),
+            )
 
     def apply_YJ_transform(self, array):
         return yeojohnson(array)[0]
 
-    def aggregate_feature_array(self, array, YJ_transform=True):
+    def aggregate_array_for_feature(self, array, YJ_transform=True):
         if YJ_transform:
             return np.mean(self.apply_YJ_transform(array))
         else:
             return np.mean(array)
 
-    def aggregate_features_from_names_list(self, attribute_names, YJ_transform=True):
+    def aggregate_features(self, YJ_transform=True):
         """
         Aggregate feature for all populations.
         """
-        for attribute_name in attribute_names:
+        for feature_name in self.feature_names:
             setattr(
                 self,
-                attribute_name,
-                self.aggregate_feature_array(getattr(self, f"{attribute_name}_array")),
+                feature_name,
+                self.aggregate_array_for_feature(
+                    getattr(self, f"{feature_name}_array")
+                ),
             )

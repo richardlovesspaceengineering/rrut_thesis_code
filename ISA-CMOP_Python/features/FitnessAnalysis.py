@@ -107,34 +107,7 @@ class MultipleFitnessAnalysis(MultipleAnalysis):
 
     def __init__(self, pops):
         super().__init__(pops, FitnessAnalysis)
-
-    def generate_feature_arrays(self):
-        """
-        Collate features into an array. Must be run after eval_features_for_all_populations.
-        """
-        self.feasibility_ratio_array = self.generate_array_for_attribute(
-            "feasibility_ratio"
-        )
-        self.corr_cf_array = self.generate_array_for_attribute("corr_cf")
-        self.f_mdl_r2_array = self.generate_array_for_attribute("f_mdl_r2")
-        self.dist_c_corr_array = self.generate_array_for_attribute("dist_c_corr")
-        self.min_cv_array = self.generate_array_for_attribute("min_cv")
-        self.skew_rnge_array = self.generate_array_for_attribute("skew_rnge")
-        self.piz_ob_min_array = self.generate_array_for_attribute("piz_ob_min")
-        self.ps_dist_iqr_mean_array = self.generate_array_for_attribute(
-            "ps_dist_iqr_mean"
-        )
-        self.cpo_upo_n_array = self.generate_array_for_attribute("cpo_upo_n")
-        self.cv_range_coeff_array = self.generate_array_for_attribute("cv_range_coeff")
-        self.corr_obj_array = self.generate_array_for_attribute("corr_obj")
-        self.cv_mdl_r2_array = self.generate_array_for_attribute("cv_mdl_r2")
-
-    def aggregate_features(self, YJ_transform=True):
-        """
-        Aggregate features for all populations.
-        """
-
-        attribute_names = [
+        self.feature_names = [
             "feasibility_ratio",
             "corr_cf",
             "f_mdl_r2",
@@ -149,4 +122,4 @@ class MultipleFitnessAnalysis(MultipleAnalysis):
             "cv_mdl_r2",
         ]
 
-        self.aggregate_features_from_names_list(attribute_names)
+        super().initialize_arrays_and_scalars()
