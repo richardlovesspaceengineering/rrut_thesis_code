@@ -226,18 +226,20 @@ class LandscapeAnalysis:
         exp_dat = exp_dat[["Instances"] + cols]
 
         # Rename columns to match own naming.
-        new_cols = {
+        new_cols1 = {
             item: item[len("feature_") :] if item.startswith("feature_") else item
             for item in exp_dat.columns
         }
 
+        exp_dat = exp_dat.rename(columns=new_cols1)
+
         # Rename columns to match own naming.
-        new_cols = {
+        new_cols2 = {
             item: item[len("pop_") :] if item.startswith("pop_") else item
             for item in exp_dat.columns
         }
 
-        exp_dat = exp_dat.rename(columns=new_cols)
+        exp_dat = exp_dat.rename(columns=new_cols2)
         exp_dat["Instances"] = problem_name + "_experimental"
 
         return exp_dat

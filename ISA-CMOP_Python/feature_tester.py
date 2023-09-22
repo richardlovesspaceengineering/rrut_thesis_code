@@ -18,10 +18,10 @@ if __name__ == "__main__":
     # Experimental setup of Alsouly
     # n_points = n_variables * 10**3
     # n_points = 1000
-    n_points = 10
+    n_points = 1000
     neighbourhood_size = 2 * n_variables + 1
-    # num_steps = int(n_variables / neighbourhood_size * 10**3)
-    num_steps = 10
+    num_steps = int(n_variables / neighbourhood_size * 10**3)
+    # num_steps = 10
     step_size_prop = 0.02  # 2% of the range of the instance domain
 
     # Bounds of the decision variables.
