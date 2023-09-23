@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 if __name__ == "__main__":
-    problem = MW3(n_dim=10)  # use default dimensionality.
+    problem = MW3(n_dim=2)  # use default dimensionality.
     n_variables = problem.dim
 
     # Experimental setup of Alsouly
