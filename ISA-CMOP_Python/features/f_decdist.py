@@ -24,10 +24,8 @@ def f_decdist(pop, n1, n2):
     PSdecdist_iqr_mean = 0
 
     if obj.size > 1:
-        # NDSort. Need to make sure this outputs a NumPy array for conditional indexing to work.
-        fronts, ranks = NonDominatedSorting().do(
-            obj, cons_val=None, n_stop_if_ranked=obj.shape[0], return_rank=True
-        )
+        # Constrained ranks.
+        ranks = pop.extract_rank()
 
         # Distance across and between n1 and n2 rank fronts in decision space. Each argument of cdist should be arrays corresponding to the DVs on front n1 and front n2.
         dist_matrix = cdist(var[ranks == n1, :], var[ranks == n2, :], "euclidean")

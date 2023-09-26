@@ -41,15 +41,13 @@ def PiIZ(pop):
     # Find PiZ for each frontsXcon
 
     # May need to transpose.
-    fronts, ranks = NonDominatedSorting().do(
-        obj, cons_val=None, n_stop_if_ranked=obj.shape[0], return_rank=True
-    )
+    uncons_ranks = pop.extract_uncons_ranks()
 
     # Axes may need to change depending on the structure of ranks. Right now we are taking the min of a column vector.
-    minrank = np.min(ranks)
-    maxrank = np.max(ranks)
+    minrank = np.min(uncons_ranks)
+    maxrank = np.max(uncons_ranks)
     rankIdealPoint = minrank + (0.25 * (maxrank - minrank))
-    iz = np.asarray(ranks[conZone] <= rankIdealPoint)
+    iz = np.asarray(uncons_ranks[conZone] <= rankIdealPoint)
     piz_f = np.count_nonzero(iz) / pop.extract_obj().size
 
     return piz_ob, piz_f

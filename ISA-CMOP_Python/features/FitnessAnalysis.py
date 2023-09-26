@@ -65,17 +65,12 @@ class FitnessAnalysis(Analysis):
         return np.min(PiIZ(self.pop)[0])
 
     def get_ps_dist_iqr_mean(self):
-        return f_decdist(self.pop, 0, 0)[-1]
+        return f_decdist(self.pop, 1, 1)[-1]
 
     def get_cpo_upo_n(self):
-        # Nondominated solutions (with constraints)
-        nondominated = self.pop.extract_nondominated()
-
-        # Nondominated solutions, unconstrained.
-        pop_copy = self.pop
-        pop_copy.eval_rank_and_crowding(constrained=False)
-        nondominated_unconstrained = pop_copy.extract_nondominated()
-        return len(nondominated) / len(nondominated_unconstrained)
+        nondominated_cons = self.pop.extract_nondominated(constrained=True)
+        nondominated_uncons = self.pop.extract_nondominated(constrained=False)
+        return len(nondominated_cons) / len(nondominated_uncons)
 
     def eval_cv_mdl(self):
         """

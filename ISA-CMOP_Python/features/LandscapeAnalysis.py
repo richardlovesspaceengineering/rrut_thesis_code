@@ -206,7 +206,7 @@ class LandscapeAnalysis:
             self.randomwalkanalysis.feature_names
         )
 
-    def extract_experimental_results(self, csv_name="data/CMOP_M2_features.csv"):
+    def extract_experimental_results(self, csv_name="data/raw_features_alsouly.csv"):
         problem = self.fitnessanalysis.pops[0][0].problem
         problem_name = problem.problem_name
         exp_dat = pd.read_csv(csv_name)

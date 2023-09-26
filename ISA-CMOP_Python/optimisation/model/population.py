@@ -91,6 +91,13 @@ class Population(np.ndarray):
 
         return np.asarray(rank_array)
 
+    def extract_uncons_ranks(self):
+        rank_uncons_array = []
+        for i in range(len(self)):
+            rank_uncons_array.append(self[i].rank_uncons)
+
+        return np.asarray(rank_uncons_array)
+
     def extract_crowding(self):
         crowding_array = []
         for i in range(len(self)):
@@ -101,7 +108,7 @@ class Population(np.ndarray):
     def extract_pf(self):
         return self[0].pareto_front
 
-    def extract_nondominated(self):
+    def extract_nondominated(self, constrained=True):
         """
         Extract non-dominated solutions from the population.
 
@@ -110,7 +117,14 @@ class Population(np.ndarray):
         Creates a new population which is a subset of the original.
         """
         # Number of best-ranked solutions.
-        num_best = np.count_nonzero(self.extract_rank() == 0)
+        if constrained:
+            rank_array = self.extract_rank()
+            rank_name = "rank"
+        else:
+            rank_array = self.extract_uncons_ranks()
+            rank_name = "rank_uncons"
+
+        num_best = np.count_nonzero(rank_array == 1)
 
         # Initialize new population.
         obj = self.__new__(Population, self[0].problem, n_individuals=num_best)
@@ -118,7 +132,7 @@ class Population(np.ndarray):
         # Loop through and save.
         best_ctr = 0
         for i in range(len(self)):
-            if self[i].rank == 0:
+            if getattr(self[i], (f"{rank_name}")) == 1:
                 obj[best_ctr] = self[i]
                 best_ctr += 1
         return obj
@@ -145,23 +159,36 @@ class Population(np.ndarray):
                 feas_ctr += 1
         return obj
 
-    def eval_rank_and_crowding(self, constrained=True):
-        # Extract the objective function values from the population
+    def eval_fronts(self, constrained):
+        """
+        Place each individual on a front.
+        """
         obj_array = self.extract_obj()
-        cv_array = self.extract_cv()
 
-        # Conduct non-dominated sorting (considering constraints & objectives)
         if constrained:
-            cons_val = cv_array
+            cons_val = self.extract_cv()
         else:
             cons_val = None
 
         fronts = NonDominatedSorting().do(
-            obj_array, cons_val=cons_val, n_stop_if_ranked=len(self)
+            obj_array,
+            cons_val=cons_val,
+            n_stop_if_ranked=obj_array.shape[0],
+            return_rank=False,
         )
 
+        return fronts
+
+    def eval_rank_and_crowding(self):
+        """
+        Evaluate the rank and crowding of each individual within the population.
+        """
+
+        # Constrained fronts.
+        fronts_cons = self.eval_fronts(constrained=True)
+
         # Cycle through fronts
-        for k, front in enumerate(fronts):
+        for k, front in enumerate(fronts_cons):
             # Calculate crowding distance of the front
 
             # LEFT OUT TO SPEED UP COMPUTATION
@@ -169,9 +196,19 @@ class Population(np.ndarray):
 
             # Save rank and crowding to the individuals
             for j, i in enumerate(front):
-                self[i].rank = k
+                self[i].rank = k + 1  # lowest rank is 1
                 # self[i].crowding_distance = front_crowding_distance[j]
                 self[i].crowding_distance = None
+
+    def eval_unconstrained_rank(self):
+        # Unconstrained fronts.
+        fronts_uncons = self.eval_fronts(constrained=False)
+
+        # Cycle through fronts
+        for k, front in enumerate(fronts_uncons):
+            # Save to the individuals
+            for j, i in enumerate(front):
+                self[i].rank_uncons = k + 1  # lowest rank is 1
 
     ### EVALUATE AT A GIVEN SET OF POINTS.
     def evaluate(self, var_array):
@@ -184,3 +221,18 @@ class Population(np.ndarray):
 
         # Now can find rank and crowding of each individual.
         self.eval_rank_and_crowding()
+
+        # Unconstrained ranks
+        self.eval_unconstrained_rank()
+
+    def write_obj_to_csv(self, filename):
+        np.savetxt(filename, self.extract_obj())
+
+    def write_cv_to_csv(self, filename):
+        np.savetxt(filename, self.extract_cv())
+
+    def write_rank_to_csv(self, filename):
+        np.savetxt(filename, self.extract_rank())
+
+    def write_rank_uncons_to_csv(self, filename):
+        np.savetxt(filename, self.extract_uncons_ranks())

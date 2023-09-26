@@ -27,11 +27,9 @@ def fvc(pop):
         corr_obj[i] = corr_coef(cv, objx)
 
     # Find Spearman's correlation between CV and ranks of solutions.
-    fronts, ranks = NonDominatedSorting().do(
-        obj, cons_val=None, n_stop_if_ranked=obj.shape[0], return_rank=True
-    )
+    uncons_ranks = pop.extract_uncons_ranks()
 
     # TODO: check whether we need Spearman's or Pearson's
-    corr_f = corr_coef(cv, ranks, spearman=False)
+    corr_f = corr_coef(cv, uncons_ranks, spearman=False)
 
     return [corr_obj, corr_f]

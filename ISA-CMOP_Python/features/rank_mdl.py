@@ -11,19 +11,12 @@ def rank_mdl(pop):
     """
 
     var = pop.extract_var()
-    obj = pop.extract_obj()
-
-    # NDSort. Need to make sure this outputs a NumPy array for conditional indexing to work.
-    fronts, ranks = NonDominatedSorting().do(
-        obj, cons_val=None, n_stop_if_ranked=obj.shape[0], return_rank=True
-    )
-
-    ranks = np.asarray(ranks)
+    uncons_ranks = pop.extract_uncons_ranks()
 
     # Reshape data for compatibility. Assumes that y = mx + b where x is a matrix, y is a column vector
-    ranks = ranks.reshape((-1, 1))
+    uncons_ranks = uncons_ranks.reshape((-1, 1))
 
     # Fit linear model and compute adjusted R2 and difference between variable coefficients.
-    mdl_r2, range_coeff = fit_linear_mdl(var, ranks)
+    mdl_r2, range_coeff = fit_linear_mdl(var, uncons_ranks)
 
     return mdl_r2, range_coeff
