@@ -225,8 +225,14 @@ class Population(np.ndarray):
         # Unconstrained ranks
         self.eval_unconstrained_rank()
 
+    def write_dec_to_csv(self, filename):
+        np.savetxt(filename, self.extract_var())
+
     def write_obj_to_csv(self, filename):
         np.savetxt(filename, self.extract_obj())
+
+    def write_cons_to_csv(self, filename):
+        np.savetxt(filename, self.extract_cons())
 
     def write_cv_to_csv(self, filename):
         np.savetxt(filename, self.extract_cv())
@@ -236,3 +242,6 @@ class Population(np.ndarray):
 
     def write_rank_uncons_to_csv(self, filename):
         np.savetxt(filename, self.extract_uncons_ranks())
+
+    def write_pf_to_csv(self, filename):
+        np.savetxt(filename, self.extract_pf())

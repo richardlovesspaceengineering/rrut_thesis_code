@@ -1,4 +1,4 @@
-function dat_out = FitnessAnalysis(Population, Instances, PF)
+function dat_out = FitnessAnalysis(Population, PF)
 %FITNESSANALYSIS main function to calculate a problem features from a random sample
 %(population), Instances is the problem name, PF is the known Pareto Front
 
