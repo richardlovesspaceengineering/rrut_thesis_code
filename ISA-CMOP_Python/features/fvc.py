@@ -30,6 +30,6 @@ def fvc(pop):
     uncons_ranks = pop.extract_uncons_ranks()
 
     # TODO: check whether we need Spearman's or Pearson's
-    corr_f = corr_coef(cv, uncons_ranks, spearman=False)
+    corr_f = corr_coef(cv, uncons_ranks, spearman=True)
 
-    return [corr_obj, corr_f]
+    return corr_obj, corr_f
