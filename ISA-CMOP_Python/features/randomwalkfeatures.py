@@ -43,22 +43,38 @@ def randomwalkfeatures(pop, PF, Instances=None):
     ranks = pop.extract_rank()
     bestrankobjs = obj[ranks == 1, :]
 
-    # Offset nadir from max objectives by 50% - can be arbitrary since we are taking the difference between hypervolumes.
-    # TODO: fix nadir
-    nadir = np.array(
-        [np.max(obj[:, i] + np.max(PF[:, i]), axis=0) for i in range(obj.shape[1])]
-    )
+    # # Normalise objectives and PF for HV calculation.
+    # nadir = np.array([1.1 for i in range(obj.shape[1])])
+    # bestrankobj_max = np.max(bestrankobjs, axis=0)
+    # bestrankobj_normalised = bestrankobjs / bestrankobj_max
+    # pf_normalised = PF / bestrankobj_max
 
-    # Hypervolume we want is HV(PF, nadir) - HV(bestrankobjs, nadir)
-    hv_nadir_pf = calculate_hypervolume_pygmo(PF, nadir)
-    hv_nadir_bestrankobjs = calculate_hypervolume_pygmo(bestrankobjs, nadir)
-    bhv = hv_nadir_pf - hv_nadir_bestrankobjs
+    # # Hypervolume we want is HV(PF, nadir) - HV(bestrankobjs, nadir)
+    # hv_nadir_pf = calculate_hypervolume_pygmo(pf_normalised, nadir)
+    # hv_nadir_bestrankobjs = calculate_hypervolume_pygmo(bestrankobj_normalised, nadir)
+    # bhv = hv_nadir_pf - hv_nadir_bestrankobjs
+
+    nadir = np.ones(bestrankobjs.shape[1])
+    bestrankobjs_normalised = normalise_for_hv(bestrankobjs, PF)
+
+    bhv = calculate_hypervolume_pygmo(bestrankobjs_normalised, nadir)
 
     # Apply elementwise division to get ratios.
     dist_f_dist_x_avg = dist_f_avg / dist_x_avg
     dist_c_dist_x_avg = dist_c_avg / dist_x_avg
 
     return dist_f_dist_x_avg, dist_c_dist_x_avg, bhv
+
+
+def normalise_for_hv(obj, PF):
+    fmin = np.minimum(np.min(obj, axis=0), np.zeros((1, PF.shape[1])))
+    fmax = np.max(PF, axis=0)
+    obj_normalised = (obj - fmin) / ((fmax - fmin) * 1.1)
+
+    # Remove any objectives larger than the nadir.
+    obj_normalised = obj_normalised[~np.any(obj_normalised > 1, axis=1)]
+
+    return obj_normalised
 
     # # Average of features across walk.
     # dist_f_dist_x_avg_rws = np.mean(dist_f_dist_x_avg)

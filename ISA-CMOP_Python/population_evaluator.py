@@ -13,7 +13,7 @@ from sampling.PolynomialMutation import PolynomialMutation
 
 
 if __name__ == "__main__":
-    problem = MW7(n_dim=10)  # use default dimensionality.
+    problem = MW7(n_dim=5)  # use default dimensionality.
     n_variables = problem.dim
 
     # Experimental setup of Alsouly
@@ -22,7 +22,7 @@ if __name__ == "__main__":
     # n_points = 3000
     # n_points = 5
     neighbourhood_size = 2 * n_variables + 1
-    num_steps = int(n_variables / neighbourhood_size * 10**3 * 1.5)
+    num_steps = int(n_variables / neighbourhood_size * 10**3)
     # num_steps = 10
     step_size = 0.2  # 2% of the range of the instance domain
 
@@ -31,7 +31,7 @@ if __name__ == "__main__":
     x_upper = problem.ub
     bounds = np.vstack((x_lower, x_upper))
 
-    num_samples = 150
+    num_samples = 30
 
     # Run feature eval multiple times.
     pops = []

@@ -15,7 +15,8 @@ function score = HV(Population,optimum)
 % Computational Intelligence Magazine, 2017, 12(4): 73-87".
 %--------------------------------------------------------------------------
 
-    PopObj = Population.best.objs;
+%     PopObj = Population.best.objs;
+    PopObj = Population;
     if size(PopObj,2) ~= size(optimum,2)
         score = nan;
     else

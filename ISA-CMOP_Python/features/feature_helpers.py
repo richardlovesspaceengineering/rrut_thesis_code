@@ -23,7 +23,7 @@ def fit_linear_mdl(xdata, ydata):
 
     # R2 (adjusted) has to be computed from the unadjusted value.
     num_obs = ydata.shape[0]
-    num_coef = ydata.shape[1]
+    num_coef = xdata.shape[1]
     r2_unadj = mdl.score(xdata, ydata)
     mdl_r2 = 1 - (1 - r2_unadj) * (num_obs - 1) / (num_obs - num_coef - 1)
 
@@ -35,7 +35,7 @@ def fit_linear_mdl(xdata, ydata):
     return mdl_r2, range_coeff
 
 
-def corr_coef(xdata, ydata, significance_level=0.05, spearman=True):
+def corr_coef(xdata, ydata, spearman=False, significance_level=0.05):
     """
     Get correlation coefficient and pvalue, suppressing warnings when a constant vector is input.
     """
