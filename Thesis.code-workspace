@@ -6,6 +6,7 @@
   ],
   "settings": {
     "workbench.colorTheme": "Night Owl (No Italics)",
+    "python.defaultInterpreterPath": "/Users/richardrutherford/anaconda3/envs/thesis_env_py3.8/bin/python",
     "[python]": {
       "editor.defaultFormatter": "ms-python.black-formatter",
       "editor.formatOnSave": true
