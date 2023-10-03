@@ -1,6 +1,9 @@
 import numpy as np
 from scipy.stats import yeojohnson
 import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+import math
 
 
 class LandscapeAnalysis:
@@ -119,6 +122,52 @@ class LandscapeAnalysis:
         self.dist_f_dist_x_avg_rws_array = (
             self.randomwalkanalysis.dist_f_dist_x_avg_rws_array
         )
+
+    def plot_feature_histograms(self, num_bins=20):
+        """
+        Plot histograms for each feature array.
+        """
+        # Calculate the number of rows and columns for a close-to-square grid
+        num_features = len(self.feature_names)
+        num_cols = int(math.ceil(math.sqrt(num_features)))
+        num_rows = int(math.ceil(num_features / num_cols))
+
+        # Create a subplot grid based on the number of features
+        fig, axes = plt.subplots(num_rows, num_cols, figsize=(12, 12))
+
+        # Flatten the axes array for easier iteration
+        axes = axes.ravel()
+
+        for i, feature_name in enumerate(self.feature_names):
+            # Select the current axis
+            ax = axes[i]
+
+            # Calculate the bin width based on the data range and the desired number of bins
+            feature_array = getattr(self, f"{feature_name}_array")
+            data_range = feature_array.max() - feature_array.min()
+            bin_width = data_range / num_bins
+
+            # Plot a histogram for the feature array with the specified number of bins
+            sns.histplot(
+                getattr(self, f"{feature_name}_array"),
+                ax=ax,
+                bins=num_bins,
+                kde=False,
+                stat="probability",  # Normalize to proportions
+            )
+            ax.set_xlabel(feature_name)
+            ax.set_ylabel("")
+
+        # Set a global y-axis label
+        fig.text(0.02, 0.5, "Proportion", va="center", rotation="vertical", fontsize=14)
+
+        # Remove any empty subplots (if the number of features is not a perfect square)
+        for i in range(num_features, num_rows * num_cols):
+            fig.delaxes(axes[i])
+
+        # Adjust layout and display the plot
+        plt.tight_layout()
+        plt.show()
 
     def apply_YJ_transform(self, array):
         return yeojohnson(array)[0]

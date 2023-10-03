@@ -4,6 +4,10 @@ from optimisation.model.individual import Individual
 
 from optimisation.util.non_dominated_sorting import NonDominatedSorting
 from optimisation.util.calculate_crowding_distance import calculate_crowding_distance
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
+from matplotlib.ticker import FuncFormatter
 
 
 class Population(np.ndarray):
@@ -107,6 +111,9 @@ class Population(np.ndarray):
 
     def extract_pf(self):
         return self[0].pareto_front
+
+    def extract_bounds(self):
+        return self[0].bounds
 
     def extract_nondominated(self, constrained=True):
         """
@@ -225,6 +232,56 @@ class Population(np.ndarray):
         # Unconstrained ranks
         self.eval_unconstrained_rank()
 
+    # Plotters
+    def var_scatterplot_matrix(self, bounds=None):
+        """
+        Create a scatterplot matrix for each pairwise combination of decision variables, all stored in one numpy array.
+
+        Parameters:
+        - data: numpy array (n x n) containing the data for the scatterplot matrix.
+        - bounds: 2D array (2 x n) specifying the upper and lower bounds for each axis (default is None).
+
+        Returns:
+        - None (displays the scatterplot matrix).
+        """
+        # Convert the numpy array to a Pandas DataFrame for Seaborn
+        data = self.extract_var()
+        df = pd.DataFrame(data)
+
+        # Create the scatterplot matrix using Seaborn
+        sns.set(style="ticks")
+        g = sns.pairplot(df, diag_kind="kde", markers="o")
+
+        if bounds is None:
+            bounds = self.extract_bounds()
+
+        # Set the x-axis and y-axis limits for each pair plot.
+        for i in range(len(bounds[0])):
+            for j in range(len(bounds[0])):
+                g.axes[i, j].set_xlim(bounds[0][j], bounds[1][j])
+                g.axes[i, j].set_ylim(bounds[0][i], bounds[1][i])
+
+                # Add boxes
+                g.axes[i, j].spines["top"].set_visible(True)
+                g.axes[i, j].spines["right"].set_visible(True)
+                g.axes[i, j].spines["bottom"].set_visible(True)
+                g.axes[i, j].spines["left"].set_visible(True)
+                if i != j:
+                    # Format the axis labels to one decimal place
+                    g.axes[i, j].xaxis.set_major_formatter(
+                        FuncFormatter(lambda x, _: f"{x:.1f}")
+                    )
+                    g.axes[i, j].yaxis.set_major_formatter(
+                        FuncFormatter(lambda x, _: f"{x:.1f}")
+                    )
+
+                    # Add grid and boxes to all off-diagonal plots
+                    g.axes[i, j].grid(True)
+
+        # Display the plot
+        plt.show()
+
+    # CSV writers.
     def write_dec_to_csv(self, filename):
         np.savetxt(filename, self.extract_var())
 

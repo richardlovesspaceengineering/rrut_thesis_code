@@ -19,6 +19,8 @@ class Individual(object):
         self.var_lower = problem.lb
         self.var_upper = problem.ub
 
+        self.bounds = np.vstack((self.var_lower, self.var_upper))
+
         # Initialize arrays.
         self.var = np.zeros((1, self.n_var))
         self.obj = np.zeros((1, self.n_obj))
