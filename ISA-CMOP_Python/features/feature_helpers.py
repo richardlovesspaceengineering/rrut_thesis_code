@@ -3,7 +3,6 @@ import copy
 import warnings
 import scipy.stats
 from sklearn.linear_model import LinearRegression
-import matplotlib.pyplot as plt
 
 
 def remove_imag_rows(matrix):
