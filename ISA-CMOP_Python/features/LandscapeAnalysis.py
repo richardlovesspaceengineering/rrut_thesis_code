@@ -169,6 +169,41 @@ class LandscapeAnalysis:
         plt.tight_layout()
         plt.show()
 
+    def plot_feature_violin_box_plots(self):
+        """
+        Plot violin plots with overlaid box plots for each feature array.
+        """
+        # Calculate the number of rows and columns for a close-to-square grid
+        num_features = len(self.feature_names)
+        num_cols = int(math.ceil(math.sqrt(num_features)))
+        num_rows = int(math.ceil(num_features / num_cols))
+
+        # Create a subplot grid based on the number of features
+        fig, axes = plt.subplots(num_rows, num_cols, figsize=(12, 12))
+
+        # Flatten the axes array for easier iteration
+        axes = axes.ravel()
+
+        for i, feature_name in enumerate(self.feature_names):
+            # Select the current axis
+            ax = axes[i]
+
+            # Plot a violin plot for the feature array
+            sns.violinplot(
+                x=getattr(self, f"{feature_name}_array"),
+                ax=ax,
+                inner="box",  # Overlay box plots
+            )
+            ax.set_xlabel(feature_name)
+
+        # Remove any empty subplots (if the number of features is not a perfect square)
+        for i in range(num_features, num_rows * num_cols):
+            fig.delaxes(axes[i])
+
+        # Adjust layout and display the plot
+        plt.tight_layout()
+        plt.show()
+
     def apply_YJ_transform(self, array):
         return yeojohnson(array)[0]
 
