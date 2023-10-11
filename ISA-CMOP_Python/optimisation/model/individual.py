@@ -10,14 +10,14 @@ class Individual(object):
         Problem is an instance of the Setup class.
         """
 
-        # Problem characteristics
+        # Problem characteristics. Updated to work with pymoo.
         self.problem = problem
-        self.n_var = problem.dim
-        self.n_obj = problem.n_objectives
-        self.n_cons = problem.n_constraints
+        self.n_var = problem.n_var
+        self.n_obj = problem.n_obj
+        self.n_cons = problem.n_ieq_constr
 
-        self.var_lower = problem.lb
-        self.var_upper = problem.ub
+        self.var_lower = problem.xl
+        self.var_upper = problem.xu
 
         self.bounds = np.vstack((self.var_lower, self.var_upper))
 
@@ -28,7 +28,7 @@ class Individual(object):
         self.cv = np.zeros((1, 1))
 
         # Exact/approximated pareto front
-        self.pareto_front = problem.f_opt
+        self.pareto_front = problem._calc_pareto_front()
 
         # Rank, crowding distance & hypervolume
         self.rank = np.nan
@@ -73,7 +73,7 @@ class Individual(object):
     ### EVALUATION FUNCTIONS
     def eval_obj_cons(self):
         # Returns a tuple (obj, cons)
-        return self.problem.obj_func_specific(self.var)
+        return self.problem.evaluate(self.var)
 
     def eval_cv(self, use_norm=True):
         # Find the constraint violation.

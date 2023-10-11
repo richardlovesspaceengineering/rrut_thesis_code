@@ -1,5 +1,5 @@
 # %%
-from sampling.Sampling import Sampling
+from sampling.sampling import Sampling
 import numpy as np
 import matplotlib.pyplot as plt
 import warnings
@@ -43,7 +43,7 @@ class RandomWalk(Sampling):
         for i in range(dim):
             x[i] = (
                 self.bounds[0, i]
-                + (self.bounds[1, i] - self.bounds[0, 1]) * np.random.random()
+                + (self.bounds[1, i] - self.bounds[0, i]) * np.random.random()
             )
 
         # Save the first step.
@@ -89,7 +89,7 @@ class RandomWalk(Sampling):
 
             walk[j, :] = x
 
-        return walk
+        return np.atleast_2d(walk)
 
     def generate_neighbours_for_walk(self, walk, neighbourhood_size):
         updated_walk = np.empty((neighbourhood_size * walk.shape[0], walk.shape[1]))

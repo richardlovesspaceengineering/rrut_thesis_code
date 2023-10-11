@@ -260,17 +260,19 @@ class LandscapeAnalysis:
         """
         self.instance_space = self.projection_matrix @ self.features_vector
 
-    def make_aggregated_feature_table(self):
+    def make_aggregated_feature_table(self, instance_name):
         """
         Create a 1-row table of all the features to allow comparison.
         """
         dat = pd.DataFrame()
+
+        # Add problem name and number of dimensions.
+        dat["Name"] = [instance_name]
+        dat["D"] = [instance_name.split("d")[1]]
+
+        # Add all features.
         for feature_name in self.feature_names:
             dat[feature_name] = [getattr(self, f"{feature_name}")]
-
-        dat["Instances"] = (
-            self.fitnessanalysis.pops[0][0].problem.problem_name + "_rrut"
-        )
         return dat
 
     def make_unaggregated_feature_table(self, feature_names):

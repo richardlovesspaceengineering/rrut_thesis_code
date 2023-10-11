@@ -49,11 +49,7 @@ class MultipleAnalysis:
             a.eval_features()
             cls_name = self.__class__.__name__
 
-            print(
-                "Evaluated {} features for population {} of {}".format(
-                    cls_name, ctr + 1, len(self.analyses)
-                )
-            )
+        print("Evaluated {} features".format(cls_name, len(self.analyses)))
 
         # Generate corresponding arrays.
         self.generate_feature_arrays()

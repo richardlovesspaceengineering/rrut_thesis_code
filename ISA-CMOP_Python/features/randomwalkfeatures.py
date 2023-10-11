@@ -43,21 +43,13 @@ def randomwalkfeatures(pop, PF, Instances=None):
     ranks = pop.extract_rank()
     bestrankobjs = obj[ranks == 1, :]
 
-    # # Normalise objectives and PF for HV calculation.
-    # nadir = np.array([1.1 for i in range(obj.shape[1])])
-    # bestrankobj_max = np.max(bestrankobjs, axis=0)
-    # bestrankobj_normalised = bestrankobjs / bestrankobj_max
-    # pf_normalised = PF / bestrankobj_max
-
-    # # Hypervolume we want is HV(PF, nadir) - HV(bestrankobjs, nadir)
-    # hv_nadir_pf = calculate_hypervolume_pygmo(pf_normalised, nadir)
-    # hv_nadir_bestrankobjs = calculate_hypervolume_pygmo(bestrankobj_normalised, nadir)
-    # bhv = hv_nadir_pf - hv_nadir_bestrankobjs
-
     nadir = np.ones(bestrankobjs.shape[1])
     bestrankobjs_normalised = normalise_for_hv(bestrankobjs, PF)
 
-    bhv = calculate_hypervolume_pygmo(bestrankobjs_normalised, nadir)
+    if bestrankobjs_normalised.size != 0:
+        bhv = calculate_hypervolume_pygmo(bestrankobjs_normalised, nadir)
+    else:
+        bhv = np.nan  # TODO: might need to handle better later.
 
     # Apply elementwise division to get ratios.
     dist_f_dist_x_avg = dist_f_avg / dist_x_avg
