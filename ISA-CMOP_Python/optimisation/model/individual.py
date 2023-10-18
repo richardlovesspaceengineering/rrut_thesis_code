@@ -77,11 +77,12 @@ class Individual(object):
 
     def eval_cv(self, use_norm=True):
         # Find the constraint violation.
-
+        cons = copy.deepcopy(self.cons)
+        cons[cons <= 0] = 0  # assuming >= constraints
         if use_norm:
-            cons = copy.deepcopy(self.cons)
-            cons[cons <= 0] = 0  # assuming >= constraints
             return np.linalg.norm(cons)
+        else:
+            return np.sum(cons)
 
     def eval_instance(self):
         obj, cons = self.eval_obj_cons()

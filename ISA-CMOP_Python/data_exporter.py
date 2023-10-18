@@ -11,32 +11,32 @@ pops_global = pops[0]
 pop_global = pops_global
 
 # Pareto front.
-pop_global.write_pf_to_csv("testing/global/pf.csv")
+pop_global.write_pf_to_csv("../../Test/Figures/pf.csv")
 
 # Overall population
-pop_global.write_dec_to_csv("testing/global/dec.csv")
-pop_global.write_obj_to_csv("testing/global/obj.csv")
-pop_global.write_cons_to_csv("testing/global/cons.csv")
-pop_global.write_cv_to_csv("testing/global/cv.csv")
-pop_global.write_rank_to_csv("testing/global/rank_cons.csv")
-pop_global.write_rank_uncons_to_csv("testing/global/rank_uncons.csv")
+# pop_global.write_dec_to_csv("testing/global/dec.csv")
+# pop_global.write_obj_to_csv("testing/global/obj.csv")
+# pop_global.write_cons_to_csv("testing/global/cons.csv")
+# pop_global.write_cv_to_csv("testing/global/cv.csv")
+# pop_global.write_rank_to_csv("testing/global/rank_cons.csv")
+# pop_global.write_rank_uncons_to_csv("testing/global/rank_uncons.csv")
 
-# Write bestranked objectives to csv
-obj = pop_global.extract_obj()
-ranks = pop_global.extract_rank()
-bestobj = obj[ranks == 1, :]
-np.savetxt("testing/global/bestobjs.csv", bestobj)
+# # Write bestranked objectives to csv
+# obj = pop_global.extract_obj()
+# ranks = pop_global.extract_rank()
+# bestobj = obj[ranks == 1, :]
+# np.savetxt("testing/global/bestobjs.csv", bestobj)
 
 
-# Nondominated front
-nondominated_global_cons = pop_global.extract_nondominated(constrained=True)
-pop_global.write_dec_to_csv("testing/global/nd_cons_dec.csv")
-nondominated_global_cons.write_obj_to_csv("testing/global/nd_cons_obj.csv")
-nondominated_global_cons.write_cv_to_csv("testing/global/nd_cons_cv.csv")
-nondominated_global_cons.write_rank_to_csv("testing/global/nd_cons_rank_cons.csv")
-nondominated_global_cons.write_rank_uncons_to_csv(
-    "testing/global/nd_cons_rank_uncons.csv"
-)
+# # Nondominated front
+# nondominated_global_cons = pop_global.extract_nondominated(constrained=True)
+# pop_global.write_dec_to_csv("testing/global/nd_cons_dec.csv")
+# nondominated_global_cons.write_obj_to_csv("testing/global/nd_cons_obj.csv")
+# nondominated_global_cons.write_cv_to_csv("testing/global/nd_cons_cv.csv")
+# nondominated_global_cons.write_rank_to_csv("testing/global/nd_cons_rank_cons.csv")
+# nondominated_global_cons.write_rank_uncons_to_csv(
+#     "testing/global/nd_cons_rank_uncons.csv"
+# )
 
 
 # RW features
