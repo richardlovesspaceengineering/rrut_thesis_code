@@ -43,7 +43,7 @@ class RandomWalk(Sampling):
         Simulate a progressive random walk using the implementation from Malan 2014. Given a certain starting zone (as a bit array), the walk will be biased towards reaching the other corner.
         """
         
-        walk = np.zeros((self.num_steps + 1, self.dim))  # array to store the walk
+        walk = np.zeros((self.num_steps, self.dim))  # array to store the walk
         np.random.seed(seed)
         
         # First step of the progressive random walk.
@@ -64,7 +64,7 @@ class RandomWalk(Sampling):
             
             
         # Simulate the rest of the walk.
-        for i in range(1,self.num_steps+1):
+        for i in range(1,self.num_steps):
             for j in range(self.dim): 
                 # Random step
                 r = np.random.uniform(0, self.step_size_array[j])
@@ -87,6 +87,43 @@ class RandomWalk(Sampling):
          
 
         return walk
+    
+    def generate_neighbours_for_step(self, point, neighbourhood_size):
+        
+        neighbours = np.zeros((neighbourhood_size, self.dim))
+        
+        for i in range(neighbourhood_size):
+            for j in range(self.dim):
+                r = np.random.uniform(-self.step_size_array[j], self.step_size_array[j])
+                temp = point[j] + r
+                
+                # If outside bounds, use reflection method to get point.
+                if not self.above_lower_bound(temp, j):
+                    excess_distance = np.abs(temp - self.bounds[0,j])
+                    temp = bounds[0,j] + excess_distance
+                elif not self.below_upper_bound(temp, j):
+                    excess_distance = np.abs(temp-self.bounds[1,j])
+                    temp = bounds[1,j] - excess_distance
+                
+                neighbours[i, j] = temp
+        
+        return np.atleast_2d(neighbours)
+    
+    def generate_neighbours_for_walk(self, walk, neighbourhood_size):
+        num_points = walk.shape[0]
+        dim = self.dim
+
+        # Initialize the array to store neighbors
+        neighbours = np.zeros((neighbourhood_size * num_points, dim))
+
+        for i in range(num_points):
+            current_neighbours = self.generate_neighbours_for_step(walk[i, :], neighbourhood_size)
+            start_index = i * neighbourhood_size
+            end_index = (i + 1) * neighbourhood_size
+            neighbours[start_index:end_index, :] = current_neighbours
+
+        return neighbours
+
         
     def check_step_size_prop(self):
         if self.step_size > 0.2:
@@ -155,9 +192,6 @@ class RandomWalk(Sampling):
 
         return np.atleast_2d(walk)
 
-    def generate_neighbours_for_walk(self, walk, neighbourhood_size):
-        return None
-
 
 if __name__ == "__main__":
     
@@ -170,17 +204,26 @@ if __name__ == "__main__":
             bounds = np.array([[-100, -100], [100, 200]])
             rw = RandomWalk(
                 bounds,
-                100,
+                50,
                 0.02,
             )
 
             # Starting zone binary array.
             starting_zone = np.array([i, j])
+            
+            # Simulate progressive walk.
             walk = rw.do_progressive_walk(starting_zone=starting_zone, seed=None)
+            
+            # Generate neighbours for each step on the walk.
+            neighbours = rw.generate_neighbours_for_walk(walk, neighbourhood_size=3)
 
             # Plot the random walk on the current subplot
             ax[i, j].plot(walk[:, 0], walk[:, 1], 'b-')  # Thin blue lines connecting points
-            ax[i, j].plot(walk[:, 0], walk[:, 1], 'ro', markersize=3)  # Blue dots at each point
+            # ax[i, j].plot(walk[:, 0], walk[:, 1], 'ro', markersize=3)  # Blue dots at each point
+            ax[i, j].plot(neighbours[:, 0], neighbours[:, 1], 'go', markersize=2)  # Green dots at each neighbour
+            
+            
+            # Plot the neighbours
 
             # Add dotted lines at the bounds on the current subplot
             ax[i, j].axvline(
