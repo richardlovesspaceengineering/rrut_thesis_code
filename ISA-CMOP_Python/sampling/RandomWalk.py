@@ -1,5 +1,5 @@
 # %%
-from Sampling import Sampling
+from sampling.Sampling import Sampling
 import numpy as np
 import matplotlib.pyplot as plt
 import warnings

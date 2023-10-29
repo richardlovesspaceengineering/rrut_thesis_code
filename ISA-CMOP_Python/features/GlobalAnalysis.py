@@ -12,7 +12,7 @@ from scipy.stats import yeojohnson
 from features.Analysis import Analysis, MultipleAnalysis
 
 
-class FitnessAnalysis(Analysis):
+class GlobalAnalysis(Analysis):
     """
     Calculate all features generated from a random sample.
 
@@ -95,13 +95,13 @@ class FitnessAnalysis(Analysis):
         return self.cv_mdl_params[0]
 
 
-class MultipleFitnessAnalysis(MultipleAnalysis):
+class MultipleGlobalAnalysis(MultipleAnalysis):
     """
     Aggregate global features across populations.
     """
 
     def __init__(self, pops):
-        super().__init__(pops, FitnessAnalysis)
+        super().__init__(pops, GlobalAnalysis)
         self.feature_names = [
             "fsr",
             "corr_cf",

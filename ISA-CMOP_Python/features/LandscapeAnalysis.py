@@ -11,11 +11,11 @@ class LandscapeAnalysis:
     Collates all features for one sample.
     """
 
-    def __init__(self, fitnessanalysis, randomwalkanalysis):
+    def __init__(self, globalanalysis, randomwalkanalysis):
         """
-        Give instances of MultipleFitnessAnalysis and MultipleRandomWalkAnalysis here.
+        Give instances of MultipleGlobalAnalysis and MultipleRandomWalkAnalysis here.
         """
-        self.fitnessanalysis = fitnessanalysis
+        self.globalanalysis = globalanalysis
         self.randomwalkanalysis = randomwalkanalysis
         projection_matrix = [
             0.2559,
@@ -76,8 +76,8 @@ class LandscapeAnalysis:
 
     def initialize_arrays_and_scalars(self):
         for feature in self.feature_names:
-            if feature in self.fitnessanalysis.feature_names:
-                array_length = len(self.fitnessanalysis.pops)
+            if feature in self.globalanalysis.feature_names:
+                array_length = len(self.globalanalysis.pops)
             else:
                 array_length = len(self.randomwalkanalysis.pops)
 
@@ -100,19 +100,19 @@ class LandscapeAnalysis:
         """
         Save feature arrays into this instance.
         """
-        # For self.fitnessanalysis attributes
-        self.fsr_array = self.fitnessanalysis.fsr_array
-        self.corr_cf_array = self.fitnessanalysis.corr_cf_array
-        self.f_mdl_r2_array = self.fitnessanalysis.f_mdl_r2_array
-        self.dist_c_corr_array = self.fitnessanalysis.dist_c_corr_array
-        self.min_cv_array = self.fitnessanalysis.min_cv_array
-        self.skew_rnge_array = self.fitnessanalysis.skew_rnge_array
-        self.piz_ob_min_array = self.fitnessanalysis.piz_ob_min_array
-        self.ps_dist_iqr_mean_array = self.fitnessanalysis.ps_dist_iqr_mean_array
-        self.cpo_upo_n_array = self.fitnessanalysis.cpo_upo_n_array
-        self.cv_range_coeff_array = self.fitnessanalysis.cv_range_coeff_array
-        self.corr_obj_array = self.fitnessanalysis.corr_obj_array
-        self.cv_mdl_r2_array = self.fitnessanalysis.cv_mdl_r2_array
+        # For self.globalanalysis attributes
+        self.fsr_array = self.globalanalysis.fsr_array
+        self.corr_cf_array = self.globalanalysis.corr_cf_array
+        self.f_mdl_r2_array = self.globalanalysis.f_mdl_r2_array
+        self.dist_c_corr_array = self.globalanalysis.dist_c_corr_array
+        self.min_cv_array = self.globalanalysis.min_cv_array
+        self.skew_rnge_array = self.globalanalysis.skew_rnge_array
+        self.piz_ob_min_array = self.globalanalysis.piz_ob_min_array
+        self.ps_dist_iqr_mean_array = self.globalanalysis.ps_dist_iqr_mean_array
+        self.cpo_upo_n_array = self.globalanalysis.cpo_upo_n_array
+        self.cv_range_coeff_array = self.globalanalysis.cv_range_coeff_array
+        self.corr_obj_array = self.globalanalysis.corr_obj_array
+        self.cv_mdl_r2_array = self.globalanalysis.cv_mdl_r2_array
 
         # For self.randomwalkanalysis attributes
         self.bhv_avg_rws_array = self.randomwalkanalysis.bhv_avg_rws_array
@@ -285,7 +285,7 @@ class LandscapeAnalysis:
         return dat
 
     def make_unaggregated_global_feature_table(self):
-        return self.make_unaggregated_feature_table(self.fitnessanalysis.feature_names)
+        return self.make_unaggregated_feature_table(self.globalanalysis.feature_names)
 
     def make_unaggregated_rw_feature_table(self):
         return self.make_unaggregated_feature_table(
@@ -293,7 +293,7 @@ class LandscapeAnalysis:
         )
 
     def extract_experimental_results(self, csv_name="data/raw_features_alsouly.csv"):
-        problem = self.fitnessanalysis.pops[0][0].problem
+        problem = self.globalanalysis.pops[0][0].problem
         problem_name = problem.problem_name
         exp_dat = pd.read_csv(csv_name)
 
