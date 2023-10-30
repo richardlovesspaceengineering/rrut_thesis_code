@@ -133,19 +133,21 @@ class ProblemEvaluator:
         print("Evaluated for RW features (generated walks + neighbours)")
         return pops_walks_neighbours
     
-    def evaluate_rw_features_for_all_samples(self, pops_walks_neighbours):
-        
-        return rw_features_all_samples
+    def evaluate_rw_features_for_one_sample(self, pops_walks_neighbours):
+        """
+        Evaluate the RW features for one sample (i.e a set of random walks)
+        """
+        pops_walks = [t[0] for t in pops_walks_neighbours]
+        pops_neighbours_list = [t[1] for t in pops_walks_neighbours]
+        rw_features_single_sample = MultipleRandomWalkAnalysis(pops_walks, pops_neighbours_list)
+        rw_features_single_sample.eval_features_for_all_populations()
+        return rw_features_single_sample
     
     def aggregate_rw_features_across_samples(self, rw_features_all_samples):
         """
         Aggregate the features computed across each of the n independent samples.
         """
         return None
-
-    def evaluate_rw_features_for_one_sample(self, pop_walk, pop_neighbour):
-        
-        return rw_features_single_sample
 
     def do(self, num_samples):
         for instance_name, problem_instance in self.instances:
@@ -172,8 +174,7 @@ class ProblemEvaluator:
                 pops_walks_neighbours = self.evaluate_populations_for_rw_features(problem_instance, walks_neighbours_list)
                 
                 # Finally, evaluate features.
-                #TODO: iterate over pops_walks_neighbours with RandomWalk features class.
-            
+                rw_features = self.evaluate_rw_features_for_one_sample(pops_walks_neighbours)
             # 
 
             # TODO: save results to numpy binary format using savez. Will need to write functions that do so, and ones that can create a population by reading these in.
@@ -193,7 +194,7 @@ class ProblemEvaluator:
             print("Success!")
 
         # Save to a csv
-        # self.features_table.to_csv("features.csv", index=False)  # Save to a CSV file
+        self.features_table.to_csv("features.csv", index=False)  # Save to a CSV file
 
     def evaluate_features(self, pops):
         """

@@ -11,25 +11,39 @@ class RandomWalkAnalysis(Analysis):
     Populations is a list of populations that represents a walk, each entry is a solution and its neighbours.
     """
 
-    def __init__(self, pop_walk, pop_neighbour):
+    def __init__(self, pop_walk, pop_neighbours_list):
         """
         Populations must already be evaluated.
         """
         super().__init__(pop_walk)
-        self.pop_neighbour = pop_neighbour
+        self.pop_neighbours_list = pop_neighbours_list
+        
+        # Save as computed values for this walk.
+        self.feature_names = [
+            "dist_x_avg",
+            "dist_f_avg",
+            "dist_c_avg",
+            "dist_f_dist_x_avg",
+            "dist_c_dist_x_avg"
+        ]
+        
+        # Initialise values.
+        self.initialize_features()
 
     def eval_features(self):
         """
-        Evaluate features along the random walk.
+        Evaluate features along the random walk and save to class.
         """
         
         # Evaluate neighbourhood features.
-        dist_f_dist_x_avg_rws, dist_c_dist_x_avg_rws, bhv_avg_rws = compute_neighbourhood_features(self.pop, self.pop_neighbour, self.pareto_front)
+        dist_x_avg, dist_f_avg, dist_c_avg, dist_f_dist_x_avg, dist_c_dist_x_avg = compute_neighbourhood_features(self.pop, self.pop_neighbours_list, self.pareto_front)
         
-        # Save as computed values for this walk.
-        self.bhv_avg_rws = bhv_avg_rws
-        self.dist_c_dist_x_avg_rws = dist_c_dist_x_avg_rws
-        self.dist_f_dist_x_avg_rws = dist_f_dist_x_avg_rws
+        # Set the class attributes
+        self.dist_x_avg = dist_x_avg
+        self.dist_f_avg = dist_f_avg
+        self.dist_c_avg = dist_c_avg
+        self.dist_f_dist_x_avg = dist_f_dist_x_avg
+        self.dist_c_dist_x_avg = dist_c_dist_x_avg
 
 
 class MultipleRandomWalkAnalysis(MultipleAnalysis):
@@ -37,14 +51,12 @@ class MultipleRandomWalkAnalysis(MultipleAnalysis):
     Aggregate RW features across populations/walks.
     """
 
-    def __init__(self, pops):
-        super().__init__(pops, RandomWalkAnalysis)
+    def __init__(self, pops_walks, pops_neighbours_list):
+        self.pops = pops_walks
+        self.analyses = []
+        for ctr, pop in enumerate(pops_walks):
+            self.analyses.append(RandomWalkAnalysis(pop, pops_neighbours_list[ctr]))
+        self.feature_names = self.analyses[0].feature_names
 
-        self.feature_names = [
-            "dist_c_dist_x_avg_rws",
-            "dist_f_dist_x_avg_rws",
-            "bhv_avg_rws",
-        ]
-
-        # Initialise values
+        # Initialise arrays to store these values.
         super().initialize_arrays()

@@ -12,6 +12,16 @@ class Analysis:
         """
         self.pop = pop
         self.pareto_front = pop[0].pareto_front
+        self.feature_names = []
+        
+    def initialize_features(self):
+        # Initialising feature arrays.
+        for feature in self.feature_names:
+            setattr(
+                self,
+                (f"{feature}"),
+                np.nan,
+            )
 
     def eval_features(self):
         pass
@@ -27,7 +37,7 @@ class MultipleAnalysis:
         self.analyses = []
         for pop in pops:
             self.analyses.append(AnalysisType(pop))
-        self.feature_names = []
+        self.feature_names = AnalysisType(pops[0]).feature_names
 
     def initialize_arrays(self):
         # Initialising feature arrays.
