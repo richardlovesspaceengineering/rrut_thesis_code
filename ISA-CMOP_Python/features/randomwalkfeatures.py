@@ -4,7 +4,7 @@ from optimisation.util.non_dominated_sorting import NonDominatedSorting
 from optimisation.util.calculate_hypervolume import calculate_hypervolume_pygmo
 
 
-def randomwalkfeatures(pop, PF, Instances=None):
+def compute_neighbourhood_features(pop_walk, pop_neighbours, PF):
     """
     Calculate all the features that could be generated from a single random walk.
 

@@ -50,4 +50,4 @@ if __name__ == "__main__":
         print("\n")
 
     evaluator = ProblemEvaluator(instances)
-    evaluator.do(num_samples=3)
+    evaluator.do(num_samples=2)

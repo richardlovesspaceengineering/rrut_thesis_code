@@ -1,6 +1,4 @@
 import numpy as np
-from features.randomwalkfeatures import randomwalkfeatures
-from scipy.stats import yeojohnson
 
 
 class Analysis:

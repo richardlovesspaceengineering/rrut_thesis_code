@@ -218,7 +218,7 @@ class Population(np.ndarray):
                 self[i].rank_uncons = k + 1  # lowest rank is 1
 
     ### EVALUATE AT A GIVEN SET OF POINTS.
-    def evaluate(self, var_array):
+    def evaluate(self, var_array, eval_fronts):
         for i in range(len(self)):
             # Assign decision variables.
             self[i].set_var(var_array[i, :])
@@ -226,11 +226,12 @@ class Population(np.ndarray):
             # Run evaluation of objectives, constraints and CV.
             self[i].eval_instance()
 
-        # Now can find rank and crowding of each individual.
-        self.eval_rank_and_crowding()
+        if eval_fronts:
+            # Now can find rank and crowding of each individual.
+            self.eval_rank_and_crowding()
 
-        # Unconstrained ranks
-        self.eval_unconstrained_rank()
+            # Unconstrained ranks
+            self.eval_unconstrained_rank()
 
     # Plotters
     def var_scatterplot_matrix(self, bounds=None):

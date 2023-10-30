@@ -1,5 +1,5 @@
 import numpy as np
-from features.randomwalkfeatures import randomwalkfeatures
+from features.randomwalkfeatures import compute_neighbourhood_features
 from scipy.stats import yeojohnson
 from features.Analysis import Analysis, MultipleAnalysis
 
@@ -11,16 +11,22 @@ class RandomWalkAnalysis(Analysis):
     Populations is a list of populations that represents a walk, each entry is a solution and its neighbours.
     """
 
-    def __init__(self, pop):
+    def __init__(self, pop_walk, pop_neighbour):
         """
         Populations must already be evaluated.
         """
-        super().__init__(pop)
+        super().__init__(pop_walk)
+        self.pop_neighbour = pop_neighbour
 
     def eval_features(self):
-        dist_f_dist_x_avg_rws, dist_c_dist_x_avg_rws, bhv_avg_rws = randomwalkfeatures(
-            self.pop, self.pareto_front, Instances=None
-        )
+        """
+        Evaluate features along the random walk.
+        """
+        
+        # Evaluate neighbourhood features.
+        dist_f_dist_x_avg_rws, dist_c_dist_x_avg_rws, bhv_avg_rws = compute_neighbourhood_features(self.pop, self.pop_neighbour, self.pareto_front)
+        
+        # Save as computed values for this walk.
         self.bhv_avg_rws = bhv_avg_rws
         self.dist_c_dist_x_avg_rws = dist_c_dist_x_avg_rws
         self.dist_f_dist_x_avg_rws = dist_f_dist_x_avg_rws

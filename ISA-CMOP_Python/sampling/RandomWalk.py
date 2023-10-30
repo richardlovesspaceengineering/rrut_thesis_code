@@ -6,13 +6,14 @@ import warnings
 
 
 class RandomWalk(Sampling):
-    def __init__(self, bounds, num_steps, step_size_pct=0.2):
+    def __init__(self, bounds, num_steps, step_size_pct, neighbourhood_size):
         """
         Step size must be given as a percentage of (xmax - xmin) for each dimension.
         """
         self.bounds = bounds
         self.num_steps = num_steps
         self.step_size_pct = step_size_pct
+        self.neighbourhood_size = neighbourhood_size
         self.dim = self.bounds.shape[1]  # dimensionality of the problem
         self.initialise_step_sizes()
 
@@ -66,20 +67,15 @@ class RandomWalk(Sampling):
         # Simulate the rest of the walk.
         for i in range(1,self.num_steps):
             for j in range(self.dim): 
-                # Random step
+                # TODO: decide whether we randomly generate the neighbours for this step, then move to there
                 r = np.random.uniform(0, self.step_size_array[j])
                 if starting_zone[j] == 1:
                     r = - r
                 temp = walk[i-1, j] + r
                 
                 # If walk is out of bounds, set next step on walk to be the mirrored position inside the boundary
-                if not self.above_lower_bound(temp, j):
-                    excess_distance = np.abs(temp - self.bounds[0,j])
-                    temp = bounds[0,j] + excess_distance
-                    starting_zone[j] = self.flip_bit(starting_zone[j])
-                elif not self.below_upper_bound(temp, j):
-                    excess_distance = np.abs(temp-self.bounds[1,j])
-                    temp = bounds[1,j] - excess_distance
+                if not self.within_bounds(temp, j):
+                    temp = self.mirror_to_inside_bounds(temp, j)
                     starting_zone[j] = self.flip_bit(starting_zone[j])
                     
                 # Save this step of the walk.
@@ -97,30 +93,37 @@ class RandomWalk(Sampling):
                 r = np.random.uniform(-self.step_size_array[j], self.step_size_array[j])
                 temp = point[j] + r
                 
-                # If outside bounds, use reflection method to get point.
-                if not self.above_lower_bound(temp, j):
-                    excess_distance = np.abs(temp - self.bounds[0,j])
-                    temp = bounds[0,j] + excess_distance
-                elif not self.below_upper_bound(temp, j):
-                    excess_distance = np.abs(temp-self.bounds[1,j])
-                    temp = bounds[1,j] - excess_distance
+                # If walk is out of bounds, set next step on walk to be the mirrored position inside the boundary
+                if not self.within_bounds(temp, j):
+                    temp = self.mirror_to_inside_bounds(temp, j)
                 
                 neighbours[i, j] = temp
         
         return np.atleast_2d(neighbours)
     
-    def generate_neighbours_for_walk(self, walk, neighbourhood_size):
+    def mirror_to_inside_bounds(self, point, dim):
+        # If outside bounds, use reflection method to get point.
+        if not self.above_lower_bound(point, dim):
+            excess_distance = np.abs(point - self.bounds[0,dim])
+            point = self.bounds[0,dim] + excess_distance
+        elif not self.below_upper_bound(point, dim):
+            excess_distance = np.abs(point-self.bounds[1,dim])
+            point = self.bounds[1,dim] - excess_distance
+            
+        return point
+    
+    def generate_neighbours_for_walk(self, walk):
+        """
+        Generate a list of neighbours containing num_steps sets of neighbours with size neighbourhood_size
+        """
         num_points = walk.shape[0]
-        dim = self.dim
 
         # Initialize the array to store neighbors
-        neighbours = np.zeros((neighbourhood_size * num_points, dim))
+        neighbours = []
 
         for i in range(num_points):
-            current_neighbours = self.generate_neighbours_for_step(walk[i, :], neighbourhood_size)
-            start_index = i * neighbourhood_size
-            end_index = (i + 1) * neighbourhood_size
-            neighbours[start_index:end_index, :] = current_neighbours
+            current_neighbours = self.generate_neighbours_for_step(walk[i, :], self.neighbourhood_size)
+            neighbours.append(current_neighbours)
 
         return neighbours
 
@@ -206,6 +209,7 @@ if __name__ == "__main__":
                 bounds,
                 50,
                 0.02,
+                3
             )
 
             # Starting zone binary array.
@@ -215,12 +219,14 @@ if __name__ == "__main__":
             walk = rw.do_progressive_walk(starting_zone=starting_zone, seed=None)
             
             # Generate neighbours for each step on the walk.
-            neighbours = rw.generate_neighbours_for_walk(walk, neighbourhood_size=3)
+            neighbours = rw.generate_neighbours_for_walk(walk)
 
             # Plot the random walk on the current subplot
             ax[i, j].plot(walk[:, 0], walk[:, 1], 'b-')  # Thin blue lines connecting points
             # ax[i, j].plot(walk[:, 0], walk[:, 1], 'ro', markersize=3)  # Blue dots at each point
-            ax[i, j].plot(neighbours[:, 0], neighbours[:, 1], 'go', markersize=2)  # Green dots at each neighbour
+            
+            for neighbour in neighbours:
+                ax[i, j].plot(neighbour[:, 0], neighbour[:, 1], 'go', markersize=2)  # Green dots at each neighbour
             
             
             # Plot the neighbours
