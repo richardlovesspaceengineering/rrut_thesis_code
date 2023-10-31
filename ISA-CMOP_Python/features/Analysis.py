@@ -57,7 +57,7 @@ class MultipleAnalysis:
             a.eval_features()
             cls_name = self.__class__.__name__
 
-        print("Evaluated {} features".format(cls_name, len(self.analyses)))
+        print("\nEvaluated {} features".format(cls_name))
 
         # Generate corresponding arrays.
         self.generate_feature_arrays()

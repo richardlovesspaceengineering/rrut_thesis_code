@@ -4,6 +4,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import math
+import time
+
 
 # User packages.
 from features.GlobalAnalysis import MultipleGlobalAnalysis
@@ -54,19 +56,18 @@ class ProblemEvaluator:
         rw = RandomWalk(bounds, num_steps, step_size, neighbourhood_size)
         return rw
     
+    import time
+
     def sample_for_rw_features(self, problem):
         """
         Generate RW samples.
         
-        For a problem of dimension n, we generate n random walks with the following properties:
-        
+        For a problem of dimension n, we generate n random walks with the following properties.
         
         Random walk features are then computed for each walk separately prior to aggregation.
             
         Returns a list of tuples of length n in (walk, neighbours) pairs.
         """
-        
-        print("Generating samples for RW features...")
 
         # Make RW generator object.
         rw = self.make_rw_generator(problem)
@@ -76,21 +77,30 @@ class ProblemEvaluator:
         
         walks_neighbours_list = []
         
+        print("")
+        print("Generating samples (walks + neighbours) for RW features with the following properties:")
+        print("- Number of walks: {}".format(len(starting_zones)))
+        print("")
+        
         for ctr, starting_zone in enumerate(starting_zones):
-                # Generate random walk starting at this iteration's starting zone.
-                walk = rw.do_progressive_walk(seed=ctr, starting_zone = starting_zone)
-                
-                # Generate neighbours for each step on the walk. Currently we just randomly sample points in the [-stepsize, stepsize] hypercube
-                neighbours = rw.generate_neighbours_for_walk(walk)
-                
-                walks_neighbours_list.append((walk, neighbours))
+            start_time = time.time()  # Record the start time
+            # Generate random walk starting at this iteration's starting zone.
+            walk = rw.do_progressive_walk(seed=ctr, starting_zone=starting_zone)
+            
+            # Generate neighbors for each step on the walk. Currently, we just randomly sample points in the [-stepsize, stepsize] hypercube
+            neighbours = rw.generate_neighbours_for_walk(walk)
+            end_time = time.time()  # Record the end time
+            elapsed_time = end_time - start_time
 
-        print("Sampled for RW features (generated walks + neighbours)")
+            walks_neighbours_list.append((walk, neighbours))
+            print("Generated RW sample {} of {} in {:.2f} seconds.".format(ctr + 1, len(starting_zones), elapsed_time))
+
         return walks_neighbours_list
+
     
     def evaluate_populations_for_rw_features(self, problem, walks_neighbours_list):
         
-        print("Evaluating populations for this sample... (ranks on for walk steps, off for neighbours)")
+        print("\nEvaluating populations for this sample... (ranks on for walk steps, off for neighbours)")
         
         # Lists saving populations and neighbours for features evaluation later.
         pops_walks_neighbours = []
@@ -101,12 +111,10 @@ class ProblemEvaluator:
             
             pop_neighbours_list = []
             
+            start_time = time.time()  # Record the start time
+            
             # Generate populations for walk and neighbours separately.
-            # TODO: check i-th row of pop_walk corresponds to rows i*neighbourhood_size to (i+1)*neighbourhood_size of pop_neighbours.
-            
-            # Example: if n = 3, then pop_walk.obj[0,:] has pop_neighbours.obj[0:2,:] as its neighbours.
             pop_walk = Population(problem, n_individuals=walk.shape[0])
-            
             
             # Evaluate each neighbourhood.
             for neighbourhood in neighbours:
@@ -118,12 +126,15 @@ class ProblemEvaluator:
             # Evaluate populations fully.
             pop_walk.evaluate(walk, eval_fronts=True)
             
-            print("Evaluated RW population {} of {}.".format(ctr + 1, len(walks_neighbours_list) ))
+            # Record the end time.
+            end_time = time.time()
+            elapsed_time = end_time - start_time
             
+            print("Evaluated RW population {} of {} in {:.2f} seconds.".format(ctr + 1, len(walks_neighbours_list), elapsed_time))
+
             # Append to lists
             pops_walks_neighbours.append((pop_walk, pop_neighbours_list))
             
-        print("Evaluated for RW features (generated walks + neighbours)")
         return pops_walks_neighbours
     
     def evaluate_rw_features_for_one_sample(self, pops_walks_neighbours):
@@ -160,37 +171,54 @@ class ProblemEvaluator:
         # Now concatenate the rw_features into one large MultipleRandomWalkAnalysis object.
         rw_features = MultipleRandomWalkAnalysis.concatenate_multiple_analyses(rw_features_list)
         return rw_features
-    
+
     def sample_for_global_features(self, problem, num_samples):
-        print("Generating distributed samples for Global features...")
+        
         n_var = problem.n_var
         
         distributed_samples = []
         
         # Experimental setup of Liefooghe2021.
-        num_points = 200*n_var
+        num_points = 200 * n_var
+        iterations = num_points
+        
+        print("")
+        print("Generating distributed samples for Global features with the following properties:")
+        print("- Num. points: {}".format(num_points))
+        print("- Num. iterations: {}".format(iterations))
+        print("")
         
         for i in range(num_samples):
-            # TODO: need to check which criteria to use and whether there is a faster implementation.
-            lhs = LatinHypercubeSampling(criterion = "maximin", iterations = num_points)
-            lhs.do(n_samples = num_points, x_lower = problem.lb, x_upper = problem.ub)
+            start_time = time.time()  # Record the start time
+            lhs = LatinHypercubeSampling(criterion="maximin", iterations=iterations)
+            lhs.do(n_samples=num_points, x_lower=problem.xl, x_upper=problem.xu)
+            end_time = time.time()  # Record the end time
+            elapsed_time = end_time - start_time
+
             distributed_samples.append(lhs.x)
-            print("Generated Global sample {} of {}.".format(i+1, num_samples))
+            print("Generated Global sample {} of {} in {:.2f} seconds.".format(i + 1, num_samples, elapsed_time))
             
         return distributed_samples
+
     
+
     def evaluate_populations_for_global_features(self, problem, distributed_samples):
         print("Evaluating populations for global samples...")
-        
+
         pops_global = []
-        
+
         for ctr, sample in enumerate(distributed_samples):
+            start_time = time.time()  # Record the start time
             pop_global = Population(problem, n_individuals=sample.shape[0])
             pop_global.evaluate(sample, eval_fronts=True)
+            end_time = time.time()  # Record the end time
+            elapsed_time = end_time - start_time
+
             pops_global.append(pop_global)
-            print("Evaluated Global population {} of {}.".format(ctr+1, len(distributed_samples)))
-        
+            print("Evaluated Global population {} of {} in {:.2f} seconds.".format(ctr + 1, len(distributed_samples), elapsed_time))
+
         return pops_global
+
     
     def evaluate_global_features(self, pops_global):
         
@@ -225,11 +253,23 @@ class ProblemEvaluator:
             )
             
             # RW Analysis.
+            print(
+                " \n ~~~~~~~~~~~~ RW Analysis "
+                + " ~~~~~~~~~~~~ \n"
+            )
             rw_features = self.do_random_walk_analysis(problem_instance, num_samples)
             
             # Global Analysis.
+            
+            # RW Analysis.
+            print(
+                " \n ~~~~~~~~~~~~ Global Analysis "
+                + " ~~~~~~~~~~~~ \n"
+            )
             global_features = self.do_global_analysis(problem_instance, num_samples)
             
+            
+            # Overall landscape analysis - putting it all together.
             landscape = LandscapeAnalysis(global_features, rw_features)
             landscape.extract_feature_arrays()
             landscape.aggregate_features(YJ_transform=False)
