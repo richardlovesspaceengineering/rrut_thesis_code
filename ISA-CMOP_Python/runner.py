@@ -43,11 +43,5 @@ if __name__ == "__main__":
     # Generate instances
     instances = generate_instances_from_config(json_config)
 
-    # You now have a list of tuples with (instance name, problem instance)
-    for instance_name, problem_instance in instances:
-        print(f"Instance Name: {instance_name}")
-        print(f"Problem:\n{problem_instance}")
-        print("\n")
-
     evaluator = ProblemEvaluator(instances)
     evaluator.do(num_samples=2)
