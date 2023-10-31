@@ -1,13 +1,16 @@
 import numpy as np
-from features.cv_distr import cv_distr
-from features.cv_mdl import cv_mdl
-from features.rank_mdl import rank_mdl
-from features.dist_corr import dist_corr
-from features.f_corr import f_corr
-from features.f_decdist import f_decdist
-from features.f_skew import f_skew
-from features.fvc import fvc
-from features.PiIZ import PiIZ
+from features.globalfeatures import (
+    cv_distr,
+    cv_mdl,
+    rank_mdl,
+    dist_corr,
+    f_corr,
+    f_decdist,
+    f_skew,
+    fvc,
+    PiIZ,
+)
+
 from scipy.stats import yeojohnson
 from features.Analysis import Analysis, MultipleAnalysis
 
@@ -17,21 +20,21 @@ class GlobalAnalysis(Analysis):
     Calculate all features generated from a random sample.
 
     """
-    
+
     feature_names = [
-            "fsr",
-            "corr_cf",
-            "f_mdl_r2",
-            "dist_c_corr",
-            "min_cv",
-            "skew_rnge",
-            "piz_ob_min",
-            "ps_dist_iqr_mean",
-            "cpo_upo_n",
-            "cv_range_coeff",
-            "corr_obj",
-            "cv_mdl_r2",
-        ]
+        "fsr",
+        "corr_cf",
+        "f_mdl_r2",
+        "dist_c_corr",
+        "min_cv",
+        "skew_rnge",
+        "piz_ob_min",
+        "ps_dist_iqr_mean",
+        "cpo_upo_n",
+        "cv_range_coeff",
+        "corr_obj",
+        "cv_mdl_r2",
+    ]
 
     def __init__(self, pop):
         """

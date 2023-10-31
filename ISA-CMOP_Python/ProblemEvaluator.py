@@ -197,7 +197,8 @@ class ProblemEvaluator:
         distributed_samples = []
 
         # Experimental setup of Alsouly2022.
-        num_points = int(n_var * 1e3)
+        # TODO: finalise sample size before running
+        num_points = int(n_var * 100)
         iterations = num_points
 
         # Split the method string to extract the method name
@@ -235,7 +236,7 @@ class ProblemEvaluator:
                     i + 1, num_samples, elapsed_time
                 )
             )
-            print("Discrepancy: {}".format(qmc.discrepancy(sampler.x)))
+            print("Discrepancy: {:.2f}".format(qmc.discrepancy(sampler.x)))
 
         return distributed_samples
 
