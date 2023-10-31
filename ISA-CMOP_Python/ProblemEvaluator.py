@@ -40,14 +40,7 @@ class ProblemEvaluator:
             patterns.append([int(bit) for bit in binary_pattern])
         return patterns
 
-    def make_rw_generator(self, problem):
-        n_var = problem.n_var
-
-        # Experimental setup of Alsouly
-        neighbourhood_size = 2 * n_var + 1
-        num_steps = 10
-        step_size = 0.01  # 1% of the range of the instance domain
-
+    def make_rw_generator(self, problem, num_steps, step_size, neighbourhood_size):
         # Bounds of the decision variables.
         x_lower = problem.xl
         x_upper = problem.xu
@@ -57,7 +50,7 @@ class ProblemEvaluator:
         rw = RandomWalk(bounds, num_steps, step_size, neighbourhood_size)
         return rw
 
-    def sample_for_rw_features(self, problem):
+    def sample_for_rw_features(self, problem, num_steps, step_size, neighbourhood_size):
         """
         Generate RW samples.
 
@@ -69,7 +62,7 @@ class ProblemEvaluator:
         """
 
         # Make RW generator object.
-        rw = self.make_rw_generator(problem)
+        rw = self.make_rw_generator(problem, num_steps, step_size, neighbourhood_size)
 
         # Progressive RWs will start at every 2/n-th vertex of the search space
         starting_zones = self.generate_binary_patterns(problem.n_var)
@@ -81,6 +74,9 @@ class ProblemEvaluator:
             "Generating samples (walks + neighbours) for RW features with the following properties:"
         )
         print("- Number of walks: {}".format(len(starting_zones)))
+        print("- Number of steps per walk: {}".format(num_steps))
+        print("- Step size (% of instance domain): {}".format(step_size * 100))
+        print("- Neighbourhood size: {}".format(neighbourhood_size))
         print("")
 
         for ctr, starting_zone in enumerate(starting_zones):
@@ -162,9 +158,16 @@ class ProblemEvaluator:
         rw_features_single_sample.eval_features_for_all_populations()
         return rw_features_single_sample
 
-    def do_random_walk_analysis(self, problem_instance, num_samples):
+    def do_random_walk_analysis(self, problem, num_samples):
         # Per-sample arrays.
         rw_features_list = []
+
+        n_var = problem.n_var
+
+        # Experimental setup of Alsouly
+        neighbourhood_size = 2 * n_var + 1
+        num_steps = 100
+        step_size = 0.01  # 1% of the range of the instance domain
 
         # We need to generate 30 samples per instance.
         for i in range(num_samples):
@@ -173,11 +176,13 @@ class ProblemEvaluator:
             ## Evaluate RW features.
 
             # Begin by sampling.
-            walks_neighbours_list = self.sample_for_rw_features(problem_instance)
+            walks_neighbours_list = self.sample_for_rw_features(
+                problem, num_steps, step_size, neighbourhood_size
+            )
 
             # Then evaluate populations across the independent random walks.
             pops_walks_neighbours = self.evaluate_populations_for_rw_features(
-                problem_instance, walks_neighbours_list
+                problem, walks_neighbours_list
             )
 
             # Finally, evaluate features.
@@ -236,7 +241,7 @@ class ProblemEvaluator:
                     i + 1, num_samples, elapsed_time
                 )
             )
-            print("Discrepancy: {:.2f}".format(qmc.discrepancy(sampler.x)))
+            print("Discrepancy: {:.6f}".format(qmc.discrepancy(sampler.x)))
 
         return distributed_samples
 
@@ -267,15 +272,15 @@ class ProblemEvaluator:
 
         return global_features
 
-    def do_global_analysis(self, problem_instace, num_samples):
+    def do_global_analysis(self, problem, num_samples):
         # Generate distributed samples.
         distributed_samples = self.sample_for_global_features(
-            problem_instace, num_samples, method="lhs.scipy"
+            problem, num_samples, method="lhs.scipy"
         )
 
         # Evaluate populations
         pops_global = self.evaluate_populations_for_global_features(
-            problem_instace, distributed_samples
+            problem, distributed_samples
         )
 
         # Evaluate features.
@@ -284,7 +289,7 @@ class ProblemEvaluator:
         return global_features
 
     def do(self, num_samples):
-        for instance_name, problem_instance in self.instances:
+        for instance_name, problem in self.instances:
             print(
                 " ---------------- Evaluating instance: "
                 + instance_name
@@ -293,13 +298,13 @@ class ProblemEvaluator:
 
             # RW Analysis.
             print(" \n ~~~~~~~~~~~~ RW Analysis " + " ~~~~~~~~~~~~ \n")
-            rw_features = self.do_random_walk_analysis(problem_instance, num_samples)
+            rw_features = self.do_random_walk_analysis(problem, num_samples)
 
             # Global Analysis.
 
             # RW Analysis.
             print(" \n ~~~~~~~~~~~~ Global Analysis " + " ~~~~~~~~~~~~ \n")
-            global_features = self.do_global_analysis(problem_instance, num_samples)
+            global_features = self.do_global_analysis(problem, num_samples)
 
             # Overall landscape analysis - putting it all together.
             landscape = LandscapeAnalysis(global_features, rw_features)

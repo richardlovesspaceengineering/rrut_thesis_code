@@ -1,14 +1,13 @@
 import numpy as np
 from scipy.stats import kurtosis, skew, iqr
 from features.feature_helpers import remove_imag_rows, corr_coef, fit_linear_mdl
-from scipy.spatial.distance import cdist, pdist
+from scipy.spatial.distance import cdist
 from scipy.stats import iqr
 
 
 def cv_distr(pop):
     """
-    Y-distribution of constraints violations. For now, since only min_f is needed to substitute into Eq. (13) in Alsouly2022, we only need min_f. @Richard has left in the remaining calculations since they are easy.
-
+    Distribution of constraints violations.
     """
 
     # Remove any rows with imaginary values.
@@ -24,7 +23,7 @@ def cv_distr(pop):
     kurt_f = kurtosis(cv, axis=0)
     skew_f = skew(cv, axis=0)
 
-    return [mean_f, std_f, min_f, max_f, skew_f, kurt_f]
+    return mean_f, std_f, min_f, max_f, skew_f, kurt_f
 
 
 def cv_mdl(pop):
@@ -46,7 +45,6 @@ def dist_corr(pop, NonDominated):
 
     Distance for each solution to nearest global solution in decision space. Correlation of distance and constraints norm.
 
-    Fairly certain that NonDominated is an instance of the Population class containing the non-dominated solutions.
     """
 
     obj = pop.extract_obj()
