@@ -37,7 +37,7 @@ class MultipleAnalysis:
         self.analyses = []
         for pop in pops:
             self.analyses.append(AnalysisType(pop))
-        self.feature_names = AnalysisType(pops[0]).feature_names
+        self.feature_names = AnalysisType.feature_names
 
     def initialize_arrays(self):
         # Initialising feature arrays.

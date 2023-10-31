@@ -9,6 +9,7 @@ import math
 from features.GlobalAnalysis import MultipleGlobalAnalysis
 from features.RandomWalkAnalysis import MultipleRandomWalkAnalysis
 from features.LandscapeAnalysis import LandscapeAnalysis
+from optimisation.operators.sampling.latin_hypercube_sampling import LatinHypercubeSampling
 
 import numpy as np
 from optimisation.model.population import Population
@@ -29,19 +30,11 @@ class ProblemEvaluator:
 
         num_patterns = 2**n
         patterns = []
-
-        if n % 2 == 0:
-            # Even n -> count from 2^n/n
-            step = num_patterns // n
-            for i in range(0, num_patterns, step):
-                binary_pattern = np.binary_repr(i, width=n)
-                patterns.append([int(bit) for bit in binary_pattern])
-        else:
-            # Odd n -> count from 0
-            step = math.ceil(num_patterns / n)
-            for i in range(0, num_patterns, step):
-                binary_pattern = np.binary_repr(i, width=n)
-                patterns.append([int(bit) for bit in binary_pattern])
+        step = math.ceil(num_patterns / n)
+    
+        for i in range(0, num_patterns, step):
+            binary_pattern = np.binary_repr(i, width=n)
+            patterns.append([int(bit) for bit in binary_pattern])
         return patterns
     
     def make_rw_generator(self, problem):
@@ -49,7 +42,7 @@ class ProblemEvaluator:
 
         # Experimental setup of Alsouly
         neighbourhood_size = 2 * n_var + 1
-        num_steps = 1000
+        num_steps = 10
         step_size = 0.01  # 1% of the range of the instance domain
 
         # Bounds of the decision variables.
@@ -68,7 +61,7 @@ class ProblemEvaluator:
         For a problem of dimension n, we generate n random walks with the following properties:
         
         
-        Random walk features are then computed for each walk separately prior to aggregation.\
+        Random walk features are then computed for each walk separately prior to aggregation.
             
         Returns a list of tuples of length n in (walk, neighbours) pairs.
         """
@@ -125,7 +118,7 @@ class ProblemEvaluator:
             # Evaluate populations fully.
             pop_walk.evaluate(walk, eval_fronts=True)
             
-            print("Evaluated population {} of {}.".format(ctr + 1, len(walks_neighbours_list) ))
+            print("Evaluated RW population {} of {}.".format(ctr + 1, len(walks_neighbours_list) ))
             
             # Append to lists
             pops_walks_neighbours.append((pop_walk, pop_neighbours_list))
@@ -143,11 +136,84 @@ class ProblemEvaluator:
         rw_features_single_sample.eval_features_for_all_populations()
         return rw_features_single_sample
     
-    def aggregate_rw_features_across_samples(self, rw_features_all_samples):
-        """
-        Aggregate the features computed across each of the n independent samples.
-        """
-        return None
+    def do_random_walk_analysis(self, problem_instance, num_samples):
+        
+        # Per-sample arrays.
+        rw_features_list = []
+        
+        # We need to generate 30 samples per instance.
+        for i in range(num_samples):
+            
+            print("Initialising RW sample {} of {}...".format(i+1, num_samples))
+        
+            ## Evaluate RW features.
+            
+            # Begin by sampling.
+            walks_neighbours_list = self.sample_for_rw_features(problem_instance)
+            
+            # Then evaluate populations across the independent random walks.
+            pops_walks_neighbours = self.evaluate_populations_for_rw_features(problem_instance, walks_neighbours_list)
+            
+            # Finally, evaluate features.
+            rw_features_list.append(self.evaluate_rw_features_for_one_sample(pops_walks_neighbours))
+        
+        # Now concatenate the rw_features into one large MultipleRandomWalkAnalysis object.
+        rw_features = MultipleRandomWalkAnalysis.concatenate_multiple_analyses(rw_features_list)
+        return rw_features
+    
+    def sample_for_global_features(self, problem, num_samples):
+        print("Generating distributed samples for Global features...")
+        n_var = problem.n_var
+        
+        distributed_samples = []
+        
+        # Experimental setup of Liefooghe2021.
+        num_points = 200*n_var
+        
+        for i in range(num_samples):
+            # TODO: need to check which criteria to use and whether there is a faster implementation.
+            lhs = LatinHypercubeSampling(criterion = "maximin", iterations = num_points)
+            lhs.do(n_samples = num_points, x_lower = problem.lb, x_upper = problem.ub)
+            distributed_samples.append(lhs.x)
+            print("Generated Global sample {} of {}.".format(i+1, num_samples))
+            
+        return distributed_samples
+    
+    def evaluate_populations_for_global_features(self, problem, distributed_samples):
+        print("Evaluating populations for global samples...")
+        
+        pops_global = []
+        
+        for ctr, sample in enumerate(distributed_samples):
+            pop_global = Population(problem, n_individuals=sample.shape[0])
+            pop_global.evaluate(sample, eval_fronts=True)
+            pops_global.append(pop_global)
+            print("Evaluated Global population {} of {}.".format(ctr+1, len(distributed_samples)))
+        
+        return pops_global
+    
+    def evaluate_global_features(self, pops_global):
+        
+        global_features = MultipleGlobalAnalysis(pops_global)
+        global_features.eval_features_for_all_populations()
+        
+        return global_features
+    
+    def do_global_analysis(self, problem_instace, num_samples):
+        
+        # We need to generate 30 samples per instance.
+        
+        # Generate distributed samples.
+        distributed_samples = self.sample_for_global_features(problem_instace, num_samples)
+        
+        # Evaluate populations
+        pops_global = self.evaluate_populations_for_global_features(problem_instace, distributed_samples)
+        
+        # Evaluate features.
+        global_features = self.evaluate_global_features(pops_global)
+        
+        return global_features
+        
 
     def do(self, num_samples):
         for instance_name, problem_instance in self.instances:
@@ -158,37 +224,25 @@ class ProblemEvaluator:
                 + " ----------------"
             )
             
-            # We need to generate 30 samples per instance.
-            for i in range(num_samples):
-                
-                print("Initialising sample {} of {}...".format(i+1, num_samples))
+            # RW Analysis.
+            rw_features = self.do_random_walk_analysis(problem_instance, num_samples)
             
-                # Evaluate Global features.
-
-                ## Evaluate RW features.
-                
-                # Begin by sampling.
-                walks_neighbours_list = self.sample_for_rw_features(problem_instance)
-                
-                # Then evaluate populations across the independent random walks.
-                pops_walks_neighbours = self.evaluate_populations_for_rw_features(problem_instance, walks_neighbours_list)
-                
-                # Finally, evaluate features.
-                rw_features = self.evaluate_rw_features_for_one_sample(pops_walks_neighbours)
-            # 
+            # Global Analysis.
+            global_features = self.do_global_analysis(problem_instance, num_samples)
+            
+            landscape = LandscapeAnalysis(global_features, rw_features)
+            landscape.extract_feature_arrays()
+            landscape.aggregate_features(YJ_transform=False)
 
             # TODO: save results to numpy binary format using savez. Will need to write functions that do so, and ones that can create a population by reading these in.
 
-            # Evaluate features and put into landscape.
-            # landscape = self.evaluate_features(pops)
+            # Append metrics to features dataframe.
+            aggregated_table = landscape.make_aggregated_feature_table(instance_name)
 
-            # # Append metrics to features dataframe.
-            # aggregated_table = landscape.make_aggregated_feature_table(instance_name)
-
-            # # Append the aggregated_table to features_table
-            # self.features_table = pd.concat(
-            #     [self.features_table, aggregated_table], ignore_index=True
-            # )
+            # Append the aggregated_table to features_table
+            self.features_table = pd.concat(
+                [self.features_table, aggregated_table], ignore_index=True
+            )
 
             # Log success.
             print("Success!")
@@ -196,27 +250,10 @@ class ProblemEvaluator:
         # Save to a csv
         self.features_table.to_csv("features.csv", index=False)  # Save to a CSV file
 
-    def evaluate_features(self, pops):
-        """
-        THIS IS ABOUT TO BE ARCHIVED
-        """
-        # Evaluate landscape features.
-        # Global features.
-        global_features = MultipleGlobalAnalysis(pops)
-        global_features.eval_features_for_all_populations()
-
-        # Random walk features.
-        rw_features = MultipleRandomWalkAnalysis(pops)
-        rw_features.eval_features_for_all_populations()
-
-        # Combine all features
-        landscape = LandscapeAnalysis(global_features, rw_features)
-        landscape.extract_feature_arrays()
-        landscape.aggregate_features(YJ_transform=False)
-
-        return landscape
-
 
 if __name__ == "__main__":
+    
+    # Making sure the binary pattern generator is generating the right number of starting zones.
     pe = ProblemEvaluator([])
-    pe.generate_binary_patterns(3)
+    print(len(pe.generate_binary_patterns(10)))
+    

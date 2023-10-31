@@ -4,6 +4,8 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import math
+from features.GlobalAnalysis import GlobalAnalysis
+from features.RandomWalkAnalysis import RandomWalkAnalysis
 
 
 class LandscapeAnalysis:
@@ -17,60 +19,9 @@ class LandscapeAnalysis:
         """
         self.globalanalysis = globalanalysis
         self.randomwalkanalysis = randomwalkanalysis
-        projection_matrix = [
-            0.2559,
-            0.1348,
-            -0.2469,
-            -0.1649,
-            -0.0257,
-            -0.2703,
-            0.2938,
-            -0.2278,
-            -0.2148,
-            -0.1338,
-            -0.1935,
-            -0.2210,
-            -0.1651,
-            0.2998,
-            -0.2150,
-            0.3137,
-            0.3067,
-            0.1382,
-            0.0709,
-            0.3047,
-            0.2032,
-            -0.0515,
-            0.1436,
-            0.2869,
-            0.1940,
-            0.1154,
-            -0.0508,
-            -0.2466,
-        ]
-
-        # Reshape the data into a 2x14 array
-        self.projection_matrix = np.transpose(
-            np.array(projection_matrix).reshape(14, 2)
-        )
 
         # Initialise features.
-        self.feature_names = [
-            "fsr",
-            "corr_cf",
-            "f_mdl_r2",
-            "dist_c_corr",
-            "min_cv",
-            "bhv_avg_rws",
-            "skew_rnge",
-            "piz_ob_min",
-            "ps_dist_iqr_mean",
-            "dist_c_dist_x_avg_rws",
-            "cpo_upo_n",
-            "cv_range_coeff",
-            "corr_obj",
-            "dist_f_dist_x_avg_rws",
-            "cv_mdl_r2",
-        ]
+        self.feature_names = self.globalanalysis.feature_names + self.randomwalkanalysis.feature_names
 
         self.initialize_arrays_and_scalars()
 
@@ -100,28 +51,15 @@ class LandscapeAnalysis:
         """
         Save feature arrays into this instance.
         """
-        # For self.globalanalysis attributes
-        self.fsr_array = self.globalanalysis.fsr_array
-        self.corr_cf_array = self.globalanalysis.corr_cf_array
-        self.f_mdl_r2_array = self.globalanalysis.f_mdl_r2_array
-        self.dist_c_corr_array = self.globalanalysis.dist_c_corr_array
-        self.min_cv_array = self.globalanalysis.min_cv_array
-        self.skew_rnge_array = self.globalanalysis.skew_rnge_array
-        self.piz_ob_min_array = self.globalanalysis.piz_ob_min_array
-        self.ps_dist_iqr_mean_array = self.globalanalysis.ps_dist_iqr_mean_array
-        self.cpo_upo_n_array = self.globalanalysis.cpo_upo_n_array
-        self.cv_range_coeff_array = self.globalanalysis.cv_range_coeff_array
-        self.corr_obj_array = self.globalanalysis.corr_obj_array
-        self.cv_mdl_r2_array = self.globalanalysis.cv_mdl_r2_array
+        for feature_name in self.feature_names:
+            if feature_name in GlobalAnalysis.feature_names:
+                setattr(self, f"{feature_name}_array", getattr(self.globalanalysis, f"{feature_name}_array"))
+            elif feature_name in RandomWalkAnalysis.feature_names:
+                setattr(self, f"{feature_name}_array", getattr(self.randomwalkanalysis, f"{feature_name}_array"))
+            else:
+                # Handle cases where feature_name is not found in either set of feature names
+                pass
 
-        # For self.randomwalkanalysis attributes
-        self.bhv_avg_rws_array = self.randomwalkanalysis.bhv_avg_rws_array
-        self.dist_c_dist_x_avg_rws_array = (
-            self.randomwalkanalysis.dist_c_dist_x_avg_rws_array
-        )
-        self.dist_f_dist_x_avg_rws_array = (
-            self.randomwalkanalysis.dist_f_dist_x_avg_rws_array
-        )
 
     def plot_feature_histograms(self, num_bins=20):
         """

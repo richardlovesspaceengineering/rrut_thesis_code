@@ -17,6 +17,21 @@ class GlobalAnalysis(Analysis):
     Calculate all features generated from a random sample.
 
     """
+    
+    feature_names = [
+            "fsr",
+            "corr_cf",
+            "f_mdl_r2",
+            "dist_c_corr",
+            "min_cv",
+            "skew_rnge",
+            "piz_ob_min",
+            "ps_dist_iqr_mean",
+            "cpo_upo_n",
+            "cv_range_coeff",
+            "corr_obj",
+            "cv_mdl_r2",
+        ]
 
     def __init__(self, pop):
         """
@@ -25,7 +40,6 @@ class GlobalAnalysis(Analysis):
         self.pop = pop
 
     def eval_features(self):
-        # TODO: check whether FR should be calculated here or in random walk.
         self.fsr = self.get_fsr()
         self.corr_cf = self.get_corr_cf()
         self.f_mdl_r2 = self.get_f_mdl_r2()
@@ -102,19 +116,5 @@ class MultipleGlobalAnalysis(MultipleAnalysis):
 
     def __init__(self, pops):
         super().__init__(pops, GlobalAnalysis)
-        self.feature_names = [
-            "fsr",
-            "corr_cf",
-            "f_mdl_r2",
-            "dist_c_corr",
-            "min_cv",
-            "skew_rnge",
-            "piz_ob_min",
-            "ps_dist_iqr_mean",
-            "cpo_upo_n",
-            "cv_range_coeff",
-            "corr_obj",
-            "cv_mdl_r2",
-        ]
 
         super().initialize_arrays()
