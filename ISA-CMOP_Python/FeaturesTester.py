@@ -13,6 +13,8 @@ if __name__ == "__main__":
     # Generate evaluator which can generate RW samples and LHS samples.
     evaluator = ProblemEvaluator([(instance_string, problem)])
 
+    ### GLOBAL FEATURES.
+
     # Generate distributed samples and evaluate populations on these samples.
     distributed_samples = evaluator.sample_for_global_features(
         problem, 2, method="lhs.scipy"
@@ -24,5 +26,6 @@ if __name__ == "__main__":
     # Now we can extract individual samples for computing features.
     pop_global_test = pops_global[0]
 
+    ### RW FEATURES
     # Repeat the above but for RW samples.
     # walks_neighbours_list = evaluator.sample_for_rw_features(problem)
