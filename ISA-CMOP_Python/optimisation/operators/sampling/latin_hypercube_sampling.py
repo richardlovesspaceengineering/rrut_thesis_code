@@ -1,4 +1,7 @@
 from pyDOE2 import lhs
+import numpy as np
+from scipy.spatial.distance import cdist
+
 
 from optimisation.model.sampling import Sampling
 
@@ -7,16 +10,20 @@ class LatinHypercubeSampling(Sampling):
 
     def __init__(self,
                  criterion='maximin',
-                 iterations=10000):
+                 iterations=10000,
+                 method = "pyDOE"):
         super().__init__()
         self.criterion = criterion
         self.iterations = iterations
+        self.method = method
 
     def _do(self, dim, n_samples, seed=None):
-        self.x = lhs(dim, samples=n_samples, criterion=self.criterion, iterations=self.iterations, random_state=seed)
+        if self.method == "pyDOE":
+            self.x = lhs(dim, samples=n_samples, criterion=self.criterion, iterations=self.iterations, random_state=seed)
+        elif self.method == "modified":
+            self.x = self._modified_lhs_maximin(dim, n_samples, seed)
 
-    @staticmethod
-    def _modified_lhs_maximin(dim, n_samples, seed=None):
+    def _modified_lhs_maximin(self, dim, n_samples, seed=None):
         if seed is not None:
             np.random.seed(seed)
 

@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import math
 import time
+from scipy.stats import qmc
 
 
 # User packages.
@@ -182,7 +183,6 @@ class ProblemEvaluator:
         num_points = 200 * n_var
         iterations = num_points
         
-        print("")
         print("Generating distributed samples for Global features with the following properties:")
         print("- Num. points: {}".format(num_points))
         print("- Num. iterations: {}".format(iterations))
@@ -190,20 +190,21 @@ class ProblemEvaluator:
         
         for i in range(num_samples):
             start_time = time.time()  # Record the start time
-            lhs = LatinHypercubeSampling(criterion="maximin", iterations=iterations)
+            lhs = LatinHypercubeSampling(criterion="maximin", iterations=iterations, method = "modified")
             lhs.do(n_samples=num_points, x_lower=problem.xl, x_upper=problem.xu)
             end_time = time.time()  # Record the end time
             elapsed_time = end_time - start_time
 
             distributed_samples.append(lhs.x)
             print("Generated Global sample {} of {} in {:.2f} seconds.".format(i + 1, num_samples, elapsed_time))
+            print("Discrepancy: {}".format(qmc.discrepancy(lhs.x)))
             
         return distributed_samples
 
     
 
     def evaluate_populations_for_global_features(self, problem, distributed_samples):
-        print("Evaluating populations for global samples...")
+        print("\nEvaluating populations for global samples...")
 
         pops_global = []
 
