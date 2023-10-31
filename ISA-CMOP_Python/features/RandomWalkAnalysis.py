@@ -36,7 +36,7 @@ class RandomWalkAnalysis(Analysis):
         """
         
         # Evaluate neighbourhood features.
-        dist_x_avg, dist_f_avg, dist_c_avg, dist_f_dist_x_avg, dist_c_dist_x_avg = compute_neighbourhood_features(self.pop, self.pop_neighbours_list, self.pareto_front)
+        dist_x_avg, dist_f_avg, dist_c_avg, dist_f_dist_x_avg, dist_c_dist_x_avg = compute_neighbourhood_features(self.pop, self.pop_neighbours_list)
         
         # Set the class attributes
         self.dist_x_avg = dist_x_avg

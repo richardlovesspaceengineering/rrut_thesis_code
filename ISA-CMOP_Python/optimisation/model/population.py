@@ -227,11 +227,14 @@ class Population(np.ndarray):
             self[i].eval_instance()
 
         if eval_fronts:
-            # Now can find rank and crowding of each individual.
-            self.eval_rank_and_crowding()
+            self.evaluate_fronts()
+            
+    def evaluate_fronts(self):
+        # Now can find rank and crowding of each individual.
+        self.eval_rank_and_crowding()
 
-            # Unconstrained ranks
-            self.eval_unconstrained_rank()
+        # Unconstrained ranks
+        self.eval_unconstrained_rank()
 
     # Plotters
     def var_scatterplot_matrix(self, bounds=None):

@@ -6,7 +6,7 @@ from optimisation.model.population import Population
 from optimisation.operators.sampling import RandomWalk
 
 
-def compute_neighbourhood_features(pop_walk, pop_neighbours, PF):
+def compute_neighbourhood_features(pop_walk, pop_neighbours):
     """
     Calculate neighbourhood_features.
 
@@ -21,13 +21,16 @@ def compute_neighbourhood_features(pop_walk, pop_neighbours, PF):
     var = pop_walk.extract_var()
     obj = pop_walk.extract_obj()
     cv = pop_walk.extract_cv()
+    
+    PF = pop_walk.extract_pf()
 
     # Initialise arrays.
-    dist_x_avg_array = np.zeros(var.shape[0])
-    dist_f_avg_array = np.zeros(var.shape[0])
-    dist_c_avg_array = np.zeros(var.shape[0])
-    dist_f_dist_x_avg_array = np.zeros(var.shape[0])
-    dist_c_dist_x_avg_array = np.zeros(var.shape[0])
+    dist_x_array = np.zeros(var.shape[0])
+    dist_f_array = np.zeros(var.shape[0])
+    dist_c_array = np.zeros(var.shape[0])
+    dist_f_dist_x_array = np.zeros(var.shape[0])
+    dist_c_dist_x_array = np.zeros(var.shape[0])
+    bhv_array = np.zeros(var.shape[0])
 
     # Loop over each solution in the walk.
     for i in range(var.shape[0]):
@@ -41,46 +44,48 @@ def compute_neighbourhood_features(pop_walk, pop_neighbours, PF):
 
         # Average distance between neighbours in variable space.
         distdec = pdist(neig_var, "euclidean")
-        dist_x_avg_array[i] = np.mean(distdec)
+        dist_x_array[i] = np.mean(distdec)
 
         # Average distance between neighbours in objective space.
         distobj = pdist(neig_obj, "euclidean")
-        dist_f_avg_array[i] = np.mean(distobj)
+        dist_f_array[i] = np.mean(distobj)
 
         # Average distance between neighbours in constraint-norm space.
         distcons = pdist(neig_cv, "euclidean")
-        dist_c_avg_array[i] = np.mean(distcons)
+        dist_c_array[i] = np.mean(distcons)
 
         # Take ratios.
-        dist_f_dist_x_avg_array[i] = dist_f_avg_array[i] / dist_x_avg_array[i]
-        dist_c_dist_x_avg_array[i] = dist_c_avg_array[i] / dist_x_avg_array[i]
+        dist_f_dist_x_array[i] = dist_f_array[i] / dist_x_array[i]
+        dist_c_dist_x_array[i] = dist_c_array[i] / dist_x_array[i]
+        
+        # Compute hypervolume metrics.
+        bhv_array[i] = calc_bhv(pop_neighbourhood, PF)
 
     # TODO: compute autocorrelations.
 
     # Aggregate for this walk.
-    dist_x_avg = np.mean(dist_x_avg_array)
-    dist_f_avg = np.mean(dist_f_avg_array)
-    dist_c_avg = np.mean(dist_c_avg_array)
-    dist_f_dist_x_avg = np.mean(dist_f_dist_x_avg_array)
-    dist_c_dist_x_avg = np.mean(dist_c_dist_x_avg_array)
+    dist_x_avg = np.mean(dist_x_array)
+    dist_f_avg = np.mean(dist_f_array)
+    dist_c_avg = np.mean(dist_c_array)
+    dist_f_dist_x_avg = np.mean(dist_f_dist_x_array)
+    dist_c_dist_x_avg = np.mean(dist_c_dist_x_array)
+    bhv_avg = np.mean(bhv_array)
 
-    # TODO: add bhv computation back
-    # # Calculate hypervolume between the best ranked objectives and the known Pareto front.
-    # ranks = pop.extract_rank()
-    # bestrankobjs = obj[ranks == 1, :]
+    return dist_x_avg, dist_f_avg, dist_c_avg, dist_f_dist_x_avg, dist_c_dist_x_avg, bhv_avg
 
-    # nadir = np.ones(bestrankobjs.shape[1])
-    # bestrankobjs_normalised = normalise_for_hv(bestrankobjs, PF)
+def compute_neighbourhood_features()
 
-    # if bestrankobjs_normalised.size != 0:
-    #     bhv = calculate_hypervolume_pygmo(bestrankobjs_normalised, nadir)
-    # else:
-    #     bhv = np.nan  # TODO: might need to handle better later.
 
-    return dist_x_avg, dist_f_avg, dist_c_avg, dist_f_dist_x_avg, dist_c_dist_x_avg
-
+def normalise_objective_space_for_neighbourhood_hv(obj, PF):
+    """
+    Normalise the objective space onto [0,1]^n_obj, as suggested for computing HV metrics in Alsouly2022 and Vodopija2023.
+    """
+    return obj_norm, PF_norm
 
 def normalise_for_hv(obj, PF):
+    """
+    Normalise all objectives for HV calculation to lie in the region of interest from Vodopija2023. Do not use if computing neighbourhood HV values, as neighbours generally do not
+    """
     fmin = np.minimum(np.min(obj, axis=0), np.zeros((1, PF.shape[1])))
     fmax = np.max(PF, axis=0)
     obj_normalised = (obj - fmin) / ((fmax - fmin) * 1.1)
@@ -91,12 +96,20 @@ def normalise_for_hv(obj, PF):
     return obj_normalised
 
 
-if __name__ == "__main__":
-    # Starting zone binary array.
-    starting_zone = np.array([i, j])
+def calc_bhv(neighbourhood, PF):
+    """
+    Calculate hypervolume between the non-dominated solutions and the known Pareto front.
+    """
+    ranks = neighbourhood.extract_rank()
+    obj = neighbourhood.extract_obj()
+    bestrankobjs = obj[ranks == 1, :]
 
-    # Simulate progressive walk.
-    walk = rw.do_progressive_walk(starting_zone=starting_zone, seed=None)
+    nadir = np.ones(bestrankobjs.shape[1])
+    bestrankobjs_normalised = normalise_for_hv(obj, PF)
 
-    # Generate neighbours for each step on the walk.
-    neighbours = rw.generate_neighbours_for_walk(walk)
+    if bestrankobjs_normalised.size != 0:
+        bhv = calculate_hypervolume_pygmo(bestrankobjs_normalised, nadir)
+    else:
+        bhv = np.nan  # TODO: might need to handle better later.
+            
+    return bhv

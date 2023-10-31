@@ -124,7 +124,7 @@ class ProblemEvaluator:
                     problem, n_individuals=neighbourhood.shape[0]
                 )
                 pop_neighbourhood.evaluate(
-                    neighbourhood, eval_fronts=False
+                    neighbourhood, eval_fronts=True
                 )  # TODO: eval fronts and include current step on walk.
                 pop_neighbours_list.append(pop_neighbourhood)
 
