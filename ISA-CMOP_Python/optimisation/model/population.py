@@ -53,7 +53,7 @@ class Population(np.ndarray):
             else:
                 var_array = np.vstack((var_array, self[i].var))
 
-        return np.asarray(var_array)
+        return np.atleast_2d(var_array)
 
     def extract_obj(self):
         # Extract objectives from each individual. Should return an n x m array where n is the number of individuals, m is the number of objectives.
@@ -64,7 +64,7 @@ class Population(np.ndarray):
             else:
                 obj_array = np.vstack((obj_array, self[i].obj))
 
-        return np.asarray(obj_array)
+        return np.atleast_2d(obj_array)
 
     def extract_cons(self):
         # Extract constraints from each individual. Should return an n x m array where n is the number of individuals, m is the number of constraints.

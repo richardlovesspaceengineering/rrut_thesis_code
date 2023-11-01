@@ -309,7 +309,7 @@ class ProblemEvaluator:
             # Overall landscape analysis - putting it all together.
             landscape = LandscapeAnalysis(global_features, rw_features)
             landscape.extract_feature_arrays()
-            landscape.aggregate_features(YJ_transform=False)
+            landscape.aggregate_features()
 
             # TODO: save results to numpy binary format using savez. Will need to write functions that do so, and ones that can create a population by reading these in.
 

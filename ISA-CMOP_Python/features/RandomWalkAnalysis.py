@@ -1,7 +1,8 @@
 import numpy as np
 from features.randomwalkfeatures import (
     compute_neighbourhood_distance_features,
-    compute_neighbourhood_hv_features
+    compute_neighbourhood_hv_features,
+    compute_neighbourhood_violation_features
     )
 from scipy.stats import yeojohnson
 from features.Analysis import Analysis, MultipleAnalysis
@@ -38,7 +39,15 @@ class RandomWalkAnalysis(Analysis):
         "hvd_r1",
         "bhv_avg",
         "bhv_r1",
+        "nrfbx",
+        "nncv_avg",
+        "nncv_r1",
+        "ncv_avg",
+        "ncv_r1",
+        "bncv_avg",
+        "bncv_r1",
     ]
+
 
     def __init__(self, pop_walk, pop_neighbours_list):
         """
@@ -60,6 +69,9 @@ class RandomWalkAnalysis(Analysis):
         
         # Evaluate neighbourhood HV features.
         hv_single_soln_avg, hv_single_soln_r1, nhv_avg, nhv_r1, hvd_avg, hvd_r1, bhv_avg, bhv_r1 = compute_neighbourhood_hv_features(self.pop, self.pop_neighbours_list)
+        
+        # Evaluate neighbourhood violation features.
+        nrfbx, nncv_avg, nncv_r1, ncv_avg, ncv_r1, bncv_avg, bncv_r1 = compute_neighbourhood_violation_features(self.pop, self.pop_neighbours_list)
         
         # Create a dictionary to store feature names and values
         feature_dict = {
@@ -84,9 +96,16 @@ class RandomWalkAnalysis(Analysis):
             "hvd_avg": hvd_avg,
             "hvd_r1": hvd_r1,
             "bhv_avg": bhv_avg,
-            "bhv_r1": bhv_r1
-        }
-        
+            "bhv_r1": bhv_r1,
+            "nrfbx": nrfbx,
+            "nncv_avg": nncv_avg,
+            "nncv_r1": nncv_r1,
+            "ncv_avg": ncv_avg,
+            "ncv_r1": ncv_r1,
+            "bncv_avg": bncv_avg,
+            "bncv_r1": bncv_r1
+            }
+
         # Set the class attributes
         for feature_name, feature_value in feature_dict.items():
             setattr(self, feature_name, feature_value)

@@ -81,7 +81,7 @@ def compute_neighbourhood_distance_features(pop_walk, pop_neighbours):
     dist_x_r1 = autocorr(dist_x_array, lag=1)
     dist_f_r1 = autocorr(dist_f_array, lag=1)
     dist_c_r1 = autocorr(dist_c_array, lag=1)
-    dist_f_c_r1 = autocorr(dist_c_array, lag=1)
+    dist_f_c_r1 = autocorr(dist_f_c_array, lag=1)
     dist_f_dist_x_r1 = autocorr(dist_f_dist_x_array, lag=1)
     dist_c_dist_x_r1 = autocorr(dist_c_dist_x_array, lag=1)
     dist_f_c_dist_x_r1 = autocorr(dist_f_c_dist_x_array, lag=1)
@@ -138,6 +138,87 @@ def compute_neighbourhood_hv_features(pop_walk, pop_neighbours):
     
     return hv_single_soln_avg, hv_single_soln_r1, nhv_avg, nhv_r1, hvd_avg, hvd_r1, bhv_avg, bhv_r1
     
+def compute_neighbourhood_violation_features(pop_walk, pop_neighbours):
+    
+    
+    # Extract evaluated population values.
+    var = pop_walk.extract_var()
+    obj = pop_walk.extract_obj()
+    cv = pop_walk.extract_cv()
+    PF = pop_walk.extract_pf()
+
+    # Initialise arrays.
+    cross_array = np.zeros(var.shape[0]-1)
+    nncv_array = np.zeros(var.shape[0])
+    ncv_array = np.zeros(var.shape[0])
+    bncv_array = np.zeros(var.shape[0])
+    
+    # Maximum ratio of feasible boundary crossing.
+    num_steps = obj.shape[0]
+    num_feasible_steps = pop_walk.extract_feasible().extract_obj().shape[0]
+    rfb_max = 2 / (num_steps - 1) * np.minimum(
+    np.minimum(num_feasible_steps, num_steps - num_feasible_steps),
+    (num_steps - 1) / 2
+    )
+
+    
+    if rfb_max == 0:
+        compute_rfb = False
+    else:
+        compute_rfb = True
+
+    # Initialise boundary crossings index.
+    cross_idx = -1
+    
+    # Loop over each solution in the walk.
+    for i in range(var.shape[0]):
+        # Extract neighbours for this point and append.
+        pop_neighbourhood = pop_neighbours[i]
+        neig_cv = pop_neighbourhood.extract_cv()
+        
+        # Average neighbourhood violation value.
+        nncv_array[i] = np.mean(neig_cv)
+        
+        # Single solution violation value.
+        ncv_array[i] = cv[i]
+        
+        # Average violation value of neighbourhood's non-dominated solutions.
+        bncv_array[i] = np.mean(pop_neighbourhood.extract_nondominated(constrained = True).extract_cv())
+        
+        # Feasible boundary crossing
+        if compute_rfb:
+            if i > 0:
+                cross_idx += 1
+                if (cv[i] > 0 and cv[i-1] > 0):
+                    
+                    # Stayed in infeasible region.
+                    cross_array[cross_idx] = 0
+                else:
+                    if (cv[i] <=0 and cv[i-1] <=0):
+                        # Stayed in feasible region.
+                        cross_array[cross_idx] = 0
+                    else:
+                        # Crossed between regions.
+                        cross_array[cross_idx] = 1
+            
+        
+    # Aggregate total number of feasible boundary crossings.
+    if compute_rfb:
+        nrfbx = np.sum(cross_array)/(num_steps-1)/rfb_max
+    else:
+        nrfbx = 0
+    
+    # Calculate means
+    nncv_avg = np.mean(nncv_array)
+    ncv_avg = np.mean(ncv_array)
+    bncv_avg = np.mean(bncv_array)
+
+    # Calculate autocorrelations
+    nncv_r1 = autocorr(nncv_array, lag=1)
+    ncv_r1 = autocorr(ncv_array, lag=1)
+    bncv_r1 = autocorr(bncv_array, lag=1)
+    
+    return nrfbx, nncv_avg, nncv_r1, ncv_avg, ncv_r1, bncv_avg, bncv_r1
 
 def normalise_objective_space(pop_walk, pop_neighbours, PF, scale_offset = 1.1, region_of_interest = False):
     """
@@ -192,9 +273,7 @@ def calc_bhv(neighbourhood_normalised, nadir):
     """
     Calculate hypervolume of the (normalised) neighbourhood's non-dominated solutions.
     """
-    ranks = neighbourhood_normalised.extract_rank()
-    obj = neighbourhood_normalised.extract_obj()
-    bestrankobjs = obj[ranks == 1, :]
+    bestrankobjs = neighbourhood_normalised.extract_nondominated(constrained = True).extract_obj()
 
     if bestrankobjs.size != 0:
         bhv = calculate_hypervolume_pygmo(bestrankobjs, nadir)

@@ -44,4 +44,4 @@ if __name__ == "__main__":
     instances = generate_instances_from_config(json_config)
 
     evaluator = ProblemEvaluator(instances)
-    evaluator.do(num_samples=2)
+    evaluator.do(num_samples=1)

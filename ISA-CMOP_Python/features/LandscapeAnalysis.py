@@ -145,24 +145,76 @@ class LandscapeAnalysis:
     def apply_YJ_transform(self, array):
         return yeojohnson(array)[0]
 
-    def aggregate_array_for_feature(self, array, YJ_transform):
-        if YJ_transform:
-            return np.mean(self.apply_YJ_transform(array))
-        else:
+    def compute_statistic_for_feature(self, array, stat="mean"):
+        if stat == "mean":
             return np.mean(array)
+        elif stat == "median":
+            return np.median(array)
+        elif stat == "min":
+            return np.min(array)
+        elif stat == "max":
+            return np.max(array)
+        elif stat == "std":
+            return np.std(array)
+        else:
+            raise ValueError("Invalid statistic choice. Use 'mean', 'median', 'min', 'max', or 'std'.")
 
-    def aggregate_features(self, YJ_transform):
+    def aggregate_features(self):
         """
         Aggregate feature for all populations. Must be called after extract_feature_arrays.
         """
+        
+        # Since we might update some of the feature names as we loop.
+        feature_names_to_remove = []
+        feature_names_to_add = []
+        
         for feature_name in self.feature_names:
-            setattr(
-                self,
-                feature_name,
-                self.aggregate_array_for_feature(
-                    getattr(self, f"{feature_name}_array"), YJ_transform
-                ),
-            )
+
+            # Determine which statistic to compute based on the feature_name
+            statistic = "mean"
+
+            if feature_name in ["nrfbx"]:
+                statistic = ["mean", "min", "max", "median"]
+
+            if isinstance(statistic, list):
+                # Compute and set multiple statistics
+                
+                #TODO: fix naming convention.
+                feature_names_to_remove.append(feature_name)
+                for stat in statistic:
+                    
+                    # Replace feature name with more descriptive names.
+                    new_name = f"{feature_name}_{stat}"
+                    feature_names_to_add.append(new_name)
+                    
+                    setattr(
+                        self,
+                        f"{feature_name}_{stat}",
+                        self.compute_statistic_for_feature(
+                            getattr(self, f"{feature_name}_array"), stat
+                        ),
+                    )
+            else:
+                # Compute and set a single statistic
+                setattr(
+                    self,
+                    f"{feature_name}",
+                    self.compute_statistic_for_feature(
+                        getattr(self, f"{feature_name}_array"), statistic
+                    ),
+                )
+                
+        # Upon completion of the loop, update features list.
+        self.update_feature_list(feature_names_to_remove, feature_names_to_add)
+
+    def update_feature_list(self, feature_names_to_remove, feature_names_to_add):
+        # Create a new list by removing elements to remove and adding elements to add
+        updated_feature_names = [feature for feature in self.feature_names if feature not in feature_names_to_remove]
+        updated_feature_names.extend(feature_names_to_add)
+        
+        # Assign the updated list back to self.feature_names
+        self.feature_names = updated_feature_names
+
 
     def extract_features_vector(self):
         """

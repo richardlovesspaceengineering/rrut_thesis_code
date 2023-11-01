@@ -19,6 +19,7 @@ from features.globalfeatures import (
 from features.randomwalkfeatures import (
     compute_neighbourhood_distance_features,
     compute_neighbourhood_hv_features,
+    compute_neighbourhood_violation_features,
     normalise_objective_space
     )
 
@@ -123,8 +124,9 @@ if __name__ == "__main__":
     if sample_rw:
         
         test_obj_normalisation = False
-        test_neighbourhood_dist_features = True
-        test_neighbourhood_hv_features = True
+        test_neighbourhood_dist_features = False
+        test_neighbourhood_hv_features = False
+        test_neighbourhood_violation_features = True
         
         ### RW FEATURES
         # Repeat the above but for RW samples.
@@ -154,4 +156,8 @@ if __name__ == "__main__":
         # Neighbourhood HV features.
         if test_neighbourhood_hv_features:
             hv_single_soln_avg, hv_single_soln_r1, nhv_avg, nhv_r1, hvd_avg, hvd_r1, bhv_avg, bhv_r1 = compute_neighbourhood_hv_features(pop_walk, pop_neighbours)
+            
+        # Neighbourhood violation features.
+        if test_neighbourhood_violation_features:
+            nrfbx, nncv_avg, nncv_r1, ncv_avg, ncv_r1, bncv_avg, bncv_r1 = compute_neighbourhood_violation_features(pop_walk, pop_neighbours)
             
