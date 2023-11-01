@@ -17,10 +17,10 @@ echo "Host is: $host"
 # Path info. @Juan if you could add heuristics so it can easily swap between Richard's computer and the megatrons that'd be great!
 if [[ "$host" == *"$pc1"* ]]; then # megatrons
   PYTHON_SCRIPT="/home/kj66/Documents/Richard/venv/bin/python3"
-  SCRIPT_PATH="/home/kj66/Documents/Richard/ISA-CMOP_Python/"
+  SCRIPT_PATH="/home/kj66/Documents/Richard/rrut_thesis_code/"
 else # richard's pc
   PYTHON_SCRIPT="D:/richa/anaconda3/envs/thesis_env_windows/python.exe"
-  SCRIPT_PATH="d:/richa/Documents/Thesis/rrut_thesis_code/ISA-CMOP_Python/"
+  SCRIPT_PATH="d:/richa/Documents/Thesis/rrut_thesis_code/"
 fi
 echo "Using interpreter: $PYTHON_SCRIPT"
 
@@ -31,7 +31,8 @@ temp_dir=$(mktemp -d -t ci-XXXXXXXXXX --tmpdir=$SCRIPT_PATH)
 # Copy framework to temporary directory
 copy_dir="$SCRIPT_PATH"
 cd_dir="$SCRIPT_PATH"
-copy_dir+="*"
+cd_dir+="ISA-CMOP_Python/"
+copy_dir+="ISA-CMOP_Python/*"
 cp -R $copy_dir "$temp_dir"
 
 # Handle CTRL+C event clean up
@@ -61,4 +62,4 @@ n_dim_str=${n_dim_str%,}  # Remove the trailing comma
 
 # Run. Note that all logging is done within Python.
 # TODO: This might have to change to a for loop call
-"$PYTHON_SCRIPT" "$SCRIPT_PATH" "$problem_str" "$n_dim_str" "$num_samples"
+"$PYTHON_SCRIPT" "$run_dir" "$problem_str" "$n_dim_str" "$num_samples"
