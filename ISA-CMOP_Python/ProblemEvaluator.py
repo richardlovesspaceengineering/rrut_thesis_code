@@ -130,7 +130,7 @@ class ProblemEvaluator:
                 pop_neighbours_list.append(pop_neighbourhood)
 
             # Evaluate populations fully.
-            pop_walk.evaluate(walk, eval_fronts=True)
+            pop_walk.evaluate(walk, eval_fronts=False)
 
             # Record the end time.
             end_time = time.time()
