@@ -1,5 +1,8 @@
 import numpy as np
-from features.randomwalkfeatures import compute_neighbourhood_distance_features
+from features.randomwalkfeatures import (
+    compute_neighbourhood_distance_features,
+    compute_neighbourhood_hv_features
+    )
 from scipy.stats import yeojohnson
 from features.Analysis import Analysis, MultipleAnalysis
 
@@ -13,12 +16,29 @@ class RandomWalkAnalysis(Analysis):
     
     # Define feature names as a static attribute at the class level
     feature_names = [
-            "dist_x_avg",
-            "dist_f_avg",
-            "dist_c_avg",
-            "dist_f_dist_x_avg",
-            "dist_c_dist_x_avg"
-        ]
+        "dist_x_avg",
+        "dist_x_r1",
+        "dist_f_avg",
+        "dist_f_r1",
+        "dist_c_avg",
+        "dist_c_r1",
+        "dist_f_c_avg",
+        "dist_f_c_r1",
+        "dist_f_dist_x_avg",
+        "dist_f_dist_x_r1",
+        "dist_c_dist_x_avg",
+        "dist_c_dist_x_r1",
+        "dist_f_c_dist_x_avg",
+        "dist_f_c_dist_x_r1",
+        "hv_single_soln_avg",
+        "hv_single_soln_r1",
+        "nhv_avg",
+        "nhv_r1",
+        "hvd_avg",
+        "hvd_r1",
+        "bhv_avg",
+        "bhv_r1",
+    ]
 
     def __init__(self, pop_walk, pop_neighbours_list):
         """
@@ -35,15 +55,41 @@ class RandomWalkAnalysis(Analysis):
         Evaluate features along the random walk and save to class.
         """
         
-        # Evaluate neighbourhood features.
-        dist_x_avg, dist_f_avg, dist_c_avg, dist_f_dist_x_avg, dist_c_dist_x_avg = compute_neighbourhood_distance_features(self.pop, self.pop_neighbours_list)
+        # Evaluate neighbourhood distance features.
+        dist_x_avg, dist_x_r1, dist_f_avg, dist_f_r1, dist_c_avg, dist_c_r1, dist_f_c_avg, dist_f_c_r1, dist_f_dist_x_avg, dist_f_dist_x_r1, dist_c_dist_x_avg, dist_c_dist_x_r1, dist_f_c_dist_x_avg, dist_f_c_dist_x_r1 = compute_neighbourhood_distance_features(self.pop, self.pop_neighbours_list)
+        
+        # Evaluate neighbourhood HV features.
+        hv_single_soln_avg, hv_single_soln_r1, nhv_avg, nhv_r1, hvd_avg, hvd_r1, bhv_avg, bhv_r1 = compute_neighbourhood_hv_features(self.pop, self.pop_neighbours_list)
+        
+        # Create a dictionary to store feature names and values
+        feature_dict = {
+            "dist_x_avg": dist_x_avg,
+            "dist_x_r1": dist_x_r1,
+            "dist_f_avg": dist_f_avg,
+            "dist_f_r1": dist_f_r1,
+            "dist_c_avg": dist_c_avg,
+            "dist_c_r1": dist_c_r1,
+            "dist_f_c_avg": dist_f_c_avg,
+            "dist_f_c_r1": dist_f_c_r1,
+            "dist_f_dist_x_avg": dist_f_dist_x_avg,
+            "dist_f_dist_x_r1": dist_f_dist_x_r1,
+            "dist_c_dist_x_avg": dist_c_dist_x_avg,
+            "dist_c_dist_x_r1": dist_c_dist_x_r1,
+            "dist_f_c_dist_x_avg": dist_f_c_dist_x_avg,
+            "dist_f_c_dist_x_r1": dist_f_c_dist_x_r1,
+            "hv_single_soln_avg": hv_single_soln_avg,
+            "hv_single_soln_r1": hv_single_soln_r1,
+            "nhv_avg": nhv_avg,
+            "nhv_r1": nhv_r1,
+            "hvd_avg": hvd_avg,
+            "hvd_r1": hvd_r1,
+            "bhv_avg": bhv_avg,
+            "bhv_r1": bhv_r1
+        }
         
         # Set the class attributes
-        self.dist_x_avg = dist_x_avg
-        self.dist_f_avg = dist_f_avg
-        self.dist_c_avg = dist_c_avg
-        self.dist_f_dist_x_avg = dist_f_dist_x_avg
-        self.dist_c_dist_x_avg = dist_c_dist_x_avg
+        for feature_name, feature_value in feature_dict.items():
+            setattr(self, feature_name, feature_value)
 
 
 class MultipleRandomWalkAnalysis(MultipleAnalysis):

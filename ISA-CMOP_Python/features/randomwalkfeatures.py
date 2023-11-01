@@ -4,6 +4,7 @@ from optimisation.util.non_dominated_sorting import NonDominatedSorting
 from optimisation.util.calculate_hypervolume import calculate_hypervolume_pygmo
 from optimisation.model.population import Population
 from optimisation.operators.sampling import RandomWalk
+from features.feature_helpers import autocorr
 import copy
 
 
@@ -28,8 +29,10 @@ def compute_neighbourhood_distance_features(pop_walk, pop_neighbours):
     dist_x_array = np.zeros(var.shape[0])
     dist_f_array = np.zeros(var.shape[0])
     dist_c_array = np.zeros(var.shape[0])
+    dist_f_c_array = np.zeros(var.shape[0])
     dist_f_dist_x_array = np.zeros(var.shape[0])
     dist_c_dist_x_array = np.zeros(var.shape[0])
+    dist_f_c_dist_x_array = np.zeros(var.shape[0])
 
     # Loop over each solution in the walk.
     for i in range(var.shape[0]):
@@ -41,35 +44,49 @@ def compute_neighbourhood_distance_features(pop_walk, pop_neighbours):
         neig_obj = pop_neighbourhood.extract_obj()
         neig_cv = pop_neighbourhood.extract_cv()
 
-        # Average distance between neighbours in variable space.
+        # Distance between neighbours in variable space.
         distdec = pdist(neig_var, "euclidean")
         dist_x_array[i] = np.mean(distdec)
 
-        # Average distance between neighbours in objective space.
+        # Distance between neighbours in objective space.
         distobj = pdist(neig_obj, "euclidean")
         dist_f_array[i] = np.mean(distobj)
 
-        # Average distance between neighbours in constraint-norm space.
+        # Distance between neighbours in constraint-norm space.
         distcons = pdist(neig_cv, "euclidean")
         dist_c_array[i] = np.mean(distcons)
+        
+        # Distance between neighbours in objective-violation space.
+        
+        # Construct objective-violation space by horizontally joining objectives and CV so that each solution forms a ((objectives), cv) tuple.
+        neig_obj_violation = np.concatenate((neig_obj, neig_cv), axis = 1)
+        dist_obj_violation = pdist(neig_obj_violation)
+        dist_f_c_array[i] = np.mean(dist_obj_violation)
 
         # Take ratios.
         dist_f_dist_x_array[i] = dist_f_array[i] / dist_x_array[i]
         dist_c_dist_x_array[i] = dist_c_array[i] / dist_x_array[i]
-        
-        # Compute hypervolume metrics.
-        # bhv_array[i] = calc_bhv(pop_neighbourhood, PF)
-
-    # TODO: compute autocorrelations.
+        dist_f_c_dist_x_array[i] = dist_f_c_array[i] / dist_x_array[i]
 
     # Aggregate for this walk.
     dist_x_avg = np.mean(dist_x_array)
     dist_f_avg = np.mean(dist_f_array)
     dist_c_avg = np.mean(dist_c_array)
+    dist_f_c_avg = np.mean(dist_f_c_array)
     dist_f_dist_x_avg = np.mean(dist_f_dist_x_array)
     dist_c_dist_x_avg = np.mean(dist_c_dist_x_array)
+    dist_f_c_dist_x_avg = np.mean(dist_f_c_dist_x_array)
+    
+    # Compute autocorrelations
+    dist_x_r1 = autocorr(dist_x_array, lag=1)
+    dist_f_r1 = autocorr(dist_f_array, lag=1)
+    dist_c_r1 = autocorr(dist_c_array, lag=1)
+    dist_f_c_r1 = autocorr(dist_c_array, lag=1)
+    dist_f_dist_x_r1 = autocorr(dist_f_dist_x_array, lag=1)
+    dist_c_dist_x_r1 = autocorr(dist_c_dist_x_array, lag=1)
+    dist_f_c_dist_x_r1 = autocorr(dist_f_c_dist_x_array, lag=1)
 
-    return dist_x_avg, dist_f_avg, dist_c_avg, dist_f_dist_x_avg, dist_c_dist_x_avg
+    return dist_x_avg, dist_x_r1, dist_f_avg, dist_f_r1, dist_c_avg, dist_c_r1, dist_f_c_avg, dist_f_c_r1, dist_f_dist_x_avg, dist_f_dist_x_r1, dist_c_dist_x_avg, dist_c_dist_x_r1, dist_f_c_dist_x_avg, dist_f_c_dist_x_r1
 
 def compute_neighbourhood_hv_features(pop_walk, pop_neighbours):
     
@@ -107,12 +124,19 @@ def compute_neighbourhood_hv_features(pop_walk, pop_neighbours):
         # Compute HV of non-dominated neighbours.
         bhv_array[i] = calc_bhv(pop_neighbourhood, nadir)
     
+    # Compute means
     hv_single_soln_avg = np.mean(hv_single_soln_array)
     nhv_avg = np.mean(nhv_array)
     hvd_avg = np.mean(hvd_array)
     bhv_avg = np.mean(bhv_array)
     
-    return hv_single_soln_avg, nhv_avg, hvd_avg, bhv_avg
+    # Compute autocorrelations
+    hv_single_soln_r1 = autocorr(hv_single_soln_array, 1)
+    nhv_r1 = autocorr(nhv_array, 1)
+    hvd_r1 = autocorr(hvd_array, 1)
+    bhv_r1 = autocorr(bhv_array, 1)
+    
+    return hv_single_soln_avg, hv_single_soln_r1, nhv_avg, nhv_r1, hvd_avg, hvd_r1, bhv_avg, bhv_r1
     
 
 def normalise_objective_space(pop_walk, pop_neighbours, PF, scale_offset = 1.1, region_of_interest = False):
@@ -187,3 +211,4 @@ def calc_nhv(neighbourhood_normalised, nadir):
     nhv = calculate_hypervolume_pygmo(obj, nadir)
             
     return nhv
+

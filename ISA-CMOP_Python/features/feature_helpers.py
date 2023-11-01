@@ -34,7 +34,7 @@ def fit_linear_mdl(xdata, ydata):
     return mdl_r2, range_coeff
 
 
-def corr_coef(xdata, ydata, spearman=False, significance_level=0.05):
+def corr_coef(xdata, ydata, spearman=True, significance_level=0.05):
     """
     Get correlation coefficient and pvalue, suppressing warnings when a constant vector is input.
     """
@@ -62,3 +62,9 @@ def corr_coef(xdata, ydata, spearman=False, significance_level=0.05):
             corr = 0
 
     return corr
+
+def autocorr(data, lag, spearman=True, significance_level=0.05):
+    """
+    Compute autocorrelation of data with applied lag.
+    """
+    return corr_coef(data[:-lag], data[lag:], spearman, significance_level)
