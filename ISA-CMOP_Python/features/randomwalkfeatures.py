@@ -79,24 +79,40 @@ def compute_neighbourhood_hv_features(pop_walk, pop_neighbours):
     pop_walk_normalised, pop_neighbours_normalised, PF_normalised = normalise_objective_space(pop_walk, pop_neighbours, PF)
     
     # Extract evaluated population values.
-    var = pop_walk.extract_var()
-    obj = pop_walk.extract_obj()
-    cv = pop_walk.extract_cv()
+    var = pop_walk_normalised.extract_var()
+    obj = pop_walk_normalised.extract_obj()
+    cv = pop_walk_normalised.extract_cv()
 
-    # Initialise arrays    
+    # Initialise arrays
+    hv_single_soln_array = np.zeros(var.shape[0])   
+    nhv_array = np.zeros(var.shape[0])
+    hvd_array = np.zeros(var.shape[0])
     bhv_array = np.zeros(var.shape[0])
 
     # Loop over each solution in the walk.
+    nadir = np.ones(obj.shape[1])
     for i in range(var.shape[0]):
         # Extract neighbours for this point and append.
         pop_neighbourhood = pop_neighbours_normalised[i]
         
+        # Compute HV of single solution at this step.
+        hv_single_soln_array[i] = calculate_hypervolume_pygmo(np.atleast_2d(obj[i,:]), nadir)
+        
+        # Compute HV of neighbourhood
+        nhv_array[i] = calc_nhv(pop_neighbourhood, nadir)
+        
+        # Compute HV difference between neighbours and that covered by the current solution
+        hvd_array[i] = nhv_array[i] - hv_single_soln_array[i]
+        
         # Compute HV of non-dominated neighbours.
-        bhv_array[i] = calc_bhv(pop_neighbourhood)
+        bhv_array[i] = calc_bhv(pop_neighbourhood, nadir)
     
+    hv_single_soln_avg = np.mean(hv_single_soln_array)
+    nhv_avg = np.mean(nhv_array)
+    hvd_avg = np.mean(hvd_array)
     bhv_avg = np.mean(bhv_array)
     
-    return bhv_avg
+    return hv_single_soln_avg, nhv_avg, hvd_avg, bhv_avg
     
 
 def normalise_objective_space(pop_walk, pop_neighbours, PF, scale_offset = 1.1, region_of_interest = False):
@@ -148,7 +164,7 @@ def normalise_objective_space(pop_walk, pop_neighbours, PF, scale_offset = 1.1, 
 def apply_normalisation(obj, fmin, fmax, scale = 1.1):
     return (obj - fmin) / ((fmax - fmin) * scale)
 
-def calc_bhv(neighbourhood_normalised):
+def calc_bhv(neighbourhood_normalised, nadir):
     """
     Calculate hypervolume of the (normalised) neighbourhood's non-dominated solutions.
     """
@@ -156,11 +172,18 @@ def calc_bhv(neighbourhood_normalised):
     obj = neighbourhood_normalised.extract_obj()
     bestrankobjs = obj[ranks == 1, :]
 
-    nadir = np.ones(bestrankobjs.shape[1])
-
     if bestrankobjs.size != 0:
         bhv = calculate_hypervolume_pygmo(bestrankobjs, nadir)
     else:
         bhv = np.nan  # TODO: might need to handle better later.
             
     return bhv
+
+def calc_nhv(neighbourhood_normalised, nadir):
+    """
+    Calculate hypervolume of the (normalised) neighbourhood.
+    """
+    obj = neighbourhood_normalised.extract_obj()
+    nhv = calculate_hypervolume_pygmo(obj, nadir)
+            
+    return nhv

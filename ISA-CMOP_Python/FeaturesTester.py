@@ -153,5 +153,5 @@ if __name__ == "__main__":
             
         # Neighbourhood HV features.
         if test_neighbourhood_hv_features:
-            bhv_avg = compute_neighbourhood_hv_features(pop_walk, pop_neighbours)
+            hv_single_soln_avg, nhv_avg, hvd_avg, bhv_avg = compute_neighbourhood_hv_features(pop_walk, pop_neighbours)
             
