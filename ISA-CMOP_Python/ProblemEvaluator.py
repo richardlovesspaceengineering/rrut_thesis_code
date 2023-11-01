@@ -159,7 +159,7 @@ class ProblemEvaluator:
         rw_features_single_sample.eval_features_for_all_populations()
         return rw_features_single_sample
 
-    def do_random_walk_analysis(self, problem, num_samples):
+    def do_random_walk_analysis(self, problem, num_samples, instance_name):
         # Per-sample arrays.
         rw_features_list = []
 
@@ -172,7 +172,7 @@ class ProblemEvaluator:
 
         # We need to generate 30 samples per instance.
         for i in range(num_samples):
-            ProblemEvaluator.custom_print("Initialising RW sample {} of {}...".format(i + 1, num_samples))
+            ProblemEvaluator.custom_print("Initialising Random Walk Analysis {} of {} for {}".format(i + 1, num_samples, instance_name))
 
             ## Evaluate RW features.
 
@@ -299,7 +299,7 @@ class ProblemEvaluator:
 
             # RW Analysis.
             ProblemEvaluator.custom_print(" \n ~~~~~~~~~~~~ RW Analysis " + " ~~~~~~~~~~~~ \n")
-            rw_features = self.do_random_walk_analysis(problem, num_samples)
+            rw_features = self.do_random_walk_analysis(problem, num_samples, instance_name)
 
             # Global Analysis.
 
