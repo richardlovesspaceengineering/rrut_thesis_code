@@ -1,14 +1,13 @@
 # Problem suites
 problems=("MW1", "MW2", "MW3", "MW4", "MW5", "MW6", "MW7" "MW11")
 
-
 # Dimensions to consider for each of the above.
 n_dim=(2 5 10)
 
 # Number of samples to run.
 num_samples=30
 
-# Path info
+# Path info. @Juan if you could add heuristics so it can easily swap between Richard's computer and the megatrons that'd be great!
 PYTHON_SCRIPT="D:/richa/anaconda3/envs/thesis_env_windows/python.exe"
 SCRIPT_PATH="d:/richa/Documents/Thesis/rrut_thesis_code/ISA-CMOP_Python/runner.py"
 
