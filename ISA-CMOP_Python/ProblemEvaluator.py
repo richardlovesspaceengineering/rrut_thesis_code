@@ -169,7 +169,7 @@ class ProblemEvaluator:
 
         # Experimental setup of Alsouly
         neighbourhood_size = 2 * n_var + 1
-        num_steps = 10
+        num_steps = 1000
         step_size = 0.01  # 1% of the range of the instance domain
 
         # We need to generate 30 samples per instance.
@@ -205,7 +205,7 @@ class ProblemEvaluator:
         distributed_samples = []
 
         # Experimental setup of Liefooghe2021.
-        num_points = int(n_var * 20)
+        num_points = int(n_var * 200)
         iterations = num_points
 
         # Split the method string to extract the method name
