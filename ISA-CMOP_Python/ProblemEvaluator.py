@@ -83,7 +83,7 @@ class ProblemEvaluator:
         for ctr, starting_zone in enumerate(starting_zones):
             start_time = time.time()  # Record the start time
             # Generate random walk starting at this iteration's starting zone.
-            walk = rw.do_progressive_walk(seed=ctr, starting_zone=starting_zone)
+            walk = rw.do_progressive_walk(seed=None, starting_zone=starting_zone)
 
             # Generate neighbors for each step on the walk. Currently, we just randomly sample points in the [-stepsize, stepsize] hypercube
             neighbours = rw.generate_neighbours_for_walk(walk)
