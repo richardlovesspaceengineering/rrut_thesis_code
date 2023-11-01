@@ -17,17 +17,10 @@ echo "Host is: $host"
 # Path info.
 if [[ "$host" == *"$pc1"* ]]; then # megatrons
   PYTHON_SCRIPT="/home/kj66/Documents/Richard/venv/bin/python3"
-<<<<<<< HEAD
   SCRIPT_PATH="/home/kj66/Documents/Richard/ISA-CMOP_Python/runner.py"
 else # richard's pc
   PYTHON_SCRIPT="D:/richa/anaconda3/envs/thesis_env_windows/python.exe"
   SCRIPT_PATH="d:/richa/Documents/Thesis/rrut_thesis_code/ISA-CMOP_Python/runner.py"
-=======
-  SCRIPT_PATH="/home/kj66/Documents/Richard/rrut_thesis_code/"
-else # richard's pc
-  PYTHON_SCRIPT="D:/richa/anaconda3/envs/thesis_env_windows/python.exe"
-  SCRIPT_PATH="d:/richa/Documents/Thesis/rrut_thesis_code/"
->>>>>>> e5671eaa829b7afe55bda91bef33e0a4b56d1d01
 fi
 echo "Using interpreter: $PYTHON_SCRIPT"
 
@@ -66,7 +59,6 @@ LOG_FILE="features_evaluation.log"
 > "$LOG_FILE"
 
 # Run. Note that all logging is done within Python.
-<<<<<<< HEAD
 for problem in "${problems[@]}"; do
   problem=$(echo "$problem" | sed 's/,$//')  # Remove trailing comma if it exists
   for dim in "${n_dim[@]}"; do
@@ -77,7 +69,3 @@ done
 
 
 
-=======
-# TODO: This might have to change to a for loop call
-"$PYTHON_SCRIPT" "$run_dir" "$problem_str" "$n_dim_str" "$num_samples"
->>>>>>> e5671eaa829b7afe55bda91bef33e0a4b56d1d01
