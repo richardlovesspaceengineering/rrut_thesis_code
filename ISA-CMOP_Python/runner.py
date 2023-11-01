@@ -53,31 +53,26 @@ def generate_suite_structure(benchmark_problem_names, dimensions):
 
     return {"suites": suite_structure}
 
+
+# Function to generate a single problem instance
+def generate_instance(problem_name, n_var):
+    problem = get_problem(problem_name, n_var=n_var)
+    instance_string = f"{problem_name}_d{n_var}"
+    return problem, instance_string
+
 def main():
     
     if len(sys.argv) != 4:
-        print("Usage: python generate_json.py benchmark_problem_names dimensions num_samples")
+        print("Usage: python generate_json.py problem_name n_dimensions num_samples")
         return
-    
-    json_file_path = "problems_to_run.json"
 
-    benchmark_problem_names = re.findall(r'\w+', sys.argv[1])
-    dimensions = [int(dim) for dim in re.findall(r'\d+', sys.argv[2])]
+    problem_name = sys.argv[1].replace(',', '')
+    n_var = int(sys.argv[2])
     num_samples = int(sys.argv[3])
 
-    result = generate_suite_structure(benchmark_problem_names, dimensions)
+    problem, instance_string = generate_instance(problem_name, n_var)
 
-    with open(json_file_path, "w") as outfile:
-        json.dump(result, outfile, indent=2)
-        
-    
-    # Load the newly-created JSON configuration
-    json_config = load_json_config(json_file_path)
-
-    # Generate instances
-    instances = generate_instances_from_config(json_config)
-
-    evaluator = ProblemEvaluator(instances)
+    evaluator = ProblemEvaluator(problem, instance_string)
     evaluator.do(num_samples=num_samples)
     
 

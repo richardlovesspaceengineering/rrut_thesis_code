@@ -7,20 +7,20 @@ problems=("MW1", "MW2", "MW3", "MW4", "MW5", "MW6", "MW7" "MW11")
 n_dim=(2 5 10)
 
 # Number of samples to run.
-num_samples=30
+num_samples=2
 
 # Get hostname
 pc1="megatron"
 host="$(hostname)"
 echo "Host is: $host"
 
-# Path info. @Juan if you could add heuristics so it can easily swap between Richard's computer and the megatrons that'd be great!
+# Path info.
 if [[ "$host" == *"$pc1"* ]]; then # megatrons
   PYTHON_SCRIPT="/home/kj66/Documents/Richard/venv/bin/python3"
-  SCRIPT_PATH="/home/kj66/Documents/Richard/ISA-CMOP_Python/"
+  SCRIPT_PATH="/home/kj66/Documents/Richard/ISA-CMOP_Python/runner.py"
 else # richard's pc
   PYTHON_SCRIPT="D:/richa/anaconda3/envs/thesis_env_windows/python.exe"
-  SCRIPT_PATH="d:/richa/Documents/Thesis/rrut_thesis_code/ISA-CMOP_Python/"
+  SCRIPT_PATH="d:/richa/Documents/Thesis/rrut_thesis_code/ISA-CMOP_Python/runner.py"
 fi
 echo "Using interpreter: $PYTHON_SCRIPT"
 
@@ -53,12 +53,18 @@ run_dir="$temp_dir"
 run_dir+="/runner.py"    # Main script to execute (runner.py)
 echo $"File running inside: $run_dir"
 
-# Convert config inputs to a single string
-problem_str=$(printf "%s," "${problems[@]}")
-problem_str=${problem_str%,}  # Remove the trailing comma
-n_dim_str=$(printf "%s," "${n_dim[@]}")
-n_dim_str=${n_dim_str%,}  # Remove the trailing comma
+# Define the log file and wipe it
+LOG_FILE="features_evaluation.log"
+> "$LOG_FILE"
 
 # Run. Note that all logging is done within Python.
-# TODO: This might have to change to a for loop call
-"$PYTHON_SCRIPT" "$SCRIPT_PATH" "$problem_str" "$n_dim_str" "$num_samples"
+for problem in "${problems[@]}"; do
+  problem=$(echo "$problem" | sed 's/,$//')  # Remove trailing comma if it exists
+  for dim in "${n_dim[@]}"; do
+    echo "Running problem: $problem, dimension: $dim"
+    "$PYTHON_SCRIPT" "$SCRIPT_PATH" "$problem" "$dim" "$num_samples"
+  done
+done
+
+
+

@@ -5,7 +5,7 @@ import seaborn as sns
 import math
 import time
 from scipy.stats import qmc
-
+import os
 
 # User packages.
 from features.GlobalAnalysis import MultipleGlobalAnalysis
@@ -23,9 +23,11 @@ from optimisation.operators.sampling.RandomWalk import RandomWalk
 
 class ProblemEvaluator:
     
-    def __init__(self, instances):
-        self.instances = instances
+    def __init__(self, instance, instance_name):
+        self.instance = instance
+        self.instance_name = instance_name
         self.features_table = pd.DataFrame()
+        self.csv_filename = "features.csv"
 
     def generate_binary_patterns(self, n):
         """
@@ -167,7 +169,7 @@ class ProblemEvaluator:
 
         # Experimental setup of Alsouly
         neighbourhood_size = 2 * n_var + 1
-        num_steps = 1000
+        num_steps = 10
         step_size = 0.01  # 1% of the range of the instance domain
 
         # We need to generate 30 samples per instance.
@@ -202,9 +204,8 @@ class ProblemEvaluator:
 
         distributed_samples = []
 
-        # Experimental setup of Alsouly2022.
-        # TODO: finalise sample size before running
-        num_points = int(n_var * 200)
+        # Experimental setup of Liefooghe2021.
+        num_points = int(n_var * 20)
         iterations = num_points
 
         # Split the method string to extract the method name
@@ -290,46 +291,65 @@ class ProblemEvaluator:
         return global_features
 
     def do(self, num_samples):
-        for instance_name, problem in self.instances:
-            ProblemEvaluator.custom_print(
-                "\n------------------------ Evaluating instance: "
-                + instance_name
-                + " ------------------------"
-            )
+        ProblemEvaluator.custom_print(
+            "\n------------------------ Evaluating instance: "
+            + self.instance_name
+            + " ------------------------"
+        )
 
-            # RW Analysis.
-            ProblemEvaluator.custom_print(" \n ~~~~~~~~~~~~ RW Analysis " + " ~~~~~~~~~~~~ \n")
-            rw_features = self.do_random_walk_analysis(problem, num_samples, instance_name)
+        # RW Analysis.
+        ProblemEvaluator.custom_print(" \n ~~~~~~~~~~~~ RW Analysis " + " ~~~~~~~~~~~~ \n")
+        rw_features = self.do_random_walk_analysis(self.instance, num_samples, self.instance_name)
 
-            # Global Analysis.
+        # Global Analysis.
 
-            # RW Analysis.
-            ProblemEvaluator.custom_print(" \n ~~~~~~~~~~~~ Global Analysis " + " ~~~~~~~~~~~~ \n")
-            global_features = self.do_global_analysis(problem, num_samples)
+        # RW Analysis.
+        ProblemEvaluator.custom_print(" \n ~~~~~~~~~~~~ Global Analysis " + " ~~~~~~~~~~~~ \n")
+        global_features = self.do_global_analysis(self.instance, num_samples)
 
-            # Overall landscape analysis - putting it all together.
-            landscape = LandscapeAnalysis(global_features, rw_features)
-            landscape.extract_feature_arrays()
-            landscape.aggregate_features()
+        # Overall landscape analysis - putting it all together.
+        landscape = LandscapeAnalysis(global_features, rw_features)
+        landscape.extract_feature_arrays()
+        landscape.aggregate_features()
 
-            # TODO: save results to numpy binary format using savez. Will need to write functions that do so, and ones that can create a population by reading these in.
+        # TODO: save results to numpy binary format using savez. Will need to write functions that do so, and ones that can create a population by reading these in.
 
-            # Append metrics to features dataframe.
-            aggregated_table = landscape.make_aggregated_feature_table(instance_name)
+        # Append metrics to features dataframe.
+        aggregated_table = landscape.make_aggregated_feature_table(self.instance_name)
 
-            # Append the aggregated_table to features_table
-            self.features_table = pd.concat(
-                [self.features_table, aggregated_table], ignore_index=True
-            )
+        # Append the aggregated_table to features_table
+        self.features_table = pd.concat(
+            [self.features_table, aggregated_table], ignore_index=True
+        )
 
-            # Log success.
-            ProblemEvaluator.custom_print("Success!")
+        # Log success.
+        ProblemEvaluator.custom_print("Success!")
 
-            # Save to a csv at end of every problem instance.
-            self.features_table.to_csv("features.csv", index=False)
-            
-            ProblemEvaluator.custom_print("Successfully wrote results to csv file.")
+        # Save to a csv at end of every problem instance.
+        self.append_dataframe_to_csv(self.csv_filename, self.features_table)
+        
+        ProblemEvaluator.custom_print("Successfully appended results to csv file.\n\n")
 
+    
+    def append_dataframe_to_csv(self, existing_csv, df_to_append, overwrite_existing=True, overwrite_column="Name"):
+        # Check if the existing CSV file already exists
+        if os.path.isfile(existing_csv):
+            # Read the existing CSV file into a DataFrame
+            existing_df = pd.read_csv(existing_csv)
+
+            if overwrite_existing:
+                # Filter out rows with matching values in the specified column
+                existing_df = existing_df[~existing_df[overwrite_column].isin(df_to_append[overwrite_column])]
+
+            # Concatenate the df_to_append with the existing DataFrame
+            combined_df = pd.concat([existing_df, df_to_append], ignore_index=True)
+        else:
+            # If the CSV file doesn't exist, use the df_to_append as is
+            combined_df = df_to_append
+
+        # Write the combined DataFrame back to the CSV file
+        combined_df.to_csv(existing_csv, index=False)
+    
     # Custom function to print to the terminal and write to the log file
     @staticmethod
     def custom_print(text, log_file_name = "features_evaluation.log"):
