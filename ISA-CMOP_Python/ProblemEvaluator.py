@@ -167,7 +167,7 @@ class ProblemEvaluator:
 
         # Experimental setup of Alsouly
         neighbourhood_size = 2 * n_var + 1
-        num_steps = 100
+        num_steps = 1000
         step_size = 0.01  # 1% of the range of the instance domain
 
         # We need to generate 30 samples per instance.
@@ -204,7 +204,7 @@ class ProblemEvaluator:
 
         # Experimental setup of Alsouly2022.
         # TODO: finalise sample size before running
-        num_points = int(n_var * 100)
+        num_points = int(n_var * 200)
         iterations = num_points
 
         # Split the method string to extract the method name
