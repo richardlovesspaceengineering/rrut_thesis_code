@@ -1,5 +1,5 @@
 import numpy as np
-
+import time
 
 class Analysis:
     """
@@ -52,12 +52,23 @@ class MultipleAnalysis:
         """
         Evaluate features for all populations.
         """
-
+        
+        cls_name = self.__class__.__name__
+        if cls_name == "MultipleGlobalAnalysis":
+            s = "Global"
+        elif cls_name == "MultipleRandomWalkAnalysis":
+            s = "RW"
+        
+        self.custom_print("\nInitialising feature evaluation for {} features.".format(s))
         for ctr, a in enumerate(self.analyses):
+            start_time = time.time()
             a.eval_features()
-            cls_name = self.__class__.__name__
+            end_time = time.time()  # Record the end time
+            elapsed_time = end_time - start_time
+            self.custom_print("Evaluated {} features for sample {} out of {} in {:.2f} seconds.".format(s, ctr + 1, len(self.analyses), elapsed_time))
+            
 
-        print("\nEvaluated {} features".format(cls_name))
+        self.custom_print("\nEvaluated all {} features\n".format(s))
 
         # Generate corresponding arrays.
         self.generate_feature_arrays()
@@ -78,3 +89,10 @@ class MultipleAnalysis:
                 (f"{feature_name}_array"),
                 self.generate_array_for_feature(feature_name),
             )
+
+    # Custom function to print to the terminal and write to the log file
+    @staticmethod
+    def custom_print(text, log_file_name = "features_evaluation.log"):
+        print(text)  # Print to the terminal
+        log_file = open(log_file_name, "a")
+        log_file.write(text + "\n")  # Write to the log file

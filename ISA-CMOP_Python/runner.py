@@ -1,4 +1,6 @@
 import json
+import re
+import sys
 from ProblemEvaluator import ProblemEvaluator
 
 # Import the get_problem method from pymoo.problems
@@ -10,7 +12,6 @@ def load_json_config(json_file):
     with open(json_file, "r") as file:
         json_config = json.load(file)
     return json_config
-
 
 # Function to generate instances
 def generate_instances_from_config(json_config):
@@ -34,14 +35,51 @@ def generate_instances_from_config(json_config):
     return instances
 
 
-if __name__ == "__main__":
+def generate_suite_structure(benchmark_problem_names, dimensions):
+    suite_structure = {}
+    
+    for problem_name in benchmark_problem_names:
+        suite_name, problem_number = re.split('(\d+)',problem_name)[:-1]
+        
+        if suite_name not in suite_structure:
+            suite_structure[suite_name] = {}
+        
+        for dimension in dimensions:
+            if problem_number not in suite_structure[suite_name]:
+                suite_structure[suite_name][problem_number] = {"n_var": []}
+            suite_structure[suite_name][problem_number]["n_var"].append(dimension)
+            
+    ProblemEvaluator.custom_print("Generated JSON file for the problem configurations")
+
+    return {"suites": suite_structure}
+
+def main():
+    
+    if len(sys.argv) != 4:
+        print("Usage: python generate_json.py benchmark_problem_names dimensions num_samples")
+        return
+    
     json_file_path = "problems_to_run.json"
 
-    # Load the JSON configuration
+    benchmark_problem_names = re.findall(r'\w+', sys.argv[1])
+    dimensions = [int(dim) for dim in re.findall(r'\d+', sys.argv[2])]
+    num_samples = int(sys.argv[3])
+
+    result = generate_suite_structure(benchmark_problem_names, dimensions)
+
+    with open(json_file_path, "w") as outfile:
+        json.dump(result, outfile, indent=2)
+        
+    
+    # Load the newly-created JSON configuration
     json_config = load_json_config(json_file_path)
 
     # Generate instances
     instances = generate_instances_from_config(json_config)
 
     evaluator = ProblemEvaluator(instances)
-    evaluator.do(num_samples=1)
+    evaluator.do(num_samples=num_samples)
+    
+
+if __name__ == "__main__":
+    main()
