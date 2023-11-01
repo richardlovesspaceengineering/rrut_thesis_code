@@ -2,7 +2,8 @@ import numpy as np
 from features.randomwalkfeatures import (
     compute_neighbourhood_distance_features,
     compute_neighbourhood_hv_features,
-    compute_neighbourhood_violation_features
+    compute_neighbourhood_violation_features,
+    compute_neighbourhood_dominance_features
     )
 from scipy.stats import yeojohnson
 from features.Analysis import Analysis, MultipleAnalysis
@@ -46,7 +47,18 @@ class RandomWalkAnalysis(Analysis):
         "ncv_r1",
         "bncv_avg",
         "bncv_r1",
+        "sup_avg",
+        "sup_r1",
+        "inf_avg",
+        "inf_r1",
+        "inc_avg",
+        "inc_r1",
+        "lnd_avg",
+        "lnd_r1",
+        "nfronts_avg",
+        "nfronts_r1"
     ]
+
 
 
     def __init__(self, pop_walk, pop_neighbours_list):
@@ -72,6 +84,9 @@ class RandomWalkAnalysis(Analysis):
         
         # Evaluate neighbourhood violation features.
         nrfbx, nncv_avg, nncv_r1, ncv_avg, ncv_r1, bncv_avg, bncv_r1 = compute_neighbourhood_violation_features(self.pop, self.pop_neighbours_list)
+        
+        # Evaluate neighbourhood domination features.
+        sup_avg, sup_r1, inf_avg, inf_r1, inc_avg, inc_r1, lnd_avg, lnd_r1, nfronts_avg, nfronts_r1 = compute_neighbourhood_dominance_features(self.pop, self.pop_neighbours_list)
         
         # Create a dictionary to store feature names and values
         feature_dict = {
@@ -103,8 +118,18 @@ class RandomWalkAnalysis(Analysis):
             "ncv_avg": ncv_avg,
             "ncv_r1": ncv_r1,
             "bncv_avg": bncv_avg,
-            "bncv_r1": bncv_r1
-            }
+            "bncv_r1": bncv_r1,
+            "sup_avg": sup_avg,
+            "sup_r1": sup_r1,
+            "inf_avg": inf_avg,
+            "inf_r1": inf_r1,
+            "inc_avg": inc_avg,
+            "inc_r1": inc_r1,
+            "lnd_avg": lnd_avg,
+            "lnd_r1": lnd_r1,
+            "nfronts_avg": nfronts_avg,
+            "nfronts_r1": nfronts_r1
+        }
 
         # Set the class attributes
         for feature_name, feature_value in feature_dict.items():
@@ -135,7 +160,6 @@ class MultipleRandomWalkAnalysis(MultipleAnalysis):
         """
         Concatenate feature arrays from multiple MultipleRandomWalkAnalysis objects into one.
         """
-        # Combine the 
 
         # Create a new MultipleAnalysis object with the combined populations
         combined_analysis = MultipleRandomWalkAnalysis([], [])

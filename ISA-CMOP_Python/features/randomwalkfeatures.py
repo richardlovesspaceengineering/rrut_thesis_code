@@ -220,6 +220,71 @@ def compute_neighbourhood_violation_features(pop_walk, pop_neighbours):
     
     return nrfbx, nncv_avg, nncv_r1, ncv_avg, ncv_r1, bncv_avg, bncv_r1
 
+def compute_neighbourhood_dominance_features(pop_walk, pop_neighbours):
+    
+    # Extract evaluated population values.
+    var = pop_walk.extract_var()
+    obj = pop_walk.extract_obj()
+    cv = pop_walk.extract_cv()
+    PF = pop_walk.extract_pf()
+
+    # Initialise arrays.
+    sup_array = np.zeros(var.shape[0])
+    inf_array = np.zeros(var.shape[0])
+    inc_array = np.zeros(var.shape[0])
+    lnd_array = np.zeros(var.shape[0])
+    nfronts_array = np.zeros(var.shape[0])
+    
+    
+    for i in range(var.shape[0]):
+        # Extract neighbours for this point and append.
+        pop_neighbourhood = pop_neighbours[i]
+        
+        # Compute proportion of locally non-dominated solutions.
+        lnd_array[i] = np.atleast_2d(pop_neighbourhood.extract_nondominated()).shape[0]/len(pop_neighbourhood)
+        
+        # Create merged matrix of solution and neighbours.
+        merged_var = np.vstack((var[i,:], pop_neighbourhood.extract_var()))
+        
+        # Create a new population, find rank of step relative to neighbours.
+        merged_pop = Population(pop_walk[0].problem, n_individuals=merged_var.shape[0])
+        merged_pop.evaluate(merged_var, eval_fronts=True)
+        
+        ranks = merged_pop.extract_rank()
+        step_rank = ranks[0]
+        
+        # Compute number of fronts in this neighbourhood relative to neighbourhood size.
+        nfronts_array[i] = np.unique(ranks).size/len(pop_neighbourhood)
+        
+        # Compute proportion of neighbours dominated by current solution.
+        dominated_neighbours = ranks[ranks > step_rank]
+        sup_array[i] = dominated_neighbours.size/len(pop_neighbourhood)
+        
+        # Compute proportion of neighbours dominating the current solution.
+        dominating_neighbours = ranks[ranks < step_rank]
+        inf_array[i] = dominating_neighbours.size/len(pop_neighbourhood)
+        
+        # Compute proportion of neighbours incomparable to the current solution.
+        incomparable_neighbours = ranks[ranks == step_rank] - 1
+        inc_array[i] = incomparable_neighbours.size/len(pop_neighbourhood)
+        
+    # Calculate means
+    sup_avg = np.mean(sup_array)
+    inf_avg = np.mean(inf_array)
+    inc_avg = np.mean(inc_array)
+    lnd_avg = np.mean(lnd_array)
+    nfronts_avg = np.mean(nfronts_array)
+
+    # Calculate autocorrelations
+    sup_r1 = autocorr(sup_array, lag=1)
+    inf_r1 = autocorr(inf_array, lag=1)
+    inc_r1 = autocorr(inc_array, lag=1)
+    lnd_r1 = autocorr(lnd_array, lag=1)
+    nfronts_r1 = autocorr(nfronts_array, lag=1)
+    
+    return sup_avg, sup_r1, inf_avg, inf_r1, inc_avg, inc_r1, lnd_avg, lnd_r1, nfronts_avg, nfronts_r1
+
+
 def normalise_objective_space(pop_walk, pop_neighbours, PF, scale_offset = 1.1, region_of_interest = False):
     """
     Normalise all objectives for HV calculation.
