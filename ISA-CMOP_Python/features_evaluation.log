@@ -1024,3 +1024,106 @@ Generated RW sample 2 of 2 in 0.01 seconds.
 
 Evaluating populations for this sample... (ranks on for walk steps, off for neighbours)
 Evaluated RW population 1 of 2 in 0.20 seconds.
+Generated JSON file for the problem configurations
+
+------------------------ Evaluating instance: MW1_d2 ------------------------
+ 
+ ~~~~~~~~~~~~ RW Analysis  ~~~~~~~~~~~~ 
+
+Initialising RW sample 1 of 30...
+
+Generating samples (walks + neighbours) for RW features with the following properties:
+- Number of walks: 2
+- Number of steps per walk: 1000
+- Step size (% of instance domain): 1.0
+- Neighbourhood size: 5
+
+Generated RW sample 1 of 2 in 0.06 seconds.
+Generated RW sample 2 of 2 in 0.07 seconds.
+
+Evaluating populations for this sample... (ranks on for walk steps, off for neighbours)
+Evaluated RW population 1 of 2 in 5.26 seconds.
+Evaluated RW population 2 of 2 in 5.08 seconds.
+
+Initialising feature evaluation for RW features.
+Evaluated RW features for sample 1 out of 2 in 3.20 seconds.
+Evaluated RW features for sample 2 out of 2 in 3.30 seconds.
+
+Evaluated all RW features
+
+Initialising RW sample 2 of 30...
+
+Generating samples (walks + neighbours) for RW features with the following properties:
+- Number of walks: 2
+- Number of steps per walk: 1000
+- Step size (% of instance domain): 1.0
+- Neighbourhood size: 5
+
+Generated RW sample 1 of 2 in 0.09 seconds.
+Generated RW sample 2 of 2 in 0.11 seconds.
+
+Evaluating populations for this sample... (ranks on for walk steps, off for neighbours)
+Evaluated RW population 1 of 2 in 5.14 seconds.
+Evaluated RW population 2 of 2 in 5.32 seconds.
+
+Initialising feature evaluation for RW features.
+Evaluated RW features for sample 1 out of 2 in 3.66 seconds.
+Evaluated RW features for sample 2 out of 2 in 3.59 seconds.
+
+Evaluated all RW features
+
+Initialising RW sample 3 of 30...
+
+Generating samples (walks + neighbours) for RW features with the following properties:
+- Number of walks: 2
+- Number of steps per walk: 1000
+- Step size (% of instance domain): 1.0
+- Neighbourhood size: 5
+
+Generated RW sample 1 of 2 in 0.14 seconds.
+Generated RW sample 2 of 2 in 0.14 seconds.
+
+Evaluating populations for this sample... (ranks on for walk steps, off for neighbours)
+Evaluated RW population 1 of 2 in 6.83 seconds.
+Evaluated RW population 2 of 2 in 5.54 seconds.
+
+Initialising feature evaluation for RW features.
+Evaluated RW features for sample 1 out of 2 in 5.22 seconds.
+Evaluated RW features for sample 2 out of 2 in 4.35 seconds.
+
+Evaluated all RW features
+
+Initialising RW sample 4 of 30...
+
+Generating samples (walks + neighbours) for RW features with the following properties:
+- Number of walks: 2
+- Number of steps per walk: 1000
+- Step size (% of instance domain): 1.0
+- Neighbourhood size: 5
+
+Generated RW sample 1 of 2 in 0.14 seconds.
+Generated RW sample 2 of 2 in 0.11 seconds.
+
+Evaluating populations for this sample... (ranks on for walk steps, off for neighbours)
+Evaluated RW population 1 of 2 in 6.56 seconds.
+Evaluated RW population 2 of 2 in 6.11 seconds.
+
+Initialising feature evaluation for RW features.
+Evaluated RW features for sample 1 out of 2 in 3.64 seconds.
+Evaluated RW features for sample 2 out of 2 in 4.18 seconds.
+
+Evaluated all RW features
+
+Initialising RW sample 5 of 30...
+
+Generating samples (walks + neighbours) for RW features with the following properties:
+- Number of walks: 2
+- Number of steps per walk: 1000
+- Step size (% of instance domain): 1.0
+- Neighbourhood size: 5
+
+Generated RW sample 1 of 2 in 0.13 seconds.
+Generated RW sample 2 of 2 in 0.10 seconds.
+
+Evaluating populations for this sample... (ranks on for walk steps, off for neighbours)
+Evaluated RW population 1 of 2 in 5.55 seconds.
