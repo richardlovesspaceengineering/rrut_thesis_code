@@ -1,6 +1,8 @@
 from ProblemEvaluator import ProblemEvaluator
 import numpy as np
 from pymoo.problems import get_problem
+import matplotlib.pyplot as plt
+
 
 from features.globalfeatures import (
     cv_distr,
@@ -14,17 +16,90 @@ from features.globalfeatures import (
     PiIZ,
 )
 
-from features.randomwalkfeatures import compute_neighbourhood_features
+from features.randomwalkfeatures import (
+    compute_neighbourhood_distance_features,
+    compute_neighbourhood_hv_features,
+    normalise_objective_space
+    )
+
+
+def plot_transformed_objective_space(pop_walk, pop_neighbours, pop_walk_normalised, pop_neighbours_normalised, PF_normalised, scale_offset):
+    
+    """
+    Side by side plots of objective space showing non-normalised and normalised values respectively.
+    """
+    
+    # Compare with two side-by-side plots.
+    fig, ax = plt.subplots(1, 2, figsize=(10, 5))  # Adjust figsize as needed
+
+    # Non-normalised
+    # Walk
+    walk_obj = pop_walk.extract_obj()
+    ax[0].plot(
+        walk_obj[:, 0], walk_obj[:, 1], "b-"
+    )
+
+    # Neighbours
+    for neighbour in pop_neighbours:
+        neig_obj = neighbour.extract_obj()
+        ax[0].plot(
+            neig_obj[:, 0], neig_obj[:, 1], "go", markersize=2
+        )
+
+    # PF
+    pf = pop_walk.extract_pf()
+    ax[0].plot(
+        pf[:, 0], pf[:, 1], "r-"
+    )
+
+    ax[0].set_aspect('equal')
+
+    # Set the title for ax[0]
+    ax[0].set_title("Objectives")
+
+    # Normalised
+    # Walk
+    walk_obj = pop_walk_normalised.extract_obj()
+    ax[1].plot(
+        walk_obj[:, 0], walk_obj[:, 1], "b-"
+    )
+
+    # Neighbours
+    for neighbour in pop_neighbours_normalised:
+        neig_obj = neighbour.extract_obj()
+        ax[1].plot(
+            neig_obj[:, 0], neig_obj[:, 1], "go", markersize=2
+        )
+
+    # PF
+    pf = PF_normalised
+    ax[1].plot(
+        pf[:, 0], pf[:, 1], "r-"
+    )
+
+    # Set equal aspect ratio and limits
+    ax[1].set_aspect('equal')
+    ax[1].set_xlim(0, 1.1)
+    ax[1].set_ylim(0, 1.1)
+    ax[1].axhline(1, color='gray', linestyle='--')
+    ax[1].axvline(1, color='gray', linestyle='--')
+    
+    # Set the title for ax[1] with the scale offset
+    ax[1].set_title(f"Normalised using Scale Factor {scale_offset}")
+
+    plt.show()
+    
+
 
 
 if __name__ == "__main__":
     
     # Flags for which feature set we want to test.
-    run_global = False
-    run_rw = True
+    sample_global = False
+    sample_rw = True
     
     # Example problem.
-    n_var = 5
+    n_var = 2
     problem_name = "MW3"
     problem = get_problem(problem_name, n_var)
     instance_string = f"{problem_name}_d{n_var}"
@@ -32,8 +107,7 @@ if __name__ == "__main__":
     # Generate evaluator which can generate RW samples and LHS samples.
     evaluator = ProblemEvaluator([(instance_string, problem)])
     
-    
-    if run_global:
+    if sample_global:
         ### GLOBAL FEATURES.
 
         # Generate distributed samples and evaluate populations on these samples.
@@ -46,7 +120,12 @@ if __name__ == "__main__":
             problem, [distributed_samples[0]]
         )[0]
 
-    if run_rw:
+    if sample_rw:
+        
+        test_obj_normalisation = False
+        test_neighbourhood_dist_features = False
+        test_neighbourhood_hv_features = True
+        
         ### RW FEATURES
         # Repeat the above but for RW samples.
         walks_neighbours_list = evaluator.sample_for_rw_features(
@@ -59,7 +138,20 @@ if __name__ == "__main__":
         pop_walk_neighbourhood = evaluator.evaluate_populations_for_rw_features(problem, [walks_neighbours_list[0]])[0]
         
         pop_walk = pop_walk_neighbourhood[0]
-        pop_neighbourhood = pop_walk_neighbourhood[1]
+        pop_neighbours = pop_walk_neighbourhood[1]
+        
+        if test_obj_normalisation:
+            # Compute normalised objectives.
+            scale_offset = 1
+            pop_walk_normalised, pop_neighbours_normalised, PF_normalised = normalise_objective_space(pop_walk, pop_neighbours, pop_walk.extract_pf(), scale_offset=scale_offset, region_of_interest=False)
 
-        # Neighbourhood features
-        dist_x_avg, dist_f_avg, dist_c_avg, dist_f_dist_x_avg, dist_c_dist_x_avg, bhv_avg = compute_neighbourhood_features(pop_walk, pop_neighbourhood)
+            plot_transformed_objective_space(pop_walk, pop_neighbours, pop_walk_normalised, pop_neighbours_normalised, PF_normalised, scale_offset)
+
+        # Neighbourhood distance features
+        if test_neighbourhood_dist_features:
+            dist_x_avg, dist_f_avg, dist_c_avg, dist_f_dist_x_avg, dist_c_dist_x_avg = compute_neighbourhood_distance_features(pop_walk, pop_neighbours)
+            
+        # Neighbourhood HV features.
+        if test_neighbourhood_hv_features:
+            bhv_avg = compute_neighbourhood_hv_features(pop_walk, pop_neighbours)
+            

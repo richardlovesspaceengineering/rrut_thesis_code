@@ -1,5 +1,5 @@
 import numpy as np
-from features.randomwalkfeatures import compute_neighbourhood_features
+from features.randomwalkfeatures import compute_neighbourhood_distance_features
 from scipy.stats import yeojohnson
 from features.Analysis import Analysis, MultipleAnalysis
 
@@ -36,7 +36,7 @@ class RandomWalkAnalysis(Analysis):
         """
         
         # Evaluate neighbourhood features.
-        dist_x_avg, dist_f_avg, dist_c_avg, dist_f_dist_x_avg, dist_c_dist_x_avg = compute_neighbourhood_features(self.pop, self.pop_neighbours_list)
+        dist_x_avg, dist_f_avg, dist_c_avg, dist_f_dist_x_avg, dist_c_dist_x_avg = compute_neighbourhood_distance_features(self.pop, self.pop_neighbours_list)
         
         # Set the class attributes
         self.dist_x_avg = dist_x_avg

@@ -285,6 +285,18 @@ class Population(np.ndarray):
         # Display the plot
         plt.show()
 
+    # Setters.
+    def set_obj(self, obj):
+        """
+        Set objective values. Useful when an external transformation has been applied.
+        """
+
+        assert obj.shape[0] == len(self), "The shape of 'obj' must match the number of elements in the Population list."
+
+        for i in range(len(self)):
+            self[i].set_obj(obj[i,:])
+
+    
     # CSV writers.
     def write_dec_to_csv(self, filename):
         np.savetxt(filename, self.extract_var())

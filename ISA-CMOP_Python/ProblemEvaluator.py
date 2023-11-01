@@ -324,8 +324,8 @@ class ProblemEvaluator:
             # Log success.
             print("Success!")
 
-        # Save to a csv
-        self.features_table.to_csv("features.csv", index=False)  # Save to a CSV file
+            # Save to a csv at end of every problem instance.
+            self.features_table.to_csv("features.csv", index=False)
 
 
 if __name__ == "__main__":
