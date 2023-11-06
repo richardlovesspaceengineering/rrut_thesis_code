@@ -91,11 +91,9 @@ class ProblemEvaluator:
             start_time = time.time()  # Record the start time
             # Generate random walk starting at this iteration's starting zone.
             walk = rw.do_progressive_walk(seed=None, starting_zone=starting_zone)
-            walk[0, :] = 5*np.ones((1, walk.shape[1]))
 
             # Generate neighbors for each step on the walk. Currently, we just randomly sample points in the [-stepsize, stepsize] hypercube
             neighbours = rw.generate_neighbours_for_walk(walk)
-            neighbours[1][0,:] = 5*np.ones((1, walk.shape[1]))
             end_time = time.time()  # Record the end time
             elapsed_time = end_time - start_time
 
@@ -366,16 +364,6 @@ class ProblemEvaluator:
 
         # Write the combined DataFrame back to the CSV file
         combined_df.to_csv(existing_csv, index=False)
-    
-    # Custom function to print to the terminal and write to the log file
-    @staticmethod
-    def custom_print(text, log_file_name = "features_evaluation.log"):
-        """
-        ARCHIVED
-        """
-        print(text)  # Print to the terminal
-        log_file = open(log_file_name, "a")
-        log_file.write(text + "\n")  # Write to the log file
     
 if __name__ == "__main__":
     # Making sure the binary pattern generator is generating the right number of starting zones.

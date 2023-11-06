@@ -62,17 +62,18 @@ def generate_instance(problem_name, n_var):
 
 def main():
     
-    if len(sys.argv) != 4:
-        print("Usage: python generate_json.py problem_name n_dimensions num_samples")
+    if len(sys.argv) != 5:
+        print("Usage: python generate_json.py problem_name n_dimensions num_samples mode")
         return
 
     problem_name = sys.argv[1].replace(',', '')
     n_var = int(sys.argv[2])
     num_samples = int(sys.argv[3])
+    mode = sys.argv[4].replace(',', '')
 
     problem, instance_string = generate_instance(problem_name, n_var)
 
-    evaluator = ProblemEvaluator(problem, instance_string, mode = "debug")
+    evaluator = ProblemEvaluator(problem, instance_string, mode)
     evaluator.do(num_samples=num_samples)
     
 
