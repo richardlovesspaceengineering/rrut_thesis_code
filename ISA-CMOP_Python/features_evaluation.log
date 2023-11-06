@@ -1,7 +1,7 @@
 Host is: RUTHERFORD
 Using interpreter: D:/richa/anaconda3/envs/thesis_env_windows/python.exe
-New directory: /tmp/ci-Ypc4ZtqNdK
-File running inside: /tmp/ci-Ypc4ZtqNdK/runner.py
+New directory: /tmp/ci-o3ajtd0nfo
+File running inside: /tmp/ci-o3ajtd0nfo/runner.py
 Running problem: MW11, dimension: 10
 Initialising evaluator in debug mode.
 
@@ -9,7 +9,149 @@ Initialising evaluator in debug mode.
  
  ~~~~~~~~~~~~ RW Analysis  ~~~~~~~~~~~~ 
 
-Initialising Random Walk Analysis 1 of 1 for MW11_d10
+Initialising Random Walk Analysis 1 of 2 for MW11_d10
+
+Generating samples (walks + neighbours) for RW features with the following properties:
+- Number of walks: 10
+- Number of steps per walk: 30
+- Step size (% of instance domain): 1.0
+- Neighbourhood size: 21
+
+Generated RW sample 1 of 10 in 0.05 seconds.
+Generated RW sample 2 of 10 in 0.05 seconds.
+Generated RW sample 3 of 10 in 0.04 seconds.
+Generated RW sample 4 of 10 in 0.04 seconds.
+Generated RW sample 5 of 10 in 0.04 seconds.
+Generated RW sample 6 of 10 in 0.04 seconds.
+Generated RW sample 7 of 10 in 0.04 seconds.
+Generated RW sample 8 of 10 in 0.04 seconds.
+Generated RW sample 9 of 10 in 0.04 seconds.
+Generated RW sample 10 of 10 in 0.03 seconds.
+
+Evaluating populations for this sample... (ranks off for walk steps, on for neighbours)
+D:\richa\anaconda3\envs\thesis_env_windows\lib\site-packages\pymoo\problems\multi\mw.py:312: RuntimeWarning: invalid value encountered in sqrt
+  f1 = g * np.sqrt(2.0 - np.power(f0 / g, 2.0))
+Evaluated RW population 1 of 10 in 1.10 seconds.
+Evaluated RW population 2 of 10 in 1.11 seconds.
+Evaluated RW population 3 of 10 in 1.14 seconds.
+Evaluated RW population 4 of 10 in 1.07 seconds.
+Evaluated RW population 5 of 10 in 1.08 seconds.
+Evaluated RW population 6 of 10 in 1.06 seconds.
+Evaluated RW population 7 of 10 in 1.14 seconds.
+Evaluated RW population 8 of 10 in 1.28 seconds.
+Evaluated RW population 9 of 10 in 1.11 seconds.
+
+Initialising feature evaluation for RW features.
+Evaluated RW population 10 of 10 in 1.10 seconds.
+
+Initialising feature evaluation for RW features.
+
+Had to remove 1 out of 10 individuals for walk due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.05 seconds.
+
+
+Had to remove 1 out of 10 individuals for neig due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.04 seconds.
+
+Evaluated RW features for sample 1 out of 10 in 1.44 seconds.
+Evaluated RW features for sample 1 out of 10 in 1.44 seconds.
+
+Had to remove 1 out of 10 individuals for walk due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.04 seconds.
+
+
+Had to remove 1 out of 10 individuals for neig due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.04 seconds.
+
+Evaluated RW features for sample 2 out of 10 in 1.36 seconds.
+Evaluated RW features for sample 2 out of 10 in 1.36 seconds.
+
+Had to remove 1 out of 10 individuals for walk due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.05 seconds.
+
+
+Had to remove 1 out of 10 individuals for neig due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.03 seconds.
+
+Evaluated RW features for sample 3 out of 10 in 1.48 seconds.
+Evaluated RW features for sample 3 out of 10 in 1.48 seconds.
+
+Had to remove 1 out of 10 individuals for walk due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.04 seconds.
+
+
+Had to remove 1 out of 10 individuals for neig due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.04 seconds.
+
+Evaluated RW features for sample 4 out of 10 in 1.39 seconds.
+Evaluated RW features for sample 4 out of 10 in 1.39 seconds.
+
+Had to remove 1 out of 10 individuals for walk due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.04 seconds.
+
+
+Had to remove 1 out of 10 individuals for neig due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.03 seconds.
+
+Evaluated RW features for sample 5 out of 10 in 1.52 seconds.
+Evaluated RW features for sample 5 out of 10 in 1.52 seconds.
+
+Had to remove 1 out of 10 individuals for walk due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.04 seconds.
+
+
+Had to remove 1 out of 10 individuals for neig due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.03 seconds.
+
+Evaluated RW features for sample 6 out of 10 in 1.67 seconds.
+Evaluated RW features for sample 6 out of 10 in 1.67 seconds.
+
+Had to remove 1 out of 10 individuals for walk due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.04 seconds.
+
+
+Had to remove 1 out of 10 individuals for neig due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.03 seconds.
+
+Evaluated RW features for sample 7 out of 10 in 1.40 seconds.
+Evaluated RW features for sample 7 out of 10 in 1.40 seconds.
+
+Had to remove 1 out of 10 individuals for walk due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.05 seconds.
+
+
+Had to remove 1 out of 10 individuals for neig due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.04 seconds.
+
+Evaluated RW features for sample 8 out of 10 in 1.41 seconds.
+Evaluated RW features for sample 8 out of 10 in 1.41 seconds.
+
+Had to remove 1 out of 10 individuals for walk due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.04 seconds.
+
+
+Had to remove 1 out of 10 individuals for neig due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.03 seconds.
+
+Evaluated RW features for sample 9 out of 10 in 1.42 seconds.
+Evaluated RW features for sample 9 out of 10 in 1.42 seconds.
+
+Had to remove 1 out of 10 individuals for walk due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.04 seconds.
+
+
+Had to remove 1 out of 10 individuals for neig due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.04 seconds.
+
+Evaluated RW features for sample 10 out of 10 in 1.41 seconds.
+
+Evaluated all RW features
+
+Evaluated RW features for sample 10 out of 10 in 1.41 seconds.
+
+Evaluated all RW features
+
+Initialising Random Walk Analysis 2 of 2 for MW11_d10
 
 Generating samples (walks + neighbours) for RW features with the following properties:
 - Number of walks: 10
@@ -19,42 +161,32 @@ Generating samples (walks + neighbours) for RW features with the following prope
 
 Generated RW sample 1 of 10 in 0.04 seconds.
 Generated RW sample 2 of 10 in 0.04 seconds.
-Generated RW sample 3 of 10 in 0.03 seconds.
+Generated RW sample 3 of 10 in 0.04 seconds.
 Generated RW sample 4 of 10 in 0.04 seconds.
 Generated RW sample 5 of 10 in 0.04 seconds.
-Generated RW sample 6 of 10 in 0.03 seconds.
+Generated RW sample 6 of 10 in 0.04 seconds.
 Generated RW sample 7 of 10 in 0.04 seconds.
 Generated RW sample 8 of 10 in 0.04 seconds.
 Generated RW sample 9 of 10 in 0.04 seconds.
-Generated RW sample 10 of 10 in 0.05 seconds.
+Generated RW sample 10 of 10 in 0.04 seconds.
 
 Evaluating populations for this sample... (ranks off for walk steps, on for neighbours)
 D:\richa\anaconda3\envs\thesis_env_windows\lib\site-packages\pymoo\problems\multi\mw.py:312: RuntimeWarning: invalid value encountered in sqrt
   f1 = g * np.sqrt(2.0 - np.power(f0 / g, 2.0))
-Evaluated RW population 1 of 10 in 1.05 seconds.
-Evaluated RW population 2 of 10 in 1.06 seconds.
-Evaluated RW population 3 of 10 in 1.11 seconds.
-Evaluated RW population 4 of 10 in 1.08 seconds.
-Evaluated RW population 5 of 10 in 1.11 seconds.
-Evaluated RW population 6 of 10 in 1.08 seconds.
-Evaluated RW population 7 of 10 in 1.05 seconds.
-Evaluated RW population 8 of 10 in 1.14 seconds.
-Evaluated RW population 9 of 10 in 1.07 seconds.
+Evaluated RW population 1 of 10 in 1.04 seconds.
+Evaluated RW population 2 of 10 in 1.05 seconds.
+Evaluated RW population 3 of 10 in 1.06 seconds.
+Evaluated RW population 4 of 10 in 1.05 seconds.
+Evaluated RW population 5 of 10 in 1.04 seconds.
+Evaluated RW population 6 of 10 in 1.09 seconds.
+Evaluated RW population 7 of 10 in 1.00 seconds.
+Evaluated RW population 8 of 10 in 1.13 seconds.
+Evaluated RW population 9 of 10 in 1.03 seconds.
+Evaluated RW population 10 of 10 in 1.02 seconds.
 
 Initialising feature evaluation for RW features.
-Evaluated RW population 10 of 10 in 1.08 seconds.
 
 Initialising feature evaluation for RW features.
-
-Had to remove 1 out of 10 individuals for walk due to objectives containing nan/inf. Re-evaluating population...
-Re-evaluated in 0.04 seconds.
-
-
-Had to remove 1 out of 10 individuals for neig due to objectives containing nan/inf. Re-evaluating population...
-Re-evaluated in 0.04 seconds.
-
-Evaluated RW features for sample 1 out of 10 in 1.36 seconds.
-Evaluated RW features for sample 1 out of 10 in 1.36 seconds.
 
 Had to remove 1 out of 10 individuals for walk due to objectives containing nan/inf. Re-evaluating population...
 Re-evaluated in 0.04 seconds.
@@ -63,8 +195,78 @@ Re-evaluated in 0.04 seconds.
 Had to remove 1 out of 10 individuals for neig due to objectives containing nan/inf. Re-evaluating population...
 Re-evaluated in 0.03 seconds.
 
-Evaluated RW features for sample 2 out of 10 in 1.41 seconds.
-Evaluated RW features for sample 2 out of 10 in 1.41 seconds.
+Evaluated RW features for sample 1 out of 10 in 1.43 seconds.
+Evaluated RW features for sample 1 out of 10 in 1.43 seconds.
+
+Had to remove 1 out of 10 individuals for walk due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.06 seconds.
+
+
+Had to remove 1 out of 10 individuals for neig due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.04 seconds.
+
+Evaluated RW features for sample 2 out of 10 in 1.49 seconds.
+Evaluated RW features for sample 2 out of 10 in 1.49 seconds.
+
+Had to remove 1 out of 10 individuals for walk due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.04 seconds.
+
+
+Had to remove 1 out of 10 individuals for neig due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.04 seconds.
+
+Evaluated RW features for sample 3 out of 10 in 1.41 seconds.
+Evaluated RW features for sample 3 out of 10 in 1.41 seconds.
+
+Had to remove 1 out of 10 individuals for walk due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.05 seconds.
+
+
+Had to remove 1 out of 10 individuals for neig due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.03 seconds.
+
+Evaluated RW features for sample 4 out of 10 in 1.52 seconds.
+Evaluated RW features for sample 4 out of 10 in 1.52 seconds.
+
+Had to remove 1 out of 10 individuals for walk due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.04 seconds.
+
+
+Had to remove 1 out of 10 individuals for neig due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.03 seconds.
+
+Evaluated RW features for sample 5 out of 10 in 1.44 seconds.
+Evaluated RW features for sample 5 out of 10 in 1.44 seconds.
+
+Had to remove 1 out of 10 individuals for walk due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.04 seconds.
+
+
+Had to remove 1 out of 10 individuals for neig due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.03 seconds.
+
+Evaluated RW features for sample 6 out of 10 in 1.42 seconds.
+Evaluated RW features for sample 6 out of 10 in 1.42 seconds.
+
+Had to remove 1 out of 10 individuals for walk due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.04 seconds.
+
+
+Had to remove 1 out of 10 individuals for neig due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.03 seconds.
+
+Evaluated RW features for sample 7 out of 10 in 1.44 seconds.
+Evaluated RW features for sample 7 out of 10 in 1.44 seconds.
+
+Had to remove 1 out of 10 individuals for walk due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.04 seconds.
+
+
+Had to remove 1 out of 10 individuals for neig due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.03 seconds.
+
+Evaluated RW features for sample 8 out of 10 in 1.47 seconds.
+Evaluated RW features for sample 8 out of 10 in 1.47 seconds.
 
 Had to remove 1 out of 10 individuals for walk due to objectives containing nan/inf. Re-evaluating population...
 Re-evaluated in 0.05 seconds.
@@ -73,81 +275,21 @@ Re-evaluated in 0.05 seconds.
 Had to remove 1 out of 10 individuals for neig due to objectives containing nan/inf. Re-evaluating population...
 Re-evaluated in 0.04 seconds.
 
-Evaluated RW features for sample 3 out of 10 in 1.45 seconds.
-Evaluated RW features for sample 3 out of 10 in 1.45 seconds.
+Evaluated RW features for sample 9 out of 10 in 1.56 seconds.
+Evaluated RW features for sample 9 out of 10 in 1.56 seconds.
 
 Had to remove 1 out of 10 individuals for walk due to objectives containing nan/inf. Re-evaluating population...
 Re-evaluated in 0.05 seconds.
 
 
 Had to remove 1 out of 10 individuals for neig due to objectives containing nan/inf. Re-evaluating population...
-Re-evaluated in 0.04 seconds.
-
-Evaluated RW features for sample 4 out of 10 in 1.37 seconds.
-Evaluated RW features for sample 4 out of 10 in 1.37 seconds.
-
-Had to remove 1 out of 10 individuals for walk due to objectives containing nan/inf. Re-evaluating population...
-Re-evaluated in 0.04 seconds.
-
-
-Had to remove 1 out of 10 individuals for neig due to objectives containing nan/inf. Re-evaluating population...
 Re-evaluated in 0.03 seconds.
 
-Evaluated RW features for sample 5 out of 10 in 1.39 seconds.
-Evaluated RW features for sample 5 out of 10 in 1.39 seconds.
-
-Had to remove 1 out of 10 individuals for walk due to objectives containing nan/inf. Re-evaluating population...
-Re-evaluated in 0.04 seconds.
-
-
-Had to remove 1 out of 10 individuals for neig due to objectives containing nan/inf. Re-evaluating population...
-Re-evaluated in 0.03 seconds.
-
-Evaluated RW features for sample 6 out of 10 in 1.36 seconds.
-Evaluated RW features for sample 6 out of 10 in 1.36 seconds.
-
-Had to remove 1 out of 10 individuals for walk due to objectives containing nan/inf. Re-evaluating population...
-Re-evaluated in 0.04 seconds.
-
-
-Had to remove 1 out of 10 individuals for neig due to objectives containing nan/inf. Re-evaluating population...
-Re-evaluated in 0.03 seconds.
-
-Evaluated RW features for sample 7 out of 10 in 1.38 seconds.
-Evaluated RW features for sample 7 out of 10 in 1.38 seconds.
-
-Had to remove 1 out of 10 individuals for walk due to objectives containing nan/inf. Re-evaluating population...
-Re-evaluated in 0.04 seconds.
-
-
-Had to remove 1 out of 10 individuals for neig due to objectives containing nan/inf. Re-evaluating population...
-Re-evaluated in 0.04 seconds.
-
-Evaluated RW features for sample 8 out of 10 in 1.41 seconds.
-Evaluated RW features for sample 8 out of 10 in 1.41 seconds.
-
-Had to remove 1 out of 10 individuals for walk due to objectives containing nan/inf. Re-evaluating population...
-Re-evaluated in 0.04 seconds.
-
-
-Had to remove 1 out of 10 individuals for neig due to objectives containing nan/inf. Re-evaluating population...
-Re-evaluated in 0.03 seconds.
-
-Evaluated RW features for sample 9 out of 10 in 1.40 seconds.
-Evaluated RW features for sample 9 out of 10 in 1.40 seconds.
-
-Had to remove 1 out of 10 individuals for walk due to objectives containing nan/inf. Re-evaluating population...
-Re-evaluated in 0.04 seconds.
-
-
-Had to remove 1 out of 10 individuals for neig due to objectives containing nan/inf. Re-evaluating population...
-Re-evaluated in 0.03 seconds.
-
-Evaluated RW features for sample 10 out of 10 in 1.39 seconds.
+Evaluated RW features for sample 10 out of 10 in 1.45 seconds.
 
 Evaluated all RW features
 
-Evaluated RW features for sample 10 out of 10 in 1.39 seconds.
+Evaluated RW features for sample 10 out of 10 in 1.45 seconds.
 
 Evaluated all RW features
 
@@ -159,23 +301,52 @@ Generating distributed samples for Global features with the following properties
 - Num. iterations: 100
 - Method: lhs.scipy
 
-Discrepancy: 0.034274
-Generated Global sample 1 of 1 in 0.00 seconds.
+Discrepancy: 0.038683
+Generated Global sample 1 of 2 in 0.00 seconds.
+Discrepancy: 0.032616
+Generated Global sample 2 of 2 in 0.00 seconds.
 
 Evaluating populations for global samples...
+Evaluated Global population 1 of 2 in 0.22 seconds.
 
 Initialising feature evaluation for Global features.
-Evaluated Global population 1 of 1 in 0.22 seconds.
+Evaluated Global population 2 of 2 in 0.22 seconds.
 
 Initialising feature evaluation for Global features.
-Evaluated Global features for sample 1 out of 1 in 0.13 seconds.
-Evaluated Global features for sample 1 out of 1 in 0.13 seconds.
+Evaluated Global features for sample 1 out of 2 in 0.10 seconds.
+Evaluated Global features for sample 1 out of 2 in 0.10 seconds.
+Evaluated Global features for sample 2 out of 2 in 0.09 seconds.
 
 Evaluated all Global features
 
+Evaluated Global features for sample 2 out of 2 in 0.09 seconds.
 
 Evaluated all Global features
 
+C:\Users\richa\AppData\Local\Temp\ci-o3ajtd0nfo\features\LandscapeAnalysis.py:267: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  dat[feature_name] = [getattr(self, f"{feature_name}")]
+C:\Users\richa\AppData\Local\Temp\ci-o3ajtd0nfo\features\LandscapeAnalysis.py:267: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  dat[feature_name] = [getattr(self, f"{feature_name}")]
+C:\Users\richa\AppData\Local\Temp\ci-o3ajtd0nfo\features\LandscapeAnalysis.py:267: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  dat[feature_name] = [getattr(self, f"{feature_name}")]
+C:\Users\richa\AppData\Local\Temp\ci-o3ajtd0nfo\features\LandscapeAnalysis.py:267: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  dat[feature_name] = [getattr(self, f"{feature_name}")]
+C:\Users\richa\AppData\Local\Temp\ci-o3ajtd0nfo\features\LandscapeAnalysis.py:267: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  dat[feature_name] = [getattr(self, f"{feature_name}")]
+C:\Users\richa\AppData\Local\Temp\ci-o3ajtd0nfo\features\LandscapeAnalysis.py:267: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  dat[feature_name] = [getattr(self, f"{feature_name}")]
+C:\Users\richa\AppData\Local\Temp\ci-o3ajtd0nfo\features\LandscapeAnalysis.py:267: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  dat[feature_name] = [getattr(self, f"{feature_name}")]
+C:\Users\richa\AppData\Local\Temp\ci-o3ajtd0nfo\features\LandscapeAnalysis.py:267: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  dat[feature_name] = [getattr(self, f"{feature_name}")]
+C:\Users\richa\AppData\Local\Temp\ci-o3ajtd0nfo\features\LandscapeAnalysis.py:267: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  dat[feature_name] = [getattr(self, f"{feature_name}")]
+C:\Users\richa\AppData\Local\Temp\ci-o3ajtd0nfo\features\LandscapeAnalysis.py:267: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  dat[feature_name] = [getattr(self, f"{feature_name}")]
+C:\Users\richa\AppData\Local\Temp\ci-o3ajtd0nfo\features\LandscapeAnalysis.py:267: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  dat[feature_name] = [getattr(self, f"{feature_name}")]
+C:\Users\richa\AppData\Local\Temp\ci-o3ajtd0nfo\features\LandscapeAnalysis.py:267: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  dat[feature_name] = [getattr(self, f"{feature_name}")]
 Success!
 Successfully appended results to csv file.
 

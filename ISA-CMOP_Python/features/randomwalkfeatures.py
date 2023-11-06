@@ -31,7 +31,7 @@ def preprocess_nans(pop_walk, pop_neighbours):
         # Save to list.
         pop_neighbours_checked.append(pop_neighbourhood)
         
-    return pop_walk_new, pop_neighbours_checked
+    return pop_walk_new, pop_neighbours_new, pop_neighbours_checked
 
 def compute_solver_crash_ratio(full_pop,trimmed_pop):
     
@@ -41,6 +41,25 @@ def compute_solver_crash_ratio(full_pop,trimmed_pop):
     scr = 1 - obj_trimmed.shape[0]/obj_full.shape[0]
     
     return scr
+
+def compute_neighbourhood_crash_ratio(full_pop_neighbours_list,trimmed_pop_neighbours_list):
+    """
+    Proportion of neighbourhood solutions that crash the solver.
+    """
+    
+    ncr_array = np.zeros(len(full_pop_neighbours_list))
+    
+    for i in range(len(full_pop_neighbours_list)):
+        full_neig = full_pop_neighbours_list[i]
+        trimmed_neig = trimmed_pop_neighbours_list[i]
+        
+        # Compute ratio.
+        ncr_array[i] = 1-len(trimmed_neig)/len(full_neig)
+    
+    ncr_avg = np.mean(ncr_array)
+    ncr_r1 = autocorr(ncr_array, lag=1)
+    
+    return ncr_avg, ncr_r1
 
 def compute_neighbourhood_distance_features(pop_walk, pop_neighbours):
     """

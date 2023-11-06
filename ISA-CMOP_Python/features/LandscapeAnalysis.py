@@ -175,6 +175,8 @@ class LandscapeAnalysis:
 
             if feature_name in ["nrfbx"]:
                 statistic = ["mean", "min", "max", "median"]
+            else:
+                statistic = ["mean", "std"]
 
             if isinstance(statistic, list):
                 # Compute and set multiple statistics

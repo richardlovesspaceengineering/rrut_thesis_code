@@ -20,6 +20,7 @@ from features.globalfeatures import (
 
 from features.randomwalkfeatures import (
     compute_solver_crash_ratio,
+    compute_neighbourhood_crash_ratio,
     preprocess_nans,
     compute_neighbourhood_distance_features,
     compute_neighbourhood_hv_features,
@@ -138,7 +139,7 @@ if __name__ == "__main__":
         # Repeat the above but for RW samples.
         walks_neighbours_list = evaluator.sample_for_rw_features(
             problem,
-            num_steps=10,
+            num_steps=8,
             step_size = 0.01,
             neighbourhood_size=2*n_var + 1
             )
@@ -185,11 +186,11 @@ if __name__ == "__main__":
             pop_walk = pop_walk_neighbourhood[0]
             pop_neighbours = pop_walk_neighbourhood[1]
             
-            # Remove nans from steps, and corresponding sets of neighbours.
-            pop_walk_new, pop_neighbours_new = preprocess_nans(pop_walk, pop_neighbours)
-            scr = compute_solver_crash_ratio(pop_walk,pop_walk_new)
+            # Preprocess nans and infinities, compute solver crash ratio and update attributes.
+            pop_new, pop_neighbours_new, pop_neighbours_checked = preprocess_nans(pop_walk, pop_neighbours)
+            scr = compute_solver_crash_ratio(pop_walk,pop_new)
+            ncr = compute_neighbourhood_crash_ratio(pop_neighbours_new, pop_neighbours_checked)
             
-            # Add an out-of-bounds value to the first set of neighbours.
-
-            dist_x_avg, dist_x_r1, dist_f_avg, dist_f_r1, dist_c_avg, dist_c_r1, dist_f_c_avg, dist_f_c_r1, dist_f_dist_x_avg, dist_f_dist_x_r1, dist_c_dist_x_avg, dist_c_dist_x_r1, dist_f_c_dist_x_avg, dist_f_c_dist_x_r1 = compute_neighbourhood_distance_features(pop_walk_new, pop_neighbours_new)
+        
+            
             
