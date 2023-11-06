@@ -72,7 +72,7 @@ def main():
 
     problem, instance_string = generate_instance(problem_name, n_var)
 
-    evaluator = ProblemEvaluator(problem, instance_string)
+    evaluator = ProblemEvaluator(problem, instance_string, mode = "debug")
     evaluator.do(num_samples=num_samples)
     
 

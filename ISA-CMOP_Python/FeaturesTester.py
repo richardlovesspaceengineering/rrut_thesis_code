@@ -3,6 +3,8 @@ import numpy as np
 from pymoo.problems import get_problem
 import matplotlib.pyplot as plt
 
+import copy
+
 
 from features.globalfeatures import (
     cv_distr,
@@ -17,9 +19,12 @@ from features.globalfeatures import (
 )
 
 from features.randomwalkfeatures import (
+    compute_solver_crash_ratio,
+    preprocess_nans,
     compute_neighbourhood_distance_features,
     compute_neighbourhood_hv_features,
     compute_neighbourhood_violation_features,
+    compute_neighbourhood_dominance_features,
     normalise_objective_space
     )
 
@@ -100,13 +105,13 @@ if __name__ == "__main__":
     sample_rw = True
     
     # Example problem.
-    n_var = 2
-    problem_name = "MW3"
+    n_var = 10
+    problem_name = "MW11"
     problem = get_problem(problem_name, n_var)
     instance_string = f"{problem_name}_d{n_var}"
 
     # Generate evaluator which can generate RW samples and LHS samples.
-    evaluator = ProblemEvaluator([(instance_string, problem)])
+    evaluator = ProblemEvaluator(problem, instance_string)
     
     if sample_global:
         ### GLOBAL FEATURES.
@@ -126,13 +131,14 @@ if __name__ == "__main__":
         test_obj_normalisation = False
         test_neighbourhood_dist_features = False
         test_neighbourhood_hv_features = False
-        test_neighbourhood_violation_features = True
+        test_neighbourhood_violation_features = False
+        test_scr = True
         
         ### RW FEATURES
         # Repeat the above but for RW samples.
         walks_neighbours_list = evaluator.sample_for_rw_features(
             problem,
-            num_steps=100,
+            num_steps=10,
             step_size = 0.01,
             neighbourhood_size=2*n_var + 1
             )
@@ -160,4 +166,30 @@ if __name__ == "__main__":
         # Neighbourhood violation features.
         if test_neighbourhood_violation_features:
             nrfbx, nncv_avg, nncv_r1, ncv_avg, ncv_r1, bncv_avg, bncv_r1 = compute_neighbourhood_violation_features(pop_walk, pop_neighbours)
+            
+        # Solver crash ratio.
+        if test_scr:
+            walk_with_issue = copy.deepcopy(walks_neighbours_list[0][0])
+            
+            # Use different step to the walk issue.
+            neighbourhood_with_issue = copy.deepcopy(walks_neighbours_list[0][1])
+            
+            # Put an infeasible value in the walk (step 1) and in the neighbours (step 2) for MW11.
+            walk_with_issue[0,:] = 5*np.ones((1, walk_with_issue.shape[1]))
+            neighbourhood_with_issue[1][0,:] = 5*np.ones((1, walk_with_issue.shape[1]))
+            
+            walks_neighbours_list_new = [(walk_with_issue, neighbourhood_with_issue)]
+            
+            pop_walk_neighbourhood = evaluator.evaluate_populations_for_rw_features(problem, walks_neighbours_list_new)[0]
+            
+            pop_walk = pop_walk_neighbourhood[0]
+            pop_neighbours = pop_walk_neighbourhood[1]
+            
+            # Remove nans from steps, and corresponding sets of neighbours.
+            pop_walk_new, pop_neighbours_new = preprocess_nans(pop_walk, pop_neighbours)
+            scr = compute_solver_crash_ratio(pop_walk,pop_walk_new)
+            
+            # Add an out-of-bounds value to the first set of neighbours.
+
+            dist_x_avg, dist_x_r1, dist_f_avg, dist_f_r1, dist_c_avg, dist_c_r1, dist_f_c_avg, dist_f_c_r1, dist_f_dist_x_avg, dist_f_dist_x_r1, dist_c_dist_x_avg, dist_c_dist_x_r1, dist_f_c_dist_x_avg, dist_f_c_dist_x_r1 = compute_neighbourhood_distance_features(pop_walk_new, pop_neighbours_new)
             

@@ -6,7 +6,41 @@ from optimisation.model.population import Population
 from optimisation.operators.sampling import RandomWalk
 from features.feature_helpers import autocorr
 import copy
+import time
 
+
+def preprocess_nans(pop_walk, pop_neighbours):
+    
+    # Remove any steps and corresponding neighbours if they contain infs or nans.
+    pop_walk_new, num_rows_removed = pop_walk.remove_nan_inf_rows("walk", reeval_fronts=False)
+    removal_idx = pop_walk.get_nan_inf_idx()
+    pop_neighbours_new = [n for i, n in enumerate(pop_neighbours) if i not in removal_idx]
+    
+    # Remove any neighbours if they contain infs or nans.
+    var = pop_walk_new.extract_var()
+    
+    # Make new list of populations for neighbours.
+    pop_neighbours_checked = [] 
+    
+    # Loop over each solution in the walk.
+    for i in range(var.shape[0]):
+        # Extract neighbours for this point and append.
+        pop_neighbourhood = copy.deepcopy(pop_neighbours_new[i])
+        pop_neighbourhood, num_rows_removed = pop_neighbourhood.remove_nan_inf_rows("neig", reeval_fronts = True)
+        
+        # Save to list.
+        pop_neighbours_checked.append(pop_neighbourhood)
+        
+    return pop_walk_new, pop_neighbours_checked
+
+def compute_solver_crash_ratio(full_pop,trimmed_pop):
+    
+    obj_full = full_pop.extract_obj()
+    obj_trimmed = trimmed_pop.extract_obj()
+    
+    scr = 1 - obj_trimmed.shape[0]/obj_full.shape[0]
+    
+    return scr
 
 def compute_neighbourhood_distance_features(pop_walk, pop_neighbours):
     """
@@ -18,6 +52,8 @@ def compute_neighbourhood_distance_features(pop_walk, pop_neighbours):
 
     Currently only returns [dist_f_dist_x_avg_rws, dist_c_dist_x_avg_rws, bhv_avg_rws] since these are the only features required in Eq.(13) of Alsouly.
     """
+    
+    # TODO: ensure neighbourhood features are computed after removing any nans at each set of neighbourhoods.
 
     # Extract evaluated population values.
     var = pop_walk.extract_var()
@@ -37,7 +73,7 @@ def compute_neighbourhood_distance_features(pop_walk, pop_neighbours):
     # Loop over each solution in the walk.
     for i in range(var.shape[0]):
         # Extract neighbours for this point and append.
-        pop_neighbourhood = pop_neighbours[i]
+        pop_neighbourhood = copy.deepcopy(pop_neighbours[i])
 
         # Extract evaluated values for this neighbourhood.
         neig_var = pop_neighbourhood.extract_var()
@@ -112,6 +148,8 @@ def compute_neighbourhood_hv_features(pop_walk, pop_neighbours):
         # Extract neighbours for this point and append.
         pop_neighbourhood = pop_neighbours_normalised[i]
         
+        # 
+        
         # Compute HV of single solution at this step.
         hv_single_soln_array[i] = calculate_hypervolume_pygmo(np.atleast_2d(obj[i,:]), nadir)
         
@@ -145,7 +183,6 @@ def compute_neighbourhood_violation_features(pop_walk, pop_neighbours):
     var = pop_walk.extract_var()
     obj = pop_walk.extract_obj()
     cv = pop_walk.extract_cv()
-    PF = pop_walk.extract_pf()
 
     # Initialise arrays.
     cross_array = np.zeros(var.shape[0]-1)
@@ -355,4 +392,7 @@ def calc_nhv(neighbourhood_normalised, nadir):
     nhv = calculate_hypervolume_pygmo(obj, nadir)
             
     return nhv
+
+
+
 

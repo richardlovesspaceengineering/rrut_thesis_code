@@ -7,7 +7,7 @@ problems=("MW11")
 n_dim=(10)
 
 # Number of samples to run.
-num_samples=30
+num_samples=1
 
 # Define the log file and wipe it
 log_file="features_evaluation.log"

@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import math
 import time
-from scipy.stats import qmc
 import os
 
 # User packages.
@@ -20,16 +19,20 @@ import numpy as np
 from optimisation.model.population import Population
 from optimisation.operators.sampling.RandomWalk import RandomWalk
 
-from Logger import Logger
 
 
 class ProblemEvaluator:
     
-    def __init__(self, instance, instance_name):
+    def __init__(self, instance, instance_name, mode = "eval"):
+        """
+        Possible modes are eval and debug.
+        """
         self.instance = instance
         self.instance_name = instance_name
         self.features_table = pd.DataFrame()
         self.csv_filename = "features.csv"
+        self.mode = mode
+        print("Initialising evaluator in {} mode.".format(self.mode))
 
     def generate_binary_patterns(self, n):
         """
@@ -88,9 +91,11 @@ class ProblemEvaluator:
             start_time = time.time()  # Record the start time
             # Generate random walk starting at this iteration's starting zone.
             walk = rw.do_progressive_walk(seed=None, starting_zone=starting_zone)
+            walk[0, :] = 5*np.ones((1, walk.shape[1]))
 
             # Generate neighbors for each step on the walk. Currently, we just randomly sample points in the [-stepsize, stepsize] hypercube
             neighbours = rw.generate_neighbours_for_walk(walk)
+            neighbours[1][0,:] = 5*np.ones((1, walk.shape[1]))
             end_time = time.time()  # Record the end time
             elapsed_time = end_time - start_time
 
@@ -105,7 +110,7 @@ class ProblemEvaluator:
 
     def evaluate_populations_for_rw_features(self, problem, walks_neighbours_list):
         print(
-            "\nEvaluating populations for this sample... (ranks on for walk steps, off for neighbours)"
+            "\nEvaluating populations for this sample... (ranks off for walk steps, on for neighbours)"
         )
 
         # Lists saving populations and neighbours for features evaluation later.
@@ -169,10 +174,16 @@ class ProblemEvaluator:
 
         n_var = problem.n_var
 
-        # Experimental setup of Alsouly
-        neighbourhood_size = 2 * n_var + 1
-        num_steps = 1000
-        step_size = 0.01  # 1% of the range of the instance domain
+        if self.mode == "eval":
+            # Experimental setup of Alsouly
+            neighbourhood_size = 2 * n_var + 1
+            num_steps = 1000
+            step_size = 0.01  # 1% of the range of the instance domain
+        elif self.mode == "debug":
+            # Runs quickly
+            neighbourhood_size = 2 * n_var + 1
+            num_steps = 30
+            step_size = 0.01  # 1% of the range of the instance domain
 
         # We need to generate 30 samples per instance.
         for i in range(num_samples):
@@ -206,9 +217,14 @@ class ProblemEvaluator:
 
         distributed_samples = []
 
-        # Experimental setup of Liefooghe2021.
-        num_points = int(n_var * 200)
-        iterations = num_points
+        if self.mode == "eval":
+            # Experimental setup of Liefooghe2021.
+            num_points = int(n_var * 200)
+            iterations = num_points
+        elif self.mode == "debug":
+            # Runs quickly.
+            num_points = int(n_var * 10)
+            iterations = num_points
 
         # Split the method string to extract the method name
         method_parts = method.split(".")
@@ -245,7 +261,6 @@ class ProblemEvaluator:
                     i + 1, num_samples, elapsed_time
                 )
             )
-            print("Discrepancy: {:.6f}".format(qmc.discrepancy(sampler.x)))
 
         return distributed_samples
 

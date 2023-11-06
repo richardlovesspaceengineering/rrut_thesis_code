@@ -1,7 +1,8 @@
 from pyDOE2 import lhs
 import numpy as np
 from scipy.spatial.distance import cdist
-from scipy.stats.qmc import LatinHypercube
+from scipy.stats import qmc
+
 
 
 from optimisation.model.sampling import Sampling
@@ -23,6 +24,7 @@ class LatinHypercubeSampling(Sampling):
                 iterations=self.iterations,
                 random_state=seed,
             )
+            
         elif self.method == "modified":
             self.x = self._modified_lhs_maximin(dim, n_samples, seed)
         elif self.method == "scipy":
@@ -31,13 +33,15 @@ class LatinHypercubeSampling(Sampling):
             else:
                 scramble = False
 
-            self.x = LatinHypercube(
+            self.x = qmc.LatinHypercube(
                 dim,
                 scramble=True,
                 strength=1,
                 optimization=None,
                 seed=None,
             ).random(n=n_samples)
+            print("Discrepancy: {:.6f}".format(qmc.discrepancy(self.x)))
+            
 
     def _modified_lhs_maximin(self, dim, n_samples, seed=None):
         if seed is not None:

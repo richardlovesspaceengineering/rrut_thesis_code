@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 from matplotlib.ticker import FuncFormatter
+import time
 
 
 class Population(np.ndarray):
@@ -296,6 +297,45 @@ class Population(np.ndarray):
         for i in range(len(self)):
             self[i].set_obj(obj[i,:])
 
+    def remove_nan_inf_rows(self, pop_type, reeval_fronts = False):
+        """
+        pop_type is "neig" or "walk" or "global"
+        
+        """
+        # Extract evaluated population values.
+        var = self.extract_var()
+        
+        # Get indices of rows with NaN or infinity in the objective array
+        nan_inf_idx = self.get_nan_inf_idx()
+        num_rows_removed = len(nan_inf_idx)
+        
+        
+        # Remove rows with NaN or infinity values
+        if num_rows_removed != 0:
+            print("\nHad to remove {} out of {} individuals for {} due to objectives containing nan/inf. Re-evaluating population...".format(num_rows_removed, var.shape[1], pop_type))
+            var = np.delete(var, nan_inf_idx, axis=0)
+            
+            start_time = time.time()
+            
+            # Create new population and evaluate.
+            new_pop = Population(self[0].problem, n_individuals=var.shape[0])
+            new_pop.evaluate(var, eval_fronts = reeval_fronts)
+            end_time = time.time()
+            elapsed_time = end_time - start_time
+            print("Re-evaluated in {:.2f} seconds.\n".format(elapsed_time))
+            
+            return new_pop, num_rows_removed
+        else:
+            return self, 0
+    
+    def get_nan_inf_idx(self):
+        # Extract evaluated population values.
+        obj = self.extract_obj()
+        
+        # Find indices of rows with NaN or infinity in the objective array
+        nan_inf_idx = np.logical_or(np.isnan(obj).any(axis=1), np.isinf(obj).any(axis=1))
+        
+        return np.where(nan_inf_idx)[0]
     
     # CSV writers.
     def write_dec_to_csv(self, filename):

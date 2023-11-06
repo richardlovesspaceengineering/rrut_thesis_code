@@ -1,15 +1,182 @@
 Host is: RUTHERFORD
 Using interpreter: D:/richa/anaconda3/envs/thesis_env_windows/python.exe
-New directory: /tmp/ci-sy3v26Qftb
-File running inside: /tmp/ci-sy3v26Qftb/runner.py
+New directory: /tmp/ci-Ypc4ZtqNdK
+File running inside: /tmp/ci-Ypc4ZtqNdK/runner.py
 Running problem: MW11, dimension: 10
+Initialising evaluator in debug mode.
 
 ------------------------ Evaluating instance: MW11_d10 ------------------------
-Traceback (most recent call last):
-  File "C:/Users/richa/AppData/Local/Temp/ci-sy3v26Qftb/runner.py", line 80, in <module>
-    main()
-  File "C:/Users/richa/AppData/Local/Temp/ci-sy3v26Qftb/runner.py", line 76, in main
-    evaluator.do(num_samples=num_samples)
-  File "C:\Users\richa\AppData\Local\Temp\ci-sy3v26Qftb\ProblemEvaluator.py", line 302, in do
-    print(1/0)
-ZeroDivisionError: division by zero
+ 
+ ~~~~~~~~~~~~ RW Analysis  ~~~~~~~~~~~~ 
+
+Initialising Random Walk Analysis 1 of 1 for MW11_d10
+
+Generating samples (walks + neighbours) for RW features with the following properties:
+- Number of walks: 10
+- Number of steps per walk: 30
+- Step size (% of instance domain): 1.0
+- Neighbourhood size: 21
+
+Generated RW sample 1 of 10 in 0.04 seconds.
+Generated RW sample 2 of 10 in 0.04 seconds.
+Generated RW sample 3 of 10 in 0.03 seconds.
+Generated RW sample 4 of 10 in 0.04 seconds.
+Generated RW sample 5 of 10 in 0.04 seconds.
+Generated RW sample 6 of 10 in 0.03 seconds.
+Generated RW sample 7 of 10 in 0.04 seconds.
+Generated RW sample 8 of 10 in 0.04 seconds.
+Generated RW sample 9 of 10 in 0.04 seconds.
+Generated RW sample 10 of 10 in 0.05 seconds.
+
+Evaluating populations for this sample... (ranks off for walk steps, on for neighbours)
+D:\richa\anaconda3\envs\thesis_env_windows\lib\site-packages\pymoo\problems\multi\mw.py:312: RuntimeWarning: invalid value encountered in sqrt
+  f1 = g * np.sqrt(2.0 - np.power(f0 / g, 2.0))
+Evaluated RW population 1 of 10 in 1.05 seconds.
+Evaluated RW population 2 of 10 in 1.06 seconds.
+Evaluated RW population 3 of 10 in 1.11 seconds.
+Evaluated RW population 4 of 10 in 1.08 seconds.
+Evaluated RW population 5 of 10 in 1.11 seconds.
+Evaluated RW population 6 of 10 in 1.08 seconds.
+Evaluated RW population 7 of 10 in 1.05 seconds.
+Evaluated RW population 8 of 10 in 1.14 seconds.
+Evaluated RW population 9 of 10 in 1.07 seconds.
+
+Initialising feature evaluation for RW features.
+Evaluated RW population 10 of 10 in 1.08 seconds.
+
+Initialising feature evaluation for RW features.
+
+Had to remove 1 out of 10 individuals for walk due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.04 seconds.
+
+
+Had to remove 1 out of 10 individuals for neig due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.04 seconds.
+
+Evaluated RW features for sample 1 out of 10 in 1.36 seconds.
+Evaluated RW features for sample 1 out of 10 in 1.36 seconds.
+
+Had to remove 1 out of 10 individuals for walk due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.04 seconds.
+
+
+Had to remove 1 out of 10 individuals for neig due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.03 seconds.
+
+Evaluated RW features for sample 2 out of 10 in 1.41 seconds.
+Evaluated RW features for sample 2 out of 10 in 1.41 seconds.
+
+Had to remove 1 out of 10 individuals for walk due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.05 seconds.
+
+
+Had to remove 1 out of 10 individuals for neig due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.04 seconds.
+
+Evaluated RW features for sample 3 out of 10 in 1.45 seconds.
+Evaluated RW features for sample 3 out of 10 in 1.45 seconds.
+
+Had to remove 1 out of 10 individuals for walk due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.05 seconds.
+
+
+Had to remove 1 out of 10 individuals for neig due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.04 seconds.
+
+Evaluated RW features for sample 4 out of 10 in 1.37 seconds.
+Evaluated RW features for sample 4 out of 10 in 1.37 seconds.
+
+Had to remove 1 out of 10 individuals for walk due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.04 seconds.
+
+
+Had to remove 1 out of 10 individuals for neig due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.03 seconds.
+
+Evaluated RW features for sample 5 out of 10 in 1.39 seconds.
+Evaluated RW features for sample 5 out of 10 in 1.39 seconds.
+
+Had to remove 1 out of 10 individuals for walk due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.04 seconds.
+
+
+Had to remove 1 out of 10 individuals for neig due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.03 seconds.
+
+Evaluated RW features for sample 6 out of 10 in 1.36 seconds.
+Evaluated RW features for sample 6 out of 10 in 1.36 seconds.
+
+Had to remove 1 out of 10 individuals for walk due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.04 seconds.
+
+
+Had to remove 1 out of 10 individuals for neig due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.03 seconds.
+
+Evaluated RW features for sample 7 out of 10 in 1.38 seconds.
+Evaluated RW features for sample 7 out of 10 in 1.38 seconds.
+
+Had to remove 1 out of 10 individuals for walk due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.04 seconds.
+
+
+Had to remove 1 out of 10 individuals for neig due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.04 seconds.
+
+Evaluated RW features for sample 8 out of 10 in 1.41 seconds.
+Evaluated RW features for sample 8 out of 10 in 1.41 seconds.
+
+Had to remove 1 out of 10 individuals for walk due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.04 seconds.
+
+
+Had to remove 1 out of 10 individuals for neig due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.03 seconds.
+
+Evaluated RW features for sample 9 out of 10 in 1.40 seconds.
+Evaluated RW features for sample 9 out of 10 in 1.40 seconds.
+
+Had to remove 1 out of 10 individuals for walk due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.04 seconds.
+
+
+Had to remove 1 out of 10 individuals for neig due to objectives containing nan/inf. Re-evaluating population...
+Re-evaluated in 0.03 seconds.
+
+Evaluated RW features for sample 10 out of 10 in 1.39 seconds.
+
+Evaluated all RW features
+
+Evaluated RW features for sample 10 out of 10 in 1.39 seconds.
+
+Evaluated all RW features
+
+ 
+ ~~~~~~~~~~~~ Global Analysis  ~~~~~~~~~~~~ 
+
+Generating distributed samples for Global features with the following properties:
+- Num. points: 100
+- Num. iterations: 100
+- Method: lhs.scipy
+
+Discrepancy: 0.034274
+Generated Global sample 1 of 1 in 0.00 seconds.
+
+Evaluating populations for global samples...
+
+Initialising feature evaluation for Global features.
+Evaluated Global population 1 of 1 in 0.22 seconds.
+
+Initialising feature evaluation for Global features.
+Evaluated Global features for sample 1 out of 1 in 0.13 seconds.
+Evaluated Global features for sample 1 out of 1 in 0.13 seconds.
+
+Evaluated all Global features
+
+
+Evaluated all Global features
+
+Success!
+Successfully appended results to csv file.
+
+

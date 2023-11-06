@@ -1,5 +1,7 @@
 import numpy as np
 from features.randomwalkfeatures import (
+    compute_solver_crash_ratio,
+    preprocess_nans,
     compute_neighbourhood_distance_features,
     compute_neighbourhood_hv_features,
     compute_neighbourhood_violation_features,
@@ -18,6 +20,7 @@ class RandomWalkAnalysis(Analysis):
     
     # Define feature names as a static attribute at the class level
     feature_names = [
+        "scr",
         "dist_x_avg",
         "dist_x_r1",
         "dist_f_avg",
@@ -76,6 +79,12 @@ class RandomWalkAnalysis(Analysis):
         Evaluate features along the random walk and save to class.
         """
         
+        # Preprocess nans and infinities, compute solver crash ratio and update attributes.
+        pop_new, pop_neighbours_list_new = preprocess_nans(self.pop, self.pop_neighbours_list)
+        scr = compute_solver_crash_ratio(self.pop,pop_new)
+        self.pop = pop_new
+        self.pop_neighbours_list = pop_neighbours_list_new
+        
         # Evaluate neighbourhood distance features.
         dist_x_avg, dist_x_r1, dist_f_avg, dist_f_r1, dist_c_avg, dist_c_r1, dist_f_c_avg, dist_f_c_r1, dist_f_dist_x_avg, dist_f_dist_x_r1, dist_c_dist_x_avg, dist_c_dist_x_r1, dist_f_c_dist_x_avg, dist_f_c_dist_x_r1 = compute_neighbourhood_distance_features(self.pop, self.pop_neighbours_list)
         
@@ -90,6 +99,7 @@ class RandomWalkAnalysis(Analysis):
         
         # Create a dictionary to store feature names and values
         feature_dict = {
+            "scr": scr,
             "dist_x_avg": dist_x_avg,
             "dist_x_r1": dist_x_r1,
             "dist_f_avg": dist_f_avg,

@@ -89,9 +89,3 @@ class Individual(object):
         self.set_obj(obj)
         self.set_cons(cons)
         self.set_cv(self.eval_cv())
-
-    # def is_feasible(self):
-    #     """
-    #     Run after evaluation of constraints/objectives.
-    #     """
-    #     return self.cv <= 0

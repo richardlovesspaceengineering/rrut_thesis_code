@@ -11,6 +11,15 @@
       "program": "${file}",
       "console": "integratedTerminal",
       "cwd": "${fileDirname}"
+    },
+    {
+        "name": "Python: Run Single Problem",
+        "type": "python",
+        "request": "launch",
+        "program": "${file}",
+        "args": ["MW11", "10", "1"],
+        "console": "integratedTerminal"
     }
+    
   ]
 }
