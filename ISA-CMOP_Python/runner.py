@@ -49,7 +49,7 @@ def generate_suite_structure(benchmark_problem_names, dimensions):
                 suite_structure[suite_name][problem_number] = {"n_var": []}
             suite_structure[suite_name][problem_number]["n_var"].append(dimension)
             
-    ProblemEvaluator.custom_print("Generated JSON file for the problem configurations")
+    print("Generated JSON file for the problem configurations")
 
     return {"suites": suite_structure}
 

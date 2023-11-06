@@ -20,6 +20,8 @@ import numpy as np
 from optimisation.model.population import Population
 from optimisation.operators.sampling.RandomWalk import RandomWalk
 
+from Logger import Logger
+
 
 class ProblemEvaluator:
     
@@ -72,15 +74,15 @@ class ProblemEvaluator:
 
         walks_neighbours_list = []
 
-        ProblemEvaluator.custom_print("")
-        ProblemEvaluator.custom_print(
+        print("")
+        print(
             "Generating samples (walks + neighbours) for RW features with the following properties:"
         )
-        ProblemEvaluator.custom_print("- Number of walks: {}".format(len(starting_zones)))
-        ProblemEvaluator.custom_print("- Number of steps per walk: {}".format(num_steps))
-        ProblemEvaluator.custom_print("- Step size (% of instance domain): {}".format(step_size * 100))
-        ProblemEvaluator.custom_print("- Neighbourhood size: {}".format(neighbourhood_size))
-        ProblemEvaluator.custom_print("")
+        print("- Number of walks: {}".format(len(starting_zones)))
+        print("- Number of steps per walk: {}".format(num_steps))
+        print("- Step size (% of instance domain): {}".format(step_size * 100))
+        print("- Neighbourhood size: {}".format(neighbourhood_size))
+        print("")
 
         for ctr, starting_zone in enumerate(starting_zones):
             start_time = time.time()  # Record the start time
@@ -93,7 +95,7 @@ class ProblemEvaluator:
             elapsed_time = end_time - start_time
 
             walks_neighbours_list.append((walk, neighbours))
-            ProblemEvaluator.custom_print(
+            print(
                 "Generated RW sample {} of {} in {:.2f} seconds.".format(
                     ctr + 1, len(starting_zones), elapsed_time
                 )
@@ -102,7 +104,7 @@ class ProblemEvaluator:
         return walks_neighbours_list
 
     def evaluate_populations_for_rw_features(self, problem, walks_neighbours_list):
-        ProblemEvaluator.custom_print(
+        print(
             "\nEvaluating populations for this sample... (ranks on for walk steps, off for neighbours)"
         )
 
@@ -138,7 +140,7 @@ class ProblemEvaluator:
             end_time = time.time()
             elapsed_time = end_time - start_time
 
-            ProblemEvaluator.custom_print(
+            print(
                 "Evaluated RW population {} of {} in {:.2f} seconds.".format(
                     ctr + 1, len(walks_neighbours_list), elapsed_time
                 )
@@ -174,7 +176,7 @@ class ProblemEvaluator:
 
         # We need to generate 30 samples per instance.
         for i in range(num_samples):
-            ProblemEvaluator.custom_print("Initialising Random Walk Analysis {} of {} for {}".format(i + 1, num_samples, instance_name))
+            print("Initialising Random Walk Analysis {} of {} for {}".format(i + 1, num_samples, instance_name))
 
             ## Evaluate RW features.
 
@@ -216,13 +218,13 @@ class ProblemEvaluator:
         else:
             method_name = method  # Use the full method string as the method name
 
-        ProblemEvaluator.custom_print(
+        print(
             "Generating distributed samples for Global features with the following properties:"
         )
-        ProblemEvaluator.custom_print("- Num. points: {}".format(num_points))
-        ProblemEvaluator.custom_print("- Num. iterations: {}".format(iterations))
-        ProblemEvaluator.custom_print("- Method: {}".format(method))
-        ProblemEvaluator.custom_print("")
+        print("- Num. points: {}".format(num_points))
+        print("- Num. iterations: {}".format(iterations))
+        print("- Method: {}".format(method))
+        print("")
 
         for i in range(num_samples):
             start_time = time.time()  # Record the start time
@@ -238,17 +240,17 @@ class ProblemEvaluator:
             end_time = time.time()  # Record the end time
             elapsed_time = end_time - start_time
 
-            ProblemEvaluator.custom_print(
+            print(
                 "Generated Global sample {} of {} in {:.2f} seconds.".format(
                     i + 1, num_samples, elapsed_time
                 )
             )
-            ProblemEvaluator.custom_print("Discrepancy: {:.6f}".format(qmc.discrepancy(sampler.x)))
+            print("Discrepancy: {:.6f}".format(qmc.discrepancy(sampler.x)))
 
         return distributed_samples
 
     def evaluate_populations_for_global_features(self, problem, distributed_samples):
-        ProblemEvaluator.custom_print("\nEvaluating populations for global samples...")
+        print("\nEvaluating populations for global samples...")
 
         pops_global = []
 
@@ -260,7 +262,7 @@ class ProblemEvaluator:
             elapsed_time = end_time - start_time
 
             pops_global.append(pop_global)
-            ProblemEvaluator.custom_print(
+            print(
                 "Evaluated Global population {} of {} in {:.2f} seconds.".format(
                     ctr + 1, len(distributed_samples), elapsed_time
                 )
@@ -291,20 +293,20 @@ class ProblemEvaluator:
         return global_features
 
     def do(self, num_samples):
-        ProblemEvaluator.custom_print(
+        print(
             "\n------------------------ Evaluating instance: "
             + self.instance_name
             + " ------------------------"
         )
 
         # RW Analysis.
-        ProblemEvaluator.custom_print(" \n ~~~~~~~~~~~~ RW Analysis " + " ~~~~~~~~~~~~ \n")
+        print(" \n ~~~~~~~~~~~~ RW Analysis " + " ~~~~~~~~~~~~ \n")
         rw_features = self.do_random_walk_analysis(self.instance, num_samples, self.instance_name)
 
         # Global Analysis.
 
         # RW Analysis.
-        ProblemEvaluator.custom_print(" \n ~~~~~~~~~~~~ Global Analysis " + " ~~~~~~~~~~~~ \n")
+        print(" \n ~~~~~~~~~~~~ Global Analysis " + " ~~~~~~~~~~~~ \n")
         global_features = self.do_global_analysis(self.instance, num_samples)
 
         # Overall landscape analysis - putting it all together.
@@ -323,12 +325,12 @@ class ProblemEvaluator:
         )
 
         # Log success.
-        ProblemEvaluator.custom_print("Success!")
+        print("Success!")
 
         # Save to a csv at end of every problem instance.
         self.append_dataframe_to_csv(self.csv_filename, self.features_table)
         
-        ProblemEvaluator.custom_print("Successfully appended results to csv file.\n\n")
+        print("Successfully appended results to csv file.\n\n")
 
     
     def append_dataframe_to_csv(self, existing_csv, df_to_append, overwrite_existing=True, overwrite_column="Name"):
@@ -353,6 +355,9 @@ class ProblemEvaluator:
     # Custom function to print to the terminal and write to the log file
     @staticmethod
     def custom_print(text, log_file_name = "features_evaluation.log"):
+        """
+        ARCHIVED
+        """
         print(text)  # Print to the terminal
         log_file = open(log_file_name, "a")
         log_file.write(text + "\n")  # Write to the log file
