@@ -17,10 +17,10 @@ echo "Host is: $host"
 # Path info.
 if [[ "$host" == *"$pc1"* ]]; then # megatrons
   PYTHON_SCRIPT="/home/kj66/Documents/Richard/venv/bin/python3"
-  SCRIPT_PATH="/home/kj66/Documents/Richard/ISA-CMOP_Python/runner.py"
+  SCRIPT_PATH="/home/kj66/Documents/Richard/rrut_thesis_code/"
 else # richard's pc
   PYTHON_SCRIPT="D:/richa/anaconda3/envs/thesis_env_windows/python.exe"
-  SCRIPT_PATH="d:/richa/Documents/Thesis/rrut_thesis_code/ISA-CMOP_Python/runner.py"
+  SCRIPT_PATH="d:/richa/Documents/Thesis/rrut_thesis_code/"
 fi
 echo "Using interpreter: $PYTHON_SCRIPT"
 
@@ -63,9 +63,12 @@ for problem in "${problems[@]}"; do
   problem=$(echo "$problem" | sed 's/,$//')  # Remove trailing comma if it exists
   for dim in "${n_dim[@]}"; do
     echo "Running problem: $problem, dimension: $dim"
-    "$PYTHON_SCRIPT" "$SCRIPT_PATH" "$problem" "$dim" "$num_samples"
+    "$PYTHON_SCRIPT" "$run_dir" "$problem" "$dim" "$num_samples"
   done
 done
 
+# Clean up temp dir
+rm -rf "$temp_dir"
 
-
+# Exit 
+exit 0
