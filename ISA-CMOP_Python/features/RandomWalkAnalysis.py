@@ -6,8 +6,8 @@ from features.randomwalkfeatures import (
     compute_neighbourhood_distance_features,
     compute_neighbourhood_hv_features,
     compute_neighbourhood_violation_features,
-    compute_neighbourhood_dominance_features
-    )
+    compute_neighbourhood_dominance_features,
+)
 from scipy.stats import yeojohnson
 from features.Analysis import Analysis, MultipleAnalysis
 
@@ -18,7 +18,7 @@ class RandomWalkAnalysis(Analysis):
 
     Populations is a list of populations that represents a walk, each entry is a solution and its neighbours.
     """
-    
+
     # Define feature names as a static attribute at the class level
     feature_names = [
         "scr",
@@ -62,10 +62,8 @@ class RandomWalkAnalysis(Analysis):
         "lnd_avg",
         "lnd_r1",
         "nfronts_avg",
-        "nfronts_r1"
+        "nfronts_r1",
     ]
-
-
 
     def __init__(self, pop_walk, pop_neighbours_list):
         """
@@ -73,7 +71,7 @@ class RandomWalkAnalysis(Analysis):
         """
         super().__init__(pop_walk)
         self.pop_neighbours_list = pop_neighbours_list
-        
+
         # Initialise values.
         self.initialize_features()
 
@@ -81,26 +79,73 @@ class RandomWalkAnalysis(Analysis):
         """
         Evaluate features along the random walk and save to class.
         """
-        
+
         # Preprocess nans and infinities, compute solver crash ratio and update attributes.
-        pop_new, pop_neighbours_new, pop_neighbours_checked = preprocess_nans(self.pop, self.pop_neighbours_list)
-        scr = compute_solver_crash_ratio(self.pop,pop_new)
-        ncr_avg, ncr_r1 = compute_neighbourhood_crash_ratio(pop_neighbours_new, pop_neighbours_checked)
+        pop_new, pop_neighbours_new, pop_neighbours_checked = preprocess_nans(
+            self.pop, self.pop_neighbours_list
+        )
+        scr = compute_solver_crash_ratio(self.pop, pop_new)
+        ncr_avg, ncr_r1 = compute_neighbourhood_crash_ratio(
+            pop_neighbours_new, pop_neighbours_checked
+        )
         self.pop = pop_new
         self.pop_neighbours_list = pop_neighbours_checked
-        
+
         # Evaluate neighbourhood distance features.
-        dist_x_avg, dist_x_r1, dist_f_avg, dist_f_r1, dist_c_avg, dist_c_r1, dist_f_c_avg, dist_f_c_r1, dist_f_dist_x_avg, dist_f_dist_x_r1, dist_c_dist_x_avg, dist_c_dist_x_r1, dist_f_c_dist_x_avg, dist_f_c_dist_x_r1 = compute_neighbourhood_distance_features(self.pop, self.pop_neighbours_list)
-        
+        (
+            dist_x_avg,
+            dist_x_r1,
+            dist_f_avg,
+            dist_f_r1,
+            dist_c_avg,
+            dist_c_r1,
+            dist_f_c_avg,
+            dist_f_c_r1,
+            dist_f_dist_x_avg,
+            dist_f_dist_x_r1,
+            dist_c_dist_x_avg,
+            dist_c_dist_x_r1,
+            dist_f_c_dist_x_avg,
+            dist_f_c_dist_x_r1,
+        ) = compute_neighbourhood_distance_features(self.pop, self.pop_neighbours_list)
+
         # Evaluate neighbourhood HV features.
-        hv_single_soln_avg, hv_single_soln_r1, nhv_avg, nhv_r1, hvd_avg, hvd_r1, bhv_avg, bhv_r1 = compute_neighbourhood_hv_features(self.pop, self.pop_neighbours_list)
-        
+        (
+            hv_single_soln_avg,
+            hv_single_soln_r1,
+            nhv_avg,
+            nhv_r1,
+            hvd_avg,
+            hvd_r1,
+            bhv_avg,
+            bhv_r1,
+        ) = compute_neighbourhood_hv_features(self.pop, self.pop_neighbours_list)
+
         # Evaluate neighbourhood violation features.
-        nrfbx, nncv_avg, nncv_r1, ncv_avg, ncv_r1, bncv_avg, bncv_r1 = compute_neighbourhood_violation_features(self.pop, self.pop_neighbours_list)
-        
+        (
+            nrfbx,
+            nncv_avg,
+            nncv_r1,
+            ncv_avg,
+            ncv_r1,
+            bncv_avg,
+            bncv_r1,
+        ) = compute_neighbourhood_violation_features(self.pop, self.pop_neighbours_list)
+
         # Evaluate neighbourhood domination features.
-        sup_avg, sup_r1, inf_avg, inf_r1, inc_avg, inc_r1, lnd_avg, lnd_r1, nfronts_avg, nfronts_r1 = compute_neighbourhood_dominance_features(self.pop, self.pop_neighbours_list)
-        
+        (
+            sup_avg,
+            sup_r1,
+            inf_avg,
+            inf_r1,
+            inc_avg,
+            inc_r1,
+            lnd_avg,
+            lnd_r1,
+            nfronts_avg,
+            nfronts_r1,
+        ) = compute_neighbourhood_dominance_features(self.pop, self.pop_neighbours_list)
+
         # Create a dictionary to store feature names and values
         feature_dict = {
             "scr": scr,
@@ -144,7 +189,7 @@ class RandomWalkAnalysis(Analysis):
             "lnd_avg": lnd_avg,
             "lnd_r1": lnd_r1,
             "nfronts_avg": nfronts_avg,
-            "nfronts_r1": nfronts_r1
+            "nfronts_r1": nfronts_r1,
         }
 
         # Set the class attributes
@@ -160,11 +205,11 @@ class MultipleRandomWalkAnalysis(MultipleAnalysis):
     def __init__(self, pops_walks, pops_neighbours_list):
         self.pops = pops_walks
         self.analyses = []
-        
+
         if len(self.pops) != 0:
             for ctr, pop in enumerate(pops_walks):
                 self.analyses.append(RandomWalkAnalysis(pop, pops_neighbours_list[ctr]))
-                
+
         # Initialise feature arrays.
         self.feature_names = RandomWalkAnalysis.feature_names
 
@@ -179,12 +224,14 @@ class MultipleRandomWalkAnalysis(MultipleAnalysis):
 
         # Create a new MultipleAnalysis object with the combined populations
         combined_analysis = MultipleRandomWalkAnalysis([], [])
-        
+
         # Iterate through feature names
         for feature_name in multiple_analyses[0].feature_names:
-            feature_arrays = [getattr(ma, f"{feature_name}_array") for ma in multiple_analyses]
+            feature_arrays = [
+                getattr(ma, f"{feature_name}_array") for ma in multiple_analyses
+            ]
             combined_array = np.concatenate(feature_arrays)
-            
+
             # Save as attribute array in the combined_analysis object
             setattr(combined_analysis, f"{feature_name}_array", combined_array)
 

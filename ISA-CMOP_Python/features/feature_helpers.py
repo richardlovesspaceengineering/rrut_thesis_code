@@ -63,6 +63,7 @@ def corr_coef(xdata, ydata, spearman=True, significance_level=0.05):
 
     return corr
 
+
 def autocorr(data, lag, spearman=True, significance_level=0.05):
     """
     Compute autocorrelation of data with applied lag.
