@@ -19,6 +19,7 @@ class GlobalAnalysis(Analysis):
     """
     Calculate all features generated from a random sample.
     """
+
     # Define feature names as a static attribute at the class level
     feature_names = [
         "fsr",

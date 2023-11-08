@@ -20,10 +20,8 @@ from optimisation.model.population import Population
 from optimisation.operators.sampling.RandomWalk import RandomWalk
 
 
-
 class ProblemEvaluator:
-    
-    def __init__(self, instance, instance_name, mode = "eval"):
+    def __init__(self, instance, instance_name, mode="eval"):
         """
         Possible modes are eval and debug.
         """
@@ -185,7 +183,11 @@ class ProblemEvaluator:
 
         # We need to generate 30 samples per instance.
         for i in range(num_samples):
-            print("Initialising Random Walk Analysis {} of {} for {}".format(i + 1, num_samples, instance_name))
+            print(
+                "Initialising Random Walk Analysis {} of {} for {}".format(
+                    i + 1, num_samples, instance_name
+                )
+            )
 
             ## Evaluate RW features.
 
@@ -314,7 +316,9 @@ class ProblemEvaluator:
 
         # RW Analysis.
         print(" \n ~~~~~~~~~~~~ RW Analysis " + " ~~~~~~~~~~~~ \n")
-        rw_features = self.do_random_walk_analysis(self.instance, num_samples, self.instance_name)
+        rw_features = self.do_random_walk_analysis(
+            self.instance, num_samples, self.instance_name
+        )
 
         # Global Analysis.
 
@@ -342,11 +346,16 @@ class ProblemEvaluator:
 
         # Save to a csv at end of every problem instance.
         self.append_dataframe_to_csv(self.csv_filename, self.features_table)
-        
+
         print("Successfully appended results to csv file.\n\n")
 
-    
-    def append_dataframe_to_csv(self, existing_csv, df_to_append, overwrite_existing=True, overwrite_column="Name"):
+    def append_dataframe_to_csv(
+        self,
+        existing_csv,
+        df_to_append,
+        overwrite_existing=True,
+        overwrite_column="Name",
+    ):
         # Check if the existing CSV file already exists
         if os.path.isfile(existing_csv):
             # Read the existing CSV file into a DataFrame
@@ -354,7 +363,9 @@ class ProblemEvaluator:
 
             if overwrite_existing:
                 # Filter out rows with matching values in the specified column
-                existing_df = existing_df[~existing_df[overwrite_column].isin(df_to_append[overwrite_column])]
+                existing_df = existing_df[
+                    ~existing_df[overwrite_column].isin(df_to_append[overwrite_column])
+                ]
 
             # Concatenate the df_to_append with the existing DataFrame
             combined_df = pd.concat([existing_df, df_to_append], ignore_index=True)
@@ -364,7 +375,8 @@ class ProblemEvaluator:
 
         # Write the combined DataFrame back to the CSV file
         combined_df.to_csv(existing_csv, index=False)
-    
+
+
 if __name__ == "__main__":
     # Making sure the binary pattern generator is generating the right number of starting zones.
     pe = ProblemEvaluator([])

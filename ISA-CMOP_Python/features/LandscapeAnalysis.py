@@ -21,7 +21,9 @@ class LandscapeAnalysis:
         self.randomwalkanalysis = randomwalkanalysis
 
         # Initialise features.
-        self.feature_names = self.globalanalysis.feature_names + self.randomwalkanalysis.feature_names
+        self.feature_names = (
+            self.globalanalysis.feature_names + self.randomwalkanalysis.feature_names
+        )
 
         self.initialize_arrays_and_scalars()
 
@@ -53,13 +55,20 @@ class LandscapeAnalysis:
         """
         for feature_name in self.feature_names:
             if feature_name in GlobalAnalysis.feature_names:
-                setattr(self, f"{feature_name}_array", getattr(self.globalanalysis, f"{feature_name}_array"))
+                setattr(
+                    self,
+                    f"{feature_name}_array",
+                    getattr(self.globalanalysis, f"{feature_name}_array"),
+                )
             elif feature_name in RandomWalkAnalysis.feature_names:
-                setattr(self, f"{feature_name}_array", getattr(self.randomwalkanalysis, f"{feature_name}_array"))
+                setattr(
+                    self,
+                    f"{feature_name}_array",
+                    getattr(self.randomwalkanalysis, f"{feature_name}_array"),
+                )
             else:
                 # Handle cases where feature_name is not found in either set of feature names
                 pass
-
 
     def plot_feature_histograms(self, num_bins=20):
         """
@@ -157,19 +166,20 @@ class LandscapeAnalysis:
         elif stat == "std":
             return np.std(array)
         else:
-            raise ValueError("Invalid statistic choice. Use 'mean', 'median', 'min', 'max', or 'std'.")
+            raise ValueError(
+                "Invalid statistic choice. Use 'mean', 'median', 'min', 'max', or 'std'."
+            )
 
     def aggregate_features(self):
         """
         Aggregate feature for all populations. Must be called after extract_feature_arrays.
         """
-        
+
         # Since we might update some of the feature names as we loop.
         feature_names_to_remove = []
         feature_names_to_add = []
-        
-        for feature_name in self.feature_names:
 
+        for feature_name in self.feature_names:
             # Determine which statistic to compute based on the feature_name
             statistic = "mean"
 
@@ -180,15 +190,14 @@ class LandscapeAnalysis:
 
             if isinstance(statistic, list):
                 # Compute and set multiple statistics
-                
-                #TODO: fix naming convention.
+
+                # TODO: fix naming convention.
                 feature_names_to_remove.append(feature_name)
                 for stat in statistic:
-                    
                     # Replace feature name with more descriptive names.
                     new_name = f"{feature_name}_{stat}"
                     feature_names_to_add.append(new_name)
-                    
+
                     setattr(
                         self,
                         f"{feature_name}_{stat}",
@@ -205,18 +214,21 @@ class LandscapeAnalysis:
                         getattr(self, f"{feature_name}_array"), statistic
                     ),
                 )
-                
+
         # Upon completion of the loop, update features list.
         self.update_feature_list(feature_names_to_remove, feature_names_to_add)
 
     def update_feature_list(self, feature_names_to_remove, feature_names_to_add):
         # Create a new list by removing elements to remove and adding elements to add
-        updated_feature_names = [feature for feature in self.feature_names if feature not in feature_names_to_remove]
+        updated_feature_names = [
+            feature
+            for feature in self.feature_names
+            if feature not in feature_names_to_remove
+        ]
         updated_feature_names.extend(feature_names_to_add)
-        
+
         # Assign the updated list back to self.feature_names
         self.feature_names = updated_feature_names
-
 
     def extract_features_vector(self):
         """
