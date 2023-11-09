@@ -307,7 +307,7 @@ class ProblemEvaluator:
 
         return global_features
 
-    def do(self, num_samples):
+    def do(self, num_samples, save_arrays):
         print(
             "\n------------------------ Evaluating instance: "
             + self.instance_name
@@ -329,11 +329,31 @@ class ProblemEvaluator:
         # Overall landscape analysis - putting it all together.
         landscape = LandscapeAnalysis(global_features, rw_features)
         landscape.extract_feature_arrays()
+
+        if save_arrays:
+            # Write raw features results to a csv file.
+            global_dat, rw_dat = landscape.make_unaggregated_feature_tables()
+
+            landscape.export_unaggregated_feature_table(
+                global_dat, self.instance_name, "global"
+            )
+            landscape.export_unaggregated_feature_table(
+                rw_dat, self.instance_name, "rw"
+            )
+
+            print(
+                "Successfully saved sample results to csv file for {}.\n".format(
+                    self.instance_name
+                )
+            )
+
+            # TODO: save results to numpy binary format using savez. Will need to write functions that do so, and ones that can create a population by reading these in.
+
+        # Perform aggregation.
         landscape.aggregate_features()
 
-        # TODO: save results to numpy binary format using savez. Will need to write functions that do so, and ones that can create a population by reading these in.
-
         # Append metrics to features dataframe.
+
         aggregated_table = landscape.make_aggregated_feature_table(self.instance_name)
 
         # Append the aggregated_table to features_table
@@ -347,7 +367,7 @@ class ProblemEvaluator:
         # Save to a csv at end of every problem instance.
         self.append_dataframe_to_csv(self.csv_filename, self.features_table)
 
-        print("Successfully appended results to csv file.\n\n")
+        print("Successfully appended aggregated results to csv file.\n\n")
 
     def append_dataframe_to_csv(
         self,

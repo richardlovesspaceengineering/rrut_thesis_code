@@ -1,8 +1,9 @@
 Host is: RUTHERFORD
 Using interpreter: D:/richa/anaconda3/envs/thesis_env_windows/python.exe
-New directory: /tmp/ci-fwSfXF0SFc
-File running inside: /tmp/ci-fwSfXF0SFc/runner.py
+New directory: /tmp/ci-JMmKKQJIwc
+File running inside: /tmp/ci-JMmKKQJIwc/runner.py
 Running problem: MW1, dimension: 2
+save arrays:  True
 Initialising evaluator in debug mode.
 
 ------------------------ Evaluating instance: MW1_d2 ------------------------
@@ -21,12 +22,12 @@ Generated RW sample 1 of 2 in 0.00 seconds.
 Generated RW sample 2 of 2 in 0.00 seconds.
 
 Evaluating populations for this sample... (ranks off for walk steps, on for neighbours)
-Evaluated RW population 1 of 2 in 0.06 seconds.
-Evaluated RW population 2 of 2 in 0.07 seconds.
+Evaluated RW population 1 of 2 in 0.05 seconds.
+Evaluated RW population 2 of 2 in 0.05 seconds.
 
 Initialising feature evaluation for RW features.
-Evaluated RW features for sample 1 out of 2 in 0.17 seconds.
-Evaluated RW features for sample 2 out of 2 in 0.15 seconds.
+Evaluated RW features for sample 1 out of 2 in 0.14 seconds.
+Evaluated RW features for sample 2 out of 2 in 0.13 seconds.
 
 Evaluated all RW features
 
@@ -46,8 +47,8 @@ Evaluated RW population 1 of 2 in 0.05 seconds.
 Evaluated RW population 2 of 2 in 0.05 seconds.
 
 Initialising feature evaluation for RW features.
-Evaluated RW features for sample 1 out of 2 in 0.15 seconds.
-Evaluated RW features for sample 2 out of 2 in 0.12 seconds.
+Evaluated RW features for sample 1 out of 2 in 0.13 seconds.
+Evaluated RW features for sample 2 out of 2 in 0.13 seconds.
 
 Evaluated all RW features
 
@@ -59,9 +60,9 @@ Generating distributed samples for Global features with the following properties
 - Num. iterations: 20
 - Method: lhs.scipy
 
-Discrepancy: 0.002137
+Discrepancy: 0.001745
 Generated Global sample 1 of 2 in 0.00 seconds.
-Discrepancy: 0.001778
+Discrepancy: 0.001849
 Generated Global sample 2 of 2 in 0.00 seconds.
 
 Evaluating populations for global samples...
@@ -74,29 +75,11 @@ Evaluated Global features for sample 2 out of 2 in 0.02 seconds.
 
 Evaluated all Global features
 
-C:\Users\richa\AppData\Local\Temp\ci-fwSfXF0SFc\features\LandscapeAnalysis.py:279: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
-  dat[feature_name] = [getattr(self, f"{feature_name}")]
-C:\Users\richa\AppData\Local\Temp\ci-fwSfXF0SFc\features\LandscapeAnalysis.py:279: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
-  dat[feature_name] = [getattr(self, f"{feature_name}")]
-C:\Users\richa\AppData\Local\Temp\ci-fwSfXF0SFc\features\LandscapeAnalysis.py:279: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
-  dat[feature_name] = [getattr(self, f"{feature_name}")]
-C:\Users\richa\AppData\Local\Temp\ci-fwSfXF0SFc\features\LandscapeAnalysis.py:279: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
-  dat[feature_name] = [getattr(self, f"{feature_name}")]
-C:\Users\richa\AppData\Local\Temp\ci-fwSfXF0SFc\features\LandscapeAnalysis.py:279: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
-  dat[feature_name] = [getattr(self, f"{feature_name}")]
-C:\Users\richa\AppData\Local\Temp\ci-fwSfXF0SFc\features\LandscapeAnalysis.py:279: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
-  dat[feature_name] = [getattr(self, f"{feature_name}")]
-C:\Users\richa\AppData\Local\Temp\ci-fwSfXF0SFc\features\LandscapeAnalysis.py:279: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
-  dat[feature_name] = [getattr(self, f"{feature_name}")]
-C:\Users\richa\AppData\Local\Temp\ci-fwSfXF0SFc\features\LandscapeAnalysis.py:279: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
-  dat[feature_name] = [getattr(self, f"{feature_name}")]
-C:\Users\richa\AppData\Local\Temp\ci-fwSfXF0SFc\features\LandscapeAnalysis.py:279: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
-  dat[feature_name] = [getattr(self, f"{feature_name}")]
-C:\Users\richa\AppData\Local\Temp\ci-fwSfXF0SFc\features\LandscapeAnalysis.py:279: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
-  dat[feature_name] = [getattr(self, f"{feature_name}")]
+Successfully saved sample results to csv file for MW1_d2.
+
 Success!
-Successfully appended results to csv file.
+Successfully appended aggregated results to csv file.
 
 
 Running problem: MW1, dimension: 5
-Cleaning up /tmp/ci-fwSfXF0SFc
+Cleaning up /tmp/ci-JMmKKQJIwc

@@ -7,6 +7,9 @@ import math
 from features.GlobalAnalysis import GlobalAnalysis
 from features.RandomWalkAnalysis import RandomWalkAnalysis
 
+import os
+from datetime import datetime
+
 
 class LandscapeAnalysis:
     """
@@ -175,10 +178,6 @@ class LandscapeAnalysis:
         Aggregate feature for all populations. Must be called after extract_feature_arrays.
         """
 
-        # Since we might update some of the feature names as we loop.
-        feature_names_to_remove = []
-        feature_names_to_add = []
-
         for feature_name in self.feature_names:
             # Determine which statistic to compute based on the feature_name
             statistic = "mean"
@@ -191,12 +190,9 @@ class LandscapeAnalysis:
             if isinstance(statistic, list):
                 # Compute and set multiple statistics
 
-                # TODO: fix naming convention.
-                feature_names_to_remove.append(feature_name)
                 for stat in statistic:
                     # Replace feature name with more descriptive names.
                     new_name = f"{feature_name}_{stat}"
-                    feature_names_to_add.append(new_name)
 
                     setattr(
                         self,
@@ -214,21 +210,6 @@ class LandscapeAnalysis:
                         getattr(self, f"{feature_name}_array"), statistic
                     ),
                 )
-
-        # Upon completion of the loop, update features list.
-        self.update_feature_list(feature_names_to_remove, feature_names_to_add)
-
-    def update_feature_list(self, feature_names_to_remove, feature_names_to_add):
-        # Create a new list by removing elements to remove and adding elements to add
-        updated_feature_names = [
-            feature
-            for feature in self.feature_names
-            if feature not in feature_names_to_remove
-        ]
-        updated_feature_names.extend(feature_names_to_add)
-
-        # Assign the updated list back to self.feature_names
-        self.feature_names = updated_feature_names
 
     def extract_features_vector(self):
         """
@@ -279,13 +260,40 @@ class LandscapeAnalysis:
             dat[feature_name] = [getattr(self, f"{feature_name}")]
         return dat
 
-    def make_unaggregated_feature_table(self, feature_names):
+    def make_unaggregated_feature_tables(self):
         """
         Create an n-samples-row table of all the features to allow comparison.
         """
-        dat = pd.DataFrame()
-        for feature_name in feature_names:
-            dat[feature_name] = getattr(self, f"{feature_name}_array")
+        global_dat = pd.DataFrame()
+        rw_dat = pd.DataFrame()
+        for feature_name in self.feature_names:
+            if feature_name in self.globalanalysis.feature_names:
+                global_dat[feature_name] = getattr(self, f"{feature_name}_array")
+            elif feature_name in self.randomwalkanalysis.feature_names:
+                rw_dat[feature_name] = getattr(self, f"{feature_name}_array")
+        return global_dat, rw_dat
+
+    def export_unaggregated_feature_table(self, dat, instance_name, sampling_method):
+        """
+        Write Pandas dataframe of raw features results to a csv file.
+        """
+        # Create a folder if it doesn't exist
+        results_folder = "instance_results"
+        if not os.path.exists(results_folder):
+            os.makedirs(results_folder)
+
+        # Get the current date and time
+        current_time = datetime.now().strftime("%b%d_%H%M")
+
+        # Create the file path
+        file_path = os.path.join(
+            results_folder,
+            f"{instance_name}_{sampling_method}_features_{current_time}.csv",
+        )
+
+        # Save the DataFrame to a CSV file
+        dat.to_csv(file_path, index=False)
+
         return dat
 
     def make_unaggregated_global_feature_table(self):

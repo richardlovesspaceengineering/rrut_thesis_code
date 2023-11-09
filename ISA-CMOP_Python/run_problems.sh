@@ -7,10 +7,13 @@ problems=("MW1", "MW2", "MW3", "MW4", "MW5", "MW6", "MW7", "MW8", "MW9", "MW10",
 n_dim=(2 5 10)
 
 # Number of samples to run.
-num_samples=2
+num_samples=30
 
 # Modes are debug or eval.
-mode="debug"
+mode="eval"
+
+# Save full feature arrays. Aggregated feature arrays are always saved.
+save_feature_arrays=true
 
 # Define the log file and wipe it
 log_file="features_evaluation.log"
@@ -66,7 +69,7 @@ for problem in "${problems[@]}"; do
   problem=$(echo "$problem" | sed 's/,$//')  # Remove trailing comma if it exists
   for dim in "${n_dim[@]}"; do
     echo "Running problem: $problem, dimension: $dim" | tee -a "$log_file"  # Print message to the terminal and log file
-    "$PYTHON_SCRIPT" -u "$run_dir" "$problem" "$dim" "$num_samples" "$mode" 2>&1 | tee -a "$log_file"
+    "$PYTHON_SCRIPT" -u "$run_dir" "$problem" "$dim" "$num_samples" "$mode" "$save_feature_arrays" 2>&1 | tee -a "$log_file"
   done
 done
 

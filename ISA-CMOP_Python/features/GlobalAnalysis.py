@@ -28,6 +28,7 @@ class GlobalAnalysis(Analysis):
         self.pop = pop
 
     def eval_features(self):
+        # TODO: refactor to remove these shitty getters. Can do more at once here now that I need lots of things from my functions.
         self.fsr = self.get_fsr()
         self.corr_cf = self.get_corr_cf()
         self.f_mdl_r2 = self.get_f_mdl_r2()

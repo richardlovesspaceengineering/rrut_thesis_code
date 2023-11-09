@@ -63,9 +63,9 @@ def generate_instance(problem_name, n_var):
 
 
 def main():
-    if len(sys.argv) != 5:
+    if len(sys.argv) != 6:
         print(
-            "Usage: python generate_json.py problem_name n_dimensions num_samples mode"
+            "Usage: python generate_json.py problem_name n_dimensions num_samples mode save_features_array"
         )
         return
 
@@ -74,10 +74,14 @@ def main():
     num_samples = int(sys.argv[3])
     mode = sys.argv[4].replace(",", "")
 
-    problem, instance_string = generate_instance(problem_name, n_var)
+    if sys.argv[5].lower() == "true":
+        save_arrays = True
+    else:
+        save_arrays = False
 
+    problem, instance_string = generate_instance(problem_name, n_var)
     evaluator = ProblemEvaluator(problem, instance_string, mode)
-    evaluator.do(num_samples=num_samples)
+    evaluator.do(num_samples, save_arrays)
 
 
 if __name__ == "__main__":
