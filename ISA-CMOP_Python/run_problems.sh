@@ -7,10 +7,10 @@ problems=("MW1", "MW2", "MW3", "MW4", "MW5", "MW6", "MW7", "MW8", "MW9", "MW10",
 n_dim=(2 5 10)
 
 # Number of samples to run.
-num_samples=30
+num_samples=2
 
 # Modes are debug or eval.
-mode="eval"
+mode="debug"
 
 # Define the log file and wipe it
 log_file="features_evaluation.log"

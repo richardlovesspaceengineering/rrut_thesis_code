@@ -54,13 +54,13 @@ class LandscapeAnalysis:
         Save feature arrays into this instance.
         """
         for feature_name in self.feature_names:
-            if feature_name in GlobalAnalysis.feature_names:
+            if feature_name in self.globalanalysis.feature_names:
                 setattr(
                     self,
                     f"{feature_name}_array",
                     getattr(self.globalanalysis, f"{feature_name}_array"),
                 )
-            elif feature_name in RandomWalkAnalysis.feature_names:
+            elif feature_name in self.randomwalkanalysis.feature_names:
                 setattr(
                     self,
                     f"{feature_name}_array",

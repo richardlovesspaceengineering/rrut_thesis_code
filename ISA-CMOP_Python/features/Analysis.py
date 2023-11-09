@@ -1,6 +1,7 @@
 import numpy as np
 import time
 
+
 class Analysis:
     """
     Calculate all features generated from samples.
@@ -13,15 +14,18 @@ class Analysis:
         self.pop = pop
         self.pareto_front = pop[0].pareto_front
         self.feature_names = []
-        
-    def initialize_features(self):
-        # Initialising feature arrays.
-        for feature in self.feature_names:
-            setattr(
-                self,
-                (f"{feature}"),
-                np.nan,
-            )
+
+    def __setattr__(self, name, value):
+        # Call the parent class's __setattr__ to perform the actual assignment
+        super().__setattr__(name, value)
+
+        # Add the variable name to the feature_names list. This will only run when a feature (a float) is passed
+        if (
+            name not in ["pop", "pareto_front", "feature_names", "pop_neighbours_list"]
+            and name not in self.feature_names
+            and isinstance(value, (float, int))
+        ):
+            self.feature_names.append(name)
 
     def eval_features(self):
         pass
@@ -37,7 +41,6 @@ class MultipleAnalysis:
         self.analyses = []
         for pop in pops:
             self.analyses.append(AnalysisType(pop))
-        self.feature_names = AnalysisType.feature_names
 
     def initialize_arrays(self):
         # Initialising feature arrays.
@@ -52,23 +55,33 @@ class MultipleAnalysis:
         """
         Evaluate features for all populations.
         """
-        
+
         cls_name = self.__class__.__name__
         if cls_name == "MultipleGlobalAnalysis":
             s = "Global"
         elif cls_name == "MultipleRandomWalkAnalysis":
             s = "RW"
-        
-        self.custom_print("\nInitialising feature evaluation for {} features.".format(s))
+
+        print("\nInitialising feature evaluation for {} features.".format(s))
         for ctr, a in enumerate(self.analyses):
             start_time = time.time()
             a.eval_features()
+
+            # Once evaluated, save feature names and initialise arrays for each feature.
+            if ctr == 0:
+                self.feature_names = a.feature_names
+                self.initialize_arrays()
+                # print(self.feature_names)
+
             end_time = time.time()  # Record the end time
             elapsed_time = end_time - start_time
-            self.custom_print("Evaluated {} features for sample {} out of {} in {:.2f} seconds.".format(s, ctr + 1, len(self.analyses), elapsed_time))
-            
+            print(
+                "Evaluated {} features for sample {} out of {} in {:.2f} seconds.".format(
+                    s, ctr + 1, len(self.analyses), elapsed_time
+                )
+            )
 
-        self.custom_print("\nEvaluated all {} features\n".format(s))
+        print("\nEvaluated all {} features\n".format(s))
 
         # Generate corresponding arrays.
         self.generate_feature_arrays()
@@ -89,10 +102,3 @@ class MultipleAnalysis:
                 (f"{feature_name}_array"),
                 self.generate_array_for_feature(feature_name),
             )
-
-    # Custom function to print to the terminal and write to the log file
-    @staticmethod
-    def custom_print(text, log_file_name = "features_evaluation.log"):
-        print(text)  # Print to the terminal
-        log_file = open(log_file_name, "a")
-        log_file.write(text + "\n")  # Write to the log file

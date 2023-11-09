@@ -20,26 +20,11 @@ class GlobalAnalysis(Analysis):
     Calculate all features generated from a random sample.
     """
 
-    # Define feature names as a static attribute at the class level
-    feature_names = [
-        "fsr",
-        "corr_cf",
-        "f_mdl_r2",
-        "dist_c_corr",
-        "min_cv",
-        "skew_rnge",
-        "piz_ob_min",
-        "ps_dist_iqr_mean",
-        "cpo_upo_n",
-        "cv_range_coeff",
-        "corr_obj",
-        "cv_mdl_r2",
-    ]
-
     def __init__(self, pop):
         """
         Population must already be evaluated.
         """
+        super().__init__(pop)
         self.pop = pop
 
     def eval_features(self):
@@ -119,5 +104,3 @@ class MultipleGlobalAnalysis(MultipleAnalysis):
 
     def __init__(self, pops):
         super().__init__(pops, GlobalAnalysis)
-
-        super().initialize_arrays()
