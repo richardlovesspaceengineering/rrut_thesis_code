@@ -178,10 +178,10 @@ class LandscapeAnalysis:
         Aggregate feature for all populations. Must be called after extract_feature_arrays.
         """
 
-        for feature_name in self.feature_names:
-            # Determine which statistic to compute based on the feature_name
-            statistic = "mean"
+        # Initialise list of aggregated feature names.
+        self.aggregated_feature_names = []
 
+        for feature_name in self.feature_names:
             if feature_name in ["nrfbx"]:
                 statistic = ["mean", "min", "max", "median"]
             else:
@@ -196,20 +196,12 @@ class LandscapeAnalysis:
 
                     setattr(
                         self,
-                        f"{feature_name}_{stat}",
+                        new_name,
                         self.compute_statistic_for_feature(
                             getattr(self, f"{feature_name}_array"), stat
                         ),
                     )
-            else:
-                # Compute and set a single statistic
-                setattr(
-                    self,
-                    f"{feature_name}",
-                    self.compute_statistic_for_feature(
-                        getattr(self, f"{feature_name}_array"), statistic
-                    ),
-                )
+                    self.aggregated_feature_names.append(new_name)
 
     def extract_features_vector(self):
         """
@@ -256,7 +248,7 @@ class LandscapeAnalysis:
         dat["D"] = [instance_name.split("d")[1]]
 
         # Add all features.
-        for feature_name in self.feature_names:
+        for feature_name in self.aggregated_feature_names:
             dat[feature_name] = [getattr(self, f"{feature_name}")]
         return dat
 
