@@ -1,7 +1,7 @@
 Host is: RUTHERFORD
 Using interpreter: D:/richa/anaconda3/envs/thesis_env_windows/python.exe
-New directory: /tmp/ci-yNKai7NVjr
-File running inside: /tmp/ci-yNKai7NVjr/runner.py
+New directory: /tmp/ci-yfanWgos93
+File running inside: /tmp/ci-yfanWgos93/runner.py
 Running problem: MW1, dimension: 2
 Initialising evaluator in debug mode.
 
@@ -20,13 +20,15 @@ Generating samples (walks + neighbours) for RW features with the following prope
 Generated RW sample 1 of 2 in 0.00 seconds.
 Generated RW sample 2 of 2 in 0.00 seconds.
 
-Evaluating populations for this sample... (ranks off for walk steps, on for neighbours)
-Evaluated RW population 1 of 2 in 0.05 seconds.
-Evaluated RW population 2 of 2 in 0.05 seconds.
+Evaluating populations for these RW samples...
+
+Evaluating populations for this walk sample... (ranks off for walk steps, on for neighbours)
+Evaluated population 1 of 2 in 0.05 seconds.
+Evaluated population 2 of 2 in 0.06 seconds.
 
 Initialising feature evaluation for RW features.
-Evaluated RW features for sample 1 out of 2 in 0.22 seconds.
-Evaluated RW features for sample 2 out of 2 in 0.14 seconds.
+Evaluated RW features for sample 1 out of 2 in 0.17 seconds.
+Evaluated RW features for sample 2 out of 2 in 0.20 seconds.
 
 Evaluated all RW features
 
@@ -41,12 +43,14 @@ Generating samples (walks + neighbours) for RW features with the following prope
 Generated RW sample 1 of 2 in 0.00 seconds.
 Generated RW sample 2 of 2 in 0.00 seconds.
 
-Evaluating populations for this sample... (ranks off for walk steps, on for neighbours)
-Evaluated RW population 1 of 2 in 0.05 seconds.
-Evaluated RW population 2 of 2 in 0.05 seconds.
+Evaluating populations for these RW samples...
+
+Evaluating populations for this walk sample... (ranks off for walk steps, on for neighbours)
+Evaluated population 1 of 2 in 0.06 seconds.
+Evaluated population 2 of 2 in 0.06 seconds.
 
 Initialising feature evaluation for RW features.
-Evaluated RW features for sample 1 out of 2 in 0.14 seconds.
+Evaluated RW features for sample 1 out of 2 in 0.13 seconds.
 Evaluated RW features for sample 2 out of 2 in 0.13 seconds.
 
 Evaluated all RW features
@@ -59,9 +63,9 @@ Generating distributed samples for Global features with the following properties
 - Num. iterations: 20
 - Method: lhs.scipy
 
-Discrepancy: 0.001728
+Discrepancy: 0.002296
 Generated Global sample 1 of 2 in 0.00 seconds.
-Discrepancy: 0.002967
+Discrepancy: 0.002390
 Generated Global sample 2 of 2 in 0.00 seconds.
 
 Evaluating populations for global samples...
@@ -74,293 +78,108 @@ Evaluated Global features for sample 2 out of 2 in 0.02 seconds.
 
 Evaluated all Global features
 
+ 
+ ~~~~~~~~~~~~ AW Analysis  ~~~~~~~~~~~~ 
+
+Initialising Adaptive Walk Analysis 1 of 2 for MW1_d2
+Generating adaptive walk samples with the following properties:
+- Number of walks: 5
+- Maximum number of steps: 100
+- Step size (% of instance domain): 1.0
+- Neighbourhood size: 5
+Generating lhs.scipy sample used as starting points for the adaptive walk...
+- Sample size: 5
+Discrepancy: 0.025420
+Generated in 0.00 seconds.
+
+Generated AW sample 1 of 5 in 0.03 seconds. Length: 14
+Generated AW sample 2 of 5 in 0.02 seconds. Length: 8
+Generated AW sample 3 of 5 in 0.03 seconds. Length: 14
+Generated AW sample 4 of 5 in 0.04 seconds. Length: 18
+Generated AW sample 5 of 5 in 0.02 seconds. Length: 9
+
+Evaluating populations for these AW samples...
+
+Evaluating populations for this walk sample... (ranks off for walk steps, on for neighbours)
+Evaluated population 1 of 5 in 0.02 seconds.
+Evaluated population 2 of 5 in 0.02 seconds.
+Evaluated population 3 of 5 in 0.03 seconds.
+Evaluated population 4 of 5 in 0.03 seconds.
+Evaluated population 5 of 5 in 0.02 seconds.
+
+Initialising feature evaluation for AW features.
+Evaluated AW features for sample 1 out of 5 in 0.00 seconds.
+Evaluated AW features for sample 2 out of 5 in 0.00 seconds.
+Evaluated AW features for sample 3 out of 5 in 0.00 seconds.
+Evaluated AW features for sample 4 out of 5 in 0.00 seconds.
+Evaluated AW features for sample 5 out of 5 in 0.00 seconds.
+
+Evaluated all AW features
+
+Initialising Adaptive Walk Analysis 2 of 2 for MW1_d2
+Generating adaptive walk samples with the following properties:
+- Number of walks: 5
+- Maximum number of steps: 100
+- Step size (% of instance domain): 1.0
+- Neighbourhood size: 5
+Generating lhs.scipy sample used as starting points for the adaptive walk...
+- Sample size: 5
+Discrepancy: 0.020260
+Generated in 0.00 seconds.
+
+Generated AW sample 1 of 5 in 0.00 seconds. Length: 2
+Generated AW sample 2 of 5 in 0.00 seconds. Length: 1
+Generated AW sample 3 of 5 in 0.02 seconds. Length: 8
+Generated AW sample 4 of 5 in 0.03 seconds. Length: 14
+Generated AW sample 5 of 5 in 0.01 seconds. Length: 3
+
+Evaluating populations for these AW samples...
+
+Evaluating populations for this walk sample... (ranks off for walk steps, on for neighbours)
+Evaluated population 1 of 5 in 0.00 seconds.
+Evaluated population 2 of 5 in 0.00 seconds.
+Evaluated population 3 of 5 in 0.01 seconds.
+Evaluated population 4 of 5 in 0.02 seconds.
+Evaluated population 5 of 5 in 0.01 seconds.
+
+Initialising feature evaluation for AW features.
+Evaluated AW features for sample 1 out of 5 in 0.00 seconds.
+Evaluated AW features for sample 2 out of 5 in 0.00 seconds.
+Evaluated AW features for sample 3 out of 5 in 0.00 seconds.
+Evaluated AW features for sample 4 out of 5 in 0.00 seconds.
+Evaluated AW features for sample 5 out of 5 in 0.00 seconds.
+
+Evaluated all AW features
+
 Successfully saved sample results to csv file for MW1_d2.
 
-C:\Users\richa\AppData\Local\Temp\ci-yNKai7NVjr\features\LandscapeAnalysis.py:252: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+C:\Users\richa\AppData\Local\Temp\ci-yfanWgos93\features\LandscapeAnalysis.py:261: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
   dat[feature_name] = [getattr(self, f"{feature_name}")]
-C:\Users\richa\AppData\Local\Temp\ci-yNKai7NVjr\features\LandscapeAnalysis.py:252: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+C:\Users\richa\AppData\Local\Temp\ci-yfanWgos93\features\LandscapeAnalysis.py:261: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
   dat[feature_name] = [getattr(self, f"{feature_name}")]
-C:\Users\richa\AppData\Local\Temp\ci-yNKai7NVjr\features\LandscapeAnalysis.py:252: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+C:\Users\richa\AppData\Local\Temp\ci-yfanWgos93\features\LandscapeAnalysis.py:261: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
   dat[feature_name] = [getattr(self, f"{feature_name}")]
-C:\Users\richa\AppData\Local\Temp\ci-yNKai7NVjr\features\LandscapeAnalysis.py:252: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+C:\Users\richa\AppData\Local\Temp\ci-yfanWgos93\features\LandscapeAnalysis.py:261: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
   dat[feature_name] = [getattr(self, f"{feature_name}")]
-C:\Users\richa\AppData\Local\Temp\ci-yNKai7NVjr\features\LandscapeAnalysis.py:252: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+C:\Users\richa\AppData\Local\Temp\ci-yfanWgos93\features\LandscapeAnalysis.py:261: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
   dat[feature_name] = [getattr(self, f"{feature_name}")]
-C:\Users\richa\AppData\Local\Temp\ci-yNKai7NVjr\features\LandscapeAnalysis.py:252: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+C:\Users\richa\AppData\Local\Temp\ci-yfanWgos93\features\LandscapeAnalysis.py:261: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
   dat[feature_name] = [getattr(self, f"{feature_name}")]
-C:\Users\richa\AppData\Local\Temp\ci-yNKai7NVjr\features\LandscapeAnalysis.py:252: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+C:\Users\richa\AppData\Local\Temp\ci-yfanWgos93\features\LandscapeAnalysis.py:261: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
   dat[feature_name] = [getattr(self, f"{feature_name}")]
-C:\Users\richa\AppData\Local\Temp\ci-yNKai7NVjr\features\LandscapeAnalysis.py:252: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+C:\Users\richa\AppData\Local\Temp\ci-yfanWgos93\features\LandscapeAnalysis.py:261: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
   dat[feature_name] = [getattr(self, f"{feature_name}")]
-C:\Users\richa\AppData\Local\Temp\ci-yNKai7NVjr\features\LandscapeAnalysis.py:252: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+C:\Users\richa\AppData\Local\Temp\ci-yfanWgos93\features\LandscapeAnalysis.py:261: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
   dat[feature_name] = [getattr(self, f"{feature_name}")]
-C:\Users\richa\AppData\Local\Temp\ci-yNKai7NVjr\features\LandscapeAnalysis.py:252: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+C:\Users\richa\AppData\Local\Temp\ci-yfanWgos93\features\LandscapeAnalysis.py:261: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  dat[feature_name] = [getattr(self, f"{feature_name}")]
+C:\Users\richa\AppData\Local\Temp\ci-yfanWgos93\features\LandscapeAnalysis.py:261: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  dat[feature_name] = [getattr(self, f"{feature_name}")]
+C:\Users\richa\AppData\Local\Temp\ci-yfanWgos93\features\LandscapeAnalysis.py:261: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
   dat[feature_name] = [getattr(self, f"{feature_name}")]
 Success!
 Successfully appended aggregated results to csv file.
 
 
 Running problem: MW1, dimension: 5
-Initialising evaluator in debug mode.
-
------------------------- Evaluating instance: MW1_d5 ------------------------
- 
- ~~~~~~~~~~~~ RW Analysis  ~~~~~~~~~~~~ 
-
-Initialising Random Walk Analysis 1 of 2 for MW1_d5
-
-Generating samples (walks + neighbours) for RW features with the following properties:
-- Number of walks: 5
-- Number of steps per walk: 30
-- Step size (% of instance domain): 1.0
-- Neighbourhood size: 11
-
-Generated RW sample 1 of 5 in 0.01 seconds.
-Generated RW sample 2 of 5 in 0.01 seconds.
-Generated RW sample 3 of 5 in 0.01 seconds.
-Generated RW sample 4 of 5 in 0.02 seconds.
-Generated RW sample 5 of 5 in 0.01 seconds.
-
-Evaluating populations for this sample... (ranks off for walk steps, on for neighbours)
-Evaluated RW population 1 of 5 in 0.14 seconds.
-Evaluated RW population 2 of 5 in 0.13 seconds.
-Evaluated RW population 3 of 5 in 0.11 seconds.
-Evaluated RW population 4 of 5 in 0.11 seconds.
-Evaluated RW population 5 of 5 in 0.15 seconds.
-
-Initialising feature evaluation for RW features.
-Evaluated RW features for sample 1 out of 5 in 0.32 seconds.
-Evaluated RW features for sample 2 out of 5 in 0.24 seconds.
-Evaluated RW features for sample 3 out of 5 in 0.21 seconds.
-Evaluated RW features for sample 4 out of 5 in 0.25 seconds.
-Evaluated RW features for sample 5 out of 5 in 0.25 seconds.
-
-Evaluated all RW features
-
-Initialising Random Walk Analysis 2 of 2 for MW1_d5
-
-Generating samples (walks + neighbours) for RW features with the following properties:
-- Number of walks: 5
-- Number of steps per walk: 30
-- Step size (% of instance domain): 1.0
-- Neighbourhood size: 11
-
-Generated RW sample 1 of 5 in 0.01 seconds.
-Generated RW sample 2 of 5 in 0.01 seconds.
-Generated RW sample 3 of 5 in 0.01 seconds.
-Generated RW sample 4 of 5 in 0.01 seconds.
-Generated RW sample 5 of 5 in 0.01 seconds.
-
-Evaluating populations for this sample... (ranks off for walk steps, on for neighbours)
-Evaluated RW population 1 of 5 in 0.11 seconds.
-Evaluated RW population 2 of 5 in 0.11 seconds.
-Evaluated RW population 3 of 5 in 0.09 seconds.
-Evaluated RW population 4 of 5 in 0.09 seconds.
-Evaluated RW population 5 of 5 in 0.09 seconds.
-
-Initialising feature evaluation for RW features.
-Evaluated RW features for sample 1 out of 5 in 0.21 seconds.
-Evaluated RW features for sample 2 out of 5 in 0.21 seconds.
-Evaluated RW features for sample 3 out of 5 in 0.26 seconds.
-Evaluated RW features for sample 4 out of 5 in 0.23 seconds.
-Evaluated RW features for sample 5 out of 5 in 0.22 seconds.
-
-Evaluated all RW features
-
- 
- ~~~~~~~~~~~~ Global Analysis  ~~~~~~~~~~~~ 
-
-Generating distributed samples for Global features with the following properties:
-- Num. points: 50
-- Num. iterations: 50
-- Method: lhs.scipy
-
-Discrepancy: 0.006910
-Generated Global sample 1 of 2 in 0.00 seconds.
-Discrepancy: 0.009486
-Generated Global sample 2 of 2 in 0.00 seconds.
-
-Evaluating populations for global samples...
-Evaluated Global population 1 of 2 in 0.02 seconds.
-Evaluated Global population 2 of 2 in 0.02 seconds.
-
-Initialising feature evaluation for Global features.
-Evaluated Global features for sample 1 out of 2 in 0.03 seconds.
-Evaluated Global features for sample 2 out of 2 in 0.02 seconds.
-
-Evaluated all Global features
-
-Successfully saved sample results to csv file for MW1_d5.
-
-C:\Users\richa\AppData\Local\Temp\ci-yNKai7NVjr\features\LandscapeAnalysis.py:252: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
-  dat[feature_name] = [getattr(self, f"{feature_name}")]
-C:\Users\richa\AppData\Local\Temp\ci-yNKai7NVjr\features\LandscapeAnalysis.py:252: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
-  dat[feature_name] = [getattr(self, f"{feature_name}")]
-C:\Users\richa\AppData\Local\Temp\ci-yNKai7NVjr\features\LandscapeAnalysis.py:252: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
-  dat[feature_name] = [getattr(self, f"{feature_name}")]
-C:\Users\richa\AppData\Local\Temp\ci-yNKai7NVjr\features\LandscapeAnalysis.py:252: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
-  dat[feature_name] = [getattr(self, f"{feature_name}")]
-C:\Users\richa\AppData\Local\Temp\ci-yNKai7NVjr\features\LandscapeAnalysis.py:252: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
-  dat[feature_name] = [getattr(self, f"{feature_name}")]
-C:\Users\richa\AppData\Local\Temp\ci-yNKai7NVjr\features\LandscapeAnalysis.py:252: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
-  dat[feature_name] = [getattr(self, f"{feature_name}")]
-C:\Users\richa\AppData\Local\Temp\ci-yNKai7NVjr\features\LandscapeAnalysis.py:252: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
-  dat[feature_name] = [getattr(self, f"{feature_name}")]
-C:\Users\richa\AppData\Local\Temp\ci-yNKai7NVjr\features\LandscapeAnalysis.py:252: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
-  dat[feature_name] = [getattr(self, f"{feature_name}")]
-C:\Users\richa\AppData\Local\Temp\ci-yNKai7NVjr\features\LandscapeAnalysis.py:252: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
-  dat[feature_name] = [getattr(self, f"{feature_name}")]
-C:\Users\richa\AppData\Local\Temp\ci-yNKai7NVjr\features\LandscapeAnalysis.py:252: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
-  dat[feature_name] = [getattr(self, f"{feature_name}")]
-Success!
-Successfully appended aggregated results to csv file.
-
-
-Running problem: MW1, dimension: 10
-Initialising evaluator in debug mode.
-
------------------------- Evaluating instance: MW1_d10 ------------------------
- 
- ~~~~~~~~~~~~ RW Analysis  ~~~~~~~~~~~~ 
-
-Initialising Random Walk Analysis 1 of 2 for MW1_d10
-
-Generating samples (walks + neighbours) for RW features with the following properties:
-- Number of walks: 10
-- Number of steps per walk: 30
-- Step size (% of instance domain): 1.0
-- Neighbourhood size: 21
-
-Generated RW sample 1 of 10 in 0.04 seconds.
-Generated RW sample 2 of 10 in 0.04 seconds.
-Generated RW sample 3 of 10 in 0.04 seconds.
-Generated RW sample 4 of 10 in 0.04 seconds.
-Generated RW sample 5 of 10 in 0.04 seconds.
-Generated RW sample 6 of 10 in 0.03 seconds.
-Generated RW sample 7 of 10 in 0.03 seconds.
-Generated RW sample 8 of 10 in 0.03 seconds.
-Generated RW sample 9 of 10 in 0.03 seconds.
-Generated RW sample 10 of 10 in 0.03 seconds.
-
-Evaluating populations for this sample... (ranks off for walk steps, on for neighbours)
-Evaluated RW population 1 of 10 in 0.48 seconds.
-Evaluated RW population 2 of 10 in 0.26 seconds.
-Evaluated RW population 3 of 10 in 0.25 seconds.
-Evaluated RW population 4 of 10 in 0.23 seconds.
-Evaluated RW population 5 of 10 in 0.22 seconds.
-Evaluated RW population 6 of 10 in 0.20 seconds.
-Evaluated RW population 7 of 10 in 0.21 seconds.
-Evaluated RW population 8 of 10 in 0.25 seconds.
-Evaluated RW population 9 of 10 in 0.21 seconds.
-Evaluated RW population 10 of 10 in 0.21 seconds.
-
-Initialising feature evaluation for RW features.
-Evaluated RW features for sample 1 out of 10 in 0.42 seconds.
-Evaluated RW features for sample 2 out of 10 in 0.40 seconds.
-Evaluated RW features for sample 3 out of 10 in 0.42 seconds.
-Evaluated RW features for sample 4 out of 10 in 0.48 seconds.
-Evaluated RW features for sample 5 out of 10 in 0.41 seconds.
-Evaluated RW features for sample 6 out of 10 in 0.40 seconds.
-Evaluated RW features for sample 7 out of 10 in 0.39 seconds.
-Evaluated RW features for sample 8 out of 10 in 0.40 seconds.
-Evaluated RW features for sample 9 out of 10 in 0.43 seconds.
-Evaluated RW features for sample 10 out of 10 in 0.45 seconds.
-
-Evaluated all RW features
-
-Initialising Random Walk Analysis 2 of 2 for MW1_d10
-
-Generating samples (walks + neighbours) for RW features with the following properties:
-- Number of walks: 10
-- Number of steps per walk: 30
-- Step size (% of instance domain): 1.0
-- Neighbourhood size: 21
-
-Generated RW sample 1 of 10 in 0.03 seconds.
-Generated RW sample 2 of 10 in 0.03 seconds.
-Generated RW sample 3 of 10 in 0.03 seconds.
-Generated RW sample 4 of 10 in 0.03 seconds.
-Generated RW sample 5 of 10 in 0.05 seconds.
-Generated RW sample 6 of 10 in 0.03 seconds.
-Generated RW sample 7 of 10 in 0.03 seconds.
-Generated RW sample 8 of 10 in 0.04 seconds.
-Generated RW sample 9 of 10 in 0.03 seconds.
-Generated RW sample 10 of 10 in 0.03 seconds.
-
-Evaluating populations for this sample... (ranks off for walk steps, on for neighbours)
-Evaluated RW population 1 of 10 in 0.22 seconds.
-Evaluated RW population 2 of 10 in 0.22 seconds.
-Evaluated RW population 3 of 10 in 0.21 seconds.
-Evaluated RW population 4 of 10 in 0.20 seconds.
-Evaluated RW population 5 of 10 in 0.20 seconds.
-Evaluated RW population 6 of 10 in 0.21 seconds.
-Evaluated RW population 7 of 10 in 0.22 seconds.
-Evaluated RW population 8 of 10 in 0.20 seconds.
-Evaluated RW population 9 of 10 in 0.21 seconds.
-Evaluated RW population 10 of 10 in 0.20 seconds.
-
-Initialising feature evaluation for RW features.
-Evaluated RW features for sample 1 out of 10 in 0.43 seconds.
-Evaluated RW features for sample 2 out of 10 in 0.40 seconds.
-Evaluated RW features for sample 3 out of 10 in 0.46 seconds.
-Evaluated RW features for sample 4 out of 10 in 0.45 seconds.
-Evaluated RW features for sample 5 out of 10 in 0.39 seconds.
-Evaluated RW features for sample 6 out of 10 in 0.37 seconds.
-Evaluated RW features for sample 7 out of 10 in 0.44 seconds.
-Evaluated RW features for sample 8 out of 10 in 0.46 seconds.
-Evaluated RW features for sample 9 out of 10 in 0.47 seconds.
-Evaluated RW features for sample 10 out of 10 in 0.43 seconds.
-
-Evaluated all RW features
-
- 
- ~~~~~~~~~~~~ Global Analysis  ~~~~~~~~~~~~ 
-
-Generating distributed samples for Global features with the following properties:
-- Num. points: 100
-- Num. iterations: 100
-- Method: lhs.scipy
-
-Discrepancy: 0.039087
-Generated Global sample 1 of 2 in 0.00 seconds.
-Discrepancy: 0.037025
-Generated Global sample 2 of 2 in 0.00 seconds.
-
-Evaluating populations for global samples...
-Evaluated Global population 1 of 2 in 0.06 seconds.
-Evaluated Global population 2 of 2 in 0.10 seconds.
-
-Initialising feature evaluation for Global features.
-Evaluated Global features for sample 1 out of 2 in 0.07 seconds.
-Evaluated Global features for sample 2 out of 2 in 0.08 seconds.
-
-Evaluated all Global features
-
-Successfully saved sample results to csv file for MW1_d10.
-
-C:\Users\richa\AppData\Local\Temp\ci-yNKai7NVjr\features\LandscapeAnalysis.py:252: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
-  dat[feature_name] = [getattr(self, f"{feature_name}")]
-C:\Users\richa\AppData\Local\Temp\ci-yNKai7NVjr\features\LandscapeAnalysis.py:252: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
-  dat[feature_name] = [getattr(self, f"{feature_name}")]
-C:\Users\richa\AppData\Local\Temp\ci-yNKai7NVjr\features\LandscapeAnalysis.py:252: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
-  dat[feature_name] = [getattr(self, f"{feature_name}")]
-C:\Users\richa\AppData\Local\Temp\ci-yNKai7NVjr\features\LandscapeAnalysis.py:252: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
-  dat[feature_name] = [getattr(self, f"{feature_name}")]
-C:\Users\richa\AppData\Local\Temp\ci-yNKai7NVjr\features\LandscapeAnalysis.py:252: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
-  dat[feature_name] = [getattr(self, f"{feature_name}")]
-C:\Users\richa\AppData\Local\Temp\ci-yNKai7NVjr\features\LandscapeAnalysis.py:252: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
-  dat[feature_name] = [getattr(self, f"{feature_name}")]
-C:\Users\richa\AppData\Local\Temp\ci-yNKai7NVjr\features\LandscapeAnalysis.py:252: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
-  dat[feature_name] = [getattr(self, f"{feature_name}")]
-C:\Users\richa\AppData\Local\Temp\ci-yNKai7NVjr\features\LandscapeAnalysis.py:252: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
-  dat[feature_name] = [getattr(self, f"{feature_name}")]
-C:\Users\richa\AppData\Local\Temp\ci-yNKai7NVjr\features\LandscapeAnalysis.py:252: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
-  dat[feature_name] = [getattr(self, f"{feature_name}")]
-C:\Users\richa\AppData\Local\Temp\ci-yNKai7NVjr\features\LandscapeAnalysis.py:252: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
-  dat[feature_name] = [getattr(self, f"{feature_name}")]
-Success!
-Successfully appended aggregated results to csv file.
-
-
-Running problem: MW2, dimension: 2
-Cleaning up /tmp/ci-yNKai7NVjr
+Cleaning up /tmp/ci-yfanWgos93

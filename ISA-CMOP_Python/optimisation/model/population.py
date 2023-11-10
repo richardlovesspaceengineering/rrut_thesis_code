@@ -96,7 +96,7 @@ class Population(np.ndarray):
 
         return np.asarray(rank_array)
 
-    def extract_uncons_ranks(self):
+    def extract_uncons_rank(self):
         rank_uncons_array = []
         for i in range(len(self)):
             rank_uncons_array.append(self[i].rank_uncons)
@@ -129,7 +129,7 @@ class Population(np.ndarray):
             rank_array = self.extract_rank()
             rank_name = "rank"
         else:
-            rank_array = self.extract_uncons_ranks()
+            rank_array = self.extract_uncons_rank()
             rank_name = "rank_uncons"
 
         num_best = np.count_nonzero(rank_array == 1)
@@ -361,7 +361,7 @@ class Population(np.ndarray):
         np.savetxt(filename, self.extract_rank())
 
     def write_rank_uncons_to_csv(self, filename):
-        np.savetxt(filename, self.extract_uncons_ranks())
+        np.savetxt(filename, self.extract_uncons_rank())
 
     def write_pf_to_csv(self, filename):
         np.savetxt(filename, self.extract_pf())

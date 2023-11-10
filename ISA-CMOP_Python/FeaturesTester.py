@@ -2,8 +2,11 @@ from ProblemEvaluator import ProblemEvaluator
 import numpy as np
 from pymoo.problems import get_problem
 import matplotlib.pyplot as plt
+from optimisation.model.population import Population
 
 import copy
+
+from optimisation.operators.sampling.AdaptiveWalk import AdaptiveWalk
 
 
 from features.globalfeatures import (
@@ -28,6 +31,46 @@ from features.randomwalkfeatures import (
     compute_neighbourhood_dominance_features,
     normalise_objective_space,
 )
+
+
+def plot_adaptive_walk(problem):
+    # Create a 2x2 grid of subplots
+    fig, ax_obj = plt.subplots(5, 5, figsize=(10, 10))
+    # fig, ax_var = plt.subplots(5, 5, figsize=(10, 10))
+    for i in range(5):
+        for j in range(5):
+            # Define bounds for each subplot
+            aw = AdaptiveWalk(problem, 1000, 0.02, 21)
+
+            # Starting zone binary array.
+            starting_zone = np.array([1 for _ in range(10)])
+
+            # Simulate adaptive walk.
+            walk = aw.do_adaptive_walk(
+                starting_zone=starting_zone, constrained_ranks=True, seed=1
+            )
+
+            # Evaluate population and plot objectives.
+            pop = Population(problem, n_individuals=walk.shape[0])
+            pop.evaluate(walk, eval_fronts=False)
+            obj = pop.extract_obj()
+            ax_obj[i, j].plot(obj[:, 0], obj[:, 1], "b-")
+            ax_obj[i, j].plot(obj[0, 0], obj[0, 1], "ko")
+            ax_obj[i, j].plot(obj[-1, 0], obj[-1, 1], "rx")
+
+            # Plot decision variables.
+            # var = pop.extract_var()
+            # ax_var[i, j].plot(var[:, 0], var[:, 1], "g-")
+            # ax_var[i, j].plot(var[0, 0], var[0, 1], "ko")
+            # ax_var[i, j].plot(var[-1, 0], var[-1, 1], "rx")
+
+            # Plot CV
+
+    # Adjust subplot spacing
+    plt.tight_layout()
+
+    # Show the plot
+    plt.show()
 
 
 def plot_transformed_objective_space(
@@ -94,11 +137,12 @@ def plot_transformed_objective_space(
 if __name__ == "__main__":
     # Flags for which feature set we want to test.
     sample_global = False
-    sample_rw = True
+    sample_rw = False
+    sample_aw = True
 
     # Example problem.
-    n_var = 10
-    problem_name = "MW11"
+    n_var = 5
+    problem_name = "MW1"
     problem = get_problem(problem_name, n_var)
     instance_string = f"{problem_name}_d{n_var}"
 
@@ -234,3 +278,9 @@ if __name__ == "__main__":
             ncr = compute_neighbourhood_crash_ratio(
                 pop_neighbours_new, pop_neighbours_checked
             )
+
+    if sample_aw:
+        plot_aw = True
+
+        if plot_aw:
+            plot_adaptive_walk(problem)

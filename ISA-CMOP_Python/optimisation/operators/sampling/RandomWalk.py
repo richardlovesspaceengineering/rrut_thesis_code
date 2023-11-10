@@ -1,4 +1,3 @@
-# %%
 from optimisation.model.sampling import Sampling
 import numpy as np
 import matplotlib.pyplot as plt
@@ -41,6 +40,30 @@ class RandomWalk(Sampling):
         bit = 1 - bit  # flip between 1 and 0
         return bit
 
+    def generate_starting_zone_point(self, starting_zone, tol=1e-5):
+        starting_point = np.zeros(self.dim)  # array to store the walk
+
+        # First step of the adaptive walk.
+        for i in range(self.dim):
+            r = np.random.uniform(0, (self.bounds[1, i] - self.bounds[0, i]) / 2)
+            if starting_zone[i] == 1:
+                starting_point[i] = self.bounds[1, i] - r
+            else:
+                starting_point[i] = self.bounds[0, i] + r
+
+        # Generate random dimension and constrain to start on the boundary.
+        r_dim = np.random.randint(0, self.dim)
+
+        # Some problems are strictly bounded from above/below i.e we should not evaluate directly on the boundary.
+        # Rescale tolerance by search space range for this dimension.
+        tol = tol * (self.bounds[1, r_dim] - self.bounds[0, r_dim])
+        if starting_zone[r_dim] == 1:
+            starting_point[r_dim] = self.bounds[1, r_dim] - tol
+        else:
+            starting_point[r_dim] = self.bounds[0, r_dim] + tol
+
+        return np.atleast_2d(starting_point)
+
     def do_progressive_walk(self, starting_zone, seed=None):
         """
         Simulate a progressive random walk using the implementation from Malan 2014. Given a certain starting zone (as a bit array), the walk will be biased towards reaching the other corner.
@@ -50,20 +73,7 @@ class RandomWalk(Sampling):
         np.random.seed(seed)
 
         # First step of the progressive random walk.
-        for i in range(self.dim):
-            r = np.random.uniform(0, (self.bounds[1, i] - self.bounds[0, i]) / 2)
-            if starting_zone[i] == 1:
-                walk[0, i] = self.bounds[1, i] - r
-            else:
-                walk[0, i] = self.bounds[0, i] + r
-
-        # Generate random dimension and constrain to start on the boundary.
-        r_dim = np.random.randint(0, self.dim)
-
-        if starting_zone[r_dim] == 1:
-            walk[0, r_dim] = self.bounds[1, r_dim]
-        else:
-            walk[0, r_dim] = self.bounds[0, r_dim]
+        walk[0, :] = self.generate_starting_zone_point(starting_zone)
 
         # Simulate the rest of the walk.
         for i in range(1, self.num_steps):
@@ -285,5 +295,3 @@ if __name__ == "__main__":
 
     # # Show the plot
     # plt.show()
-
-# %%

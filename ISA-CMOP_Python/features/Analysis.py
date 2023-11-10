@@ -61,6 +61,8 @@ class MultipleAnalysis:
             s = "Global"
         elif cls_name == "MultipleRandomWalkAnalysis":
             s = "RW"
+        elif cls_name == "MultipleAdaptiveWalkAnalysis":
+            s = "AW"
 
         print("\nInitialising feature evaluation for {} features.".format(s))
         for ctr, a in enumerate(self.analyses):
@@ -102,3 +104,27 @@ class MultipleAnalysis:
                 (f"{feature_name}_array"),
                 self.generate_array_for_feature(feature_name),
             )
+
+    @staticmethod
+    def concatenate_multiple_analyses(multiple_analyses, MultipleAnalysisType):
+        """
+        Concatenate feature arrays from  multiple MultipleRandomWalkAnalysis objects into one.
+        """
+
+        # Create a new MultipleAnalysis object with the combined populations
+        combined_analysis = MultipleAnalysisType([], [])
+
+        # Extract the feature names too.
+        combined_analysis.feature_names = multiple_analyses[0].feature_names
+
+        # Iterate through feature names
+        for feature_name in combined_analysis.feature_names:
+            feature_arrays = [
+                getattr(ma, f"{feature_name}_array") for ma in multiple_analyses
+            ]
+            combined_array = np.concatenate(feature_arrays)
+
+            # Save as attribute array in the combined_analysis object
+            setattr(combined_analysis, f"{feature_name}_array", combined_array)
+
+        return combined_analysis

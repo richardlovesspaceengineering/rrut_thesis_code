@@ -16,16 +16,19 @@ class LandscapeAnalysis:
     Collates all features for one sample.
     """
 
-    def __init__(self, globalanalysis, randomwalkanalysis):
+    def __init__(self, globalanalysis, randomwalkanalysis, adaptivewalkanalysis):
         """
         Give instances of MultipleGlobalAnalysis and MultipleRandomWalkAnalysis here.
         """
         self.globalanalysis = globalanalysis
         self.randomwalkanalysis = randomwalkanalysis
+        self.adaptivewalkanalysis = adaptivewalkanalysis
 
         # Initialise features.
         self.feature_names = (
-            self.globalanalysis.feature_names + self.randomwalkanalysis.feature_names
+            self.globalanalysis.feature_names
+            + self.randomwalkanalysis.feature_names
+            + self.adaptivewalkanalysis.feature_names
         )
 
         self.initialize_arrays_and_scalars()
@@ -68,6 +71,12 @@ class LandscapeAnalysis:
                     self,
                     f"{feature_name}_array",
                     getattr(self.randomwalkanalysis, f"{feature_name}_array"),
+                )
+            elif feature_name in self.adaptivewalkanalysis.feature_names:
+                setattr(
+                    self,
+                    f"{feature_name}_array",
+                    getattr(self.adaptivewalkanalysis, f"{feature_name}_array"),
                 )
             else:
                 # Handle cases where feature_name is not found in either set of feature names
@@ -258,12 +267,15 @@ class LandscapeAnalysis:
         """
         global_dat = pd.DataFrame()
         rw_dat = pd.DataFrame()
+        aw_dat = pd.DataFrame()
         for feature_name in self.feature_names:
             if feature_name in self.globalanalysis.feature_names:
                 global_dat[feature_name] = getattr(self, f"{feature_name}_array")
             elif feature_name in self.randomwalkanalysis.feature_names:
                 rw_dat[feature_name] = getattr(self, f"{feature_name}_array")
-        return global_dat, rw_dat
+            elif feature_name in self.adaptivewalkanalysis.feature_names:
+                aw_dat[feature_name] = getattr(self, f"{feature_name}_array")
+        return global_dat, rw_dat, aw_dat
 
     def export_unaggregated_feature_table(self, dat, instance_name, sampling_method):
         """

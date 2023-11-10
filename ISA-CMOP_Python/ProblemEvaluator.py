@@ -7,8 +7,10 @@ import time
 import os
 
 # User packages.
+from features.feature_helpers import generate_bounds_from_problem
 from features.GlobalAnalysis import MultipleGlobalAnalysis
 from features.RandomWalkAnalysis import MultipleRandomWalkAnalysis
+from features.AdaptiveWalkAnalysis import MultipleAdaptiveWalkAnalysis
 from features.LandscapeAnalysis import LandscapeAnalysis
 from optimisation.operators.sampling.latin_hypercube_sampling import (
     LatinHypercubeSampling,
@@ -18,6 +20,8 @@ from optimisation.operators.sampling.random_sampling import RandomSampling
 import numpy as np
 from optimisation.model.population import Population
 from optimisation.operators.sampling.RandomWalk import RandomWalk
+from optimisation.operators.sampling.AdaptiveWalk import AdaptiveWalk
+from features.Analysis import Analysis, MultipleAnalysis
 
 
 class ProblemEvaluator:
@@ -106,7 +110,7 @@ class ProblemEvaluator:
 
     def evaluate_populations_for_rw_features(self, problem, walks_neighbours_list):
         print(
-            "\nEvaluating populations for this sample... (ranks off for walk steps, on for neighbours)"
+            "\nEvaluating populations for this walk sample... (ranks off for walk steps, on for neighbours)"
         )
 
         # Lists saving populations and neighbours for features evaluation later.
@@ -142,7 +146,7 @@ class ProblemEvaluator:
             elapsed_time = end_time - start_time
 
             print(
-                "Evaluated RW population {} of {} in {:.2f} seconds.".format(
+                "Evaluated population {} of {} in {:.2f} seconds.".format(
                     ctr + 1, len(walks_neighbours_list), elapsed_time
                 )
             )
@@ -197,6 +201,7 @@ class ProblemEvaluator:
             )
 
             # Then evaluate populations across the independent random walks.
+            print("\nEvaluating populations for these RW samples...")
             pops_walks_neighbours = self.evaluate_populations_for_rw_features(
                 problem, walks_neighbours_list
             )
@@ -207,8 +212,8 @@ class ProblemEvaluator:
             )
 
         # Now concatenate the rw_features into one large MultipleRandomWalkAnalysis object.
-        rw_features = MultipleRandomWalkAnalysis.concatenate_multiple_analyses(
-            rw_features_list
+        rw_features = MultipleAnalysis.concatenate_multiple_analyses(
+            rw_features_list, MultipleRandomWalkAnalysis
         )
         return rw_features
 
@@ -307,6 +312,146 @@ class ProblemEvaluator:
 
         return global_features
 
+    def sample_for_aw_features(
+        self, problem, max_steps, step_size, neighbourhood_size, distributed_sample_size
+    ):
+        """
+        Generate adaptive walk samples.
+        """
+        # Create distributed sample.
+
+        print("Generating adaptive walk samples with the following properties:")
+        print("- Number of walks: {}".format(distributed_sample_size))
+        print("- Maximum number of steps: {}".format(max_steps))
+        print("- Step size (% of instance domain): {}".format(step_size * 100))
+        print("- Neighbourhood size: {}".format(neighbourhood_size))
+
+        print(
+            "Generating lhs.scipy sample used as starting points for the adaptive walk..."
+        )
+        print("- Sample size: {}".format(distributed_sample_size))
+        start_time = time.time()
+        sampler = LatinHypercubeSampling(criterion="maximin", method="scipy")
+        sampler.do(
+            n_samples=distributed_sample_size, x_lower=problem.xl, x_upper=problem.xu
+        )
+
+        distributed_sample = sampler.x
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        print("Generated in {:.2f} seconds.\n".format(elapsed_time))
+
+        # Now initialise adaptive walk generator.
+
+        awGenerator = AdaptiveWalk(
+            generate_bounds_from_problem(problem),
+            max_steps,
+            step_size,
+            neighbourhood_size,
+            problem
+        )
+
+        # Sample along walk.
+        adaptive_walks_neighbours_list = []
+        for i in range(distributed_sample.shape[0]):
+            start_time = time.time()
+            new_walk = awGenerator.do_adaptive_phc_walk_for_starting_point(
+                distributed_sample[i, :], constrained_ranks=True
+            )  # TODO: add both constrained and unconstrained.
+            new_neighbours = awGenerator.generate_neighbours_for_walk(new_walk)
+            adaptive_walks_neighbours_list.append((new_walk, new_neighbours))
+            end_time = time.time()
+            elapsed_time = end_time - start_time
+            print(
+                "Generated AW sample {} of {} in {:.2f} seconds. Length: {}".format(
+                    i + 1,
+                    distributed_sample_size,
+                    elapsed_time,
+                    adaptive_walks_neighbours_list[i][0].shape[0],
+                )
+            )
+
+        return adaptive_walks_neighbours_list
+
+    def evaluate_populations_for_aw_features(
+        self, problem, adaptive_walks_neighbours_list
+    ):
+        # Lists saving populations and neighbours for features evaluation later.
+        pops_adaptive_walks_neighbours = self.evaluate_populations_for_rw_features(
+            problem, adaptive_walks_neighbours_list
+        )
+
+        return pops_adaptive_walks_neighbours
+
+    def evaluate_aw_features_for_one_sample(self, pops_adaptive_walks_neighbours):
+        """
+        Evaluate the RW features for one sample (i.e a set of random walks)
+        """
+        pops_walks = [t[0] for t in pops_adaptive_walks_neighbours]
+        pops_neighbours_list = [t[1] for t in pops_adaptive_walks_neighbours]
+        rw_features_single_sample = MultipleAdaptiveWalkAnalysis(
+            pops_walks, pops_neighbours_list
+        )
+        rw_features_single_sample.eval_features_for_all_populations()
+        return rw_features_single_sample
+
+    def do_adaptive_walk_analysis(self, problem, num_samples, instance_name):
+        # Per-sample arrays.
+        aw_features_list = []
+
+        n_var = problem.n_var
+
+        if self.mode == "eval":
+            # Experimental setup of Alsouly
+            neighbourhood_size = 2 * (2 * n_var + 1)
+            max_steps = 1000
+            step_size = 0.01  # 1% of the range of the instance domain
+
+            # TODO: set this value
+            distributed_sample_size = n_var * 10
+        elif self.mode == "debug":
+            # Runs quickly
+            neighbourhood_size = 2 * n_var + 1
+            max_steps = 100
+            step_size = 0.01  # 1% of the range of the instance domain
+            distributed_sample_size = 5
+
+        # We need to generate 30 samples per instance.
+        for i in range(num_samples):
+            print(
+                "Initialising Adaptive Walk Analysis {} of {} for {}".format(
+                    i + 1, num_samples, instance_name
+                )
+            )
+
+            ## Evaluate AW features.
+
+            # Begin by sampling.
+            adaptive_walks_neighbours_list = self.sample_for_aw_features(
+                problem,
+                max_steps,
+                step_size,
+                neighbourhood_size,
+                distributed_sample_size,
+            )
+
+            # Then evaluate populations across the independent random walks.
+            print("\nEvaluating populations for these AW samples...")
+            pops_adaptive_walks_neighbours = self.evaluate_populations_for_aw_features(
+                problem, adaptive_walks_neighbours_list
+            )
+
+            # Finally, evaluate features.
+            aw_features_list.append(
+                self.evaluate_aw_features_for_one_sample(pops_adaptive_walks_neighbours)
+            )
+
+        # Now concatenate the rw_features into one large MultipleRandomWalkAnalysis object.
+        aw_features = MultipleAnalysis.concatenate_multiple_analyses(
+            aw_features_list, MultipleAdaptiveWalkAnalysis
+        )
+        return aw_features
+
     def do(self, num_samples, save_arrays):
         print(
             "\n------------------------ Evaluating instance: "
@@ -321,18 +466,22 @@ class ProblemEvaluator:
         )
 
         # Global Analysis.
-
-        # RW Analysis.
         print(" \n ~~~~~~~~~~~~ Global Analysis " + " ~~~~~~~~~~~~ \n")
         global_features = self.do_global_analysis(self.instance, num_samples)
 
+        # Adaptive Walk Analysis.
+        print(" \n ~~~~~~~~~~~~ AW Analysis " + " ~~~~~~~~~~~~ \n")
+        aw_features = self.do_adaptive_walk_analysis(
+            self.instance, num_samples, self.instance_name
+        )
+
         # Overall landscape analysis - putting it all together.
-        landscape = LandscapeAnalysis(global_features, rw_features)
+        landscape = LandscapeAnalysis(global_features, rw_features, aw_features)
         landscape.extract_feature_arrays()
 
         if save_arrays:
             # Write raw features results to a csv file.
-            global_dat, rw_dat = landscape.make_unaggregated_feature_tables()
+            global_dat, rw_dat, aw_dat = landscape.make_unaggregated_feature_tables()
 
             landscape.export_unaggregated_feature_table(
                 global_dat, self.instance_name, "global"
@@ -340,7 +489,9 @@ class ProblemEvaluator:
             landscape.export_unaggregated_feature_table(
                 rw_dat, self.instance_name, "rw"
             )
-
+            landscape.export_unaggregated_feature_table(
+                aw_dat, self.instance_name, "aw"
+            )
             print(
                 "Successfully saved sample results to csv file for {}.\n".format(
                     self.instance_name

@@ -34,6 +34,14 @@ def fit_linear_mdl(xdata, ydata):
     return mdl_r2, range_coeff
 
 
+def generate_bounds_from_problem(problem_instance):
+    # Bounds of the decision variables.
+    x_lower = problem_instance.xl
+    x_upper = problem_instance.xu
+    bounds = np.vstack((x_lower, x_upper))
+    return bounds
+
+
 def corr_coef(xdata, ydata, spearman=True, significance_level=0.05):
     """
     Get correlation coefficient and pvalue, suppressing warnings when a constant vector is input.

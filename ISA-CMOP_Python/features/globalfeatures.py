@@ -159,7 +159,7 @@ def fvc(pop):
         corr_obj[i] = corr_coef(cv, objx)
 
     # Find Spearman's correlation between CV and ranks of solutions.
-    uncons_ranks = pop.extract_uncons_ranks()
+    uncons_ranks = pop.extract_uncons_rank()
 
     # TODO: check whether we need Spearman's or Pearson's
     corr_f = corr_coef(cv, uncons_ranks, spearman=False)
@@ -205,7 +205,7 @@ def PiIZ(pop):
     # Find PiZ for each frontsXcon
 
     # May need to transpose.
-    uncons_ranks = pop.extract_uncons_ranks()
+    uncons_ranks = pop.extract_uncons_rank()
 
     # Axes may need to change depending on the structure of ranks. Right now we are taking the min of a column vector.
     minrank = np.min(uncons_ranks)
@@ -225,7 +225,7 @@ def rank_mdl(pop):
     """
 
     var = pop.extract_var()
-    uncons_ranks = pop.extract_uncons_ranks()
+    uncons_ranks = pop.extract_uncons_rank()
 
     # Reshape data for compatibility. Assumes that y = mx + b where x is a matrix, y is a column vector
     uncons_ranks = uncons_ranks.reshape((-1, 1))
