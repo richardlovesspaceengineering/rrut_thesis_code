@@ -299,13 +299,18 @@ class Population(np.ndarray):
         for i in range(len(self)):
             self[i].set_obj(obj[i, :])
 
-    def remove_nan_inf_rows(self, pop_type, reeval_fronts=False):
+    def remove_nan_inf_rows(self, pop_type, re_evaluate=True):
         """
         pop_type is "neig" or "walk" or "global"
 
         """
+
+        # TODO: remove the need for re-evaluation of the population.
+
         # Extract evaluated population values.
         var = self.extract_var()
+        obj = self.extract_obj()
+        cons = self.extract_cons()
 
         # Get indices of rows with NaN or infinity in the objective array
         nan_inf_idx = self.get_nan_inf_idx()
@@ -318,16 +323,25 @@ class Population(np.ndarray):
                     num_rows_removed, var.shape[1], pop_type
                 )
             )
+
+            # Remove nans from all affected arrays.
             var = np.delete(var, nan_inf_idx, axis=0)
+            obj = np.delete(obj, nan_inf_idx, axis=0)
+            cons = np.delete(cons, nan_inf_idx, axis=0)
+            obj = np.delete(obj, nan_inf_idx, axis=0)
+            obj = np.delete(obj, nan_inf_idx, axis=0)
 
             start_time = time.time()
 
-            # Create new population and evaluate.
-            new_pop = Population(self[0].problem, n_individuals=var.shape[0])
-            new_pop.evaluate(var, eval_fronts=reeval_fronts)
-            end_time = time.time()
-            elapsed_time = end_time - start_time
-            print("Re-evaluated in {:.2f} seconds.\n".format(elapsed_time))
+            if re_evaluate:
+                # Create new population and evaluate.
+                new_pop = Population(self[0].problem, n_individuals=var.shape[0])
+                new_pop.evaluate(var, eval_fronts=True)
+                end_time = time.time()
+                elapsed_time = end_time - start_time
+                print("Re-evaluated in {:.2f} seconds.\n".format(elapsed_time))
+            else:
+                print("Still implementing non-evaluation manipulation of pop.")
 
             return new_pop, num_rows_removed
         else:

@@ -26,10 +26,8 @@ def fit_linear_mdl(xdata, ydata):
     r2_unadj = mdl.score(xdata, ydata)
     mdl_r2 = 1 - (1 - r2_unadj) * (num_obs - 1) / (num_obs - num_coef - 1)
 
-    # Range. Ignore the intercepts.
-    # Why isn't this taking individual absolute values as the paper suggests? Maybe because all coefficients are positive?
-    # range_coeff = np.abs(np.max(mdl.coef_)) - np.abs(np.min(mdl.coef_))
-    range_coeff = np.max(mdl.coef_) - np.min(mdl.coef_)
+    # Range of magnitudes. Ignore the intercepts.
+    range_coeff = np.abs(np.max(mdl.coef_)) - np.abs(np.min(mdl.coef_))
 
     return mdl_r2, range_coeff
 
@@ -77,3 +75,44 @@ def autocorr(data, lag, spearman=True, significance_level=0.05):
     Compute autocorrelation of data with applied lag.
     """
     return corr_coef(data[:-lag], data[lag:], spearman, significance_level)
+
+
+import numpy as np
+from scipy.stats import pearsonr, spearmanr
+
+
+def compute_correlation_matrix(matrix, correlation_type, alpha=0.05):
+    """
+    Compute the correlation matrix of a given square matrix and trim based on significance.
+
+    Note that computed p-values are only valid for > 500 observations - otherwise a parametric test for significance should be done.
+
+    Parameters:
+    - matrix: 2D numpy array, square matrix
+    - correlation_type: str, either 'pearson' or 'spearman'
+    - alpha: float, significance level
+
+    Returns:
+    - correlation_matrix: 2D numpy array, correlation matrix with trimmed values
+    - significance_matrix: 2D numpy array, matrix indicating significance (True/False)
+    """
+
+    if correlation_type not in ["pearson", "spearman"]:
+        raise ValueError("Invalid correlation type. Use 'pearson' or 'spearman'.")
+    if correlation_type == "pearson":
+        correlation_matrix, p_values = pearsonr(matrix.T)
+    elif correlation_type == "spearman":
+        correlation_matrix, p_values = spearmanr(matrix, axis=0)
+
+    if correlation_matrix.ndim == 0:  # If the result is a scalar (2x2 matrix case)
+        correlation_matrix = np.array(
+            [[1, correlation_matrix], [correlation_matrix, 1]]
+        )
+        p_values = np.array([[1, p_values], [p_values, 1]])
+
+    significance_matrix = p_values > alpha
+
+    # Trim values based on significance
+    correlation_matrix[significance_matrix] = 0
+
+    return correlation_matrix, p_values

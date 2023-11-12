@@ -9,28 +9,9 @@ import copy
 from optimisation.operators.sampling.AdaptiveWalk import AdaptiveWalk
 
 
-from features.globalfeatures import (
-    cv_distr,
-    cv_mdl,
-    rank_mdl,
-    dist_corr,
-    f_corr,
-    f_decdist,
-    f_skew,
-    fvc,
-    PiIZ,
-)
+from features.globalfeatures import *
 
-from features.randomwalkfeatures import (
-    compute_solver_crash_ratio,
-    compute_neighbourhood_crash_ratio,
-    preprocess_nans,
-    compute_neighbourhood_distance_features,
-    compute_neighbourhood_hv_features,
-    compute_neighbourhood_violation_features,
-    compute_neighbourhood_dominance_features,
-    normalise_objective_space,
-)
+from features.randomwalkfeatures import *
 
 
 def plot_adaptive_walk(problem):
@@ -271,9 +252,11 @@ if __name__ == "__main__":
             pop_neighbours = pop_walk_neighbourhood[1]
 
             # Preprocess nans and infinities, compute solver crash ratio and update attributes.
-            pop_new, pop_neighbours_new, pop_neighbours_checked = preprocess_nans(
-                pop_walk, pop_neighbours
-            )
+            (
+                pop_new,
+                pop_neighbours_new,
+                pop_neighbours_checked,
+            ) = preprocess_nans_on_walks(pop_walk, pop_neighbours)
             scr = compute_solver_crash_ratio(pop_walk, pop_new)
             ncr = compute_neighbourhood_crash_ratio(
                 pop_neighbours_new, pop_neighbours_checked

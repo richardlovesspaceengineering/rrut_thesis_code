@@ -228,7 +228,7 @@ class ProblemEvaluator:
             iterations = num_points
         elif self.mode == "debug":
             # Runs quickly.
-            num_points = int(n_var * 10)
+            num_points = int(n_var * 50)
             iterations = num_points
 
         # Split the method string to extract the method name

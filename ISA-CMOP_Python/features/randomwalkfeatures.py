@@ -9,10 +9,10 @@ import copy
 import time
 
 
-def preprocess_nans(pop_walk, pop_neighbours):
+def preprocess_nans_on_walks(pop_walk, pop_neighbours):
     # Remove any steps and corresponding neighbours if they contain infs or nans.
     pop_walk_new, num_rows_removed = pop_walk.remove_nan_inf_rows(
-        "walk", reeval_fronts=False
+        "walk", re_evaluate=True
     )
     removal_idx = pop_walk.get_nan_inf_idx()
     pop_neighbours_new = [
@@ -30,8 +30,8 @@ def preprocess_nans(pop_walk, pop_neighbours):
         # Extract neighbours for this point and append.
         pop_neighbourhood = copy.deepcopy(pop_neighbours_new[i])
         pop_neighbourhood, num_rows_removed = pop_neighbourhood.remove_nan_inf_rows(
-            "neig", reeval_fronts=True
-        )
+            "neig", re_evaluate=True
+        )  # Don't think we need to revaluate fronts.
 
         # Save to list.
         pop_neighbours_checked.append(pop_neighbourhood)

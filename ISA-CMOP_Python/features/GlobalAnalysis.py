@@ -1,15 +1,5 @@
 import numpy as np
-from features.globalfeatures import (
-    cv_distr,
-    cv_mdl,
-    rank_mdl,
-    dist_corr,
-    f_corr,
-    f_decdist,
-    f_skew,
-    fvc,
-    PiIZ,
-)
+from features.globalfeatures import *
 
 from scipy.stats import yeojohnson
 from features.Analysis import Analysis, MultipleAnalysis
@@ -21,74 +11,104 @@ class GlobalAnalysis(Analysis):
     """
 
     def eval_features(self):
-        # TODO: refactor to remove these shitty getters. Can do more at once here now that I need lots of things from my functions.
-        self.features["fsr"] = self.get_fsr()
-        self.features["corr_cf"] = self.get_corr_cf()
-        self.features["f_mdl_r2"] = self.get_f_mdl_r2()
-        self.features["dist_c_corr"] = self.get_dist_c_corr()
-        self.features["min_cv"] = self.get_min_cv()
-        self.features["skew_rnge"] = self.get_skew_rnge()
-        self.features["piz_ob_min"] = self.get_piz_ob_min()
-        self.features["ps_dist_iqr_mean"] = self.get_ps_dist_iqr_mean()
-        self.features["cpo_upo_n"] = self.get_cpo_upo_n()
-        self.features["corr_obj"] = self.get_corr_obj()
+        # Feasibility
+        self.features["fsr"] = compute_fsr(self.pop)
 
-        # Fit linear model then save related features of interest.
-        self.eval_cv_mdl()
-        self.features["cv_range_coeff"] = self.get_cv_range_coeff()
-        self.features["cv_mdl_r2"] = self.get_cv_mdl_r2()
+        # Global scr. "glob" will be appended to the name in the results file.
+        # self.features["scr"] =
 
-    def get_fsr(self):
-        feasible = self.pop.extract_feasible()
-        return len(feasible) / len(self.pop)
+        # Correlation of objectives.
+        (
+            self.features["corr_obj_min"],
+            self.features["corr_obj_max"],
+            self.features["corr_obj_range"],
+        ) = corr_obj(self.pop)
 
-    def get_corr_cf(self):
-        return fvc(self.pop)[1]
+        # Skewness of objective values.
+        (
+            self.features["skew_avg"],
+            self.features["skew_min"],
+            self.features["skew_max"],
+            self.features["skew_rnge"],
+        ) = obj_skew(self.pop)
 
-    def get_f_mdl_r2(self):
-        return rank_mdl(self.pop)[0]
+        # Kurtosis of objective values.
+        (
+            self.features["kurt_avg"],
+            self.features["kurt_min"],
+            self.features["kurt_max"],
+            self.features["kurt_rnge"],
+        ) = obj_kurt(self.pop)
 
-    def get_dist_c_corr(self):
-        return dist_corr(self.pop, self.pop.extract_nondominated())
+        # Distribution of unconstrained ranks.
+        (
+            self.features["mean_uc_rk"],
+            self.features["std_uc_rk"],
+            self.features["min_uc_rk"],
+            self.features["max_uc_rk"],
+            self.features["skew_uc_rk"],
+            self.features["kurt_uc_rk"],
+        ) = uc_rk_distr(self.pop)
 
-    def get_min_cv(self):
-        return cv_distr(self.pop)[2]
+        # Distribution of CV.
+        (
+            self.features["mean_cv"],
+            self.features["std_cv"],
+            self.features["min_cv"],
+            self.features["max_cv"],
+            self.features["skew_cv"],
+            self.features["kurt_cv"],
+        ) = cv_distr(self.pop)
 
-    def get_skew_rnge(self):
-        return f_skew(self.pop)[-1]
+        # Proportion of solutions in ideal zone per objectives and overall proportion of solutions in ideal zone.
+        (
+            self.features["piz_ob_min"],
+            self.features["piz_ob_max"],
+            self.features["piz_ob_f"],
+        ) = PiIZ(self.pop)
 
-    def get_piz_ob_min(self):
-        return np.min(PiIZ(self.pop)[0])
+        # Pareto set and front properties.
+        (
+            self.features["PS_dist_max"],
+            self.features["PS_dist_mean"],
+            self.features["PS_dist_iqr"],
+            self.features["PF_dist_max"],
+            self.features["PF_dist_mean"],
+            self.features["PF_dist_iqr"],
+        ) = compute_ps_pf_distances(self.pop)
 
-    def get_ps_dist_iqr_mean(self):
-        return f_decdist(self.pop, 1, 1)[-1]
+        # Get PF-UPF relationship features.
+        (
+            self.features["po_n"],
+            self.features["cpo_upo_n"],
+            self.features["cover_cpo_upo_n"],
+        ) = compute_PF_UPF_features(self.pop)
 
-    def get_cpo_upo_n(self):
-        nondominated_cons = self.pop.extract_nondominated(constrained=True)
-        nondominated_uncons = self.pop.extract_nondominated(constrained=False)
-        return len(nondominated_cons) / len(nondominated_uncons)
+        # Extract violation-distance correlation.
+        self.features["dist_c_corr"] = dist_corr(
+            self.pop, self.pop.extract_nondominated()
+        )
 
-    def eval_cv_mdl(self):
-        """
-        Ensures we only need to fit the linear model once per population.
-        """
-        mdl_r2, range_coeff = cv_mdl(self.pop)
-        self.cv_mdl_params = [mdl_r2, range_coeff]
+        # Correlations of objectives with cv, unconstrained ranks and then cv with ranks.
+        (
+            self.features["corr_obj_cv_min"],
+            self.features["corr_obj_cv_max"],
+            self.features["corr_obj_uc_rk_min"],
+            self.features["corr_obj_uc_rk_max"],
+            self.features["corr_cv_ranks"],
+        ) = compute_ranks_cv_corr(self.pop)
 
-    def get_cv_range_coeff(self):
-        """
-        Only works after eval_cv_mdl is run.
-        """
-        return self.cv_mdl_params[1]
+        # Decision variables-unconstrained ranks model properties.
+        (
+            self.features["rk_uc_mdl_r2"],
+            self.features["rk_uc_range_coeff"],
+        ) = rk_uc_dec_mdl(self.pop)
 
-    def get_corr_obj(self):
-        return f_corr(self.pop)
-
-    def get_cv_mdl_r2(self):
-        """
-        Only works after eval_cv_mdl is run.
-        """
-        return self.cv_mdl_params[0]
+        # Decision variables-CV model properties.
+        (
+            self.features["cv_mdl_r2"],
+            self.features["cv_range_coeff"],
+        ) = rk_uc_dec_mdl(self.pop)
 
 
 class MultipleGlobalAnalysis(MultipleAnalysis):

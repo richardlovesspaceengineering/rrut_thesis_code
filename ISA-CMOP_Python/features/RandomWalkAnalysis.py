@@ -26,7 +26,7 @@ class RandomWalkAnalysis(Analysis):
         """
 
         # Preprocess nans and infinities, compute solver crash ratio and update attributes.
-        pop_new, pop_neighbours_new, pop_neighbours_checked = preprocess_nans(
+        pop_new, pop_neighbours_new, pop_neighbours_checked = preprocess_nans_on_walks(
             self.pop, self.pop_neighbours_list
         )
         self.features["scr"] = compute_solver_crash_ratio(self.pop, pop_new)
