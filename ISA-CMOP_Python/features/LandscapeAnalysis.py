@@ -7,9 +7,6 @@ import math
 from features.GlobalAnalysis import GlobalAnalysis
 from features.RandomWalkAnalysis import RandomWalkAnalysis
 
-import os
-from datetime import datetime
-
 
 class LandscapeAnalysis:
     """
@@ -20,67 +17,30 @@ class LandscapeAnalysis:
         """
         Give instances of MultipleGlobalAnalysis and MultipleRandomWalkAnalysis here.
         """
-        self.globalanalysis = globalanalysis
-        self.randomwalkanalysis = randomwalkanalysis
-        self.adaptivewalkanalysis = adaptivewalkanalysis
+        self.analyses = {
+            "glob": globalanalysis,
+            "rw": randomwalkanalysis,
+            "aw": adaptivewalkanalysis,
+        }
+        self.feature_arrays = {}
+        self.aggregated_features = {}
+        self.combine_all_feature_dicts()
 
-        # Initialise features.
-        self.feature_names = (
-            self.globalanalysis.feature_names
-            + self.randomwalkanalysis.feature_names
-            + self.adaptivewalkanalysis.feature_names
-        )
+    def append_to_features_dict(
+        self, existing_features_dict, new_features_dict, method_suffix
+    ):
+        for feature_name, feature_value in new_features_dict.items():
+            existing_features_dict[feature_name + "_" + method_suffix] = feature_value
 
-        self.initialize_arrays_and_scalars()
+        return existing_features_dict
 
-    def initialize_arrays_and_scalars(self):
-        for feature in self.feature_names:
-            if feature in self.globalanalysis.feature_names:
-                array_length = len(self.globalanalysis.pops)
-            else:
-                array_length = len(self.randomwalkanalysis.pops)
+    def combine_all_feature_dicts(self):
+        new_dict = self.feature_arrays
+        for suffix, a in self.analyses.items():
+            new_dict = self.append_to_features_dict(new_dict, a.feature_arrays, suffix)
 
-            # Initialising feature arrays.
-            setattr(
-                self,
-                (f"{feature}_array"),
-                np.empty(array_length),
-            )
-
-        # Initialising feature values.
-        for feature in self.feature_names:
-            setattr(
-                self,
-                (f"{feature}"),
-                np.nan,
-            )
-
-    def extract_feature_arrays(self):
-        """
-        Save feature arrays into this instance.
-        """
-        for feature_name in self.feature_names:
-            if feature_name in self.globalanalysis.feature_names:
-                setattr(
-                    self,
-                    f"{feature_name}_array",
-                    getattr(self.globalanalysis, f"{feature_name}_array"),
-                )
-            elif feature_name in self.randomwalkanalysis.feature_names:
-                setattr(
-                    self,
-                    f"{feature_name}_array",
-                    getattr(self.randomwalkanalysis, f"{feature_name}_array"),
-                )
-            elif feature_name in self.adaptivewalkanalysis.feature_names:
-                setattr(
-                    self,
-                    f"{feature_name}_array",
-                    getattr(self.adaptivewalkanalysis, f"{feature_name}_array"),
-                )
-            else:
-                # Handle cases where feature_name is not found in either set of feature names
-                pass
+        # Save
+        self.feature_arrays = new_dict
 
     def plot_feature_histograms(self, num_bins=20):
         """
@@ -187,126 +147,41 @@ class LandscapeAnalysis:
         Aggregate feature for all populations. Must be called after extract_feature_arrays.
         """
 
-        # Initialise list of aggregated feature names.
-        self.aggregated_feature_names = []
-
-        for feature_name in self.feature_names:
+        for feature_name in self.feature_arrays:
             if feature_name in ["nrfbx"]:
-                statistic = ["mean", "min", "max", "median"]
+                statistics = ["mean", "min", "max", "median"]
             else:
-                statistic = ["mean", "std"]
+                statistics = ["mean", "std"]
 
-            if isinstance(statistic, list):
+            if isinstance(statistics, list):
                 # Compute and set multiple statistics
-
-                for stat in statistic:
+                for stat in statistics:
                     # Replace feature name with more descriptive names.
                     new_name = f"{feature_name}_{stat}"
 
-                    setattr(
-                        self,
-                        new_name,
-                        self.compute_statistic_for_feature(
-                            getattr(self, f"{feature_name}_array"), stat
-                        ),
+                    # Compute the statistic for the feature array
+                    aggregated_value = self.compute_statistic_for_feature(
+                        self.feature_arrays[feature_name], stat
                     )
-                    self.aggregated_feature_names.append(new_name)
 
-    def extract_features_vector(self):
-        """
-        Combine aggregated features into a single vector, ready to be projected by the projection matrix in Eq. (13) of Alsouly.
-
-        Must be called after extract_feature_scalars.
-
-        Returns a column vector ready for vector operations.
-        """
-        self.features_vector = np.array(
-            [
-                self.corr_cf,
-                self.f_mdl_r2,
-                self.dist_c_corr,
-                self.min_cv,
-                self.bhv_avg_rws,
-                self.skew_rnge,
-                self.piz_ob_min,
-                self.ps_dist_iqr_mean,
-                self.dist_c_dist_x_avg_rws,
-                self.cpo_upo_n,
-                self.cv_range_coeff,
-                self.corr_obj,
-                self.dist_f_dist_x_avg_rws,
-                self.cv_mdl_r2,
-            ],
-            ndmin=2,
-        ).reshape((-1, 1))
+                    # Store the aggregated value in the dictionary
+                    self.aggregated_features[new_name] = aggregated_value
 
     def map_features_to_instance_space(self):
-        """
-        Run after combine_features.
-        """
-        self.instance_space = self.projection_matrix @ self.features_vector
+        pass
 
     def make_aggregated_feature_table(self, instance_name):
         """
         Create a 1-row table of all the features to allow comparison.
         """
-        dat = pd.DataFrame()
+        # Create a DataFrame with all features
+        dat = pd.DataFrame(self.aggregated_features, index=[0])
 
-        # Add problem name and number of dimensions.
-        dat["Name"] = [instance_name]
-        dat["D"] = [instance_name.split("d")[1]]
-
-        # Add all features.
-        for feature_name in self.aggregated_feature_names:
-            dat[feature_name] = [getattr(self, f"{feature_name}")]
-        return dat
-
-    def make_unaggregated_feature_tables(self):
-        """
-        Create an n-samples-row table of all the features to allow comparison.
-        """
-        global_dat = pd.DataFrame()
-        rw_dat = pd.DataFrame()
-        aw_dat = pd.DataFrame()
-        for feature_name in self.feature_names:
-            if feature_name in self.globalanalysis.feature_names:
-                global_dat[feature_name] = getattr(self, f"{feature_name}_array")
-            elif feature_name in self.randomwalkanalysis.feature_names:
-                rw_dat[feature_name] = getattr(self, f"{feature_name}_array")
-            elif feature_name in self.adaptivewalkanalysis.feature_names:
-                aw_dat[feature_name] = getattr(self, f"{feature_name}_array")
-        return global_dat, rw_dat, aw_dat
-
-    def export_unaggregated_feature_table(self, dat, instance_name, sampling_method):
-        """
-        Write Pandas dataframe of raw features results to a csv file.
-        """
-        # Create a folder if it doesn't exist
-        results_folder = "instance_results"
-        if not os.path.exists(results_folder):
-            os.makedirs(results_folder)
-
-        # Get the current date and time
-        current_time = datetime.now().strftime("%b%d_%H%M")
-
-        # Create the file path
-        file_path = os.path.join(
-            results_folder,
-            f"{instance_name}_{sampling_method}_features_{current_time}.csv",
-        )
-
-        # Save the DataFrame to a CSV file
-        dat.to_csv(file_path, index=False)
+        # Add problem name and number of dimensions
+        dat.insert(0, "D", instance_name.split("d")[1])
+        dat.insert(0, "Name", instance_name)
 
         return dat
-
-    def make_unaggregated_global_feature_table(self):
-        return self.make_unaggregated_feature_table(self.globalanalysis.feature_names)
-
-    def make_unaggregated_rw_feature_table(self):
-        return self.make_unaggregated_feature_table(
-            self.randomwalkanalysis.feature_names
-        )
 
     def extract_experimental_results(self, csv_name="data/raw_features_alsouly.csv"):
         problem = self.globalanalysis.pops[0][0].problem

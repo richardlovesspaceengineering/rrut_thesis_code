@@ -17,7 +17,7 @@
         "type": "python",
         "request": "launch",
         "program": "${file}",
-        "args": ["MW11", "10", "1"],
+        "args": ["MW3", "2", "2", "debug", "false"],
         "console": "integratedTerminal"
     }
     

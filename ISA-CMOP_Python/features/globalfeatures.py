@@ -17,11 +17,11 @@ def cv_distr(pop):
     # Setting axis = 0 ensures computation columnwise. Output is a row vector.
     # want mean of entire matrix? Surely not. Maybe this is okay because the CV matrix is really just a column vector.
     mean_f = np.mean(cv, axis=None)
-    std_f = np.std(cv, axis=0)
-    min_f = np.min(cv, axis=0)
-    max_f = np.max(cv, axis=0)
-    kurt_f = kurtosis(cv, axis=0)
-    skew_f = skew(cv, axis=0)
+    std_f = np.std(cv)
+    min_f = np.min(cv)
+    max_f = np.max(cv)
+    kurt_f = kurtosis(cv)
+    skew_f = skew(cv)
 
     return mean_f, std_f, min_f, max_f, skew_f, kurt_f
 

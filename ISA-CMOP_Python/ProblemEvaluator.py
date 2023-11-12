@@ -348,7 +348,7 @@ class ProblemEvaluator:
             max_steps,
             step_size,
             neighbourhood_size,
-            problem
+            problem,
         )
 
         # Sample along walk.
@@ -464,41 +464,26 @@ class ProblemEvaluator:
         rw_features = self.do_random_walk_analysis(
             self.instance, num_samples, self.instance_name
         )
+        rw_features.export_unaggregated_features(self.instance_name, "rw", save_arrays)
 
         # Global Analysis.
         print(" \n ~~~~~~~~~~~~ Global Analysis " + " ~~~~~~~~~~~~ \n")
         global_features = self.do_global_analysis(self.instance, num_samples)
+        global_features.export_unaggregated_features(
+            self.instance_name, "glob", save_arrays
+        )
 
         # Adaptive Walk Analysis.
         print(" \n ~~~~~~~~~~~~ AW Analysis " + " ~~~~~~~~~~~~ \n")
         aw_features = self.do_adaptive_walk_analysis(
             self.instance, num_samples, self.instance_name
         )
+        rw_features.export_unaggregated_features(self.instance_name, "aw", save_arrays)
 
         # Overall landscape analysis - putting it all together.
         landscape = LandscapeAnalysis(global_features, rw_features, aw_features)
-        landscape.extract_feature_arrays()
 
-        if save_arrays:
-            # Write raw features results to a csv file.
-            global_dat, rw_dat, aw_dat = landscape.make_unaggregated_feature_tables()
-
-            landscape.export_unaggregated_feature_table(
-                global_dat, self.instance_name, "global"
-            )
-            landscape.export_unaggregated_feature_table(
-                rw_dat, self.instance_name, "rw"
-            )
-            landscape.export_unaggregated_feature_table(
-                aw_dat, self.instance_name, "aw"
-            )
-            print(
-                "Successfully saved sample results to csv file for {}.\n".format(
-                    self.instance_name
-                )
-            )
-
-            # TODO: save results to numpy binary format using savez. Will need to write functions that do so, and ones that can create a population by reading these in.
+        # TODO: save results to numpy binary format using savez. Will need to write functions that do so, and ones that can create a population by reading these in.
 
         # Perform aggregation.
         landscape.aggregate_features()

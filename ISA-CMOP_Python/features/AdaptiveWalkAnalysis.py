@@ -12,16 +12,13 @@ from features.RandomWalkAnalysis import RandomWalkAnalysis, MultipleRandomWalkAn
 class AdaptiveWalkAnalysis(RandomWalkAnalysis):
     def eval_features(self):
         # Determine PHC walk features.
-        self.dummy_aw_feature = 1
+        self.features["dummy_aw_feature"] = 1
 
 
 class MultipleAdaptiveWalkAnalysis(MultipleRandomWalkAnalysis):
     def __init__(self, pops_walks, pops_neighbours_list):
-        self.pops = pops_walks
-        self.analyses = []
-
-        if len(self.pops) != 0:
-            for ctr, pop in enumerate(pops_walks):
-                self.analyses.append(
-                    AdaptiveWalkAnalysis(pop, pops_neighbours_list[ctr])
-                )
+        super().__init__(
+            pops_walks,
+            pops_neighbours_list,
+            single_analysis_class=AdaptiveWalkAnalysis,
+        )

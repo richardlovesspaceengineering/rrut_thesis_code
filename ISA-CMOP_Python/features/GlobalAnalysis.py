@@ -20,30 +20,23 @@ class GlobalAnalysis(Analysis):
     Calculate all features generated from a random sample.
     """
 
-    def __init__(self, pop):
-        """
-        Population must already be evaluated.
-        """
-        super().__init__(pop)
-        self.pop = pop
-
     def eval_features(self):
         # TODO: refactor to remove these shitty getters. Can do more at once here now that I need lots of things from my functions.
-        self.fsr = self.get_fsr()
-        self.corr_cf = self.get_corr_cf()
-        self.f_mdl_r2 = self.get_f_mdl_r2()
-        self.dist_c_corr = self.get_dist_c_corr()
-        self.min_cv = self.get_min_cv()
-        self.skew_rnge = self.get_skew_rnge()
-        self.piz_ob_min = self.get_piz_ob_min()
-        self.ps_dist_iqr_mean = self.get_ps_dist_iqr_mean()
-        self.cpo_upo_n = self.get_cpo_upo_n()
-        self.corr_obj = self.get_corr_obj()
+        self.features["fsr"] = self.get_fsr()
+        self.features["corr_cf"] = self.get_corr_cf()
+        self.features["f_mdl_r2"] = self.get_f_mdl_r2()
+        self.features["dist_c_corr"] = self.get_dist_c_corr()
+        self.features["min_cv"] = self.get_min_cv()
+        self.features["skew_rnge"] = self.get_skew_rnge()
+        self.features["piz_ob_min"] = self.get_piz_ob_min()
+        self.features["ps_dist_iqr_mean"] = self.get_ps_dist_iqr_mean()
+        self.features["cpo_upo_n"] = self.get_cpo_upo_n()
+        self.features["corr_obj"] = self.get_corr_obj()
 
         # Fit linear model then save related features of interest.
         self.eval_cv_mdl()
-        self.cv_range_coeff = self.get_cv_range_coeff()
-        self.cv_mdl_r2 = self.get_cv_mdl_r2()
+        self.features["cv_range_coeff"] = self.get_cv_range_coeff()
+        self.features["cv_mdl_r2"] = self.get_cv_mdl_r2()
 
     def get_fsr(self):
         feasible = self.pop.extract_feasible()
