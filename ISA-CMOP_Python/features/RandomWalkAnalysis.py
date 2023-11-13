@@ -94,10 +94,10 @@ class RandomWalkAnalysis(Analysis):
             self.pop,
             self.pop_neighbours_list,
             self.normalisation_values,
-            norM_method="95th",
+            norm_method="95th",
         )
 
-        # Evaluate neighbourhood domination features
+        # Evaluate neighbourhood domination features. Note that no normalisation is needed for these.
         (
             self.features["sup_avg"],
             self.features["sup_r1"],

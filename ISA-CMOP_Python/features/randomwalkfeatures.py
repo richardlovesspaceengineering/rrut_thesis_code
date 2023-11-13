@@ -289,7 +289,7 @@ def compute_neighbourhood_hv_features(
 
 
 def compute_neighbourhood_violation_features(
-    pop_walk, pop_neighbours, normalisation_values, norm_method = 
+    pop_walk, pop_neighbours, normalisation_values, norm_method
 ):
     # Extract normalisation values.
     var_lb, var_ub, obj_lb, obj_ub, cv_lb, cv_ub = extract_norm_values(
@@ -299,7 +299,9 @@ def compute_neighbourhood_violation_features(
     # Extract evaluated population values.
     var = pop_walk.extract_var()
     obj = pop_walk.extract_obj()
-    cv = pop_walk.extract_cv()
+
+    # Should only need to normalsie CV here.
+    cv = apply_normalisation(pop_walk.extract_cv(), cv_lb, cv_ub)
 
     # Initialise arrays.
     cross_array = np.zeros(var.shape[0] - 1)
@@ -329,9 +331,9 @@ def compute_neighbourhood_violation_features(
 
     # Loop over each solution in the walk.
     for i in range(var.shape[0]):
-        # Extract neighbours for this point and append.
+        # Extract neighbours for this point and normalise.
         pop_neighbourhood = pop_neighbours[i]
-        neig_cv = pop_neighbourhood.extract_cv()
+        neig_cv = apply_normalisation(pop_neighbourhood.extract_cv(), cv_lb, cv_ub)
 
         # Average neighbourhood violation value.
         nncv_array[i] = np.mean(neig_cv)
@@ -341,7 +343,11 @@ def compute_neighbourhood_violation_features(
 
         # Average violation value of neighbourhood's non-dominated solutions.
         bncv_array[i] = np.mean(
-            pop_neighbourhood.extract_nondominated(constrained=True).extract_cv()
+            apply_normalisation(
+                pop_neighbourhood.extract_nondominated(constrained=True).extract_cv(),
+                cv_lb,
+                cv_ub,
+            )
         )
 
         # Feasible boundary crossing
