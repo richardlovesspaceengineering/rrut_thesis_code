@@ -39,15 +39,6 @@ def preprocess_nans_on_walks(pop_walk, pop_neighbours):
     return pop_walk_new, pop_neighbours_new, pop_neighbours_checked
 
 
-def compute_solver_crash_ratio(full_pop, trimmed_pop):
-    obj_full = full_pop.extract_obj()
-    obj_trimmed = trimmed_pop.extract_obj()
-
-    scr = 1 - obj_trimmed.shape[0] / obj_full.shape[0]
-
-    return scr
-
-
 def compute_neighbourhood_crash_ratio(
     full_pop_neighbours_list, trimmed_pop_neighbours_list
 ):
@@ -225,7 +216,7 @@ def compute_neighbourhood_hv_features(
         hvd_array.fill(np.nan)
         bhv_array.fill(np.nan)
         print(
-            "There are no individuals closer to the origin than the nadir. Setting all HV metrics for this sample to NaN."
+            "There are no individuals closer to the origin than the nadir. Setting all step HV metrics for this sample to NaN."
         )
     else:
         # Loop over each solution in the walk.
@@ -242,7 +233,9 @@ def compute_neighbourhood_hv_features(
                 hvd_array[i] = np.nan
                 bhv_array[i] = np.nan
                 print(
-                    "There are no neighbours closer to the origin than the nadir for step {} of {}. Setting all HV metrics for this step on the RW to NaN."
+                    "There are no neighbours closer to the origin than the nadir for step {} of {}. Setting all neighbourhood HV metrics for this step to NaN.".format(
+                        i + 1, obj.shape[0]
+                    )
                 )
             else:
                 # Compute HV of single solution at this step.
@@ -256,13 +249,25 @@ def compute_neighbourhood_hv_features(
                 # Compute HV difference between neighbours and that covered by the current solution
                 hvd_array[i] = nhv_array[i] - hv_single_soln_array[i]
 
-                # Compute HV of non-dominated neighbours.
-                bestrankobjs = apply_normalisation(
-                    pop_neighbourhood.extract_nondominated().extract_obj(),
-                    obj_lb,
-                    obj_ub,
+                # Compute HV of non-dominated neighbours (trimmed).
+                bestrankobjs, _ = trim_obj_using_nadir(
+                    apply_normalisation(
+                        pop_neighbourhood.extract_nondominated().extract_obj(),
+                        obj_lb,
+                        obj_ub,
+                    ),
+                    nadir,
                 )
-                bhv_array[i] = calculate_hypervolume_pygmo(bestrankobjs, nadir)
+                try:
+                    bhv_array[i] = calculate_hypervolume_pygmo(bestrankobjs, nadir)
+                except:
+                    # In case the NDFront is further from the origin than the nadir.
+                    bhv_array[i] = np.nan
+                    print(
+                        "There are no non-dominated neighbours closer to the origin than the nadir for step {} of {}. Setting HV metric bhv_avg to NaN.".format(
+                            i + 1, obj.shape[0]
+                        )
+                    )
 
     # Compute means (allowing for nans if need be)
     hv_single_soln_avg = np.nanmean(hv_single_soln_array)

@@ -275,3 +275,12 @@ def extract_norm_values(normalisation_values, norm_method):
     cv_ub = normalisation_values["cv" + s_ub]
 
     return var_lb, var_ub, obj_lb, obj_ub, cv_lb, cv_ub
+
+
+def compute_solver_crash_ratio(full_pop, trimmed_pop):
+    obj_full = full_pop.extract_obj()
+    obj_trimmed = trimmed_pop.extract_obj()
+
+    scr = 1 - obj_trimmed.shape[0] / obj_full.shape[0]
+
+    return scr

@@ -11,11 +11,17 @@ class GlobalAnalysis(Analysis):
     """
 
     def eval_features(self):
-        # Feasibility
-        self.features["fsr"] = compute_fsr(self.pop)
+        # Remove any samples if they contain infs or nans.
+        new_pop, _ = self.pop.remove_nan_inf_rows("global", re_evaluate=True)
 
         # Global scr. "glob" will be appended to the name in the results file.
-        # self.features["scr"] =
+        self.features["scr"] = compute_solver_crash_ratio(self.pop, new_pop)
+
+        # Now work with the trimmed population from now on.
+        self.pop = new_pop
+
+        # Feasibility
+        self.features["fsr"] = compute_fsr(self.pop)
 
         # Correlation of objectives.
         (
