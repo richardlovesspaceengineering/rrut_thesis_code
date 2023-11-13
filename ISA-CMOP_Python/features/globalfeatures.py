@@ -15,7 +15,6 @@ def cv_distr(pop):
     cv = pop.extract_cv()
 
     # Setting axis = 0 ensures computation columnwise. Output is a row vector.
-    # want mean of entire matrix? Surely not. Maybe this is okay because the CV matrix is really just a column vector.
     mean_cv = np.mean(cv)
     std_cv = np.std(cv)
     min_cv = np.min(cv)
@@ -38,7 +37,6 @@ def uc_rk_distr(pop):
     rank_uncons = pop.extract_uncons_rank()
 
     # Setting axis = 0 ensures computation columnwise. Output is a row vector.
-    # want mean of entire matrix? Surely not. Maybe this is okay because the CV matrix is really just a column vector.
     mean_uc_rk = np.mean(rank_uncons)
     std_uc_rk = np.std(rank_uncons)
     min_uc_rk = np.min(rank_uncons)

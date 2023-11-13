@@ -46,13 +46,16 @@ class MultipleAnalysis:
 
         cls_name = self.__class__.__name__
         if cls_name == "MultipleGlobalAnalysis":
-            s = "Global"
+            s1 = "Global"
+            s2 = "sample"
         elif cls_name == "MultipleRandomWalkAnalysis":
-            s = "RW"
+            s1 = "RW"
+            s2 = "walk"
         elif cls_name == "MultipleAdaptiveWalkAnalysis":
-            s = "AW"
+            s1 = "AW"
+            s2 = "walk"
 
-        print("\nInitialising feature evaluation for {} features.".format(s))
+        print("\nInitialising feature evaluation for {} features.".format(s1))
         for ctr, a in enumerate(self.analyses):
             start_time = time.time()
             a.eval_features()
@@ -60,12 +63,10 @@ class MultipleAnalysis:
             end_time = time.time()  # Record the end time
             elapsed_time = end_time - start_time
             print(
-                "Evaluated {} features for sample {} out of {} in {:.2f} seconds.".format(
-                    s, ctr + 1, len(self.analyses), elapsed_time
+                "Evaluated {} features for {} {} out of {} in {:.2f} seconds.".format(
+                    s1, s2, ctr + 1, len(self.analyses), elapsed_time
                 )
             )
-
-        print("\nEvaluated all {} features\n".format(s))
 
         # Generate corresponding arrays.
         self.generate_feature_arrays()
@@ -110,13 +111,13 @@ class MultipleAnalysis:
             dat = pd.DataFrame({k: list(v) for k, v in self.feature_arrays.items()})
             dat.to_csv(file_path, index=False)
             print(
-                "Successfully saved {} sample results to csv file for {}.\n".format(
+                "\nSuccessfully saved {} sample results to csv file for {}.\n".format(
                     method_suffix, instance_name
                 )
             )
             return dat
         else:
-            print("Saving of feature arrays for {} disabled.\n".format(method_suffix))
+            print("\nSaving of feature arrays for {} disabled.\n".format(method_suffix))
 
     @staticmethod
     def concatenate_multiple_analyses(multiple_analyses, AnalysisType):

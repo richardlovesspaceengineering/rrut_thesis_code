@@ -116,3 +116,60 @@ def compute_correlation_matrix(matrix, correlation_type, alpha=0.05):
     correlation_matrix[significance_matrix] = 0
 
     return correlation_matrix, p_values
+
+
+def normalise_objective_space_for_hv_calc(
+    pop_walk, pop_neighbours, PF, scale_offset=1.1, region_of_interest=False
+):
+    """
+    Normalise all objectives for HV calculation.
+
+    If computing population HV values, set region_of_interest to True to ensure objectives lie in the region of interest from Vodopija2023.
+
+    If computing neighbourhood HV values, set region_of_interest to False as neighbours generally do not fall in the region of interest.
+    """
+
+    # Merge walk objectives and neighbourhood objectives into one matrix.
+    merged_obj = pop_walk.extract_obj()
+    for pop_neighbourhood in pop_neighbours:
+        merged_obj = np.vstack((merged_obj, pop_neighbourhood.extract_obj()))
+
+    # fmin = np.minimum(np.min(obj, axis=0), np.zeros((1, PF.shape[1])))
+    fmin = np.minimum(np.min(merged_obj, axis=0), np.min(PF, axis=0))
+
+    if region_of_interest:
+        fmax = np.max(PF, axis=0)
+    else:
+        fmax = np.maximum(np.max(PF, axis=0), np.max(merged_obj, axis=0))
+
+    # Create copies to save these new objectives to.
+    pop_walk_normalised = copy.deepcopy(pop_walk)
+
+    # Normalise walk objectives and update the population.
+    obj_walk_normalised = apply_normalisation(
+        pop_walk.extract_obj(), fmin, fmax, scale=scale_offset
+    )
+    pop_walk_normalised.set_obj(obj_walk_normalised)
+
+    # Normalise neighbourhood objectives and update.
+    pop_neighbours_normalised = []
+    for pop_neighbourhood in pop_neighbours:
+        obj_neighbourhood_normalised = apply_normalisation(
+            pop_neighbourhood.extract_obj(), fmin, fmax, scale=scale_offset
+        )
+        pop_neighbourhood_normalised = copy.deepcopy(pop_neighbourhood)
+        pop_neighbourhood_normalised.set_obj(obj_neighbourhood_normalised)
+        pop_neighbours_normalised.append(pop_neighbourhood_normalised)
+
+    # Normalise PF.
+    PF_normalised = apply_normalisation(PF, fmin, fmax, scale=scale_offset)
+
+    # To keep us in the region of interest, remove any objectives larger than the nadir.
+    if region_of_interest:
+        obj_normalised = obj_normalised[~np.any(obj_normalised > 1, axis=1)]
+
+    return pop_walk_normalised, pop_neighbours_normalised, PF_normalised
+
+
+def apply_normalisation(obj, fmin, fmax, scale=1.1):
+    return (obj - fmin) / ((fmax - fmin) * scale)
