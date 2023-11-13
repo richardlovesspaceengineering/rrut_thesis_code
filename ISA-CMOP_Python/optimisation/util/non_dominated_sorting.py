@@ -66,7 +66,6 @@ class NonDominatedSorting(object):
 
         return fronts
 
-    # @staticmethod
     def fast_non_dominated_sort(self, obj_val, cons_val=None, first_front_only=False):
         # Calculate domination matrix
         m = dominator.calculate_domination_matrix(

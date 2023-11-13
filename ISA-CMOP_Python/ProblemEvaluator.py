@@ -255,7 +255,7 @@ class ProblemEvaluator:
             iterations = num_points
         elif self.mode == "debug":
             # Runs quickly.
-            num_points = int(n_var * 50)
+            num_points = int(n_var * 100)
             iterations = num_points
 
         # Split the method string to extract the method name
@@ -357,7 +357,7 @@ class ProblemEvaluator:
             step_size = 0.01  # 1% of the range of the instance domain
 
             # TODO: set this value
-            distributed_sample_size = n_var * 10
+            distributed_sample_size = n_var * 20
         elif self.mode == "debug":
             # Runs quickly
             neighbourhood_size = 2 * n_var + 1

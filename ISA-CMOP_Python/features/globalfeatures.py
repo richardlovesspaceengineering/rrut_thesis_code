@@ -6,13 +6,18 @@ from scipy.stats import iqr
 from optimisation.model.population import Population
 
 
-def cv_distr(pop):
+def cv_distr(pop, normalisation_values, norm_method):
     """
     Distribution of constraints violations.
     """
 
+    # Extract normalisation values.
+    var_lb, var_ub, obj_lb, obj_ub, cv_lb, cv_ub = extract_norm_values(
+        normalisation_values, norm_method
+    )
+
     # Remove any rows with imaginary values.
-    cv = pop.extract_cv()
+    cv = apply_normalisation(pop.extract_cv(), cv_lb, cv_ub)
 
     # Setting axis = 0 ensures computation columnwise. Output is a row vector.
     mean_cv = np.mean(cv)
@@ -30,10 +35,8 @@ def uc_rk_distr(pop):
     Distribution of unconstrained ranks.
     """
 
-    # TODO: handle nans when we have a constant.
-    # TODO: check why these are all constant.
-
     # Remove any rows with imaginary values.
+    # TODO: need to check this is working properly
     rank_uncons = pop.extract_uncons_rank()
 
     # Setting axis = 0 ensures computation columnwise. Output is a row vector.
@@ -41,8 +44,16 @@ def uc_rk_distr(pop):
     std_uc_rk = np.std(rank_uncons)
     min_uc_rk = np.min(rank_uncons)
     max_uc_rk = np.max(rank_uncons)
-    kurt_uc_rk = kurtosis(rank_uncons)
-    skew_uc_rk = skew(rank_uncons)
+
+    # Check if the vector is constant
+    if std_uc_rk == 0:
+        kurt_uc_rk = skew_uc_rk = np.nan
+        print(
+            "Unconstrained ranks are all equal - setting skew_uc_rk = kurtosis_uc_rk to NaN."
+        )
+    else:
+        kurt_uc_rk = kurtosis(rank_uncons)
+        skew_uc_rk = skew(rank_uncons)
 
     return mean_uc_rk, std_uc_rk, min_uc_rk, max_uc_rk, skew_uc_rk, kurt_uc_rk
 
@@ -113,16 +124,16 @@ def corr_obj(pop):
     return corr_obj_min, corr_obj_max, corr_obj_rnge
 
 
-def compute_ps_pf_distances(pop):
+def compute_ps_pf_distances(pop, normalisation_values, norm_method):
     """
-    Properties of the estimated Pareto-Set (PS) and Pareto-Front (PF). Includes global maximum, global mean and mean IQR of distances across the PS/PF.
+    Properties of the estimated (and normalised) Pareto-Set (PS) and Pareto-Front (PF). Includes global maximum, global mean and mean IQR of distances across the PS/PF.
     """
-    obj = pop.extract_obj()
-    var = pop.extract_var()
-
-    # Remove imaginary rows. Deep copies are created here.
-    obj = remove_imag_rows(obj)
-    var = remove_imag_rows(var)
+    # Extract normalisation values.
+    var_lb, var_ub, obj_lb, obj_ub, cv_lb, cv_ub = extract_norm_values(
+        normalisation_values, norm_method
+    )
+    obj = apply_normalisation(pop.extract_obj(), obj_lb, obj_ub)
+    var = apply_normalisation(pop.extract_var(), var_lb, var_ub)
 
     # Initialize metrics.
     PS_dist_max = 0
@@ -257,8 +268,7 @@ def PiIZ(pop):
         objx = obj[:, i]
         iz = np.asarray(objx[conZone] <= objIdealPoint)
 
-        # TODO: check why denominator is num_objs x num_samples
-        piz_ob[i] = np.count_nonzero(iz) / pop.extract_obj().size
+        piz_ob[i] = np.count_nonzero(iz) / pop.extract_obj().shape[0]
 
     # Find PiZ for each frontsXcon
 

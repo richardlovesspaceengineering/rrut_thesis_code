@@ -50,7 +50,7 @@ class GlobalAnalysis(Analysis):
             self.features["kurt_uc_rk"],
         ) = uc_rk_distr(self.pop)
 
-        # Distribution of CV.
+        # Distribution of CV (normalised).
         (
             self.features["mean_cv"],
             self.features["std_cv"],
@@ -58,7 +58,7 @@ class GlobalAnalysis(Analysis):
             self.features["max_cv"],
             self.features["skew_cv"],
             self.features["kurt_cv"],
-        ) = cv_distr(self.pop)
+        ) = cv_distr(self.pop, self.normalisation_values, norm_method="95th")
 
         # Proportion of solutions in ideal zone per objectives and overall proportion of solutions in ideal zone.
         (
@@ -67,7 +67,7 @@ class GlobalAnalysis(Analysis):
             self.features["piz_ob_f"],
         ) = PiIZ(self.pop)
 
-        # Pareto set and front properties.
+        # Pareto set and front properties (normalised).
         (
             self.features["PS_dist_max"],
             self.features["PS_dist_mean"],
@@ -75,7 +75,9 @@ class GlobalAnalysis(Analysis):
             self.features["PF_dist_max"],
             self.features["PF_dist_mean"],
             self.features["PF_dist_iqr"],
-        ) = compute_ps_pf_distances(self.pop)
+        ) = compute_ps_pf_distances(
+            self.pop, self.normalisation_values, norm_method="95th"
+        )
 
         # Get PF-UPF relationship features.
         (
