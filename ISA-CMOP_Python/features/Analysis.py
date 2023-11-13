@@ -11,11 +11,12 @@ class Analysis:
     Calculate all features generated from samples.
     """
 
-    def __init__(self, pop):
+    def __init__(self, pop, normalisation_values):
         """
         Populations must already be evaluated.
         """
         self.pop = pop
+        self.normalisation_values = normalisation_values
         self.pareto_front = pop[0].pareto_front
         self.features = {}
 
@@ -28,13 +29,13 @@ class MultipleAnalysis:
     Aggregate features across populations/walks.
     """
 
-    def __init__(self, pops, AnalysisType):
+    def __init__(self, pops, normalisation_values, AnalysisType):
         self.pops = pops
         self.analyses = []
 
         # Instantiate SingleAnalysis objects.
         for pop in pops:
-            self.analyses.append(AnalysisType(pop))
+            self.analyses.append(AnalysisType(pop, normalisation_values))
 
         # Initialise features arrays dict.
         self.feature_arrays = {}
@@ -131,7 +132,7 @@ class MultipleAnalysis:
         # Create a new MultipleAnalysis object with the combined populations based on the type of the first element
         if isinstance(first_analysis, AnalysisType):
             combined_analysis = AnalysisType(
-                [], []
+                [], [], first_analysis.normalisation_values
             )  # TODO: update to work with global features too.
 
         # Extract the feature names too.

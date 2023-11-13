@@ -47,7 +47,7 @@ def uc_rk_distr(pop):
     return mean_uc_rk, std_uc_rk, min_uc_rk, max_uc_rk, skew_uc_rk, kurt_uc_rk
 
 
-def cv_dec_mdl(pop):
+def cv_var_mdl(pop):
     """
     Fit a linear model to decision variables-constraint violation, then take the R2 and difference between the max and min of the absolute values of the linear model coefficients.
     """
@@ -137,18 +137,18 @@ def compute_ps_pf_distances(pop):
         ranks = pop.extract_rank()
 
         # Distance across and between n1 and n2 rank fronts in decision space. Each argument of cdist should be arrays corresponding to the DVs on front n1 and front n2.
-        dec_dist_matrix = pdist(var[ranks == 1, :], "euclidean")
+        var_dist_matrix = pdist(var[ranks == 1, :], "euclidean")
         obj_dist_matrix = pdist(obj[ranks == 1, :], "euclidean")
 
-        # Compute statistics on this dec_dist_matrix, presuming there is more than one point on the front.
-        if dec_dist_matrix.size != 0:
-            PS_dist_max = np.max(dec_dist_matrix)
-            PS_dist_mean = np.mean(dec_dist_matrix)
+        # Compute statistics on this var_dist_matrix, presuming there is more than one point on the front.
+        if var_dist_matrix.size != 0:
+            PS_dist_max = np.max(var_dist_matrix)
+            PS_dist_mean = np.mean(var_dist_matrix)
             PF_dist_max = np.max(obj_dist_matrix)
             PF_dist_mean = np.mean(obj_dist_matrix)
 
             # Find average of 25th and 75th percentile values.
-            PS_dist_iqr = iqr(dec_dist_matrix)
+            PS_dist_iqr = iqr(var_dist_matrix)
             PF_dist_iqr = iqr(obj_dist_matrix)
 
     return (
@@ -279,7 +279,7 @@ def PiIZ(pop):
     return piz_ob_min, piz_ob_max, piz_f
 
 
-def rk_uc_dec_mdl(pop):
+def rk_uc_var_mdl(pop):
     """
     Fit a linear model to decision variables-front location, then take the R2 and difference between the max and min of the absolute values of the linear model coefficients.
 

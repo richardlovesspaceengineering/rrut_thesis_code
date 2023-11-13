@@ -11,13 +11,13 @@ class RandomWalkAnalysis(Analysis):
     Populations is a list of populations that represents a walk, each entry is a solution and its neighbours.
     """
 
-    def __init__(self, pop_walk, pop_neighbours_list):
+    def __init__(self, pop_walk, pop_neighbours_list, normalisation_values):
         """
         Populations must already be evaluated.
         """
 
         # This will initialise features dictionary too.
-        super().__init__(pop_walk)
+        super().__init__(pop_walk, normalisation_values)
         self.pop_neighbours_list = pop_neighbours_list
 
     def eval_features(self):
@@ -57,7 +57,12 @@ class RandomWalkAnalysis(Analysis):
             self.features["dist_c_dist_x_r1"],
             self.features["dist_f_c_dist_x_avg"],
             self.features["dist_f_c_dist_x_r1"],
-        ) = compute_neighbourhood_distance_features(self.pop, self.pop_neighbours_list)
+        ) = compute_neighbourhood_distance_features(
+            self.pop,
+            self.pop_neighbours_list,
+            self.normalisation_values,
+            norm_method="95th",
+        )
 
         # Evaluate neighbourhood HV features
         (
@@ -69,7 +74,12 @@ class RandomWalkAnalysis(Analysis):
             self.features["hvd_r1"],
             self.features["bhv_avg"],
             self.features["bhv_r1"],
-        ) = compute_neighbourhood_hv_features(self.pop, self.pop_neighbours_list)
+        ) = compute_neighbourhood_hv_features(
+            self.pop,
+            self.pop_neighbours_list,
+            self.normalisation_values,
+            norm_method="95th",
+        )
 
         # Evaluate neighbourhood violation features
         (
@@ -80,7 +90,12 @@ class RandomWalkAnalysis(Analysis):
             self.features["ncv_r1"],
             self.features["bncv_avg"],
             self.features["bncv_r1"],
-        ) = compute_neighbourhood_violation_features(self.pop, self.pop_neighbours_list)
+        ) = compute_neighbourhood_violation_features(
+            self.pop,
+            self.pop_neighbours_list,
+            self.normalisation_values,
+            norM_method="95th",
+        )
 
         # Evaluate neighbourhood domination features
         (
@@ -103,14 +118,21 @@ class MultipleRandomWalkAnalysis(MultipleAnalysis):
     """
 
     def __init__(
-        self, pops_walks, pops_neighbours_list, single_analysis_class=RandomWalkAnalysis
+        self,
+        pops_walks,
+        pops_neighbours_list,
+        normalisation_values,
+        single_analysis_class=RandomWalkAnalysis,
     ):
         self.pops = pops_walks
+        self.normalisation_values = normalisation_values
         self.analyses = []
 
         if len(self.pops) != 0:
             for pop, neighbour in zip(pops_walks, pops_neighbours_list):
-                self.analyses.append(single_analysis_class(pop, neighbour))
+                self.analyses.append(
+                    single_analysis_class(pop, neighbour, normalisation_values)
+                )
 
         # Initialise features arrays dict.
         self.feature_arrays = {}

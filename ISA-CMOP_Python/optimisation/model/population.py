@@ -359,7 +359,7 @@ class Population(np.ndarray):
         return np.where(nan_inf_idx)[0]
 
     # CSV writers.
-    def write_dec_to_csv(self, filename):
+    def write_var_to_csv(self, filename):
         np.savetxt(filename, self.extract_var())
 
     def write_obj_to_csv(self, filename):

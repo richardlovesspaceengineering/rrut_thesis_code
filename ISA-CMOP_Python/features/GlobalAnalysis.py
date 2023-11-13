@@ -102,13 +102,13 @@ class GlobalAnalysis(Analysis):
         (
             self.features["rk_uc_mdl_r2"],
             self.features["rk_uc_range_coeff"],
-        ) = rk_uc_dec_mdl(self.pop)
+        ) = rk_uc_var_mdl(self.pop)
 
         # Decision variables-CV model properties.
         (
             self.features["cv_mdl_r2"],
             self.features["cv_range_coeff"],
-        ) = rk_uc_dec_mdl(self.pop)
+        ) = rk_uc_var_mdl(self.pop)
 
 
 class MultipleGlobalAnalysis(MultipleAnalysis):
@@ -116,5 +116,5 @@ class MultipleGlobalAnalysis(MultipleAnalysis):
     Aggregate global features across populations.
     """
 
-    def __init__(self, pops):
-        super().__init__(pops, GlobalAnalysis)
+    def __init__(self, pops, normalisation_values):
+        super().__init__(pops, normalisation_values, GlobalAnalysis)

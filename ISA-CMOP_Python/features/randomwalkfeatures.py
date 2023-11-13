@@ -70,7 +70,9 @@ def compute_neighbourhood_crash_ratio(
     return ncr_avg, ncr_r1
 
 
-def compute_neighbourhood_distance_features(pop_walk, pop_neighbours):
+def compute_neighbourhood_distance_features(
+    pop_walk, pop_neighbours, normalisation_values, norm_method
+):
     """
     Calculate neighbourhood_features.
 
@@ -81,32 +83,29 @@ def compute_neighbourhood_distance_features(pop_walk, pop_neighbours):
     Currently only returns [dist_f_dist_x_avg_rws, dist_c_dist_x_avg_rws, bhv_avg_rws] since these are the only features required in Eq.(13) of Alsouly.
     """
 
-    # TODO: ensure neighbourhood features are computed after removing any nans at each set of neighbourhoods.
-
-    # Extract evaluated population values.
-    var = pop_walk.extract_var()
-    obj = pop_walk.extract_obj()
-    cv = pop_walk.extract_cv()
-    PF = pop_walk.extract_pf()
+    # Extract normalisation values.
+    var_lb, var_ub, obj_lb, obj_ub, cv_lb, cv_ub = extract_norm_values(
+        normalisation_values, norm_method
+    )
 
     # Initialise arrays.
-    dist_x_array = np.zeros(var.shape[0])
-    dist_f_array = np.zeros(var.shape[0])
-    dist_c_array = np.zeros(var.shape[0])
-    dist_f_c_array = np.zeros(var.shape[0])
-    dist_f_dist_x_array = np.zeros(var.shape[0])
-    dist_c_dist_x_array = np.zeros(var.shape[0])
-    dist_f_c_dist_x_array = np.zeros(var.shape[0])
+    dist_x_array = np.zeros(len(pop_walk))
+    dist_f_array = np.zeros(len(pop_walk))
+    dist_c_array = np.zeros(len(pop_walk))
+    dist_f_c_array = np.zeros(len(pop_walk))
+    dist_f_dist_x_array = np.zeros(len(pop_walk))
+    dist_c_dist_x_array = np.zeros(len(pop_walk))
+    dist_f_c_dist_x_array = np.zeros(len(pop_walk))
 
     # Loop over each solution in the walk.
-    for i in range(var.shape[0]):
+    for i in range(len(pop_walk)):
         # Extract neighbours for this point and append.
         pop_neighbourhood = copy.deepcopy(pop_neighbours[i])
 
-        # Extract evaluated values for this neighbourhood.
-        neig_var = pop_neighbourhood.extract_var()
-        neig_obj = pop_neighbourhood.extract_obj()
-        neig_cv = pop_neighbourhood.extract_cv()
+        # Extract evaluated values for this neighbourhood and apply normalisation.
+        neig_var = apply_normalisation(pop_neighbourhood.extract_var(), var_lb, var_ub)
+        neig_obj = apply_normalisation(pop_neighbourhood.extract_obj(), obj_lb, obj_ub)
+        neig_cv = apply_normalisation(pop_neighbourhood.extract_cv(), cv_lb, cv_ub)
 
         # Distance between neighbours in variable space.
         distdec = pdist(neig_var, "euclidean")
@@ -168,54 +167,108 @@ def compute_neighbourhood_distance_features(pop_walk, pop_neighbours):
     )
 
 
-def compute_neighbourhood_hv_features(pop_walk, pop_neighbours):
-    PF = pop_walk.extract_pf()
+def trim_obj_using_nadir(obj, nadir):
+    # Create a boolean mask
+    mask = np.all(obj <= nadir, axis=1)
 
-    # Normalise objective space before computing any HVs.
-    (
-        pop_walk_normalised,
-        pop_neighbours_normalised,
-        PF_normalised,
-    ) = normalise_objective_space_for_hv_calc(pop_walk, pop_neighbours, PF)
+    # Use the mask to select the rows from obj
+    trimmed_obj = obj[mask]
 
-    # Extract evaluated population values.
-    var = pop_walk_normalised.extract_var()
-    obj = pop_walk_normalised.extract_obj()
-    cv = pop_walk_normalised.extract_cv()
+    return trimmed_obj, mask
 
-    # Initialise arrays
-    hv_single_soln_array = np.zeros(var.shape[0])
-    nhv_array = np.zeros(var.shape[0])
-    hvd_array = np.zeros(var.shape[0])
-    bhv_array = np.zeros(var.shape[0])
 
-    # Loop over each solution in the walk.
-    nadir = np.ones(obj.shape[1])
-    for i in range(var.shape[0]):
-        # Extract neighbours for this point and append.
-        pop_neighbourhood = pop_neighbours_normalised[i]
+def trim_neig_using_mask(lst, mask):
+    # Use list comprehension and zip to create a new list with elements
+    # corresponding to False in the mask
+    filtered_list = [value for value, keep in zip(lst, mask) if keep]
 
-        #
+    return filtered_list
 
-        # Compute HV of single solution at this step.
-        hv_single_soln_array[i] = calculate_hypervolume_pygmo(
-            np.atleast_2d(obj[i, :]), nadir
+
+def compute_neighbourhood_hv_features(
+    pop_walk, pop_neighbours, normalisation_values, norm_method
+):
+    # Extract normalisation values.
+    var_lb, var_ub, obj_lb, obj_ub, cv_lb, cv_ub = extract_norm_values(
+        normalisation_values, norm_method
+    )
+
+    # Define the nadir
+    nadir = 1.1 * np.ones(obj_lb.size)
+
+    # Extract evaluated population values, normalise and trim any points larger than the nadir.
+    obj, mask = trim_obj_using_nadir(
+        apply_normalisation(pop_walk.extract_obj(), obj_lb, obj_ub), nadir
+    )
+
+    num_rows_trimmed = len(pop_walk) - np.count_nonzero(mask)
+    if num_rows_trimmed > 0:
+        print(
+            "Had to remove {} rows that were further than the nadir from the origin.".format(
+                num_rows_trimmed
+            )
         )
 
-        # Compute HV of neighbourhood
-        nhv_array[i] = calc_nhv(pop_neighbourhood, nadir)
+    # Also remove corresponding neighbours for steps on the walk larger than the nadir.
+    pop_neighbours = trim_neig_using_mask(pop_neighbours, mask)
 
-        # Compute HV difference between neighbours and that covered by the current solution
-        hvd_array[i] = nhv_array[i] - hv_single_soln_array[i]
+    # Initialise arrays
+    hv_single_soln_array = np.zeros(obj.shape[0])
+    nhv_array = np.zeros(obj.shape[0])
+    hvd_array = np.zeros(obj.shape[0])
+    bhv_array = np.zeros(obj.shape[0])
 
-        # Compute HV of non-dominated neighbours.
-        bhv_array[i] = calc_bhv(pop_neighbourhood, nadir)
+    # Set nonsense value if obj.size == 0
+    if obj.size == 0:
+        hv_single_soln_array.fill(np.nan)
+        nhv_array.fill(np.nan)
+        hvd_array.fill(np.nan)
+        bhv_array.fill(np.nan)
+        print(
+            "There are no individuals closer to the origin than the nadir. Setting all HV metrics for this sample to NaN."
+        )
+    else:
+        # Loop over each solution in the walk.
+        for i in range(obj.shape[0]):
+            # Extract neighbours for this point and normalise.
+            pop_neighbourhood = pop_neighbours[i]
+            neig_obj, _ = trim_obj_using_nadir(
+                apply_normalisation(pop_neighbourhood.extract_obj(), obj_lb, obj_ub),
+                nadir,
+            )
+            if neig_obj.size == 0:
+                hv_single_soln_array[i] = np.nan
+                nhv_array[i] = np.nan
+                hvd_array[i] = np.nan
+                bhv_array[i] = np.nan
+                print(
+                    "There are no neighbours closer to the origin than the nadir for step {} of {}. Setting all HV metrics for this step on the RW to NaN."
+                )
+            else:
+                # Compute HV of single solution at this step.
+                hv_single_soln_array[i] = calculate_hypervolume_pygmo(
+                    np.atleast_2d(obj[i, :]), nadir
+                )
 
-    # Compute means
-    hv_single_soln_avg = np.mean(hv_single_soln_array)
-    nhv_avg = np.mean(nhv_array)
-    hvd_avg = np.mean(hvd_array)
-    bhv_avg = np.mean(bhv_array)
+                # Compute HV of neighbourhood
+                nhv_array[i] = calculate_hypervolume_pygmo(neig_obj, nadir)
+
+                # Compute HV difference between neighbours and that covered by the current solution
+                hvd_array[i] = nhv_array[i] - hv_single_soln_array[i]
+
+                # Compute HV of non-dominated neighbours.
+                bestrankobjs = apply_normalisation(
+                    pop_neighbourhood.extract_nondominated().extract_obj(),
+                    obj_lb,
+                    obj_ub,
+                )
+                bhv_array[i] = calculate_hypervolume_pygmo(bestrankobjs, nadir)
+
+    # Compute means (allowing for nans if need be)
+    hv_single_soln_avg = np.nanmean(hv_single_soln_array)
+    nhv_avg = np.nanmean(nhv_array)
+    hvd_avg = np.nanmean(hvd_array)
+    bhv_avg = np.nanmean(bhv_array)
 
     # Compute autocorrelations
     hv_single_soln_r1 = autocorr(hv_single_soln_array, 1)
@@ -235,7 +288,14 @@ def compute_neighbourhood_hv_features(pop_walk, pop_neighbours):
     )
 
 
-def compute_neighbourhood_violation_features(pop_walk, pop_neighbours):
+def compute_neighbourhood_violation_features(
+    pop_walk, pop_neighbours, normalisation_values, norm_method = 
+):
+    # Extract normalisation values.
+    var_lb, var_ub, obj_lb, obj_ub, cv_lb, cv_ub = extract_norm_values(
+        normalisation_values, norm_method
+    )
+
     # Extract evaluated population values.
     var = pop_walk.extract_var()
     obj = pop_walk.extract_obj()
@@ -392,29 +452,3 @@ def compute_neighbourhood_dominance_features(pop_walk, pop_neighbours):
         nfronts_avg,
         nfronts_r1,
     )
-
-
-def calc_bhv(neighbourhood_normalised, nadir):
-    """
-    Calculate hypervolume of the (normalised) neighbourhood's non-dominated solutions.
-    """
-    bestrankobjs = neighbourhood_normalised.extract_nondominated(
-        constrained=True
-    ).extract_obj()
-
-    if bestrankobjs.size != 0:
-        bhv = calculate_hypervolume_pygmo(bestrankobjs, nadir)
-    else:
-        bhv = np.nan  # TODO: might need to handle better later.
-
-    return bhv
-
-
-def calc_nhv(neighbourhood_normalised, nadir):
-    """
-    Calculate hypervolume of the (normalised) neighbourhood.
-    """
-    obj = neighbourhood_normalised.extract_obj()
-    nhv = calculate_hypervolume_pygmo(obj, nadir)
-
-    return nhv

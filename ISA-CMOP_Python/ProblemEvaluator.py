@@ -7,7 +7,7 @@ import time
 import os
 
 # User packages.
-from features.feature_helpers import generate_bounds_from_problem
+from features.feature_helpers import *
 from features.GlobalAnalysis import MultipleGlobalAnalysis
 from features.RandomWalkAnalysis import MultipleRandomWalkAnalysis
 from features.AdaptiveWalkAnalysis import MultipleAdaptiveWalkAnalysis
@@ -196,14 +196,16 @@ class ProblemEvaluator:
 
         return pop_walks_neighbours_all_samples
 
-    def evaluate_rw_features_for_one_sample(self, pops_walks_neighbours):
+    def evaluate_rw_features_for_one_sample(
+        self, pops_walks_neighbours, normalisation_values
+    ):
         """
         Evaluate the RW features for one sample (i.e a set of random walks)
         """
         pops_walks = [t[0] for t in pops_walks_neighbours]
         pops_neighbours_list = [t[1] for t in pops_walks_neighbours]
         rw_features_single_sample = MultipleRandomWalkAnalysis(
-            pops_walks, pops_neighbours_list
+            pops_walks, pops_neighbours_list, normalisation_values
         )
         rw_features_single_sample.eval_features_for_all_populations()
         return rw_features_single_sample
@@ -217,11 +219,18 @@ class ProblemEvaluator:
             problem, walks_neighbours_list_all_samples
         )
 
+        # Compute normalisation values for feature calculations later.
+        normalisation_values = compute_all_normalisation_values(
+            pop_walks_neighbours_all_samples
+        )
+
         rw_features_list = []
         for ctr, pop_walks_neighbours in enumerate(pop_walks_neighbours_all_samples):
             # Finally, evaluate features.
             rw_features_list.append(
-                self.evaluate_rw_features_for_one_sample(pop_walks_neighbours)
+                self.evaluate_rw_features_for_one_sample(
+                    pop_walks_neighbours, normalisation_values
+                )
             )
             print(
                 "Evaluated features for RW sample {} out of {}".format(
@@ -308,8 +317,8 @@ class ProblemEvaluator:
 
         return pops_global
 
-    def evaluate_global_features(self, pops_global):
-        global_features = MultipleGlobalAnalysis(pops_global)
+    def evaluate_global_features(self, pops_global, normalisation_values):
+        global_features = MultipleGlobalAnalysis(pops_global, normalisation_values)
         global_features.eval_features_for_all_populations()
 
         return global_features
@@ -325,8 +334,13 @@ class ProblemEvaluator:
             problem, distributed_samples
         )
 
+        # Compute normalisation values for feature calculations later.
+        normalisation_values = compute_all_normalisation_values(pops_global)
+
         # Evaluate features.
-        global_features = self.evaluate_global_features(pops_global)
+        global_features = self.evaluate_global_features(
+            pops_global, normalisation_values
+        )
 
         return global_features
 
@@ -436,14 +450,16 @@ class ProblemEvaluator:
 
         return pops_adaptive_walks_neighbours_all_samples
 
-    def evaluate_aw_features_for_one_sample(self, pops_adaptive_walks_neighbours):
+    def evaluate_aw_features_for_one_sample(
+        self, pops_adaptive_walks_neighbours, normalisation_values
+    ):
         """
         Evaluate the RW features for one sample (i.e a set of random walks)
         """
         pops_walks = [t[0] for t in pops_adaptive_walks_neighbours]
         pops_neighbours_list = [t[1] for t in pops_adaptive_walks_neighbours]
         rw_features_single_sample = MultipleAdaptiveWalkAnalysis(
-            pops_walks, pops_neighbours_list
+            pops_walks, pops_neighbours_list, normalisation_values
         )
         rw_features_single_sample.eval_features_for_all_populations()
         return rw_features_single_sample
@@ -459,13 +475,20 @@ class ProblemEvaluator:
             )
         )
 
+        # Compute normalisation values for feature calculations later.
+        normalisation_values = compute_all_normalisation_values(
+            pop_adaptive_walks_neighbours_all_samples
+        )
+
         aw_features_list = []
         for ctr, pop_walks_neighbours in enumerate(
             pop_adaptive_walks_neighbours_all_samples
         ):
             # Finally, evaluate features.
             aw_features_list.append(
-                self.evaluate_aw_features_for_one_sample(pop_walks_neighbours)
+                self.evaluate_aw_features_for_one_sample(
+                    pop_walks_neighbours, normalisation_values
+                )
             )
             print(
                 "Evaluated features for AW sample {} out of {}".format(

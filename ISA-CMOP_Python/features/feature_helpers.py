@@ -2,7 +2,9 @@ import numpy as np
 import copy
 import warnings
 import scipy.stats
+from scipy.stats import pearsonr, spearmanr
 from sklearn.linear_model import LinearRegression
+from optimisation.model.population import Population
 
 
 def remove_imag_rows(matrix):
@@ -33,7 +35,7 @@ def fit_linear_mdl(xdata, ydata):
 
 
 def generate_bounds_from_problem(problem_instance):
-    # Bounds of the decision variables.
+    # Bounds of the varision variables.
     x_lower = problem_instance.xl
     x_upper = problem_instance.xu
     bounds = np.vstack((x_lower, x_upper))
@@ -75,10 +77,6 @@ def autocorr(data, lag, spearman=True, significance_level=0.05):
     Compute autocorrelation of data with applied lag.
     """
     return corr_coef(data[:-lag], data[lag:], spearman, significance_level)
-
-
-import numpy as np
-from scipy.stats import pearsonr, spearmanr
 
 
 def compute_correlation_matrix(matrix, correlation_type, alpha=0.05):
@@ -127,6 +125,8 @@ def normalise_objective_space_for_hv_calc(
     If computing population HV values, set region_of_interest to True to ensure objectives lie in the region of interest from Vodopija2023.
 
     If computing neighbourhood HV values, set region_of_interest to False as neighbours generally do not fall in the region of interest.
+
+    Scale offset 1.1 is equivalent to using a nadir of (1.1,1.1,...)
     """
 
     # Merge walk objectives and neighbourhood objectives into one matrix.
@@ -134,7 +134,6 @@ def normalise_objective_space_for_hv_calc(
     for pop_neighbourhood in pop_neighbours:
         merged_obj = np.vstack((merged_obj, pop_neighbourhood.extract_obj()))
 
-    # fmin = np.minimum(np.min(obj, axis=0), np.zeros((1, PF.shape[1])))
     fmin = np.minimum(np.min(merged_obj, axis=0), np.min(PF, axis=0))
 
     if region_of_interest:
@@ -171,5 +170,108 @@ def normalise_objective_space_for_hv_calc(
     return pop_walk_normalised, pop_neighbours_normalised, PF_normalised
 
 
-def apply_normalisation(obj, fmin, fmax, scale=1.1):
-    return (obj - fmin) / ((fmax - fmin) * scale)
+def apply_normalisation(var, fmin, fmax, scale=1):
+    return (var - fmin) / ((fmax - fmin) * scale)
+
+
+def combine_arrays_for_pops(pop_list, which_variable):
+    if which_variable == "var":
+        method = (
+            lambda x: x.extract_var()
+        )  # Lambda function to extract_var from each object
+    elif which_variable == "obj":
+        method = (
+            lambda x: x.extract_obj()
+        )  # Lambda function to extract_obj from each object
+    elif which_variable == "cv":
+        method = (
+            lambda x: x.extract_cv()
+        )  # Lambda function to extract_cv from each object
+
+    array_list = [method(pop) for pop in pop_list]
+    combined_array = np.vstack(array_list)
+
+    return combined_array
+
+
+def flatten_list(nested_list):
+    """
+    Recursive function to flatten all lists and tuples.
+    """
+    result = []
+    for item in nested_list:
+        if isinstance(item, (list, tuple)):
+            result.extend(flatten_list(item))
+        else:
+            result.append(item)
+    return result
+
+
+def compute_normalisation_value_for_variable(pop_list_all_samples, which_variable):
+    # Flatten the list since we may have nested lists.
+    pop_list = flatten_list(pop_list_all_samples)
+
+    # Vertically stack the arrays and find the max, min, and 95th percentile values.
+    combined_array = combine_arrays_for_pops(pop_list, which_variable)
+
+    # Deal with nans here to ensure no nans are returned.
+    combined_array = combined_array[~np.isnan(combined_array).any(axis=1)]
+
+    # Find the min, max, and 95th percentile of each column.
+    fmin = np.min(combined_array, axis=0)
+    fmax = np.max(combined_array, axis=0)
+    f95th_percentile = np.percentile(combined_array, 95, axis=0)
+
+    # Also consider the PF in the objectives case.
+    if which_variable == "obj":
+        PF = pop_list[0].extract_pf()
+        fmin = np.minimum(fmin, np.min(PF, axis=0))
+        fmax = np.maximum(fmax, np.max(PF, axis=0))
+    elif which_variable == "cv":
+        fmin = 0  # only dilate CV values.
+
+    return fmin, fmax, f95th_percentile
+
+
+def compute_all_normalisation_values(pop_list_all_samples):
+    normalization_values = {}
+    variables = ["var", "obj", "cv"]
+
+    for which_variable in variables:
+        fmin, fmax, f95th_percentile = compute_normalisation_value_for_variable(
+            pop_list_all_samples, which_variable
+        )
+
+        normalization_values[f"{which_variable}_min"] = fmin
+        normalization_values[f"{which_variable}_max"] = fmax
+        normalization_values[f"{which_variable}_95th_percentile"] = f95th_percentile
+
+    return normalization_values
+
+
+def extract_norm_values(normalisation_values, norm_method):
+    """
+    Extract normalisation values from the dictionary formed using compute_all_normalisation_values
+    """
+
+    # Extract normalisation values.
+    if norm_method == "maximin":
+        s_lb = "_min"
+        s_ub = "_max"
+    elif norm_method == "95th":
+        s_lb = "_min"
+        s_ub = "_95th_percentile"
+    else:
+        # If norm_method is None, set all lbs to 0 and ubs to 1, since this is equivalent to not applying normalisation in apply_normalisation.
+        var_lb = obj_lb = cv_lb = 0
+        var_ub = obj_ub = cv_ub = 1
+        return var_lb, var_ub, obj_lb, obj_ub, cv_lb, cv_ub
+
+    var_lb = normalisation_values["var" + s_lb]
+    var_ub = normalisation_values["var" + s_ub]
+    obj_lb = normalisation_values["obj" + s_lb]
+    obj_ub = normalisation_values["obj" + s_ub]
+    cv_lb = normalisation_values["cv" + s_lb]
+    cv_ub = normalisation_values["cv" + s_ub]
+
+    return var_lb, var_ub, obj_lb, obj_ub, cv_lb, cv_ub

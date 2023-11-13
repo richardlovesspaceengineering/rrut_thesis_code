@@ -16,9 +16,10 @@ class AdaptiveWalkAnalysis(RandomWalkAnalysis):
 
 
 class MultipleAdaptiveWalkAnalysis(MultipleRandomWalkAnalysis):
-    def __init__(self, pops_walks, pops_neighbours_list):
+    def __init__(self, pops_walks, pops_neighbours_list, normalisation_values):
         super().__init__(
             pops_walks,
             pops_neighbours_list,
+            normalisation_values,
             single_analysis_class=AdaptiveWalkAnalysis,
         )
