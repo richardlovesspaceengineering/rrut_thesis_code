@@ -542,7 +542,7 @@ class ProblemEvaluator:
             self.instance,
             num_samples,
         )
-        rw_features.export_unaggregated_features(self.instance_name, "aw", save_arrays)
+        aw_features.export_unaggregated_features(self.instance_name, "aw", save_arrays)
 
         # Overall landscape analysis - putting it all together.
         landscape = LandscapeAnalysis(global_features, rw_features, aw_features)
