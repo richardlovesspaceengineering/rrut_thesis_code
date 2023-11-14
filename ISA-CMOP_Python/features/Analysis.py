@@ -4,6 +4,7 @@ import os
 import os
 from datetime import datetime
 import pandas as pd
+from features.feature_helpers import *
 
 
 class Analysis:
@@ -38,6 +39,7 @@ class MultipleAnalysis:
             self.analyses.append(AnalysisType(pop, normalisation_values))
 
         # Initialise features arrays dict.
+        self.normalisation_values = normalisation_values
         self.feature_arrays = {}
 
     def eval_features_for_all_populations(self):
@@ -88,9 +90,13 @@ class MultipleAnalysis:
                 feature_name
             )
 
-    def export_unaggregated_features(self, instance_name, method_suffix, save_arrays):
+    def export_unaggregated_features(
+        self, instance_name, method_suffix, save_arrays, export_norm=True
+    ):
         """
         Write dictionary of raw features results to a csv file.
+
+        Also has an option to export the normalisation values used in computing the features.
         """
 
         if save_arrays:
@@ -116,7 +122,19 @@ class MultipleAnalysis:
                     method_suffix, instance_name
                 )
             )
-            return dat
+
+            # Export normalisation values.
+            if export_norm:
+                # Now normalisation values are listed per dimension rather than arrays.
+                flattened_normalisation_dict = flatten_dict(self.normalisation_values)
+                norm_dat = pd.DataFrame(flattened_normalisation_dict, index=[0])
+                # Create the file path
+                norm_file_path = os.path.join(
+                    results_folder,
+                    f"{instance_name}_{method_suffix}_norm_{current_time}.csv",
+                )
+                norm_dat.to_csv(norm_file_path, index=False)
+
         else:
             print("\nSaving of feature arrays for {} disabled.\n".format(method_suffix))
 

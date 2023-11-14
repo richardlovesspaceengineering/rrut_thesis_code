@@ -34,6 +34,8 @@ class ProblemEvaluator:
         self.features_table = pd.DataFrame()
         self.csv_filename = "features.csv"
         self.mode = mode
+        self.walk_normalisation_values = {}
+        self.global_normalisation_values = {}
         print("Initialising evaluator in {} mode.".format(self.mode))
 
     def generate_binary_patterns(self, n):
@@ -190,7 +192,7 @@ class ProblemEvaluator:
 
             print(
                 "Evaluated population {} of {} in {:.2f} seconds.".format(
-                    ctr + 1, len(sample), elapsed_time
+                    ctr + 1, len(walks_neighbours_list_all_samples), elapsed_time
                 )
             )
 
@@ -220,7 +222,7 @@ class ProblemEvaluator:
         )
 
         # Compute normalisation values for feature calculations later.
-        normalisation_values = compute_all_normalisation_values(
+        self.walk_normalisation_values = compute_all_normalisation_values(
             pop_walks_neighbours_all_samples
         )
 
@@ -229,7 +231,7 @@ class ProblemEvaluator:
             # Finally, evaluate features.
             rw_features_list.append(
                 self.evaluate_rw_features_for_one_sample(
-                    pop_walks_neighbours, normalisation_values
+                    pop_walks_neighbours, self.walk_normalisation_values
                 )
             )
             print(
@@ -335,11 +337,11 @@ class ProblemEvaluator:
         )
 
         # Compute normalisation values for feature calculations later.
-        normalisation_values = compute_all_normalisation_values(pops_global)
+        self.global_normalisation_values = compute_all_normalisation_values(pops_global)
 
         # Evaluate features.
         global_features = self.evaluate_global_features(
-            pops_global, normalisation_values
+            pops_global, self.global_normalisation_values
         )
 
         return global_features
@@ -475,10 +477,8 @@ class ProblemEvaluator:
             )
         )
 
-        # Compute normalisation values for feature calculations later.
-        normalisation_values = compute_all_normalisation_values(
-            pop_adaptive_walks_neighbours_all_samples
-        )
+        # TODO: decide if it's best to use RW or Global normalisation values here.
+        normalisation_values = self.walk_normalisation_values
 
         aw_features_list = []
         for ctr, pop_walks_neighbours in enumerate(

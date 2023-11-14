@@ -4,6 +4,7 @@ import warnings
 import scipy.stats
 from scipy.stats import pearsonr, spearmanr
 from sklearn.linear_model import LinearRegression
+from collections.abc import Iterable
 from optimisation.model.population import Population
 
 
@@ -171,7 +172,10 @@ def normalise_objective_space_for_hv_calc(
 
 
 def apply_normalisation(var, fmin, fmax, scale=1):
-    return (var - fmin) / ((fmax - fmin) * scale)
+    if np.all(fmax == fmin):
+        return var
+    else:
+        return (var - fmin) / ((fmax - fmin) * scale)
 
 
 def combine_arrays_for_pops(pop_list, which_variable):
@@ -244,9 +248,28 @@ def compute_all_normalisation_values(pop_list_all_samples):
 
         normalization_values[f"{which_variable}_min"] = fmin
         normalization_values[f"{which_variable}_max"] = fmax
-        normalization_values[f"{which_variable}_95th_percentile"] = f95th_percentile
+        normalization_values[f"{which_variable}_95th"] = f95th_percentile
 
     return normalization_values
+
+
+def flatten_dict(original_dict):
+    flattened_dict = {}
+
+    for key, values in original_dict.items():
+        if not isinstance(values, Iterable) or isinstance(values, str):
+            values = [values]  # Convert scalar to a list
+
+        for i, value in enumerate(values, start=1):
+            if "_" in key:
+                prefix, suffix = key.rsplit("_", 1)
+                flattened_key = f"{prefix}{i}_{suffix}"
+            else:
+                flattened_key = f"{key}{i}"
+
+            flattened_dict[flattened_key] = value
+
+    return flattened_dict
 
 
 def extract_norm_values(normalisation_values, norm_method):
@@ -260,7 +283,7 @@ def extract_norm_values(normalisation_values, norm_method):
         s_ub = "_max"
     elif norm_method == "95th":
         s_lb = "_min"
-        s_ub = "_95th_percentile"
+        s_ub = "_95th"
     else:
         # If norm_method is None, set all lbs to 0 and ubs to 1, since this is equivalent to not applying normalisation in apply_normalisation.
         var_lb = obj_lb = cv_lb = 0

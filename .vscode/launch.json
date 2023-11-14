@@ -16,8 +16,8 @@
         "name": "Python: Run Single Problem",
         "type": "python",
         "request": "launch",
-        "program": "${file}",
-        "args": ["MW1", "2", "2", "debug", "false"],
+        "program": "D:/richa/Documents/Thesis/rrut_thesis_code/ISA-CMOP_Python/runner.py",
+        "args": ["MW1", "2", "2", "debug", "true"],
         "console": "integratedTerminal"
     }
     

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Message describing the experimental setup.
-desc_msg="Added adaptive walk features; using 95th percentile values for upper bound, min for lower bound. Adaptive walk normalisation values are just taken from the RW. Global normalisation values are separately computed."
+desc_msg="Test Run."
 
 # Problem suites
 problemsCTP=("CTP1", "CTP2", "CTP3", "CTP4", "CTP5", "CTP6", "CTP7", "CTP8")
@@ -11,10 +11,10 @@ problemsMW=("MW1", "MW2", "MW3", "MW4", "MW5", "MW6", "MW7", "MW8", "MW9", "MW10
 n_dim=(2 5 10)
 
 # Number of samples to run.
-num_samples=5
+num_samples=2
 
 # Modes are debug or eval.
-mode="eval"
+mode="debug"
 
 # Save full feature arrays. Aggregated feature arrays are always saved.
 save_feature_arrays=true
