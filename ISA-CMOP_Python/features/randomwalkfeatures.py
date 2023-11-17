@@ -158,16 +158,6 @@ def compute_neighbourhood_distance_features(
     )
 
 
-def trim_obj_using_nadir(obj, nadir):
-    # Create a boolean mask
-    mask = np.all(obj <= nadir, axis=1)
-
-    # Use the mask to select the rows from obj
-    trimmed_obj = obj[mask]
-
-    return trimmed_obj, mask
-
-
 def trim_neig_using_mask(lst, mask):
     # Use list comprehension and zip to create a new list with elements
     # corresponding to False in the mask

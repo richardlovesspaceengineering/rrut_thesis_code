@@ -1,632 +1,138 @@
 Experimental setup:
-Added adaptive walk features; using 95th percentile values for upper bound, min for lower bound. Adaptive walk normalisation values are just taken from the RW. Global normalisation values are separately computed.
+Test Run.
 
 Host is: RUTHERFORD
 Using interpreter: D:/richa/anaconda3/envs/thesis_env_windows/python.exe
-New directory: /tmp/ci-FCsSENSoBI
-File running inside: /tmp/ci-FCsSENSoBI/runner.py
-Running problem: MW1, dimension: 2
-Initialising evaluator in eval mode.
+New directory: /tmp/ci-JPiVSDgUry
+File running inside: /tmp/ci-JPiVSDgUry/runner.py
+Running problem: MW1, dimension: 10
+Initialising evaluator in debug mode.
 
------------------------- Evaluating instance: MW1_d2 ------------------------
+------------------------ Evaluating instance: MW1_d10 ------------------------
  
- ~~~~~~~~~~~~ RW Analysis for MW1_d2 ~~~~~~~~~~~~ 
+ ~~~~~~~~~~~~ RW Analysis for MW1_d10 ~~~~~~~~~~~~ 
 
 
-Generating 5 samples (walks + neighbours) for RW features with the following properties:
-- Number of walks: 2
-- Number of steps per walk: 1000
+Generating 2 samples (walks + neighbours) for RW features with the following properties:
+- Number of walks: 10
+- Number of steps per walk: 35
 - Step size (% of instance domain): 1.0
-- Neighbourhood size: 5
+- Neighbourhood size: 21
 
-Generated RW 1 of 2 (for this sample).
-Generated RW 2 of 2 (for this sample).
-Generated set of RWs 1 of 5 in 0.13 seconds.
+Generated RW 1 of 10 (for this sample).
+Generated RW 2 of 10 (for this sample).
+Generated RW 3 of 10 (for this sample).
+Generated RW 4 of 10 (for this sample).
+Generated RW 5 of 10 (for this sample).
+Generated RW 6 of 10 (for this sample).
+Generated RW 7 of 10 (for this sample).
+Generated RW 8 of 10 (for this sample).
+Generated RW 9 of 10 (for this sample).
+Generated RW 10 of 10 (for this sample).
+Generated set of RWs 1 of 2 in 0.63 seconds.
 
-Generated RW 1 of 2 (for this sample).
-Generated RW 2 of 2 (for this sample).
-Generated set of RWs 2 of 5 in 0.13 seconds.
-
-Generated RW 1 of 2 (for this sample).
-Generated RW 2 of 2 (for this sample).
-Generated set of RWs 3 of 5 in 0.13 seconds.
-
-Generated RW 1 of 2 (for this sample).
-Generated RW 2 of 2 (for this sample).
-Generated set of RWs 4 of 5 in 0.13 seconds.
-
-Generated RW 1 of 2 (for this sample).
-Generated RW 2 of 2 (for this sample).
-Generated set of RWs 5 of 5 in 0.14 seconds.
+Generated RW 1 of 10 (for this sample).
+Generated RW 2 of 10 (for this sample).
+Generated RW 3 of 10 (for this sample).
+Generated RW 4 of 10 (for this sample).
+Generated RW 5 of 10 (for this sample).
+Generated RW 6 of 10 (for this sample).
+Generated RW 7 of 10 (for this sample).
+Generated RW 8 of 10 (for this sample).
+Generated RW 9 of 10 (for this sample).
+Generated RW 10 of 10 (for this sample).
+Generated set of RWs 2 of 2 in 0.62 seconds.
 
 
 Evaluating populations for these walk samples... (ranks off for walk steps, on for neighbours)
-Evaluated population 1 of 5 in 3.00 seconds.
-Evaluated population 2 of 5 in 2.94 seconds.
-Evaluated population 3 of 5 in 3.01 seconds.
-Evaluated population 4 of 5 in 2.98 seconds.
-Evaluated population 5 of 5 in 2.93 seconds.
+Evaluated population 1 of 2 in 2.76 seconds.
+Evaluated population 2 of 2 in 2.55 seconds.
 
 Initialising feature evaluation for RW features.
-Evaluated RW features for walk 1 out of 2 in 3.64 seconds.
-Evaluated RW features for walk 2 out of 2 in 3.59 seconds.
-Evaluated features for RW sample 1 out of 5
+Evaluated RW features for walk 1 out of 10 in 0.46 seconds.
+Evaluated RW features for walk 2 out of 10 in 0.52 seconds.
+Evaluated RW features for walk 3 out of 10 in 0.56 seconds.
+Evaluated RW features for walk 4 out of 10 in 0.47 seconds.
+Evaluated RW features for walk 5 out of 10 in 0.43 seconds.
+Evaluated RW features for walk 6 out of 10 in 0.43 seconds.
+Evaluated RW features for walk 7 out of 10 in 0.47 seconds.
+Evaluated RW features for walk 8 out of 10 in 0.44 seconds.
+Evaluated RW features for walk 9 out of 10 in 0.49 seconds.
+Evaluated RW features for walk 10 out of 10 in 0.49 seconds.
+Evaluated features for RW sample 1 out of 2
 
 Initialising feature evaluation for RW features.
-Evaluated RW features for walk 1 out of 2 in 3.63 seconds.
-Evaluated RW features for walk 2 out of 2 in 3.69 seconds.
-Evaluated features for RW sample 2 out of 5
+Evaluated RW features for walk 1 out of 10 in 0.47 seconds.
+Evaluated RW features for walk 2 out of 10 in 0.43 seconds.
+Evaluated RW features for walk 3 out of 10 in 0.45 seconds.
+Evaluated RW features for walk 4 out of 10 in 0.45 seconds.
+Evaluated RW features for walk 5 out of 10 in 0.47 seconds.
+Evaluated RW features for walk 6 out of 10 in 0.44 seconds.
+Evaluated RW features for walk 7 out of 10 in 0.44 seconds.
+Evaluated RW features for walk 8 out of 10 in 0.47 seconds.
+Evaluated RW features for walk 9 out of 10 in 0.45 seconds.
+Evaluated RW features for walk 10 out of 10 in 0.45 seconds.
+Evaluated features for RW sample 2 out of 2
 
-Initialising feature evaluation for RW features.
-Evaluated RW features for walk 1 out of 2 in 3.63 seconds.
-Evaluated RW features for walk 2 out of 2 in 3.86 seconds.
-Evaluated features for RW sample 3 out of 5
-
-Initialising feature evaluation for RW features.
-Evaluated RW features for walk 1 out of 2 in 3.76 seconds.
-Evaluated RW features for walk 2 out of 2 in 3.68 seconds.
-Evaluated features for RW sample 4 out of 5
-
-Initialising feature evaluation for RW features.
-Evaluated RW features for walk 1 out of 2 in 3.73 seconds.
-Evaluated RW features for walk 2 out of 2 in 3.64 seconds.
-Evaluated features for RW sample 5 out of 5
-
-Successfully saved rw sample results to csv file for MW1_d2.
+Successfully saved rw sample results to csv file for MW1_d10.
 
  
- ~~~~~~~~~~~~ Global Analysis for MW1_d2 ~~~~~~~~~~~~ 
+ ~~~~~~~~~~~~ Global Analysis for MW1_d10 ~~~~~~~~~~~~ 
 
 Generating distributed samples for Global features with the following properties:
-- Num. points: 400
-- Num. iterations: 400
+- Num. points: 1000
+- Num. iterations: 1000
 - Method: lhs.scipy
 
-Discrepancy: 0.000062
-Generated Global sample 1 of 5 in 0.00 seconds.
-Discrepancy: 0.000057
-Generated Global sample 2 of 5 in 0.00 seconds.
-Discrepancy: 0.000079
-Generated Global sample 3 of 5 in 0.00 seconds.
-Discrepancy: 0.000066
-Generated Global sample 4 of 5 in 0.00 seconds.
-Discrepancy: 0.000046
-Generated Global sample 5 of 5 in 0.00 seconds.
+Discrepancy: 0.003786
+Generated Global sample 1 of 2 in 0.03 seconds.
+Discrepancy: 0.003798
+Generated Global sample 2 of 2 in 0.03 seconds.
 
 Evaluating populations for global samples...
-Evaluated Global population 1 of 5 in 0.69 seconds.
-Evaluated Global population 2 of 5 in 0.71 seconds.
-Evaluated Global population 3 of 5 in 0.63 seconds.
-Evaluated Global population 4 of 5 in 0.69 seconds.
-Evaluated Global population 5 of 5 in 0.68 seconds.
+Evaluated Global population 1 of 2 in 4.28 seconds.
+Evaluated Global population 2 of 2 in 4.19 seconds.
 
 Initialising feature evaluation for Global features.
-Unconstrained ranks are all equal - setting skew_uc_rk = kurtosis_uc_rk to NaN.
-Evaluated Global features for sample 1 out of 5 in 0.79 seconds.
-Unconstrained ranks are all equal - setting skew_uc_rk = kurtosis_uc_rk to NaN.
-Evaluated Global features for sample 2 out of 5 in 0.82 seconds.
-Unconstrained ranks are all equal - setting skew_uc_rk = kurtosis_uc_rk to NaN.
-Evaluated Global features for sample 3 out of 5 in 0.85 seconds.
-Unconstrained ranks are all equal - setting skew_uc_rk = kurtosis_uc_rk to NaN.
-Evaluated Global features for sample 4 out of 5 in 0.83 seconds.
-Unconstrained ranks are all equal - setting skew_uc_rk = kurtosis_uc_rk to NaN.
-Evaluated Global features for sample 5 out of 5 in 0.81 seconds.
+Evaluated Global features for sample 1 out of 2 in 0.40 seconds.
+Evaluated Global features for sample 2 out of 2 in 0.37 seconds.
 
-Successfully saved glob sample results to csv file for MW1_d2.
+Successfully saved glob sample results to csv file for MW1_d10.
 
  
- ~~~~~~~~~~~~ AW Analysis for MW1_d2 ~~~~~~~~~~~~ 
+ ~~~~~~~~~~~~ AW Analysis for MW1_d10 ~~~~~~~~~~~~ 
 
-Generating 5 adaptive walk samples with the following properties:
-- Number of walks (equals number of LHS samples): 40
-- Maximum number of steps: 1000
+Generating 2 adaptive walk samples with the following properties:
+- Number of walks (equals number of LHS samples): 5
+- Maximum number of steps: 100
 - Step size (% of instance domain): 1.0
-- Neighbourhood size: 10
+- Neighbourhood size: 21
 
-Discrepancy: 0.001006
+Discrepancy: 1.449741
 Generated starting points for AWs using LHS in 0.00 seconds.
 
-Generated AW 1 of 40 (for this sample). Length: 2
-Generated AW 2 of 40 (for this sample). Length: 14
-Generated AW 3 of 40 (for this sample). Length: 6
-Generated AW 4 of 40 (for this sample). Length: 15
-Generated AW 5 of 40 (for this sample). Length: 7
-Generated AW 6 of 40 (for this sample). Length: 15
-Generated AW 7 of 40 (for this sample). Length: 14
-Generated AW 8 of 40 (for this sample). Length: 7
-Generated AW 9 of 40 (for this sample). Length: 1
-Generated AW 10 of 40 (for this sample). Length: 18
-Generated AW 11 of 40 (for this sample). Length: 8
-Generated AW 12 of 40 (for this sample). Length: 4
-Generated AW 13 of 40 (for this sample). Length: 11
-Generated AW 14 of 40 (for this sample). Length: 13
-Generated AW 15 of 40 (for this sample). Length: 25
-Generated AW 16 of 40 (for this sample). Length: 9
-Generated AW 17 of 40 (for this sample). Length: 4
-Generated AW 18 of 40 (for this sample). Length: 7
-Generated AW 19 of 40 (for this sample). Length: 13
-Generated AW 20 of 40 (for this sample). Length: 5
-Generated AW 21 of 40 (for this sample). Length: 25
-Generated AW 22 of 40 (for this sample). Length: 17
-Generated AW 23 of 40 (for this sample). Length: 18
-Generated AW 24 of 40 (for this sample). Length: 17
-Generated AW 25 of 40 (for this sample). Length: 16
-Generated AW 26 of 40 (for this sample). Length: 1
-Generated AW 27 of 40 (for this sample). Length: 20
-Generated AW 28 of 40 (for this sample). Length: 15
-Generated AW 29 of 40 (for this sample). Length: 13
-Generated AW 30 of 40 (for this sample). Length: 10
-Generated AW 31 of 40 (for this sample). Length: 3
-Generated AW 32 of 40 (for this sample). Length: 2
-Generated AW 33 of 40 (for this sample). Length: 9
-Generated AW 34 of 40 (for this sample). Length: 5
-Generated AW 35 of 40 (for this sample). Length: 9
-Generated AW 36 of 40 (for this sample). Length: 5
-Generated AW 37 of 40 (for this sample). Length: 18
-Generated AW 38 of 40 (for this sample). Length: 19
-Generated AW 39 of 40 (for this sample). Length: 11
-Generated AW 40 of 40 (for this sample). Length: 7
-Generated set of AWs 1 of 5 in 1.46 seconds.
+Generated AW 1 of 5 (for this sample). Length: 3
+Generated AW 2 of 5 (for this sample). Length: 7
+Generated AW 3 of 5 (for this sample). Length: 30
+Generated AW 4 of 5 (for this sample). Length: 2
+Generated AW 5 of 5 (for this sample). Length: 5
+Generated set of AWs 1 of 2 in 0.57 seconds.
 
-Discrepancy: 0.002129
+Discrepancy: 0.811971
 Generated starting points for AWs using LHS in 0.00 seconds.
 
-Generated AW 1 of 40 (for this sample). Length: 14
-Generated AW 2 of 40 (for this sample). Length: 17
-Generated AW 3 of 40 (for this sample). Length: 30
-Generated AW 4 of 40 (for this sample). Length: 14
-Generated AW 5 of 40 (for this sample). Length: 18
-Generated AW 6 of 40 (for this sample). Length: 4
-Generated AW 7 of 40 (for this sample). Length: 3
-Generated AW 8 of 40 (for this sample). Length: 10
-Generated AW 9 of 40 (for this sample). Length: 24
-Generated AW 10 of 40 (for this sample). Length: 12
-Generated AW 11 of 40 (for this sample). Length: 14
-Generated AW 12 of 40 (for this sample). Length: 8
-Generated AW 13 of 40 (for this sample). Length: 8
-Generated AW 14 of 40 (for this sample). Length: 26
-Generated AW 15 of 40 (for this sample). Length: 10
-Generated AW 16 of 40 (for this sample). Length: 25
-Generated AW 17 of 40 (for this sample). Length: 23
-Generated AW 18 of 40 (for this sample). Length: 1
-Generated AW 19 of 40 (for this sample). Length: 11
-Generated AW 20 of 40 (for this sample). Length: 18
-Generated AW 21 of 40 (for this sample). Length: 9
-Generated AW 22 of 40 (for this sample). Length: 9
-Generated AW 23 of 40 (for this sample). Length: 3
-Generated AW 24 of 40 (for this sample). Length: 15
-Generated AW 25 of 40 (for this sample). Length: 13
-Generated AW 26 of 40 (for this sample). Length: 21
-Generated AW 27 of 40 (for this sample). Length: 1
-Generated AW 28 of 40 (for this sample). Length: 12
-Generated AW 29 of 40 (for this sample). Length: 15
-Generated AW 30 of 40 (for this sample). Length: 21
-Generated AW 31 of 40 (for this sample). Length: 11
-Generated AW 32 of 40 (for this sample). Length: 11
-Generated AW 33 of 40 (for this sample). Length: 16
-Generated AW 34 of 40 (for this sample). Length: 1
-Generated AW 35 of 40 (for this sample). Length: 11
-Generated AW 36 of 40 (for this sample). Length: 16
-Generated AW 37 of 40 (for this sample). Length: 8
-Generated AW 38 of 40 (for this sample). Length: 16
-Generated AW 39 of 40 (for this sample). Length: 8
-Generated AW 40 of 40 (for this sample). Length: 6
-Generated set of AWs 2 of 5 in 1.68 seconds.
-
-Discrepancy: 0.000793
-Generated starting points for AWs using LHS in 0.00 seconds.
-
-Generated AW 1 of 40 (for this sample). Length: 5
-Generated AW 2 of 40 (for this sample). Length: 21
-Generated AW 3 of 40 (for this sample). Length: 16
-Generated AW 4 of 40 (for this sample). Length: 2
-Generated AW 5 of 40 (for this sample). Length: 8
-Generated AW 6 of 40 (for this sample). Length: 13
-Generated AW 7 of 40 (for this sample). Length: 12
-Generated AW 8 of 40 (for this sample). Length: 12
-Generated AW 9 of 40 (for this sample). Length: 4
-Generated AW 10 of 40 (for this sample). Length: 12
-Generated AW 11 of 40 (for this sample). Length: 9
-Generated AW 12 of 40 (for this sample). Length: 7
-Generated AW 13 of 40 (for this sample). Length: 8
-Generated AW 14 of 40 (for this sample). Length: 5
-Generated AW 15 of 40 (for this sample). Length: 7
-Generated AW 16 of 40 (for this sample). Length: 8
-Generated AW 17 of 40 (for this sample). Length: 18
-Generated AW 18 of 40 (for this sample). Length: 10
-Generated AW 19 of 40 (for this sample). Length: 7
-Generated AW 20 of 40 (for this sample). Length: 15
-Generated AW 21 of 40 (for this sample). Length: 25
-Generated AW 22 of 40 (for this sample). Length: 18
-Generated AW 23 of 40 (for this sample). Length: 18
-Generated AW 24 of 40 (for this sample). Length: 19
-Generated AW 25 of 40 (for this sample). Length: 13
-Generated AW 26 of 40 (for this sample). Length: 15
-Generated AW 27 of 40 (for this sample). Length: 27
-Generated AW 28 of 40 (for this sample). Length: 3
-Generated AW 29 of 40 (for this sample). Length: 21
-Generated AW 30 of 40 (for this sample). Length: 2
-Generated AW 31 of 40 (for this sample). Length: 4
-Generated AW 32 of 40 (for this sample). Length: 6
-Generated AW 33 of 40 (for this sample). Length: 16
-Generated AW 34 of 40 (for this sample). Length: 20
-Generated AW 35 of 40 (for this sample). Length: 18
-Generated AW 36 of 40 (for this sample). Length: 27
-Generated AW 37 of 40 (for this sample). Length: 12
-Generated AW 38 of 40 (for this sample). Length: 2
-Generated AW 39 of 40 (for this sample). Length: 15
-Generated AW 40 of 40 (for this sample). Length: 14
-Generated set of AWs 3 of 5 in 1.64 seconds.
-
-Discrepancy: 0.000892
-Generated starting points for AWs using LHS in 0.00 seconds.
-
-Generated AW 1 of 40 (for this sample). Length: 7
-Generated AW 2 of 40 (for this sample). Length: 11
-Generated AW 3 of 40 (for this sample). Length: 14
-Generated AW 4 of 40 (for this sample). Length: 17
-Generated AW 5 of 40 (for this sample). Length: 27
-Generated AW 6 of 40 (for this sample). Length: 6
-Generated AW 7 of 40 (for this sample). Length: 20
-Generated AW 8 of 40 (for this sample). Length: 12
-Generated AW 9 of 40 (for this sample). Length: 9
-Generated AW 10 of 40 (for this sample). Length: 11
-Generated AW 11 of 40 (for this sample). Length: 8
-Generated AW 12 of 40 (for this sample). Length: 3
-Generated AW 13 of 40 (for this sample). Length: 13
-Generated AW 14 of 40 (for this sample). Length: 8
-Generated AW 15 of 40 (for this sample). Length: 11
-Generated AW 16 of 40 (for this sample). Length: 23
-Generated AW 17 of 40 (for this sample). Length: 24
-Generated AW 18 of 40 (for this sample). Length: 9
-Generated AW 19 of 40 (for this sample). Length: 8
-Generated AW 20 of 40 (for this sample). Length: 8
-Generated AW 21 of 40 (for this sample). Length: 2
-Generated AW 22 of 40 (for this sample). Length: 15
-Generated AW 23 of 40 (for this sample). Length: 23
-Generated AW 24 of 40 (for this sample). Length: 18
-Generated AW 25 of 40 (for this sample). Length: 4
-Generated AW 26 of 40 (for this sample). Length: 18
-Generated AW 27 of 40 (for this sample). Length: 3
-Generated AW 28 of 40 (for this sample). Length: 29
-Generated AW 29 of 40 (for this sample). Length: 22
-Generated AW 30 of 40 (for this sample). Length: 17
-Generated AW 31 of 40 (for this sample). Length: 16
-Generated AW 32 of 40 (for this sample). Length: 5
-Generated AW 33 of 40 (for this sample). Length: 2
-Generated AW 34 of 40 (for this sample). Length: 6
-Generated AW 35 of 40 (for this sample). Length: 5
-Generated AW 36 of 40 (for this sample). Length: 7
-Generated AW 37 of 40 (for this sample). Length: 8
-Generated AW 38 of 40 (for this sample). Length: 10
-Generated AW 39 of 40 (for this sample). Length: 18
-Generated AW 40 of 40 (for this sample). Length: 12
-Generated set of AWs 4 of 5 in 1.58 seconds.
-
-Discrepancy: 0.000925
-Generated starting points for AWs using LHS in 0.00 seconds.
-
-Generated AW 1 of 40 (for this sample). Length: 24
-Generated AW 2 of 40 (for this sample). Length: 12
-Generated AW 3 of 40 (for this sample). Length: 1
-Generated AW 4 of 40 (for this sample). Length: 2
-Generated AW 5 of 40 (for this sample). Length: 16
-Generated AW 6 of 40 (for this sample). Length: 3
-Generated AW 7 of 40 (for this sample). Length: 9
-Generated AW 8 of 40 (for this sample). Length: 5
-Generated AW 9 of 40 (for this sample). Length: 20
-Generated AW 10 of 40 (for this sample). Length: 6
-Generated AW 11 of 40 (for this sample). Length: 3
-Generated AW 12 of 40 (for this sample). Length: 13
-Generated AW 13 of 40 (for this sample). Length: 14
-Generated AW 14 of 40 (for this sample). Length: 23
-Generated AW 15 of 40 (for this sample). Length: 12
-Generated AW 16 of 40 (for this sample). Length: 9
-Generated AW 17 of 40 (for this sample). Length: 11
-Generated AW 18 of 40 (for this sample). Length: 11
-Generated AW 19 of 40 (for this sample). Length: 9
-Generated AW 20 of 40 (for this sample). Length: 12
-Generated AW 21 of 40 (for this sample). Length: 22
-Generated AW 22 of 40 (for this sample). Length: 25
-Generated AW 23 of 40 (for this sample). Length: 2
-Generated AW 24 of 40 (for this sample). Length: 18
-Generated AW 25 of 40 (for this sample). Length: 1
-Generated AW 26 of 40 (for this sample). Length: 14
-Generated AW 27 of 40 (for this sample). Length: 8
-Generated AW 28 of 40 (for this sample). Length: 4
-Generated AW 29 of 40 (for this sample). Length: 22
-Generated AW 30 of 40 (for this sample). Length: 24
-Generated AW 31 of 40 (for this sample). Length: 9
-Generated AW 32 of 40 (for this sample). Length: 5
-Generated AW 33 of 40 (for this sample). Length: 11
-Generated AW 34 of 40 (for this sample). Length: 5
-Generated AW 35 of 40 (for this sample). Length: 24
-Generated AW 36 of 40 (for this sample). Length: 12
-Generated AW 37 of 40 (for this sample). Length: 20
-Generated AW 38 of 40 (for this sample). Length: 27
-Generated AW 39 of 40 (for this sample). Length: 9
-Generated AW 40 of 40 (for this sample). Length: 5
-Generated set of AWs 5 of 5 in 1.58 seconds.
+Generated AW 1 of 5 (for this sample). Length: 3
+Generated AW 2 of 5 (for this sample). Length: 7
+Generated AW 3 of 5 (for this sample). Length: 13
+Generated AW 4 of 5 (for this sample). Length: 6
+Generated AW 5 of 5 (for this sample). Length: 9
+Generated set of AWs 2 of 2 in 0.38 seconds.
 
 
 Evaluating populations for these walk samples... (ranks off for walk steps, on for neighbours)
-Evaluated population 1 of 5 in 1.25 seconds.
-Evaluated population 2 of 5 in 1.52 seconds.
-Evaluated population 3 of 5 in 1.38 seconds.
-Evaluated population 4 of 5 in 1.45 seconds.
-Evaluated population 5 of 5 in 1.38 seconds.
+Evaluated population 1 of 2 in 0.34 seconds.
+Evaluated population 2 of 2 in 0.28 seconds.
 
 Initialising feature evaluation for AW features.
-Evaluated AW features for walk 1 out of 40 in 0.01 seconds.
-Evaluated AW features for walk 2 out of 40 in 0.05 seconds.
-Evaluated AW features for walk 3 out of 40 in 0.02 seconds.
-Evaluated AW features for walk 4 out of 40 in 0.06 seconds.
-Evaluated AW features for walk 5 out of 40 in 0.03 seconds.
-Evaluated AW features for walk 6 out of 40 in 0.06 seconds.
-Evaluated AW features for walk 7 out of 40 in 0.05 seconds.
-Evaluated AW features for walk 8 out of 40 in 0.03 seconds.
-Evaluated AW features for walk 9 out of 40 in 0.00 seconds.
-Evaluated AW features for walk 10 out of 40 in 0.07 seconds.
-Evaluated AW features for walk 11 out of 40 in 0.03 seconds.
-Evaluated AW features for walk 12 out of 40 in 0.02 seconds.
-Evaluated AW features for walk 13 out of 40 in 0.04 seconds.
-Evaluated AW features for walk 14 out of 40 in 0.06 seconds.
-Evaluated AW features for walk 15 out of 40 in 0.09 seconds.
-Evaluated AW features for walk 16 out of 40 in 0.04 seconds.
-Evaluated AW features for walk 17 out of 40 in 0.02 seconds.
-Evaluated AW features for walk 18 out of 40 in 0.03 seconds.
-Evaluated AW features for walk 19 out of 40 in 0.05 seconds.
-Evaluated AW features for walk 20 out of 40 in 0.02 seconds.
-Evaluated AW features for walk 21 out of 40 in 0.09 seconds.
-Evaluated AW features for walk 22 out of 40 in 0.06 seconds.
-Evaluated AW features for walk 23 out of 40 in 0.07 seconds.
-Evaluated AW features for walk 24 out of 40 in 0.07 seconds.
-Evaluated AW features for walk 25 out of 40 in 0.06 seconds.
-Evaluated AW features for walk 26 out of 40 in 0.00 seconds.
-Evaluated AW features for walk 27 out of 40 in 0.07 seconds.
-Evaluated AW features for walk 28 out of 40 in 0.06 seconds.
-Evaluated AW features for walk 29 out of 40 in 0.05 seconds.
-Evaluated AW features for walk 30 out of 40 in 0.04 seconds.
-Evaluated AW features for walk 31 out of 40 in 0.01 seconds.
-Evaluated AW features for walk 32 out of 40 in 0.02 seconds.
-Evaluated AW features for walk 33 out of 40 in 0.04 seconds.
-Evaluated AW features for walk 34 out of 40 in 0.02 seconds.
-Evaluated AW features for walk 35 out of 40 in 0.04 seconds.
-Evaluated AW features for walk 36 out of 40 in 0.02 seconds.
-Evaluated AW features for walk 37 out of 40 in 0.07 seconds.
-Evaluated AW features for walk 38 out of 40 in 0.07 seconds.
-Evaluated AW features for walk 39 out of 40 in 0.04 seconds.
-Evaluated AW features for walk 40 out of 40 in 0.03 seconds.
-Evaluated features for AW sample 1 out of 5
-
-Initialising feature evaluation for AW features.
-Evaluated AW features for walk 1 out of 40 in 0.05 seconds.
-Evaluated AW features for walk 2 out of 40 in 0.06 seconds.
-Evaluated AW features for walk 3 out of 40 in 0.11 seconds.
-Evaluated AW features for walk 4 out of 40 in 0.05 seconds.
-Evaluated AW features for walk 5 out of 40 in 0.07 seconds.
-Evaluated AW features for walk 6 out of 40 in 0.02 seconds.
-Evaluated AW features for walk 7 out of 40 in 0.02 seconds.
-Evaluated AW features for walk 8 out of 40 in 0.05 seconds.
-Evaluated AW features for walk 9 out of 40 in 0.09 seconds.
-Evaluated AW features for walk 10 out of 40 in 0.04 seconds.
-Evaluated AW features for walk 11 out of 40 in 0.06 seconds.
-Evaluated AW features for walk 12 out of 40 in 0.04 seconds.
-Evaluated AW features for walk 13 out of 40 in 0.03 seconds.
-Evaluated AW features for walk 14 out of 40 in 0.10 seconds.
-Evaluated AW features for walk 15 out of 40 in 0.04 seconds.
-Evaluated AW features for walk 16 out of 40 in 0.10 seconds.
-Evaluated AW features for walk 17 out of 40 in 0.09 seconds.
-Evaluated AW features for walk 18 out of 40 in 0.00 seconds.
-Evaluated AW features for walk 19 out of 40 in 0.04 seconds.
-Evaluated AW features for walk 20 out of 40 in 0.07 seconds.
-Evaluated AW features for walk 21 out of 40 in 0.04 seconds.
-Evaluated AW features for walk 22 out of 40 in 0.03 seconds.
-Evaluated AW features for walk 23 out of 40 in 0.01 seconds.
-Evaluated AW features for walk 24 out of 40 in 0.06 seconds.
-Evaluated AW features for walk 25 out of 40 in 0.05 seconds.
-Evaluated AW features for walk 26 out of 40 in 0.08 seconds.
-Evaluated AW features for walk 27 out of 40 in 0.00 seconds.
-Evaluated AW features for walk 28 out of 40 in 0.05 seconds.
-Evaluated AW features for walk 29 out of 40 in 0.06 seconds.
-Evaluated AW features for walk 30 out of 40 in 0.09 seconds.
-Evaluated AW features for walk 31 out of 40 in 0.05 seconds.
-Evaluated AW features for walk 32 out of 40 in 0.05 seconds.
-Evaluated AW features for walk 33 out of 40 in 0.07 seconds.
-Evaluated AW features for walk 34 out of 40 in 0.00 seconds.
-Evaluated AW features for walk 35 out of 40 in 0.04 seconds.
-Evaluated AW features for walk 36 out of 40 in 0.06 seconds.
-Evaluated AW features for walk 37 out of 40 in 0.03 seconds.
-Evaluated AW features for walk 38 out of 40 in 0.06 seconds.
-Evaluated AW features for walk 39 out of 40 in 0.04 seconds.
-Evaluated AW features for walk 40 out of 40 in 0.02 seconds.
-Evaluated features for AW sample 2 out of 5
-
-Initialising feature evaluation for AW features.
-Evaluated AW features for walk 1 out of 40 in 0.02 seconds.
-Evaluated AW features for walk 2 out of 40 in 0.08 seconds.
-Evaluated AW features for walk 3 out of 40 in 0.06 seconds.
-Evaluated AW features for walk 4 out of 40 in 0.01 seconds.
-Evaluated AW features for walk 5 out of 40 in 0.03 seconds.
-Evaluated AW features for walk 6 out of 40 in 0.05 seconds.
-Evaluated AW features for walk 7 out of 40 in 0.05 seconds.
-Evaluated AW features for walk 8 out of 40 in 0.05 seconds.
-Evaluated AW features for walk 9 out of 40 in 0.02 seconds.
-Evaluated AW features for walk 10 out of 40 in 0.05 seconds.
-Evaluated AW features for walk 11 out of 40 in 0.04 seconds.
-Evaluated AW features for walk 12 out of 40 in 0.03 seconds.
-Evaluated AW features for walk 13 out of 40 in 0.03 seconds.
-Evaluated AW features for walk 14 out of 40 in 0.02 seconds.
-Evaluated AW features for walk 15 out of 40 in 0.03 seconds.
-Evaluated AW features for walk 16 out of 40 in 0.03 seconds.
-Evaluated AW features for walk 17 out of 40 in 0.08 seconds.
-Evaluated AW features for walk 18 out of 40 in 0.04 seconds.
-Evaluated AW features for walk 19 out of 40 in 0.03 seconds.
-Evaluated AW features for walk 20 out of 40 in 0.07 seconds.
-Evaluated AW features for walk 21 out of 40 in 0.09 seconds.
-Evaluated AW features for walk 22 out of 40 in 0.07 seconds.
-Evaluated AW features for walk 23 out of 40 in 0.07 seconds.
-Evaluated AW features for walk 24 out of 40 in 0.07 seconds.
-Evaluated AW features for walk 25 out of 40 in 0.05 seconds.
-Evaluated AW features for walk 26 out of 40 in 0.06 seconds.
-Evaluated AW features for walk 27 out of 40 in 0.10 seconds.
-Evaluated AW features for walk 28 out of 40 in 0.01 seconds.
-Evaluated AW features for walk 29 out of 40 in 0.08 seconds.
-Evaluated AW features for walk 30 out of 40 in 0.01 seconds.
-Evaluated AW features for walk 31 out of 40 in 0.02 seconds.
-Evaluated AW features for walk 32 out of 40 in 0.03 seconds.
-Evaluated AW features for walk 33 out of 40 in 0.07 seconds.
-Evaluated AW features for walk 34 out of 40 in 0.08 seconds.
-Evaluated AW features for walk 35 out of 40 in 0.07 seconds.
-Evaluated AW features for walk 36 out of 40 in 0.11 seconds.
-Evaluated AW features for walk 37 out of 40 in 0.05 seconds.
-Evaluated AW features for walk 38 out of 40 in 0.01 seconds.
-Evaluated AW features for walk 39 out of 40 in 0.06 seconds.
-Evaluated AW features for walk 40 out of 40 in 0.06 seconds.
-Evaluated features for AW sample 3 out of 5
-
-Initialising feature evaluation for AW features.
-Evaluated AW features for walk 1 out of 40 in 0.03 seconds.
-Evaluated AW features for walk 2 out of 40 in 0.04 seconds.
-Evaluated AW features for walk 3 out of 40 in 0.05 seconds.
-Evaluated AW features for walk 4 out of 40 in 0.06 seconds.
-Evaluated AW features for walk 5 out of 40 in 0.09 seconds.
-Evaluated AW features for walk 6 out of 40 in 0.02 seconds.
-Evaluated AW features for walk 7 out of 40 in 0.07 seconds.
-Evaluated AW features for walk 8 out of 40 in 0.04 seconds.
-Evaluated AW features for walk 9 out of 40 in 0.04 seconds.
-Evaluated AW features for walk 10 out of 40 in 0.04 seconds.
-Evaluated AW features for walk 11 out of 40 in 0.03 seconds.
-Evaluated AW features for walk 12 out of 40 in 0.01 seconds.
-Evaluated AW features for walk 13 out of 40 in 0.05 seconds.
-Evaluated AW features for walk 14 out of 40 in 0.03 seconds.
-Evaluated AW features for walk 15 out of 40 in 0.05 seconds.
-Evaluated AW features for walk 16 out of 40 in 0.08 seconds.
-Evaluated AW features for walk 17 out of 40 in 0.09 seconds.
-Evaluated AW features for walk 18 out of 40 in 0.03 seconds.
-Evaluated AW features for walk 19 out of 40 in 0.03 seconds.
-Evaluated AW features for walk 20 out of 40 in 0.04 seconds.
-Evaluated AW features for walk 21 out of 40 in 0.01 seconds.
-Evaluated AW features for walk 22 out of 40 in 0.06 seconds.
-Evaluated AW features for walk 23 out of 40 in 0.08 seconds.
-Evaluated AW features for walk 24 out of 40 in 0.06 seconds.
-Evaluated AW features for walk 25 out of 40 in 0.02 seconds.
-Evaluated AW features for walk 26 out of 40 in 0.07 seconds.
-Evaluated AW features for walk 27 out of 40 in 0.02 seconds.
-Evaluated AW features for walk 28 out of 40 in 0.10 seconds.
-Evaluated AW features for walk 29 out of 40 in 0.08 seconds.
-Evaluated AW features for walk 30 out of 40 in 0.06 seconds.
-Evaluated AW features for walk 31 out of 40 in 0.06 seconds.
-Evaluated AW features for walk 32 out of 40 in 0.02 seconds.
-Evaluated AW features for walk 33 out of 40 in 0.01 seconds.
-Evaluated AW features for walk 34 out of 40 in 0.03 seconds.
-Evaluated AW features for walk 35 out of 40 in 0.02 seconds.
-Evaluated AW features for walk 36 out of 40 in 0.03 seconds.
-Evaluated AW features for walk 37 out of 40 in 0.03 seconds.
-Evaluated AW features for walk 38 out of 40 in 0.04 seconds.
-Evaluated AW features for walk 39 out of 40 in 0.07 seconds.
-Evaluated AW features for walk 40 out of 40 in 0.05 seconds.
-Evaluated features for AW sample 4 out of 5
-
-Initialising feature evaluation for AW features.
-Evaluated AW features for walk 1 out of 40 in 0.09 seconds.
-Evaluated AW features for walk 2 out of 40 in 0.05 seconds.
-Evaluated AW features for walk 3 out of 40 in 0.01 seconds.
-Evaluated AW features for walk 4 out of 40 in 0.01 seconds.
-Evaluated AW features for walk 5 out of 40 in 0.07 seconds.
-Evaluated AW features for walk 6 out of 40 in 0.02 seconds.
-Evaluated AW features for walk 7 out of 40 in 0.04 seconds.
-Evaluated AW features for walk 8 out of 40 in 0.02 seconds.
-Evaluated AW features for walk 9 out of 40 in 0.08 seconds.
-Evaluated AW features for walk 10 out of 40 in 0.02 seconds.
-Evaluated AW features for walk 11 out of 40 in 0.01 seconds.
-Evaluated AW features for walk 12 out of 40 in 0.05 seconds.
-Evaluated AW features for walk 13 out of 40 in 0.05 seconds.
-Evaluated AW features for walk 14 out of 40 in 0.09 seconds.
-Evaluated AW features for walk 15 out of 40 in 0.05 seconds.
-Evaluated AW features for walk 16 out of 40 in 0.03 seconds.
-Evaluated AW features for walk 17 out of 40 in 0.05 seconds.
-Evaluated AW features for walk 18 out of 40 in 0.04 seconds.
-Evaluated AW features for walk 19 out of 40 in 0.04 seconds.
-Evaluated AW features for walk 20 out of 40 in 0.05 seconds.
-Evaluated AW features for walk 21 out of 40 in 0.09 seconds.
-Evaluated AW features for walk 22 out of 40 in 0.11 seconds.
-Evaluated AW features for walk 23 out of 40 in 0.01 seconds.
-Evaluated AW features for walk 24 out of 40 in 0.07 seconds.
-Evaluated AW features for walk 25 out of 40 in 0.01 seconds.
-Evaluated AW features for walk 26 out of 40 in 0.06 seconds.
-Evaluated AW features for walk 27 out of 40 in 0.03 seconds.
-Evaluated AW features for walk 28 out of 40 in 0.02 seconds.
-Evaluated AW features for walk 29 out of 40 in 0.10 seconds.
-Evaluated AW features for walk 30 out of 40 in 0.09 seconds.
-Evaluated AW features for walk 31 out of 40 in 0.03 seconds.
-Evaluated AW features for walk 32 out of 40 in 0.02 seconds.
-Evaluated AW features for walk 33 out of 40 in 0.04 seconds.
-Evaluated AW features for walk 34 out of 40 in 0.02 seconds.
-Evaluated AW features for walk 35 out of 40 in 0.09 seconds.
-Evaluated AW features for walk 36 out of 40 in 0.05 seconds.
-Evaluated AW features for walk 37 out of 40 in 0.07 seconds.
-Evaluated AW features for walk 38 out of 40 in 0.10 seconds.
-Evaluated AW features for walk 39 out of 40 in 0.04 seconds.
-Evaluated AW features for walk 40 out of 40 in 0.02 seconds.
-Evaluated features for AW sample 5 out of 5
-
-Successfully saved aw sample results to csv file for MW1_d2.
-
-Success!
-Successfully appended aggregated results to csv file.
-
-
-Running problem: MW1, dimension: 5
-Initialising evaluator in eval mode.
-
------------------------- Evaluating instance: MW1_d5 ------------------------
- 
- ~~~~~~~~~~~~ RW Analysis for MW1_d5 ~~~~~~~~~~~~ 
-
-
-Generating 5 samples (walks + neighbours) for RW features with the following properties:
-- Number of walks: 5
-- Number of steps per walk: 1000
-- Step size (% of instance domain): 1.0
-- Neighbourhood size: 11
-
-Generated RW 1 of 5 (for this sample).
-Generated RW 2 of 5 (for this sample).
-Generated RW 3 of 5 (for this sample).
-Generated RW 4 of 5 (for this sample).
-Generated RW 5 of 5 (for this sample).
-Generated set of RWs 1 of 5 in 2.03 seconds.
-
-Generated RW 1 of 5 (for this sample).
-Generated RW 2 of 5 (for this sample).
-Generated RW 3 of 5 (for this sample).
-Generated RW 4 of 5 (for this sample).
-Generated RW 5 of 5 (for this sample).
-Generated set of RWs 2 of 5 in 1.57 seconds.
-
-Generated RW 1 of 5 (for this sample).
-Generated RW 2 of 5 (for this sample).
-Generated RW 3 of 5 (for this sample).
-Generated RW 4 of 5 (for this sample).
-Generated RW 5 of 5 (for this sample).
-Generated set of RWs 3 of 5 in 1.54 seconds.
-
-Generated RW 1 of 5 (for this sample).
-Generated RW 2 of 5 (for this sample).
-Generated RW 3 of 5 (for this sample).
-Generated RW 4 of 5 (for this sample).
-Generated RW 5 of 5 (for this sample).
-Generated set of RWs 4 of 5 in 1.54 seconds.
-
-Generated RW 1 of 5 (for this sample).
-Generated RW 2 of 5 (for this sample).
-Generated RW 3 of 5 (for this sample).
-Generated RW 4 of 5 (for this sample).
-Generated RW 5 of 5 (for this sample).
-Generated set of RWs 5 of 5 in 1.47 seconds.
-
-
-Evaluating populations for these walk samples... (ranks off for walk steps, on for neighbours)
-Evaluated population 1 of 5 in 15.69 seconds.
-Cleaning up /tmp/ci-FCsSENSoBI
+Evaluated AW features for walk 1 out of 5 in 0.03 seconds.
+Cleaning up /tmp/ci-JPiVSDgUry

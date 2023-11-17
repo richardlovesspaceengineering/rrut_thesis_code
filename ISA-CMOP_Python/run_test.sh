@@ -8,7 +8,7 @@ problemsCTP=("CTP1", "CTP2", "CTP3", "CTP4", "CTP5", "CTP6", "CTP7", "CTP8")
 problemsMW=("MW1", "MW2", "MW3", "MW4", "MW5", "MW6", "MW7", "MW8", "MW9", "MW10", "MW11", "MW12", "MW13", "MW14")
 
 # Dimensions to consider for each of the above.
-n_dim=(2 5 10)
+n_dim=(10)
 
 # Number of samples to run.
 num_samples=2

@@ -87,10 +87,16 @@ class GlobalAnalysis(Analysis):
 
         # Get PF-UPF relationship features.
         (
+            self.features["hv_est"],
+            self.features["uhv_est"],
+            self.features["hv_uhv_n"],
+            self.features["GD_cpo_upo"],
             self.features["po_n"],
             self.features["cpo_upo_n"],
             self.features["cover_cpo_upo_n"],
-        ) = compute_PF_UPF_features(self.pop)
+        ) = compute_PF_UPF_features(
+            self.pop, self.normalisation_values, norm_method="95th"
+        )
 
         # Extract violation-distance correlation.
         self.features["dist_c_corr"] = dist_corr(
