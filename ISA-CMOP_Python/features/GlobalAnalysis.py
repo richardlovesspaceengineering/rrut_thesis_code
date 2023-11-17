@@ -75,6 +75,8 @@ class GlobalAnalysis(Analysis):
 
         # Pareto set and front properties (normalised).
         (
+            self.features["PFd"],
+            self.features["PFCV"],
             self.features["PS_dist_max"],
             self.features["PS_dist_mean"],
             self.features["PS_dist_iqr"],

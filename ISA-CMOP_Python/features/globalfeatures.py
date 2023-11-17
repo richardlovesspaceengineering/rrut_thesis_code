@@ -6,6 +6,8 @@ from scipy.stats import iqr
 from optimisation.model.population import Population
 from optimisation.util.calculate_hypervolume import calculate_hypervolume_pygmo
 from pymoo.indicators.gd import GD
+from pymoo.indicators.igd import IGD
+from scipy.spatial import cKDTree
 
 
 def cv_distr(pop, normalisation_values, norm_method):
@@ -136,6 +138,27 @@ def compute_ps_pf_distances(pop, normalisation_values, norm_method):
     )
     obj = apply_normalisation(pop.extract_obj(), obj_lb, obj_ub)
     var = apply_normalisation(pop.extract_var(), var_lb, var_ub)
+    cv = apply_normalisation(pop.extract_cv(), cv_lb, cv_ub)
+
+    # Compute IGD between normalised PF and cloud of points formed by this sample.
+    IGDind = IGD(apply_normalisation(pop.extract_pf(), obj_lb, obj_ub))
+    PFd = IGDind(obj)
+
+    # Initialise binary tree for nearest neighbour lookup on normalised PF.
+    tree = cKDTree(obj)
+
+    # Query the tree to find the nearest neighbours in obj for each point on the PF.
+    distances, indices = tree.query(
+        apply_normalisation(pop.extract_pf(), obj_lb, obj_ub), k=20, workers=-1
+    )  # use parallel processing
+
+    # For each point in the Pareto front, average the CV of the nearest neighbours to the PF in the sample.
+    avg_cv_neighbours = []
+    for i in range(indices.shape[0]):
+        avg_cv_neighbours.append(np.mean(cv[indices[i, :]]))
+
+    # Compute global average
+    PFCV = np.mean(avg_cv_neighbours)
 
     # Initialize metrics.
     PS_dist_max = 0
@@ -165,6 +188,8 @@ def compute_ps_pf_distances(pop, normalisation_values, norm_method):
             PF_dist_iqr = iqr(obj_dist_matrix)
 
     return (
+        PFd,
+        PFCV,
         PS_dist_max,
         PS_dist_mean,
         PS_dist_iqr,
