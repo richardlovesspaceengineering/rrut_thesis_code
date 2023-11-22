@@ -1,9 +1,6 @@
 import numpy as np
 from features.RandomWalkAnalysis import RandomWalkAnalysis, MultipleRandomWalkAnalysis
-from features.randomwalkfeatures import (
-    compute_neighbourhood_dominance_features,
-    compute_neighbourhood_hv_features,
-)
+from features.randomwalkfeatures import *
 
 
 class AdaptiveWalkAnalysis(RandomWalkAnalysis):
@@ -22,7 +19,30 @@ class AdaptiveWalkAnalysis(RandomWalkAnalysis):
             _,
         ) = compute_neighbourhood_dominance_features(self.pop, self.pop_neighbours_list)
 
-        # Evaluate neighbourhood HV features
+        # Evaluate unconstrained neighbourhood HV features
+        (
+            self.features["uhv_single_soln_avg"],
+            _,
+            self.features["nuhv_avg"],
+            _,
+            self.features["uhvd_avg"],
+            _,
+            _,
+            _,
+        ) = compute_neighbourhood_hv_features(
+            self.pop,
+            self.pop_neighbours_list,
+            self.normalisation_values,
+            norm_method="95th",
+        )
+
+        # Evaluate constrained neighbourhood HV features
+
+        (
+            pop_walk_feas,
+            _,
+            pop_neighbours_feas,
+        ) = extract_feasible_steps_neighbours(self.pop, self.pop_neighbours_list)
         (
             self.features["hv_single_soln_avg"],
             _,
@@ -33,8 +53,8 @@ class AdaptiveWalkAnalysis(RandomWalkAnalysis):
             self.features["bhv_avg"],
             _,
         ) = compute_neighbourhood_hv_features(
-            self.pop,
-            self.pop_neighbours_list,
+            pop_walk_feas,
+            pop_neighbours_feas,
             self.normalisation_values,
             norm_method="95th",
         )

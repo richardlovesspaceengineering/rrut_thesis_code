@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.spatial.distance import pdist
+from scipy.spatial.distance import pdist, cdist
 from optimisation.util.non_dominated_sorting import NonDominatedSorting
 from optimisation.util.calculate_hypervolume import calculate_hypervolume_pygmo
 from optimisation.model.population import Population
@@ -37,6 +37,29 @@ def preprocess_nans_on_walks(pop_walk, pop_neighbours):
         pop_neighbours_checked.append(pop_neighbourhood)
 
     return pop_walk_new, pop_neighbours_new, pop_neighbours_checked
+
+
+def extract_feasible_steps_neighbours(pop_walk, pop_neighbours):
+    # Remove any steps and corresponding neighbours if they contain infs or nans.
+    pop_walk_feas = pop_walk.extract_feasible()
+    removal_idx = pop_walk.get_infeas_idx()
+    pop_neighbours_new = [
+        n for i, n in enumerate(pop_neighbours) if i not in removal_idx
+    ]
+
+    # Make new list of populations for neighbours.
+    pop_neighbours_checked = []
+
+    # Loop over each solution in the walk.
+    for i in range(len(pop_walk_feas)):
+        # Extract neighbours for this point and append.
+        pop_neighbourhood = copy.deepcopy(pop_neighbours_new[i])
+        pop_neighbourhood = pop_neighbourhood.extract_feasible()
+
+        # Save to list.
+        pop_neighbours_checked.append(pop_neighbourhood)
+
+    return pop_walk_feas, pop_neighbours_new, pop_neighbours_checked
 
 
 def compute_neighbourhood_crash_ratio(
@@ -79,6 +102,11 @@ def compute_neighbourhood_distance_features(
         normalisation_values, norm_method
     )
 
+    # Extract walk arrays.
+    walk_var = apply_normalisation(pop_walk.extract_var(), var_lb, var_ub)
+    walk_obj = apply_normalisation(pop_walk.extract_obj(), obj_lb, obj_ub)
+    walk_cv = apply_normalisation(pop_walk.extract_cv(), cv_lb, cv_ub)
+
     # Initialise arrays.
     dist_x_array = np.zeros(len(pop_walk))
     dist_f_array = np.zeros(len(pop_walk))
@@ -90,6 +118,11 @@ def compute_neighbourhood_distance_features(
 
     # Loop over each solution in the walk.
     for i in range(len(pop_walk)):
+        # Extract step values.
+        step_var = np.atleast_2d(walk_var[i, :])
+        step_obj = np.atleast_2d(walk_obj[i, :])
+        step_cv = np.atleast_2d(walk_cv[i])
+
         # Extract neighbours for this point and append.
         pop_neighbourhood = copy.deepcopy(pop_neighbours[i])
 
@@ -98,23 +131,24 @@ def compute_neighbourhood_distance_features(
         neig_obj = apply_normalisation(pop_neighbourhood.extract_obj(), obj_lb, obj_ub)
         neig_cv = apply_normalisation(pop_neighbourhood.extract_cv(), cv_lb, cv_ub)
 
-        # Distance between neighbours in variable space.
-        distdec = pdist(neig_var, "euclidean")
+        # Distance from solution to neighbours in variable space.
+        distdec = cdist(step_var, neig_var, "euclidean")
         dist_x_array[i] = np.mean(distdec)
 
-        # Distance between neighbours in objective space.
-        distobj = pdist(neig_obj, "euclidean")
+        # Distance from solution to neighbours in objective space.
+        distobj = cdist(step_obj, neig_obj, "euclidean")
         dist_f_array[i] = np.mean(distobj)
 
-        # Distance between neighbours in constraint-norm space.
-        distcons = pdist(neig_cv, "euclidean")
+        # Distance from solution to neighbours in constraint-norm space.
+        distcons = cdist(step_cv, neig_cv, "euclidean")
         dist_c_array[i] = np.mean(distcons)
 
         # Distance between neighbours in objective-violation space.
 
         # Construct objective-violation space by horizontally joining objectives and CV so that each solution forms a ((objectives), cv) tuple.
+        step_obj_violation = np.concatenate((step_obj, step_cv), axis=1)
         neig_obj_violation = np.concatenate((neig_obj, neig_cv), axis=1)
-        dist_obj_violation = pdist(neig_obj_violation)
+        dist_obj_violation = cdist(step_obj_violation, neig_obj_violation, "euclidean")
         dist_f_c_array[i] = np.mean(dist_obj_violation)
 
         # Take ratios.
@@ -178,6 +212,11 @@ def compute_neighbourhood_hv_features(
     nadir = 1.1 * np.ones(obj_lb.size)
 
     # Extract evaluated population values, normalise and trim any points larger than the nadir.
+    obj = pop_walk.extract_obj()
+    if obj.size == 0:
+        # If we are here, the population is empty. This might occur when using this function to determine constrained HV values and there are no feasible solutions.
+        return (0,) * 8 # this function returns 8 values
+
     obj, mask = trim_obj_using_nadir(
         apply_normalisation(pop_walk.extract_obj(), obj_lb, obj_ub), nadir
     )
@@ -201,12 +240,12 @@ def compute_neighbourhood_hv_features(
 
     # Set nonsense value if obj.size == 0
     if obj.size == 0:
-        hv_single_soln_array.fill(np.nan)
-        nhv_array.fill(np.nan)
-        hvd_array.fill(np.nan)
-        bhv_array.fill(np.nan)
+        hv_single_soln_array.fill(0)
+        nhv_array.fill(0)
+        hvd_array.fill(0)
+        bhv_array.fill(0)
         print(
-            "There are no individuals closer to the origin than the nadir. Setting all step HV metrics for this sample to NaN."
+            "There are no individuals closer to the origin than the nadir. Setting all step HV metrics for this sample to 0."
         )
     else:
         # Loop over each solution in the walk.
@@ -218,12 +257,12 @@ def compute_neighbourhood_hv_features(
                 nadir,
             )
             if neig_obj.size == 0:
-                hv_single_soln_array[i] = np.nan
-                nhv_array[i] = np.nan
-                hvd_array[i] = np.nan
-                bhv_array[i] = np.nan
+                hv_single_soln_array[i] = 0
+                nhv_array[i] = 0
+                hvd_array[i] = 0
+                bhv_array[i] = 0
                 print(
-                    "There are no neighbours closer to the origin than the nadir for step {} of {}. Setting all neighbourhood HV metrics for this step to NaN.".format(
+                    "There are no neighbours closer to the origin than the nadir for step {} of {}. Setting all neighbourhood HV metrics for this step to 0.".format(
                         i + 1, obj.shape[0]
                     )
                 )
@@ -252,18 +291,18 @@ def compute_neighbourhood_hv_features(
                     bhv_array[i] = calculate_hypervolume_pygmo(bestrankobjs, nadir)
                 except:
                     # In case the NDFront is further from the origin than the nadir.
-                    bhv_array[i] = np.nan
+                    bhv_array[i] = 0
                     print(
-                        "There are no non-dominated neighbours closer to the origin than the nadir for step {} of {}. Setting HV metric bhv_avg to NaN.".format(
+                        "There are no non-dominated neighbours closer to the origin than the nadir for step {} of {}. Setting HV metric bhv_avg to 0.".format(
                             i + 1, obj.shape[0]
                         )
                     )
 
     # Compute means (allowing for nans if need be)
-    hv_single_soln_avg = np.nanmean(hv_single_soln_array)
-    nhv_avg = np.nanmean(nhv_array)
-    hvd_avg = np.nanmean(hvd_array)
-    bhv_avg = np.nanmean(bhv_array)
+    hv_single_soln_avg = np.mean(hv_single_soln_array)
+    nhv_avg = np.mean(nhv_array)
+    hvd_avg = np.mean(hvd_array)
+    bhv_avg = np.mean(bhv_array)
 
     # Compute autocorrelations
     hv_single_soln_r1 = autocorr(hv_single_soln_array, 1)
