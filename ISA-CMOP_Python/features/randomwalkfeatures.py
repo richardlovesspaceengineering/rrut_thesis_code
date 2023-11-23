@@ -40,7 +40,7 @@ def preprocess_nans_on_walks(pop_walk, pop_neighbours):
 
 
 def extract_feasible_steps_neighbours(pop_walk, pop_neighbours):
-    # Remove any steps and corresponding neighbours if they contain infs or nans.
+    # Remove any steps and corresponding neighbours if they are infeasible
     pop_walk_feas = pop_walk.extract_feasible()
     removal_idx = pop_walk.get_infeas_idx()
     pop_neighbours_new = [
@@ -215,7 +215,7 @@ def compute_neighbourhood_hv_features(
     obj = pop_walk.extract_obj()
     if obj.size == 0:
         # If we are here, the population is empty. This might occur when using this function to determine constrained HV values and there are no feasible solutions.
-        return (0,) * 8 # this function returns 8 values
+        return (0,) * 8  # this function returns 8 values
 
     obj, mask = trim_obj_using_nadir(
         apply_normalisation(pop_walk.extract_obj(), obj_lb, obj_ub), nadir
@@ -233,14 +233,14 @@ def compute_neighbourhood_hv_features(
     pop_neighbours = trim_neig_using_mask(pop_neighbours, mask)
 
     # Initialise arrays
-    hv_single_soln_array = np.zeros(obj.shape[0])
+    hv_ss_array = np.zeros(obj.shape[0])
     nhv_array = np.zeros(obj.shape[0])
     hvd_array = np.zeros(obj.shape[0])
     bhv_array = np.zeros(obj.shape[0])
 
     # Set nonsense value if obj.size == 0
     if obj.size == 0:
-        hv_single_soln_array.fill(0)
+        hv_ss_array.fill(0)
         nhv_array.fill(0)
         hvd_array.fill(0)
         bhv_array.fill(0)
@@ -257,7 +257,7 @@ def compute_neighbourhood_hv_features(
                 nadir,
             )
             if neig_obj.size == 0:
-                hv_single_soln_array[i] = 0
+                hv_ss_array[i] = 0
                 nhv_array[i] = 0
                 hvd_array[i] = 0
                 bhv_array[i] = 0
@@ -268,7 +268,7 @@ def compute_neighbourhood_hv_features(
                 )
             else:
                 # Compute HV of single solution at this step.
-                hv_single_soln_array[i] = calculate_hypervolume_pygmo(
+                hv_ss_array[i] = calculate_hypervolume_pygmo(
                     np.atleast_2d(obj[i, :]), nadir
                 )
 
@@ -276,7 +276,7 @@ def compute_neighbourhood_hv_features(
                 nhv_array[i] = calculate_hypervolume_pygmo(neig_obj, nadir)
 
                 # Compute HV difference between neighbours and that covered by the current solution
-                hvd_array[i] = nhv_array[i] - hv_single_soln_array[i]
+                hvd_array[i] = nhv_array[i] - hv_ss_array[i]
 
                 # Compute HV of non-dominated neighbours (trimmed).
                 bestrankobjs, _ = trim_obj_using_nadir(
@@ -299,20 +299,20 @@ def compute_neighbourhood_hv_features(
                     )
 
     # Compute means (allowing for nans if need be)
-    hv_single_soln_avg = np.mean(hv_single_soln_array)
+    hv_ss_avg = np.mean(hv_ss_array)
     nhv_avg = np.mean(nhv_array)
     hvd_avg = np.mean(hvd_array)
     bhv_avg = np.mean(bhv_array)
 
     # Compute autocorrelations
-    hv_single_soln_r1 = autocorr(hv_single_soln_array, 1)
+    hv_ss_r1 = autocorr(hv_ss_array, 1)
     nhv_r1 = autocorr(nhv_array, 1)
     hvd_r1 = autocorr(hvd_array, 1)
     bhv_r1 = autocorr(bhv_array, 1)
 
     return (
-        hv_single_soln_avg,
-        hv_single_soln_r1,
+        hv_ss_avg,
+        hv_ss_r1,
         nhv_avg,
         nhv_r1,
         hvd_avg,

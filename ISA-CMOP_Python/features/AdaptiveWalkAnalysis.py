@@ -21,7 +21,7 @@ class AdaptiveWalkAnalysis(RandomWalkAnalysis):
 
         # Evaluate unconstrained neighbourhood HV features
         (
-            self.features["uhv_single_soln_avg"],
+            self.features["uhv_ss_avg"],
             _,
             self.features["nuhv_avg"],
             _,
@@ -44,7 +44,7 @@ class AdaptiveWalkAnalysis(RandomWalkAnalysis):
             pop_neighbours_feas,
         ) = extract_feasible_steps_neighbours(self.pop, self.pop_neighbours_list)
         (
-            self.features["hv_single_soln_avg"],
+            self.features["hv_ss_avg"],
             _,
             self.features["nhv_avg"],
             _,

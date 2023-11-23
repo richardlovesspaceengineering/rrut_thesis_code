@@ -66,8 +66,8 @@ class RandomWalkAnalysis(Analysis):
 
         # Evaluate unconstrained neighbourhood HV features
         (
-            self.features["uhv_single_soln_avg"],
-            self.features["uhv_single_soln_r1"],
+            self.features["uhv_ss_avg"],
+            self.features["uhv_ss_r1"],
             self.features["nuhv_avg"],
             self.features["nuhv_r1"],
             self.features["uhvd_avg"],
@@ -88,8 +88,8 @@ class RandomWalkAnalysis(Analysis):
             pop_neighbours_feas,
         ) = extract_feasible_steps_neighbours(self.pop, self.pop_neighbours_list)
         (
-            self.features["hv_single_soln_avg"],
-            self.features["hv_single_soln_r1"],
+            self.features["hv_ss_avg"],
+            self.features["hv_ss_r1"],
             self.features["nhv_avg"],
             self.features["nhv_r1"],
             self.features["hvd_avg"],

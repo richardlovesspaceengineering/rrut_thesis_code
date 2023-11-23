@@ -207,8 +207,8 @@ if __name__ == "__main__":
         # Neighbourhood HV features.
         if test_neighbourhood_hv_features:
             (
-                hv_single_soln_avg,
-                hv_single_soln_r1,
+                hv_ss_avg,
+                hv_ss_r1,
                 nhv_avg,
                 nhv_r1,
                 hvd_avg,
