@@ -3,15 +3,265 @@ Test Run.
 
 Host is: RUTHERFORD
 Using interpreter: D:/richa/anaconda3/envs/thesis_env_windows/python.exe
-New directory: /tmp/ci-kjTnDLdN63
-File running inside: /tmp/ci-kjTnDLdN63/runner.py
-Running problem: MW10, dimension: 10
-Initialising evaluator in eval mode.
+New directory: /tmp/ci-k7uCeYNvtq
+File running inside: /tmp/ci-k7uCeYNvtq/runner.py
+Running PreSampler.py for dimension: 2
 
------------------------- Evaluating instance: MW10_d10 ------------------------
- 
- ~~~~~~~~~~~~ RW Analysis for MW10_d10 ~~~~~~~~~~~~ 
+Generating 10 samples (walks + neighbours) for RW features with the following properties:
+- Number of walks: 2
+- Number of steps per walk: 1000
+- Step size (% of instance domain): 1.0
+- Neighbourhood size: 5
 
+Generated RW 1 of 2 (for this sample).
+Generated RW 2 of 2 (for this sample).
+Generated set of RWs 1 of 10 in 0.18 seconds.
+
+Generated RW 1 of 2 (for this sample).
+Generated RW 2 of 2 (for this sample).
+Generated set of RWs 2 of 10 in 0.15 seconds.
+
+Generated RW 1 of 2 (for this sample).
+Generated RW 2 of 2 (for this sample).
+Generated set of RWs 3 of 10 in 0.15 seconds.
+
+Generated RW 1 of 2 (for this sample).
+Generated RW 2 of 2 (for this sample).
+Generated set of RWs 4 of 10 in 0.14 seconds.
+
+Generated RW 1 of 2 (for this sample).
+Generated RW 2 of 2 (for this sample).
+Generated set of RWs 5 of 10 in 0.15 seconds.
+
+Generated RW 1 of 2 (for this sample).
+Generated RW 2 of 2 (for this sample).
+Generated set of RWs 6 of 10 in 0.14 seconds.
+
+Generated RW 1 of 2 (for this sample).
+Generated RW 2 of 2 (for this sample).
+Generated set of RWs 7 of 10 in 0.13 seconds.
+
+Generated RW 1 of 2 (for this sample).
+Generated RW 2 of 2 (for this sample).
+Generated set of RWs 8 of 10 in 0.15 seconds.
+
+Generated RW 1 of 2 (for this sample).
+Generated RW 2 of 2 (for this sample).
+Generated set of RWs 9 of 10 in 0.14 seconds.
+
+Generated RW 1 of 2 (for this sample).
+Generated RW 2 of 2 (for this sample).
+Generated set of RWs 10 of 10 in 0.15 seconds.
+
+Generating distributed samples for Global features with the following properties:
+- Num. points: 400
+- Method: lhs.scipy
+
+Discrepancy: 0.000036
+Generated Global sample 1 of 10 in 0.00 seconds.
+Discrepancy: 0.000056
+Generated Global sample 2 of 10 in 0.00 seconds.
+Discrepancy: 0.000136
+Generated Global sample 3 of 10 in 0.00 seconds.
+Discrepancy: 0.000033
+Generated Global sample 4 of 10 in 0.00 seconds.
+Discrepancy: 0.000088
+Generated Global sample 5 of 10 in 0.00 seconds.
+Discrepancy: 0.000076
+Generated Global sample 6 of 10 in 0.00 seconds.
+Discrepancy: 0.000079
+Generated Global sample 7 of 10 in 0.00 seconds.
+Discrepancy: 0.000042
+Generated Global sample 8 of 10 in 0.00 seconds.
+Discrepancy: 0.000057
+Generated Global sample 9 of 10 in 0.00 seconds.
+Discrepancy: 0.000047
+Generated Global sample 10 of 10 in 0.00 seconds.
+Running PreSampler.py for dimension: 3
+
+Generating 10 samples (walks + neighbours) for RW features with the following properties:
+- Number of walks: 3
+- Number of steps per walk: 1000
+- Step size (% of instance domain): 1.0
+- Neighbourhood size: 7
+
+Generated RW 1 of 3 (for this sample).
+Generated RW 2 of 3 (for this sample).
+Generated RW 3 of 3 (for this sample).
+Generated set of RWs 1 of 10 in 0.46 seconds.
+
+Generated RW 1 of 3 (for this sample).
+Generated RW 2 of 3 (for this sample).
+Generated RW 3 of 3 (for this sample).
+Generated set of RWs 2 of 10 in 0.45 seconds.
+
+Generated RW 1 of 3 (for this sample).
+Generated RW 2 of 3 (for this sample).
+Generated RW 3 of 3 (for this sample).
+Generated set of RWs 3 of 10 in 0.43 seconds.
+
+Generated RW 1 of 3 (for this sample).
+Generated RW 2 of 3 (for this sample).
+Generated RW 3 of 3 (for this sample).
+Generated set of RWs 4 of 10 in 0.40 seconds.
+
+Generated RW 1 of 3 (for this sample).
+Generated RW 2 of 3 (for this sample).
+Generated RW 3 of 3 (for this sample).
+Generated set of RWs 5 of 10 in 0.44 seconds.
+
+Generated RW 1 of 3 (for this sample).
+Generated RW 2 of 3 (for this sample).
+Generated RW 3 of 3 (for this sample).
+Generated set of RWs 6 of 10 in 0.42 seconds.
+
+Generated RW 1 of 3 (for this sample).
+Generated RW 2 of 3 (for this sample).
+Generated RW 3 of 3 (for this sample).
+Generated set of RWs 7 of 10 in 0.43 seconds.
+
+Generated RW 1 of 3 (for this sample).
+Generated RW 2 of 3 (for this sample).
+Generated RW 3 of 3 (for this sample).
+Generated set of RWs 8 of 10 in 0.41 seconds.
+
+Generated RW 1 of 3 (for this sample).
+Generated RW 2 of 3 (for this sample).
+Generated RW 3 of 3 (for this sample).
+Generated set of RWs 9 of 10 in 0.45 seconds.
+
+Generated RW 1 of 3 (for this sample).
+Generated RW 2 of 3 (for this sample).
+Generated RW 3 of 3 (for this sample).
+Generated set of RWs 10 of 10 in 0.38 seconds.
+
+Generating distributed samples for Global features with the following properties:
+- Num. points: 600
+- Method: lhs.scipy
+
+Discrepancy: 0.000157
+Generated Global sample 1 of 10 in 0.01 seconds.
+Discrepancy: 0.000113
+Generated Global sample 2 of 10 in 0.00 seconds.
+Discrepancy: 0.000174
+Generated Global sample 3 of 10 in 0.00 seconds.
+Discrepancy: 0.000191
+Generated Global sample 4 of 10 in 0.01 seconds.
+Discrepancy: 0.000171
+Generated Global sample 5 of 10 in 0.01 seconds.
+Discrepancy: 0.000094
+Generated Global sample 6 of 10 in 0.01 seconds.
+Discrepancy: 0.000167
+Generated Global sample 7 of 10 in 0.00 seconds.
+Discrepancy: 0.000216
+Generated Global sample 8 of 10 in 0.01 seconds.
+Discrepancy: 0.000300
+Generated Global sample 9 of 10 in 0.01 seconds.
+Discrepancy: 0.000114
+Generated Global sample 10 of 10 in 0.01 seconds.
+Running PreSampler.py for dimension: 5
+
+Generating 10 samples (walks + neighbours) for RW features with the following properties:
+- Number of walks: 5
+- Number of steps per walk: 1000
+- Step size (% of instance domain): 1.0
+- Neighbourhood size: 11
+
+Generated RW 1 of 5 (for this sample).
+Generated RW 2 of 5 (for this sample).
+Generated RW 3 of 5 (for this sample).
+Generated RW 4 of 5 (for this sample).
+Generated RW 5 of 5 (for this sample).
+Generated set of RWs 1 of 10 in 1.62 seconds.
+
+Generated RW 1 of 5 (for this sample).
+Generated RW 2 of 5 (for this sample).
+Generated RW 3 of 5 (for this sample).
+Generated RW 4 of 5 (for this sample).
+Generated RW 5 of 5 (for this sample).
+Generated set of RWs 2 of 10 in 1.58 seconds.
+
+Generated RW 1 of 5 (for this sample).
+Generated RW 2 of 5 (for this sample).
+Generated RW 3 of 5 (for this sample).
+Generated RW 4 of 5 (for this sample).
+Generated RW 5 of 5 (for this sample).
+Generated set of RWs 3 of 10 in 1.69 seconds.
+
+Generated RW 1 of 5 (for this sample).
+Generated RW 2 of 5 (for this sample).
+Generated RW 3 of 5 (for this sample).
+Generated RW 4 of 5 (for this sample).
+Generated RW 5 of 5 (for this sample).
+Generated set of RWs 4 of 10 in 1.55 seconds.
+
+Generated RW 1 of 5 (for this sample).
+Generated RW 2 of 5 (for this sample).
+Generated RW 3 of 5 (for this sample).
+Generated RW 4 of 5 (for this sample).
+Generated RW 5 of 5 (for this sample).
+Generated set of RWs 5 of 10 in 1.59 seconds.
+
+Generated RW 1 of 5 (for this sample).
+Generated RW 2 of 5 (for this sample).
+Generated RW 3 of 5 (for this sample).
+Generated RW 4 of 5 (for this sample).
+Generated RW 5 of 5 (for this sample).
+Generated set of RWs 6 of 10 in 1.57 seconds.
+
+Generated RW 1 of 5 (for this sample).
+Generated RW 2 of 5 (for this sample).
+Generated RW 3 of 5 (for this sample).
+Generated RW 4 of 5 (for this sample).
+Generated RW 5 of 5 (for this sample).
+Generated set of RWs 7 of 10 in 1.55 seconds.
+
+Generated RW 1 of 5 (for this sample).
+Generated RW 2 of 5 (for this sample).
+Generated RW 3 of 5 (for this sample).
+Generated RW 4 of 5 (for this sample).
+Generated RW 5 of 5 (for this sample).
+Generated set of RWs 8 of 10 in 1.52 seconds.
+
+Generated RW 1 of 5 (for this sample).
+Generated RW 2 of 5 (for this sample).
+Generated RW 3 of 5 (for this sample).
+Generated RW 4 of 5 (for this sample).
+Generated RW 5 of 5 (for this sample).
+Generated set of RWs 9 of 10 in 1.64 seconds.
+
+Generated RW 1 of 5 (for this sample).
+Generated RW 2 of 5 (for this sample).
+Generated RW 3 of 5 (for this sample).
+Generated RW 4 of 5 (for this sample).
+Generated RW 5 of 5 (for this sample).
+Generated set of RWs 10 of 10 in 1.54 seconds.
+
+Generating distributed samples for Global features with the following properties:
+- Num. points: 1000
+- Method: lhs.scipy
+
+Discrepancy: 0.000425
+Generated Global sample 1 of 10 in 0.01 seconds.
+Discrepancy: 0.000348
+Generated Global sample 2 of 10 in 0.02 seconds.
+Discrepancy: 0.000424
+Generated Global sample 3 of 10 in 0.02 seconds.
+Discrepancy: 0.000400
+Generated Global sample 4 of 10 in 0.01 seconds.
+Discrepancy: 0.000329
+Generated Global sample 5 of 10 in 0.02 seconds.
+Discrepancy: 0.000347
+Generated Global sample 6 of 10 in 0.02 seconds.
+Discrepancy: 0.000381
+Generated Global sample 7 of 10 in 0.02 seconds.
+Discrepancy: 0.000606
+Generated Global sample 8 of 10 in 0.02 seconds.
+Discrepancy: 0.000405
+Generated Global sample 9 of 10 in 0.02 seconds.
+Discrepancy: 0.000535
+Generated Global sample 10 of 10 in 0.02 seconds.
+Running PreSampler.py for dimension: 10
 
 Generating 10 samples (walks + neighbours) for RW features with the following properties:
 - Number of walks: 10
@@ -24,4 +274,76 @@ Generated RW 2 of 10 (for this sample).
 Generated RW 3 of 10 (for this sample).
 Generated RW 4 of 10 (for this sample).
 Generated RW 5 of 10 (for this sample).
-Cleaning up /tmp/ci-kjTnDLdN63
+Generated RW 6 of 10 (for this sample).
+Generated RW 7 of 10 (for this sample).
+Generated RW 8 of 10 (for this sample).
+Generated RW 9 of 10 (for this sample).
+Generated RW 10 of 10 (for this sample).
+Generated set of RWs 1 of 10 in 12.50 seconds.
+
+Generated RW 1 of 10 (for this sample).
+Generated RW 2 of 10 (for this sample).
+Generated RW 3 of 10 (for this sample).
+Generated RW 4 of 10 (for this sample).
+Generated RW 5 of 10 (for this sample).
+Generated RW 6 of 10 (for this sample).
+Generated RW 7 of 10 (for this sample).
+Generated RW 8 of 10 (for this sample).
+Generated RW 9 of 10 (for this sample).
+Generated RW 10 of 10 (for this sample).
+Generated set of RWs 2 of 10 in 11.73 seconds.
+
+Generated RW 1 of 10 (for this sample).
+Generated RW 2 of 10 (for this sample).
+Generated RW 3 of 10 (for this sample).
+Generated RW 4 of 10 (for this sample).
+Generated RW 5 of 10 (for this sample).
+Generated RW 6 of 10 (for this sample).
+Generated RW 7 of 10 (for this sample).
+Generated RW 8 of 10 (for this sample).
+Generated RW 9 of 10 (for this sample).
+Generated RW 10 of 10 (for this sample).
+Generated set of RWs 3 of 10 in 11.64 seconds.
+
+Generated RW 1 of 10 (for this sample).
+Generated RW 2 of 10 (for this sample).
+Generated RW 3 of 10 (for this sample).
+Generated RW 4 of 10 (for this sample).
+Generated RW 5 of 10 (for this sample).
+Generated RW 6 of 10 (for this sample).
+Generated RW 7 of 10 (for this sample).
+Generated RW 8 of 10 (for this sample).
+Generated RW 9 of 10 (for this sample).
+Generated RW 10 of 10 (for this sample).
+Generated set of RWs 4 of 10 in 11.24 seconds.
+
+Generated RW 1 of 10 (for this sample).
+Generated RW 2 of 10 (for this sample).
+Generated RW 3 of 10 (for this sample).
+Generated RW 4 of 10 (for this sample).
+Generated RW 5 of 10 (for this sample).
+Generated RW 6 of 10 (for this sample).
+Generated RW 7 of 10 (for this sample).
+Generated RW 8 of 10 (for this sample).
+Generated RW 9 of 10 (for this sample).
+Generated RW 10 of 10 (for this sample).
+Generated set of RWs 5 of 10 in 10.64 seconds.
+
+Generated RW 1 of 10 (for this sample).
+Generated RW 2 of 10 (for this sample).
+Generated RW 3 of 10 (for this sample).
+Generated RW 4 of 10 (for this sample).
+Generated RW 5 of 10 (for this sample).
+Generated RW 6 of 10 (for this sample).
+Generated RW 7 of 10 (for this sample).
+Generated RW 8 of 10 (for this sample).
+Generated RW 9 of 10 (for this sample).
+Generated RW 10 of 10 (for this sample).
+Generated set of RWs 6 of 10 in 10.90 seconds.
+
+Generated RW 1 of 10 (for this sample).
+Generated RW 2 of 10 (for this sample).
+Generated RW 3 of 10 (for this sample).
+Generated RW 4 of 10 (for this sample).
+Generated RW 5 of 10 (for this sample).
+Cleaning up /tmp/ci-k7uCeYNvtq

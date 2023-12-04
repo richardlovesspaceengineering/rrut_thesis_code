@@ -4,15 +4,17 @@ import warnings
 
 
 class RandomWalk:
-    def __init__(self, bounds, num_steps, step_size_pct, neighbourhood_size):
+    def __init__(self, dim, num_steps, step_size_pct, neighbourhood_size):
         """
         Step size must be given as a percentage of (xmax - xmin) for each dimension.
         """
-        self.bounds = bounds
+        self.dim = dim
+
+        # Default to the unit hypercube - can always rescale later.
+        self.bounds = np.array([np.zeros(self.dim), np.ones(self.dim)])
         self.num_steps = num_steps
         self.step_size_pct = step_size_pct
         self.neighbourhood_size = neighbourhood_size
-        self.dim = self.bounds.shape[1]  # dimensionality of the problem
         self.initialise_step_sizes()
 
     def initialise_step_sizes(self):
@@ -122,18 +124,18 @@ class RandomWalk:
 
     def generate_neighbours_for_walk(self, walk):
         """
-        Generate a list of neighbours containing num_steps sets of neighbours with size neighbourhood_size
+        Generate a 3D array of neighbours containing num_steps sets of neighbours with size neighbourhood_size
         """
         num_points = walk.shape[0]
 
-        # Initialize the array to store neighbors
-        neighbours = []
+        # Initialize the 3D array to store neighbors
+        neighbours = np.zeros((self.neighbourhood_size, num_points, self.dim))
 
         for i in range(num_points):
             current_neighbours = self.generate_neighbours_for_step(
                 walk[i, :], self.neighbourhood_size
             )
-            neighbours.append(current_neighbours)
+            neighbours[:, i, :] = current_neighbours
 
         return neighbours
 
@@ -211,8 +213,7 @@ if __name__ == "__main__":
     for i in range(2):
         for j in range(2):
             # Define bounds for each subplot
-            bounds = np.array([[0, 0], [1, 1]])
-            rw = RandomWalk(bounds, 50, 0.02, 3)
+            rw = RandomWalk(2, 1000, 0.02, 3)
 
             # Starting zone binary array.
             starting_zone = np.array([i, j])
@@ -237,18 +238,10 @@ if __name__ == "__main__":
             # Plot the neighbours
 
             # Add dotted lines at the bounds on the current subplot
-            ax[i, j].axvline(
-                x=bounds[0, 0], color="gray", linestyle="--", label="Lower X Bound"
-            )
-            ax[i, j].axvline(
-                x=bounds[1, 0], color="gray", linestyle="--", label="Upper X Bound"
-            )
-            ax[i, j].axhline(
-                y=bounds[0, 1], color="gray", linestyle="--", label="Lower Y Bound"
-            )
-            ax[i, j].axhline(
-                y=bounds[1, 1], color="gray", linestyle="--", label="Upper Y Bound"
-            )
+            ax[i, j].axvline(x=0, color="gray", linestyle="--", label="Lower X Bound")
+            ax[i, j].axvline(x=1, color="gray", linestyle="--", label="Upper X Bound")
+            ax[i, j].axhline(y=0, color="gray", linestyle="--", label="Lower Y Bound")
+            ax[i, j].axhline(y=1, color="gray", linestyle="--", label="Upper Y Bound")
 
     # Adjust subplot spacing
     plt.tight_layout()

@@ -2,7 +2,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-import math
 import time
 import os
 
@@ -37,20 +36,6 @@ class ProblemEvaluator:
         self.walk_normalisation_values = {}
         self.global_normalisation_values = {}
         print("Initialising evaluator in {} mode.".format(self.mode))
-
-    def generate_binary_patterns(self, n):
-        """
-        Generate starting zones (represented as binary arrays) at every 2^n/n-th vertex of the search space.
-        """
-
-        num_patterns = 2**n
-        patterns = []
-        step = math.ceil(num_patterns / n)
-
-        for i in range(0, num_patterns, step):
-            binary_pattern = np.binary_repr(i, width=n)
-            patterns.append([int(bit) for bit in binary_pattern])
-        return patterns
 
     def make_rw_generator(self, problem, num_steps, step_size, neighbourhood_size):
         # Bounds of the decision variables.

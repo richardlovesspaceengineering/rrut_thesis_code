@@ -2,6 +2,7 @@ import json
 import re
 import sys
 from ProblemEvaluator import ProblemEvaluator
+from PreSampler import PreSampler
 
 # Import the get_problem method from pymoo.problems
 from pymoo.problems import get_problem

@@ -4,17 +4,19 @@
 desc_msg="Test Run."
 
 # Problem suites
-# problemsCTP=("CTP1", "CTP2", "CTP3", "CTP4", "CTP5", "CTP6", "CTP7", "CTP8")
 problemsMW=("MW10")
 
-# Dimensions to consider for each of the above.
-n_dim=(10)
+# Dimensions to consider
+dimensions=("2" "3" "5" "10")
 
 # Number of samples to run.
 num_samples=10
 
 # Modes are debug or eval.
 mode="eval"
+
+# Use pre-generated samples?
+regenerate_samples=true
 
 # Save full feature arrays. Aggregated feature arrays are always saved.
 save_feature_arrays=true
@@ -69,23 +71,25 @@ cd "$cd_dir" || { echo "cd $cd_dir failed" | tee -a "$log_file"; }
 # Path to execute python script
 run_dir="$temp_dir"
 run_dir+="/runner.py"    # Main script to execute (runner.py)
+pre_sampler_script="PreSampler.py"  # PreSampler script
+
 echo "File running inside: $run_dir" | tee -a "$log_file"
 
-# Determine which set of problems to run based on user input
-if [ "$1" == "MW" ]; then
-  problems=("${problemsMW[@]}")
-elif [ "$1" == "CTP" ]; then
-  problems=("${problemsCTP[@]}")
-else
-  echo "Invalid argument. Use 'MW' or 'CTP'." | tee -a "$log_file"
-  exit 1
+# Check if regenerate_samples is true
+if [ "$regenerate_samples" = true ]; then
+  # Run PreSampler.py for each dimension and number of samples
+  for dim in "${dimensions[@]}"; do
+    echo "Running PreSampler.py for dimension: $dim" | tee -a "$log_file"
+    "$PYTHON_SCRIPT" -u "$pre_sampler_script" "$dim" "$num_samples" 2>&1 | tee -a "$log_file"
+  done
 fi
 
-# Run. Note that all logging is done within Python.
-for problem in "${problems[@]}"; do
+# Run runner.py for each problem and dimension
+for problem in "${problemsMW[@]}"; do
   problem=$(echo "$problem" | sed 's/,$//')  # Remove trailing comma if it exists
-  for dim in "${n_dim[@]}"; do
+  for dim in "${dimensions[@]}"; do
     echo "Running problem: $problem, dimension: $dim" | tee -a "$log_file"  # Print message to the terminal and log file
+    # Run runner.py
     "$PYTHON_SCRIPT" -u "$run_dir" "$problem" "$dim" "$num_samples" "$mode" "$save_feature_arrays" 2>&1 | tee -a "$log_file"
   done
 done
