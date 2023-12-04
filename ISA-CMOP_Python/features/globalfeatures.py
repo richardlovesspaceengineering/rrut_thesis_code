@@ -382,6 +382,7 @@ def compute_PF_UPF_features(pop, normalisation_values, norm_method):
     cpo_upo_n = len(nondominated_cons) / len(nondominated_uncons)
 
     # Proportion of PO solutions.
+    upo_n = len(nondominated_uncons) / len(pop)
     po_n = len(nondominated_cons) / len(pop)
 
     # Proportion of UPF covered by PF.
@@ -407,4 +408,13 @@ def compute_PF_UPF_features(pop, normalisation_values, norm_method):
 
     cover_cpo_upo_n = count_upf_dominates_pf / len(uncons_combined_ranks)
 
-    return hv_est, uhv_est, hv_uhv_n, GD_cpo_upo, po_n, cpo_upo_n, cover_cpo_upo_n
+    return (
+        hv_est,
+        uhv_est,
+        hv_uhv_n,
+        GD_cpo_upo,
+        upo_n,
+        po_n,
+        cpo_upo_n,
+        cover_cpo_upo_n,
+    )

@@ -93,6 +93,7 @@ class GlobalAnalysis(Analysis):
             self.features["uhv_est"],
             self.features["hv_uhv_n"],
             self.features["GD_cpo_upo"],
+            self.features["upo_n"],
             self.features["po_n"],
             self.features["cpo_upo_n"],
             self.features["cover_cpo_upo_n"],

@@ -4,17 +4,17 @@
 desc_msg="Test Run."
 
 # Problem suites
-problemsCTP=("CTP1", "CTP2", "CTP3", "CTP4", "CTP5", "CTP6", "CTP7", "CTP8")
-problemsMW=("MW1", "MW2", "MW3", "MW4", "MW5", "MW6", "MW7", "MW8", "MW9", "MW10", "MW11", "MW12", "MW13", "MW14")
+# problemsCTP=("CTP1", "CTP2", "CTP3", "CTP4", "CTP5", "CTP6", "CTP7", "CTP8")
+problemsMW=("MW10")
 
 # Dimensions to consider for each of the above.
 n_dim=(10)
 
 # Number of samples to run.
-num_samples=2
+num_samples=10
 
 # Modes are debug or eval.
-mode="debug"
+mode="eval"
 
 # Save full feature arrays. Aggregated feature arrays are always saved.
 save_feature_arrays=true
