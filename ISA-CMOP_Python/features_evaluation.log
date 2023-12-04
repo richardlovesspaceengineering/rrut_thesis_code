@@ -3,8 +3,8 @@ Test Run.
 
 Host is: RUTHERFORD
 Using interpreter: D:/richa/anaconda3/envs/thesis_env_windows/python.exe
-New directory: /tmp/ci-yRtyjfO6VQ
-File running inside: /tmp/ci-yRtyjfO6VQ/runner.py
+New directory: /tmp/ci-kjTnDLdN63
+File running inside: /tmp/ci-kjTnDLdN63/runner.py
 Running problem: MW10, dimension: 10
 Initialising evaluator in eval mode.
 
@@ -20,4 +20,8 @@ Generating 10 samples (walks + neighbours) for RW features with the following pr
 - Neighbourhood size: 21
 
 Generated RW 1 of 10 (for this sample).
-Cleaning up /tmp/ci-yRtyjfO6VQ
+Generated RW 2 of 10 (for this sample).
+Generated RW 3 of 10 (for this sample).
+Generated RW 4 of 10 (for this sample).
+Generated RW 5 of 10 (for this sample).
+Cleaning up /tmp/ci-kjTnDLdN63

@@ -1,10 +1,9 @@
-from optimisation.model.sampling import Sampling
 import numpy as np
 import matplotlib.pyplot as plt
 import warnings
 
 
-class RandomWalk(Sampling):
+class RandomWalk:
     def __init__(self, bounds, num_steps, step_size_pct, neighbourhood_size):
         """
         Step size must be given as a percentage of (xmax - xmin) for each dimension.
@@ -212,7 +211,7 @@ if __name__ == "__main__":
     for i in range(2):
         for j in range(2):
             # Define bounds for each subplot
-            bounds = np.array([[-100, -100], [100, 200]])
+            bounds = np.array([[0, 0], [1, 1]])
             rw = RandomWalk(bounds, 50, 0.02, 3)
 
             # Starting zone binary array.
