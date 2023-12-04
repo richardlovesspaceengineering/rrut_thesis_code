@@ -66,7 +66,7 @@ def generate_instance(problem_name, n_var):
 def main():
     if len(sys.argv) != 6:
         print(
-            "Usage: python generate_json.py problem_name n_dimensions num_samples mode save_features_array"
+            "Usage: python runner.py problem_name n_dimensions num_samples mode save_features_array"
         )
         return
 
