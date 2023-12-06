@@ -272,6 +272,16 @@ def flatten_dict(original_dict):
     return flattened_dict
 
 
+def trim_obj_using_nadir(obj, nadir):
+    # Create a boolean mask
+    mask = np.all(obj <= nadir, axis=1)
+
+    # Use the mask to select the rows from obj
+    trimmed_obj = obj[mask]
+
+    return trimmed_obj, mask
+
+
 def extract_norm_values(normalisation_values, norm_method):
     """
     Extract normalisation values from the dictionary formed using compute_all_normalisation_values

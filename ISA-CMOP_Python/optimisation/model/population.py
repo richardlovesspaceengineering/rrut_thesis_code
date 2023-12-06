@@ -358,6 +358,11 @@ class Population(np.ndarray):
 
         return np.where(nan_inf_idx)[0]
 
+    def get_infeas_idx(self):
+        cv = self.extract_cv()
+        infeasible_indices = np.where(cv > 0)[0]
+        return infeasible_indices
+
     # CSV writers.
     def write_var_to_csv(self, filename):
         np.savetxt(filename, self.extract_var())

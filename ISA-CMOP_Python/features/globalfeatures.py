@@ -4,6 +4,10 @@ from features.feature_helpers import *
 from scipy.spatial.distance import pdist, cdist
 from scipy.stats import iqr
 from optimisation.model.population import Population
+from optimisation.util.calculate_hypervolume import calculate_hypervolume_pygmo
+from pymoo.indicators.gd import GD
+from pymoo.indicators.igd import IGD
+from scipy.spatial import cKDTree
 
 
 def cv_distr(pop, normalisation_values, norm_method):
@@ -134,6 +138,27 @@ def compute_ps_pf_distances(pop, normalisation_values, norm_method):
     )
     obj = apply_normalisation(pop.extract_obj(), obj_lb, obj_ub)
     var = apply_normalisation(pop.extract_var(), var_lb, var_ub)
+    cv = apply_normalisation(pop.extract_cv(), cv_lb, cv_ub)
+
+    # Compute IGD between normalised PF and cloud of points formed by this sample.
+    IGDind = IGD(apply_normalisation(pop.extract_pf(), obj_lb, obj_ub))
+    PFd = IGDind(obj)
+
+    # Initialise binary tree for nearest neighbour lookup on normalised PF.
+    tree = cKDTree(obj)
+
+    # Query the tree to find the nearest neighbours in obj for each point on the PF.
+    distances, indices = tree.query(
+        apply_normalisation(pop.extract_pf(), obj_lb, obj_ub), k=20, workers=-1
+    )  # use parallel processing
+
+    # For each point in the Pareto front, average the CV of the nearest neighbours to the PF in the sample.
+    avg_cv_neighbours = []
+    for i in range(indices.shape[0]):
+        avg_cv_neighbours.append(np.mean(cv[indices[i, :]]))
+
+    # Compute global average
+    PFCV = np.mean(avg_cv_neighbours)
 
     # Initialize metrics.
     PS_dist_max = 0
@@ -163,6 +188,8 @@ def compute_ps_pf_distances(pop, normalisation_values, norm_method):
             PF_dist_iqr = iqr(obj_dist_matrix)
 
     return (
+        PFd,
+        PFCV,
         PS_dist_max,
         PS_dist_mean,
         PS_dist_iqr,
@@ -313,14 +340,49 @@ def compute_fsr(pop):
     return len(feasible) / len(pop)
 
 
-def compute_PF_UPF_features(pop):
+def compute_PF_UPF_features(pop, normalisation_values, norm_method):
+    # Extract normalisation values.
+    var_lb, var_ub, obj_lb, obj_ub, cv_lb, cv_ub = extract_norm_values(
+        normalisation_values, norm_method
+    )
+
+    # Define the nadir for HV calculations.
+    nadir = 1.1 * np.ones(obj_lb.size)
+
+    # Extract constrained and unconstrained non-dominated individuals.
     nondominated_cons = pop.extract_nondominated(constrained=True)
     nondominated_uncons = pop.extract_nondominated(constrained=False)
+
+    # Normalise.
+    obj_cons, _ = trim_obj_using_nadir(
+        apply_normalisation(nondominated_cons.extract_obj(), obj_lb, obj_ub), nadir
+    )
+    obj_uncons, _ = trim_obj_using_nadir(
+        apply_normalisation(nondominated_uncons.extract_obj(), obj_lb, obj_ub), nadir
+    )
+
+    # Hypervolume of estimated PF (constrained, unconstrained).
+    try:
+        hv_est = calculate_hypervolume_pygmo(obj_cons, nadir)
+    except:
+        hv_est = np.nan
+
+    try:
+        uhv_est = calculate_hypervolume_pygmo(obj_uncons, nadir)
+    except:
+        uhv_est = np.nan
+
+    hv_uhv_n = hv_est / uhv_est
+
+    # Compute generational distance between constrained and unconstrained PF. First need to create indicator object from pymoo.
+    GDind = GD(obj_uncons)
+    GD_cpo_upo = GDind(obj_cons)
 
     # Proportion of sizes of PF and UPFs.
     cpo_upo_n = len(nondominated_cons) / len(nondominated_uncons)
 
     # Proportion of PO solutions.
+    upo_n = len(nondominated_uncons) / len(pop)
     po_n = len(nondominated_cons) / len(pop)
 
     # Proportion of UPF covered by PF.
@@ -346,4 +408,13 @@ def compute_PF_UPF_features(pop):
 
     cover_cpo_upo_n = count_upf_dominates_pf / len(uncons_combined_ranks)
 
-    return po_n, cpo_upo_n, cover_cpo_upo_n
+    return (
+        hv_est,
+        uhv_est,
+        hv_uhv_n,
+        GD_cpo_upo,
+        upo_n,
+        po_n,
+        cpo_upo_n,
+        cover_cpo_upo_n,
+    )
