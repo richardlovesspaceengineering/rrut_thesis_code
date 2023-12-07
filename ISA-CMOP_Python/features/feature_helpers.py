@@ -211,48 +211,6 @@ def flatten_list(nested_list):
     return result
 
 
-def compute_normalisation_value_for_variable(pop_list_all_samples, which_variable):
-    # Flatten the list since we may have nested lists.
-    pop_list = flatten_list(pop_list_all_samples)
-
-    # Vertically stack the arrays and find the max, min, and 95th percentile values.
-    combined_array = combine_arrays_for_pops(pop_list, which_variable)
-
-    # Deal with nans here to ensure no nans are returned.
-    combined_array = combined_array[~np.isnan(combined_array).any(axis=1)]
-
-    # Find the min, max, and 95th percentile of each column.
-    fmin = np.min(combined_array, axis=0)
-    fmax = np.max(combined_array, axis=0)
-    f95th_percentile = np.percentile(combined_array, 95, axis=0)
-
-    # Also consider the PF in the objectives case.
-    if which_variable == "obj":
-        PF = pop_list[0].extract_pf()
-        fmin = np.minimum(fmin, np.min(PF, axis=0))
-        fmax = np.maximum(fmax, np.max(PF, axis=0))
-    elif which_variable == "cv":
-        fmin = 0  # only dilate CV values.
-
-    return fmin, fmax, f95th_percentile
-
-
-def compute_all_normalisation_values(pop_list_all_samples):
-    normalization_values = {}
-    variables = ["var", "obj", "cv"]
-
-    for which_variable in variables:
-        fmin, fmax, f95th_percentile = compute_normalisation_value_for_variable(
-            pop_list_all_samples, which_variable
-        )
-
-        normalization_values[f"{which_variable}_min"] = fmin
-        normalization_values[f"{which_variable}_max"] = fmax
-        normalization_values[f"{which_variable}_95th"] = f95th_percentile
-
-    return normalization_values
-
-
 def use_no_normalisation(n_var, n_obj):
     normalization_values = {}
     variables = ["var", "obj", "cv"]

@@ -53,7 +53,9 @@ class ProblemEvaluator:
         x_lower, x_upper = self.get_bounds(problem)
         return x * (x_upper - x_lower) + x_lower
 
-    def generate_rw_neighbours_populations(self, problem, walk, neighbours):
+    def generate_rw_neighbours_populations(
+        self, problem, walk, neighbours, eval_fronts=True
+    ):
         # Generate populations for walk and neighbours separately.
         pop_walk = Population(problem, n_individuals=walk.shape[0])
 
@@ -66,20 +68,105 @@ class ProblemEvaluator:
                 problem, n_individuals=neighbourhood.shape[0]
             )
             pop_neighbourhood.evaluate(
-                self.rescale_pregen_sample(neighbourhood, problem), eval_fronts=True
-            )  # TODO: eval fronts and include current step on walk.
+                self.rescale_pregen_sample(neighbourhood, problem),
+                eval_fronts=eval_fronts,
+            )
             pop_neighbours_list.append(pop_neighbourhood)
 
-        # Evaluate steps fully.
-
+        # Never need to know the ranks of the walk steps relative to each other.
         pop_walk.evaluate(self.rescale_pregen_sample(walk, problem), eval_fronts=False)
 
         return pop_walk, pop_neighbours_list
 
+    def compute_normalisation_values(self, pre_sampler, problem, sample_type):
+        normalization_values = {}
+        variables = ["var", "obj", "cv"]
+
+        # Arrays to store max and min values from each sample
+        max_values_array = {
+            "var": np.empty((0, problem.n_var)),
+            "obj": np.empty((0, problem.n_obj)),
+            "cv": np.empty((0, 1)),
+        }
+        min_values_array = max_values_array
+
+        print(
+            "Initialising normalisation computations. This requires full evaluation of the entire sample set and may take some time while still being memory-efficient."
+        )
+        norm_start = time.time()
+
+        # Loop over each of the samples.
+        for i in range(pre_sampler.num_samples):
+            # Loop over each of the walks within this sample - note that each sample contains n independent RWs.
+            for j in range(pre_sampler.dim):
+                if sample_type == "rw":
+                    # Load the pre-generated sample.
+                    walk, neighbours = pre_sampler.read_walk_neighbours(i + 1, j + 1)
+
+                    # Create population and evaluate.
+                    (
+                        pop_walk,
+                        pop_neighbours_list,
+                    ) = self.generate_rw_neighbours_populations(
+                        problem, walk, neighbours, eval_fronts=False
+                    )
+
+                # Loop over each variable.
+                for which_variable in variables:
+                    # Combine arrays for pops
+                    if sample_type == "rw":
+                        combined_array = combine_arrays_for_pops(
+                            [pop_walk] + pop_neighbours_list, which_variable
+                        )
+
+                    # Deal with nans here to ensure no nans are returned.
+                    combined_array = combined_array[
+                        ~np.isnan(combined_array).any(axis=1)
+                    ]
+
+                    # Find the min and max of each column.
+                    fmin = np.min(combined_array, axis=0)
+                    fmax = np.max(combined_array, axis=0)
+
+                    # Also consider the PF in the objectives case.
+                    if which_variable == "obj":
+                        PF = pop_walk.extract_pf()
+                        fmin = np.minimum(fmin, np.min(PF, axis=0))
+                        fmax = np.maximum(fmax, np.max(PF, axis=0))
+                    elif which_variable == "cv":
+                        fmin = 0  # only dilate CV values.
+
+                    # Append min and max values for this variable
+                    min_values_array[which_variable] = np.vstack(
+                        (min_values_array[which_variable], fmin)
+                    )
+                    max_values_array[which_variable] = np.vstack(
+                        (max_values_array[which_variable], fmax)
+                    )
+
+        # Calculate the final min, max, and 95th percentile values after the loop
+        for which_variable in variables:
+            min_values = np.min(min_values_array[which_variable], axis=0)
+            max_values = np.max(max_values_array[which_variable], axis=0)
+            perc95_values = np.percentile(max_values_array[which_variable], 95, axis=0)
+
+            # Store the computed values in the dictionary
+            normalization_values[f"{which_variable}_min"] = min_values
+            normalization_values[f"{which_variable}_max"] = max_values
+            normalization_values[f"{which_variable}_95th"] = perc95_values
+
+        norm_end = time.time()
+        elapsed_time = norm_end - norm_start
+        print(
+            "Evaluated the normalisation values for this sample set in {:.2f} seconds.".format(
+                elapsed_time
+            )
+        )
+        return normalization_values
+
     def do_random_walk_analysis(self, problem, pre_sampler, num_samples):
-        # TODO: Compute normalisation values properly, if not too computationally costly. For now just not using any.
-        self.walk_normalisation_values = use_no_normalisation(
-            problem.n_var, problem.n_obj
+        self.walk_normalisation_values = self.compute_normalisation_values(
+            pre_sampler, problem, "rw"
         )
 
         # Initialise RandomWalkAnalysis evaluator.
