@@ -253,6 +253,30 @@ def compute_all_normalisation_values(pop_list_all_samples):
     return normalization_values
 
 
+def use_no_normalisation(n_var, n_obj):
+    normalization_values = {}
+    variables = ["var", "obj", "cv"]
+
+    for which_variable in variables:
+        if which_variable == "var":
+            fmin = np.zeros(n_var)
+            fmax = np.ones(n_var)
+        elif which_variable == "obj":
+            fmin = np.zeros(n_obj)
+            fmax = np.ones(n_obj)
+        else:
+            fmin = 0
+            fmax = 1
+
+        normalization_values[f"{which_variable}_min"] = fmin
+        normalization_values[f"{which_variable}_max"] = fmax
+
+        # For f95th, use fmax
+        normalization_values[f"{which_variable}_95th"] = fmax
+
+    return normalization_values
+
+
 def flatten_dict(original_dict):
     flattened_dict = {}
 

@@ -17,8 +17,9 @@
         "type": "python",
         "request": "launch",
         "program": "D:/richa/Documents/Thesis/rrut_thesis_code/ISA-CMOP_Python/runner.py",
-        "args": ["MW1", "2", "2", "debug", "true"],
-        "console": "integratedTerminal"
+        "args": ["MW10", "3", "10", "debug", "true"],
+        "console": "integratedTerminal",
+        "cwd": "D:/richa/Documents/Thesis/rrut_thesis_code/ISA-CMOP_Python",
     }
     
   ]

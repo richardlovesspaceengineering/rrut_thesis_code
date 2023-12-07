@@ -129,13 +129,13 @@ class RandomWalk:
         num_points = walk.shape[0]
 
         # Initialize the 3D array to store neighbors
-        neighbours = np.zeros((self.neighbourhood_size, num_points, self.dim))
+        neighbours = np.zeros((num_points, self.neighbourhood_size, self.dim))
 
         for i in range(num_points):
             current_neighbours = self.generate_neighbours_for_step(
                 walk[i, :], self.neighbourhood_size
             )
-            neighbours[:, i, :] = current_neighbours
+            neighbours[i, :, :] = current_neighbours
 
         return neighbours
 

@@ -15,6 +15,17 @@ class PreSampler:
         self.dim = dim
         self.num_samples = num_samples
         self.create_pregen_sample_dir()
+        self.save_experimental_setup()
+
+    def save_experimental_setup(self):
+        # Alsouly's experimental setup for RWs.
+        self.neighbourhood_size_rw = 2 * self.dim + 1
+        self.num_steps_rw = 10
+        self.step_size_rw = 0.01  # 1% of the range of the instance domain
+
+        # Experimental setup of Liefooghe2021 for global.
+        self.num_points_glob = int(self.dim * 20)
+        self.iterations_glob = self.num_points_glob  # not relevant for lhs scipy.
 
     def create_pregen_sample_dir(self):
         base_dir = "pregen_samples"
@@ -56,13 +67,10 @@ class PreSampler:
         Note that a RW sample refers to a set of independent RWs.
         """
 
-        # Alsouly's experimental setup.
-        neighbourhood_size = 2 * self.dim + 1
-        num_steps = 1000
-        step_size = 0.01  # 1% of the range of the instance domain
-
         # Make RW generator object.
-        rwGenerator = RandomWalk(self.dim, num_steps, step_size, neighbourhood_size)
+        rwGenerator = RandomWalk(
+            self.dim, self.num_steps_rw, self.step_size_rw, self.neighbourhood_size_rw
+        )
         starting_zones = self.generate_binary_patterns()
 
         print("")
@@ -72,9 +80,9 @@ class PreSampler:
             )
         )
         print("- Number of walks: {}".format(len(starting_zones)))
-        print("- Number of steps per walk: {}".format(num_steps))
-        print("- Step size (% of instance domain): {}".format(step_size * 100))
-        print("- Neighbourhood size: {}".format(neighbourhood_size))
+        print("- Number of steps per walk: {}".format(self.num_steps_rw))
+        print("- Step size (% of instance domain): {}".format(self.step_size_rw * 100))
+        print("- Neighbourhood size: {}".format(self.neighbourhood_size_rw))
         print("")
 
         for i in range(self.num_samples):
@@ -119,9 +127,6 @@ class PreSampler:
         """
         Generate a LHS sample on the unit hypercube.
         """
-        # Experimental setup of Liefooghe2021.
-        num_points = int(self.dim * 200)
-        iterations = num_points  # not relevant for lhs scipy.
 
         # Split the method string to extract the method name
         method_parts = method.split(".")
@@ -134,7 +139,7 @@ class PreSampler:
         print(
             "Generating distributed samples for Global features with the following properties:"
         )
-        print("- Num. points: {}".format(num_points))
+        print("- Num. points: {}".format(self.num_points_glob))
         print("- Method: {}".format(method))
         print("")
 
@@ -142,13 +147,15 @@ class PreSampler:
             start_time = time.time()  # Record the start time
             if method_name == "lhs":
                 sampler = LatinHypercubeSampling(
-                    criterion="maximin", iterations=iterations, method=lhs_method_name
+                    criterion="maximin",
+                    iterations=self.iterations_glob,
+                    method=lhs_method_name,
                 )
             elif method_name == "uniform":
                 sampler = RandomSampling()
 
             sampler.do(
-                n_samples=num_points,
+                n_samples=self.num_points_glob,
                 x_lower=np.zeros(self.dim),
                 x_upper=np.ones(self.dim),
             )
@@ -166,6 +173,57 @@ class PreSampler:
                     i + 1, self.num_samples, elapsed_time
                 )
             )
+
+    def read_walk_neighbours(self, sample_number, ind_walk_number):
+        """
+        Read the walk and neighbours data from the pregen_samples directory.
+
+        Parameters:
+        - sample_number (int): The sample number.
+
+        Returns:
+        - Tuple containing the walk array and neighbours array.
+        """
+        sample_folder = f"sample{sample_number}"
+        sample_path = os.path.join(self.rw_dim_subdirectory, sample_folder)
+
+        if not os.path.exists(sample_path):
+            raise FileNotFoundError(f"Sample folder not found: {sample_path}")
+
+        walk_neighbours_file = f"walk_neighbours_{ind_walk_number}.npz"
+        file_path = os.path.join(sample_path, walk_neighbours_file)
+
+        if not os.path.exists(file_path):
+            raise FileNotFoundError(f"Walk and neighbours file not found: {file_path}")
+
+        # Load data from the npz file
+        data = np.load(file_path)
+        walk = data["walk"]
+        neighbours = data["neighbours"]
+
+        return walk, neighbours
+
+    def read_global_sample(self, sample_number):
+        """
+        Read the global sample data from the pregen_samples directory.
+
+        Parameters:
+        - sample_number (int): The sample number.
+
+        Returns:
+        - Array containing the global sample.
+        """
+        file_name = f"lhs_sample_{sample_number}.npz"
+        file_path = os.path.join(self.global_dim_subdirectory, file_name)
+
+        if not os.path.exists(file_path):
+            raise FileNotFoundError(f"Global sample file not found: {file_path}")
+
+        # Load data from the npz file
+        data = np.load(file_path)
+        global_sample = data["global_sample"]
+
+        return global_sample
 
 
 def main():

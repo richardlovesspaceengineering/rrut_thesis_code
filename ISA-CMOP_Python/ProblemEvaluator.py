@@ -7,14 +7,15 @@ import os
 
 # User packages.
 from features.feature_helpers import *
-from features.GlobalAnalysis import MultipleGlobalAnalysis
-from features.RandomWalkAnalysis import MultipleRandomWalkAnalysis
-from features.AdaptiveWalkAnalysis import MultipleAdaptiveWalkAnalysis
+from features.GlobalAnalysis import *
+from features.RandomWalkAnalysis import *
+from features.AdaptiveWalkAnalysis import *
 from features.LandscapeAnalysis import LandscapeAnalysis
 from optimisation.operators.sampling.latin_hypercube_sampling import (
     LatinHypercubeSampling,
 )
 from optimisation.operators.sampling.random_sampling import RandomSampling
+from PreSampler import PreSampler
 
 import numpy as np
 from optimisation.model.population import Population
@@ -35,201 +36,101 @@ class ProblemEvaluator:
         self.mode = mode
         self.walk_normalisation_values = {}
         self.global_normalisation_values = {}
+        self.rw_sample_dir = os.path.join(
+            "pregen_samples",
+            "rw",
+        )
         print("Initialising evaluator in {} mode.".format(self.mode))
 
-    def make_rw_generator(self, problem, num_steps, step_size, neighbourhood_size):
+    def get_bounds(self, problem):
         # Bounds of the decision variables.
         x_lower = problem.xl
         x_upper = problem.xu
-        bounds = np.vstack((x_lower, x_upper))
+        return x_lower, x_upper
 
-        # RW Generator Object
-        rw = RandomWalk(bounds, num_steps, step_size, neighbourhood_size)
-        return rw
+    def rescale_pregen_sample(self, x, problem):
+        # TODO: check the rescaling is working correctly.
+        x_lower, x_upper = self.get_bounds(problem)
+        return x * (x_upper - x_lower) + x_lower
 
-    def sample_for_rw_features(self, problem, num_samples):
-        """
-        Generate RW samples.
+    def generate_rw_neighbours_populations(self, problem, walk, neighbours):
+        # Generate populations for walk and neighbours separately.
+        pop_walk = Population(problem, n_individuals=walk.shape[0])
 
-        For a problem of dimension n, we generate n random walks with the following properties.
+        pop_neighbours_list = []
 
-        Random walk features are then computed for each walk separately prior to aggregation.
-
-        Returns a list of tuples of length n in (walk, neighbours) pairs.
-        """
-
-        n_var = problem.n_var
-
-        if self.mode == "eval":
-            # Experimental setup of Alsouly
-            neighbourhood_size = 2 * n_var + 1
-            num_steps = 1000
-            step_size = 0.01  # 1% of the range of the instance domain
-        elif self.mode == "debug":
-            # Runs quickly
-            neighbourhood_size = 2 * n_var + 1
-            num_steps = 35
-            step_size = 0.01  # 1% of the range of the instance domain
-
-        # Make RW generator object.
-        rw = self.make_rw_generator(problem, num_steps, step_size, neighbourhood_size)
-
-        # Progressive RWs will start at every 2/n-th vertex of the search space
-        starting_zones = self.generate_binary_patterns(problem.n_var)
-
-        print("")
-        print(
-            "Generating {} samples (walks + neighbours) for RW features with the following properties:".format(
-                num_samples
+        # Evaluate each neighbourhood - remember that these are stored in 3D arrays i,j,k where i is the neighbour index within the neighbourhood, j is the step index, k is the walk index.
+        for neighbourhood in neighbours:
+            # None of the features related to neighbours ever require knowledge of the neighbours ranks relative to each other.
+            pop_neighbourhood = Population(
+                problem, n_individuals=neighbourhood.shape[0]
             )
+            pop_neighbourhood.evaluate(
+                self.rescale_pregen_sample(neighbourhood, problem), eval_fronts=True
+            )  # TODO: eval fronts and include current step on walk.
+            pop_neighbours_list.append(pop_neighbourhood)
+
+        # Evaluate steps fully.
+
+        pop_walk.evaluate(self.rescale_pregen_sample(walk, problem), eval_fronts=False)
+
+        return pop_walk, pop_neighbours_list
+
+    def do_random_walk_analysis(self, problem, pre_sampler, num_samples):
+        # TODO: Compute normalisation values properly, if not too computationally costly. For now just not using any.
+        self.walk_normalisation_values = use_no_normalisation(
+            problem.n_var, problem.n_obj
         )
-        print("- Number of walks: {}".format(len(starting_zones)))
-        print("- Number of steps per walk: {}".format(num_steps))
-        print("- Step size (% of instance domain): {}".format(step_size * 100))
-        print("- Neighbourhood size: {}".format(neighbourhood_size))
-        print("")
 
-        # Initialise list of walks and neighbours across all samples.
-        walks_neighbours_list_all_samples = []
+        # Initialise RandomWalkAnalysis evaluator.
+        rw_analysis = RandomWalkAnalysis(self.walk_normalisation_values)
 
+        # Loop over each of the samples.
         for i in range(num_samples):
-            start_time = time.time()  # Record the start time for this sample
-            walks_neighbours_list = []  # Walks and neighbours for this sample.
+            # Initialise list of analyses for this sample.
+            rw_single_sample_analyses = []
 
-            for ctr, starting_zone in enumerate(starting_zones):
-                # Generate random walk starting at this iteration's starting zone.
-                walk = rw.do_progressive_walk(seed=None, starting_zone=starting_zone)
+            # Loop over each of the walks within this sample - note that each sample contains n independent RWs.
+            sample_start_time = time.time()
+            for j in range(pre_sampler.dim):
+                # Load the pre-generated sample.
+                walk, neighbours = pre_sampler.read_walk_neighbours(i + 1, j + 1)
 
-                # Generate neighbors for each step on the walk. Currently, we just randomly sample points in the [-stepsize, stepsize] hypercube
-                neighbours = rw.generate_neighbours_for_walk(walk)
-                walks_neighbours_list.append((walk, neighbours))
+                # Create population and evaluate.
+                start_time = time.time()
+                pop_walk, pop_neighbours_list = self.generate_rw_neighbours_populations(
+                    problem, walk, neighbours
+                )
+                end_time = time.time()
+                elapsed_time = end_time - start_time
                 print(
-                    "Generated RW {} of {} (for this sample).".format(
-                        ctr + 1,
-                        len(starting_zones),
+                    "Evaluated population {} of {} in {:.2f} seconds.".format(
+                        j + 1, pre_sampler.dim, elapsed_time
                     )
                 )
 
-            # Now append this sample's walks and neighbours to overall list.
-            walks_neighbours_list_all_samples.append(walks_neighbours_list)
-            end_time = time.time()
-            elapsed_time = end_time - start_time
+                # Pass to Analysis class for evaluation.
+                start_time = time.time()
+                rw_analysis.eval_features(pop_walk, pop_neighbours_list)
+                end_time = time.time()  # Record the end time
+                elapsed_time = end_time - start_time
+
+                # Print to log for each walk within the sample.
+                print(
+                    "Evaluated RW features for walk {} out of {} in {:.2f} seconds.".format(
+                        j + 1, pre_sampler.dim, elapsed_time
+                    )
+                )
+                rw_single_sample_analyses.append(rw_analysis)
+
+            # Print to log for each sample.
+            sample_end_time = time.time()
+            elapsed_time = sample_end_time - sample_start_time
             print(
-                "Generated set of RWs {} of {} in {:.2f} seconds.\n".format(
+                "Evaluated features for sample {} out of {} in {:.2f} seconds.\n".format(
                     i + 1, num_samples, elapsed_time
                 )
             )
-
-        return walks_neighbours_list_all_samples
-
-    def evaluate_populations_for_rw_features(
-        self, problem, walks_neighbours_list_all_samples
-    ):
-        """
-        walks_neighbours_list_all_samples is a list containing num_samples lists with the following structure:
-
-        [[(walk00, neighbours00), (walk01, neighbours01), ...], [(walk10, neighbours10), (walk11, neighbours11), ...], ...]
-
-        """
-        print(
-            "\nEvaluating populations for these walk samples... (ranks off for walk steps, on for neighbours)"
-        )
-
-        pop_walks_neighbours_all_samples = []
-
-        for ctr, sample in enumerate(walks_neighbours_list_all_samples):
-            start_time = time.time()  # Record the start time for this sample
-            pops_walks_neighbours = (
-                []
-            )  # List of walks-neighbours pairs for this sample.
-            for i, walk_neighbours_pair in enumerate(sample):
-                walk = walk_neighbours_pair[0]
-                neighbours = walk_neighbours_pair[1]
-
-                pop_neighbours_list = []
-
-                # Generate populations for walk and neighbours separately.
-                pop_walk = Population(problem, n_individuals=walk.shape[0])
-
-                # Evaluate each neighbourhood.
-                for neighbourhood in neighbours:
-                    # None of the features related to neighbours ever require knowledge of the neighbours ranks relative to each other.
-                    pop_neighbourhood = Population(
-                        problem, n_individuals=neighbourhood.shape[0]
-                    )
-                    pop_neighbourhood.evaluate(
-                        neighbourhood, eval_fronts=True
-                    )  # TODO: eval fronts and include current step on walk.
-                    pop_neighbours_list.append(pop_neighbourhood)
-
-                # Evaluate steps fully.
-                pop_walk.evaluate(walk, eval_fronts=False)
-
-                # Append to list of walks for this sample.
-                pops_walks_neighbours.append((pop_walk, pop_neighbours_list))
-
-            # Append the populations for this sample to the list.
-            pop_walks_neighbours_all_samples.append(pops_walks_neighbours)
-
-            # Record the end time.
-            end_time = time.time()
-            elapsed_time = end_time - start_time
-
-            print(
-                "Evaluated population {} of {} in {:.2f} seconds.".format(
-                    ctr + 1, len(walks_neighbours_list_all_samples), elapsed_time
-                )
-            )
-
-        return pop_walks_neighbours_all_samples
-
-    def evaluate_rw_features_for_one_sample(
-        self, pops_walks_neighbours, normalisation_values
-    ):
-        """
-        Evaluate the RW features for one sample (i.e a set of random walks)
-        """
-        pops_walks = [t[0] for t in pops_walks_neighbours]
-        pops_neighbours_list = [t[1] for t in pops_walks_neighbours]
-        rw_features_single_sample = MultipleRandomWalkAnalysis(
-            pops_walks, pops_neighbours_list, normalisation_values
-        )
-        rw_features_single_sample.eval_features_for_all_populations()
-        return rw_features_single_sample
-
-    def do_random_walk_analysis(self, problem, num_samples):
-        walks_neighbours_list_all_samples = self.sample_for_rw_features(
-            problem, num_samples
-        )
-
-        pop_walks_neighbours_all_samples = self.evaluate_populations_for_rw_features(
-            problem, walks_neighbours_list_all_samples
-        )
-
-        # Compute normalisation values for feature calculations later.
-        self.walk_normalisation_values = compute_all_normalisation_values(
-            pop_walks_neighbours_all_samples
-        )
-
-        rw_features_list = []
-        for ctr, pop_walks_neighbours in enumerate(pop_walks_neighbours_all_samples):
-            # Finally, evaluate features.
-            rw_features_list.append(
-                self.evaluate_rw_features_for_one_sample(
-                    pop_walks_neighbours, self.walk_normalisation_values
-                )
-            )
-            print(
-                "Evaluated features for RW sample {} out of {}".format(
-                    ctr + 1, len(pop_walks_neighbours_all_samples)
-                )
-            )
-
-        # Now concatenate the rw_features into one large MultipleRandomWalkAnalysis object.
-        rw_features = MultipleAnalysis.concatenate_multiple_analyses(
-            rw_features_list, MultipleRandomWalkAnalysis
-        )
-        return rw_features
 
     def sample_for_global_features(self, problem, num_samples, method="lhs.scipy"):
         n_var = problem.n_var
@@ -322,7 +223,7 @@ class ProblemEvaluator:
         )
 
         # Compute normalisation values for feature calculations later.
-        self.global_normalisation_values = compute_all_normalisation_values(pops_global)
+        # self.global_normalisation_values = compute_all_normalisation_values(pops_global)
 
         # Evaluate features.
         global_features = self.evaluate_global_features(
@@ -494,6 +395,9 @@ class ProblemEvaluator:
             + " ------------------------"
         )
 
+        # Load presampler.
+        pre_sampler = PreSampler(self.instance.n_var, num_samples)
+
         # RW Analysis.
         print(
             " \n ~~~~~~~~~~~~ RW Analysis for "
@@ -502,6 +406,7 @@ class ProblemEvaluator:
         )
         rw_features = self.do_random_walk_analysis(
             self.instance,
+            pre_sampler,
             num_samples,
         )
         rw_features.export_unaggregated_features(self.instance_name, "rw", save_arrays)

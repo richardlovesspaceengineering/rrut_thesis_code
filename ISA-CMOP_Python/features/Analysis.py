@@ -12,16 +12,14 @@ class Analysis:
     Calculate all features generated from samples.
     """
 
-    def __init__(self, pop, normalisation_values):
+    def __init__(self, normalisation_values):
         """
         Populations must already be evaluated.
         """
-        self.pop = pop
         self.normalisation_values = normalisation_values
-        self.pareto_front = pop[0].pareto_front
         self.features = {}
 
-    def eval_features(self):
+    def eval_features(self, pop):
         pass
 
 
@@ -30,19 +28,12 @@ class MultipleAnalysis:
     Aggregate features across populations/walks.
     """
 
-    def __init__(self, pops, normalisation_values, AnalysisType):
-        self.pops = pops
-        self.analyses = []
-
-        # Instantiate SingleAnalysis objects.
-        for pop in pops:
-            self.analyses.append(AnalysisType(pop, normalisation_values))
-
-        # Initialise features arrays dict.
+    def __init__(self, single_sample_analyses, normalisation_values):
+        self.analyses = single_sample_analyses
         self.normalisation_values = normalisation_values
         self.feature_arrays = {}
 
-    def eval_features_for_all_populations(self):
+    def extract_features_from_all_populations(self):
         """
         Evaluate features for all populations.
         """
@@ -58,13 +49,9 @@ class MultipleAnalysis:
             s1 = "AW"
             s2 = "walk"
 
-        print("\nInitialising feature evaluation for {} features.".format(s1))
         for ctr, a in enumerate(self.analyses):
-            start_time = time.time()
             a.eval_features()
 
-            end_time = time.time()  # Record the end time
-            elapsed_time = end_time - start_time
             print(
                 "Evaluated {} features for {} {} out of {} in {:.2f} seconds.".format(
                     s1, s2, ctr + 1, len(self.analyses), elapsed_time

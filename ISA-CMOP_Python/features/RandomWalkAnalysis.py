@@ -11,25 +11,16 @@ class RandomWalkAnalysis(Analysis):
     Populations is a list of populations that represents a walk, each entry is a solution and its neighbours.
     """
 
-    def __init__(self, pop_walk, pop_neighbours_list, normalisation_values):
-        """
-        Populations must already be evaluated.
-        """
-
-        # This will initialise features dictionary too.
-        super().__init__(pop_walk, normalisation_values)
-        self.pop_neighbours_list = pop_neighbours_list
-
-    def eval_features(self):
+    def eval_features(self, pop_walk, pop_neighbours_list):
         """
         Evaluate features along the random walk and save to class.
         """
 
         # Preprocess nans and infinities, compute solver crash ratio and update attributes.
         pop_new, pop_neighbours_new, pop_neighbours_checked = preprocess_nans_on_walks(
-            self.pop, self.pop_neighbours_list
+            pop_walk, pop_neighbours_list
         )
-        self.features["scr"] = compute_solver_crash_ratio(self.pop, pop_new)
+        self.features["scr"] = compute_solver_crash_ratio(pop_walk, pop_new)
         (
             self.features["ncr_avg"],
             self.features["ncr_r1"],
@@ -38,8 +29,8 @@ class RandomWalkAnalysis(Analysis):
         )
 
         # Update populations
-        self.pop = pop_new
-        self.pop_neighbours_list = pop_neighbours_checked
+        pop_walk = pop_new
+        pop_neighbours_list = pop_neighbours_checked
 
         # Evaluate neighbourhood distance features
         (
@@ -58,8 +49,8 @@ class RandomWalkAnalysis(Analysis):
             self.features["dist_f_c_dist_x_avg"],
             self.features["dist_f_c_dist_x_r1"],
         ) = compute_neighbourhood_distance_features(
-            self.pop,
-            self.pop_neighbours_list,
+            pop_walk,
+            pop_neighbours_list,
             self.normalisation_values,
             norm_method="95th",
         )
@@ -75,8 +66,8 @@ class RandomWalkAnalysis(Analysis):
             _,
             _,
         ) = compute_neighbourhood_hv_features(
-            self.pop,
-            self.pop_neighbours_list,
+            pop_walk,
+            pop_neighbours_list,
             self.normalisation_values,
             norm_method="95th",
         )
@@ -86,7 +77,7 @@ class RandomWalkAnalysis(Analysis):
             pop_walk_feas,
             _,
             pop_neighbours_feas,
-        ) = extract_feasible_steps_neighbours(self.pop, self.pop_neighbours_list)
+        ) = extract_feasible_steps_neighbours(pop_walk, pop_neighbours_list)
         (
             self.features["hv_ss_avg"],
             self.features["hv_ss_r1"],
@@ -113,8 +104,8 @@ class RandomWalkAnalysis(Analysis):
             self.features["bncv_avg"],
             self.features["bncv_r1"],
         ) = compute_neighbourhood_violation_features(
-            self.pop,
-            self.pop_neighbours_list,
+            pop_walk,
+            pop_neighbours_list,
             self.normalisation_values,
             norm_method="95th",
         )
@@ -131,7 +122,7 @@ class RandomWalkAnalysis(Analysis):
             self.features["lnd_r1"],
             self.features["nfronts_avg"],
             self.features["nfronts_r1"],
-        ) = compute_neighbourhood_dominance_features(self.pop, self.pop_neighbours_list)
+        ) = compute_neighbourhood_dominance_features(pop_walk, pop_neighbours_list)
 
 
 class MultipleRandomWalkAnalysis(MultipleAnalysis):
