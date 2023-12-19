@@ -36,8 +36,8 @@ if [[ "$host" == *"$pc1"* ]]; then # megatrons
   PYTHON_SCRIPT="/home/kj66/Documents/Richard/venv/bin/python3"
   SCRIPT_PATH="/home/kj66/Documents/Richard/rrut_thesis_code/"
 else # richard's pc
-  PYTHON_SCRIPT="D:/richa/anaconda3/envs/thesis_env_windows/python.exe"
-  SCRIPT_PATH="d:/richa/Documents/Thesis/rrut_thesis_code/"
+  PYTHON_SCRIPT="C:/Users/richa/anaconda3/envs/thesis_env_windows/python.exe"
+  SCRIPT_PATH="C:/Users/richa/Documents/Thesis/rrut_thesis_code/"
 fi
 echo "Using interpreter: $PYTHON_SCRIPT" | tee -a "$log_file"
 
