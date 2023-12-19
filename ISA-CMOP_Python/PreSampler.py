@@ -20,11 +20,11 @@ class PreSampler:
     def save_experimental_setup(self):
         # Alsouly's experimental setup for RWs.
         self.neighbourhood_size_rw = 2 * self.dim + 1
-        self.num_steps_rw = 10
+        self.num_steps_rw = 1000
         self.step_size_rw = 0.01  # 1% of the range of the instance domain
 
         # Experimental setup of Liefooghe2021 for global.
-        self.num_points_glob = int(self.dim * 20)
+        self.num_points_glob = int(self.dim * 200)
         self.iterations_glob = self.num_points_glob  # not relevant for lhs scipy.
 
     def create_pregen_sample_dir(self):

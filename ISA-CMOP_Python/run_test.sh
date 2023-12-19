@@ -4,10 +4,10 @@
 desc_msg="Test Run."
 
 # Problem suites
-problemsMW=("MW10")
+problemsMW=("MW3")
 
 # Dimensions to consider
-dimensions=("2" "3" "5" "10")
+dimensions=("2" "3")
 
 # Number of samples to run.
 num_samples=10
@@ -16,7 +16,7 @@ num_samples=10
 mode="eval"
 
 # Use pre-generated samples?
-regenerate_samples=true
+regenerate_samples=false
 
 # Save full feature arrays. Aggregated feature arrays are always saved.
 save_feature_arrays=true

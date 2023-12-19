@@ -61,7 +61,7 @@ class ProblemEvaluator:
 
         pop_neighbours_list = []
 
-        # Evaluate each neighbourhood - remember that these are stored in 3D arrays i,j,k where i is the neighbour index within the neighbourhood, j is the step index, k is the walk index.
+        # Evaluate each neighbourhood - remember that these are stored in 3D arrays.
         for neighbourhood in neighbours:
             # None of the features related to neighbours ever require knowledge of the neighbours ranks relative to each other.
             pop_neighbourhood = Population(
@@ -78,7 +78,7 @@ class ProblemEvaluator:
 
         return pop_walk, pop_neighbours_list
 
-    def compute_normalisation_values(self, pre_sampler, problem, sample_type):
+    def compute_rw_normalisation_values(self, pre_sampler, problem):
         normalization_values = {}
         variables = ["var", "obj", "cv"]
 
@@ -98,26 +98,35 @@ class ProblemEvaluator:
         # Loop over each of the samples.
         for i in range(pre_sampler.num_samples):
             # Loop over each of the walks within this sample - note that each sample contains n independent RWs.
+            sample_start_time = time.time()
+            print(
+                "\nEvaluating populations for sample {} out of {}...".format(
+                    i + 1, pre_sampler.num_samples
+                )
+            )
             for j in range(pre_sampler.dim):
-                if sample_type == "rw":
-                    # Load the pre-generated sample.
-                    walk, neighbours = pre_sampler.read_walk_neighbours(i + 1, j + 1)
+                # Load the pre-generated sample.
+                walk, neighbours = pre_sampler.read_walk_neighbours(i + 1, j + 1)
 
-                    # Create population and evaluate.
-                    (
-                        pop_walk,
-                        pop_neighbours_list,
-                    ) = self.generate_rw_neighbours_populations(
-                        problem, walk, neighbours, eval_fronts=False
+                # Create population and evaluate.
+                start_time = time.time()
+                pop_walk, pop_neighbours_list = self.generate_rw_neighbours_populations(
+                    problem, walk, neighbours, eval_fronts=True
+                )
+                end_time = time.time()
+                elapsed_time = end_time - start_time
+                print(
+                    "Evaluated population {} of {} in {:.2f} seconds.".format(
+                        j + 1, pre_sampler.dim, elapsed_time
                     )
+                )
 
                 # Loop over each variable.
                 for which_variable in variables:
                     # Combine arrays for pops
-                    if sample_type == "rw":
-                        combined_array = combine_arrays_for_pops(
-                            [pop_walk] + pop_neighbours_list, which_variable
-                        )
+                    combined_array = combine_arrays_for_pops(
+                        [pop_walk] + pop_neighbours_list, which_variable
+                    )
 
                     # Deal with nans here to ensure no nans are returned.
                     combined_array = combined_array[
@@ -143,6 +152,13 @@ class ProblemEvaluator:
                     max_values_array[which_variable] = np.vstack(
                         (max_values_array[which_variable], fmax)
                     )
+            sample_end_time = time.time()
+            elapsed_sample_time = sample_end_time - sample_start_time
+            print(
+                "Evaluated populations in sample {} out of {} in {:.2f} seconds.".format(
+                    i + 1, pre_sampler.num_samples, elapsed_sample_time
+                )
+            )
 
         # Calculate the final min, max, and 95th percentile values after the loop
         for which_variable in variables:
@@ -165,8 +181,8 @@ class ProblemEvaluator:
         return normalization_values
 
     def do_random_walk_analysis(self, problem, pre_sampler, num_samples):
-        self.walk_normalisation_values = self.compute_normalisation_values(
-            pre_sampler, problem, "rw"
+        self.walk_normalisation_values = self.compute_rw_normalisation_values(
+            pre_sampler, problem
         )
 
         # Initialise RandomWalkAnalysis evaluator.
@@ -179,6 +195,11 @@ class ProblemEvaluator:
 
             # Loop over each of the walks within this sample - note that each sample contains n independent RWs.
             sample_start_time = time.time()
+            print(
+                "\nEvaluating features for sample {} out of {}...".format(
+                    i + 1, num_samples
+                )
+            )
             for j in range(pre_sampler.dim):
                 # Load the pre-generated sample.
                 walk, neighbours = pre_sampler.read_walk_neighbours(i + 1, j + 1)

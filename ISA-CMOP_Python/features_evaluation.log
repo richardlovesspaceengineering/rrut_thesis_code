@@ -3,161 +3,17 @@ Test Run.
 
 Host is: RUTHERFORD
 Using interpreter: D:/richa/anaconda3/envs/thesis_env_windows/python.exe
-New directory: /tmp/ci-vENnIetO4N
-File running inside: /tmp/ci-vENnIetO4N/runner.py
-Running PreSampler.py for dimension: 2
+New directory: /tmp/ci-zhtNF1mbf7
+File running inside: /tmp/ci-zhtNF1mbf7/runner.py
+Running problem: MW3, dimension: 2
+Initialising evaluator in eval mode.
 
-Generating 10 samples (walks + neighbours) for RW features with the following properties:
-- Number of walks: 2
-- Number of steps per walk: 10
-- Step size (% of instance domain): 1.0
-- Neighbourhood size: 5
+------------------------ Evaluating instance: MW3_d2 ------------------------
+ 
+ ~~~~~~~~~~~~ RW Analysis for MW3_d2 ~~~~~~~~~~~~ 
 
-Generated RW 1 of 2 (for this sample).
-Generated RW 2 of 2 (for this sample).
-Generated set of RWs 1 of 10 in 0.01 seconds.
+Initialising normalisation computations. This requires full evaluation of the entire sample set and may take some time while still being memory-efficient.
 
-Generated RW 1 of 2 (for this sample).
-Generated RW 2 of 2 (for this sample).
-Generated set of RWs 2 of 10 in 0.01 seconds.
-
-Generated RW 1 of 2 (for this sample).
-Generated RW 2 of 2 (for this sample).
-Generated set of RWs 3 of 10 in 0.01 seconds.
-
-Generated RW 1 of 2 (for this sample).
-Generated RW 2 of 2 (for this sample).
-Generated set of RWs 4 of 10 in 0.01 seconds.
-
-Generated RW 1 of 2 (for this sample).
-Generated RW 2 of 2 (for this sample).
-Generated set of RWs 5 of 10 in 0.01 seconds.
-
-Generated RW 1 of 2 (for this sample).
-Generated RW 2 of 2 (for this sample).
-Generated set of RWs 6 of 10 in 0.01 seconds.
-
-Generated RW 1 of 2 (for this sample).
-Generated RW 2 of 2 (for this sample).
-Generated set of RWs 7 of 10 in 0.01 seconds.
-
-Generated RW 1 of 2 (for this sample).
-Generated RW 2 of 2 (for this sample).
-Generated set of RWs 8 of 10 in 0.00 seconds.
-
-Generated RW 1 of 2 (for this sample).
-Generated RW 2 of 2 (for this sample).
-Generated set of RWs 9 of 10 in 0.01 seconds.
-
-Generated RW 1 of 2 (for this sample).
-Generated RW 2 of 2 (for this sample).
-Generated set of RWs 10 of 10 in 0.01 seconds.
-
-Generating distributed samples for Global features with the following properties:
-- Num. points: 40
-- Method: lhs.scipy
-
-Discrepancy: 0.000543
-Generated Global sample 1 of 10 in 0.00 seconds.
-Discrepancy: 0.001630
-Generated Global sample 2 of 10 in 0.00 seconds.
-Discrepancy: 0.000661
-Generated Global sample 3 of 10 in 0.00 seconds.
-Discrepancy: 0.001757
-Generated Global sample 4 of 10 in 0.00 seconds.
-Discrepancy: 0.000803
-Generated Global sample 5 of 10 in 0.00 seconds.
-Discrepancy: 0.000970
-Generated Global sample 6 of 10 in 0.00 seconds.
-Discrepancy: 0.001081
-Generated Global sample 7 of 10 in 0.00 seconds.
-Discrepancy: 0.000864
-Generated Global sample 8 of 10 in 0.00 seconds.
-Discrepancy: 0.001189
-Generated Global sample 9 of 10 in 0.00 seconds.
-Discrepancy: 0.000869
-Generated Global sample 10 of 10 in 0.00 seconds.
-Running PreSampler.py for dimension: 3
-
-Generating 10 samples (walks + neighbours) for RW features with the following properties:
-- Number of walks: 3
-- Number of steps per walk: 10
-- Step size (% of instance domain): 1.0
-- Neighbourhood size: 7
-
-Generated RW 1 of 3 (for this sample).
-Generated RW 2 of 3 (for this sample).
-Generated RW 3 of 3 (for this sample).
-Generated set of RWs 1 of 10 in 0.01 seconds.
-
-Generated RW 1 of 3 (for this sample).
-Generated RW 2 of 3 (for this sample).
-Generated RW 3 of 3 (for this sample).
-Generated set of RWs 2 of 10 in 0.01 seconds.
-
-Generated RW 1 of 3 (for this sample).
-Generated RW 2 of 3 (for this sample).
-Generated RW 3 of 3 (for this sample).
-Generated set of RWs 3 of 10 in 0.01 seconds.
-
-Generated RW 1 of 3 (for this sample).
-Generated RW 2 of 3 (for this sample).
-Generated RW 3 of 3 (for this sample).
-Generated set of RWs 4 of 10 in 0.01 seconds.
-
-Generated RW 1 of 3 (for this sample).
-Generated RW 2 of 3 (for this sample).
-Generated RW 3 of 3 (for this sample).
-Generated set of RWs 5 of 10 in 0.01 seconds.
-
-Generated RW 1 of 3 (for this sample).
-Generated RW 2 of 3 (for this sample).
-Generated RW 3 of 3 (for this sample).
-Generated set of RWs 6 of 10 in 0.01 seconds.
-
-Generated RW 1 of 3 (for this sample).
-Generated RW 2 of 3 (for this sample).
-Generated RW 3 of 3 (for this sample).
-Generated set of RWs 7 of 10 in 0.01 seconds.
-
-Generated RW 1 of 3 (for this sample).
-Generated RW 2 of 3 (for this sample).
-Generated RW 3 of 3 (for this sample).
-Generated set of RWs 8 of 10 in 0.01 seconds.
-
-Generated RW 1 of 3 (for this sample).
-Generated RW 2 of 3 (for this sample).
-Generated RW 3 of 3 (for this sample).
-Generated set of RWs 9 of 10 in 0.01 seconds.
-
-Generated RW 1 of 3 (for this sample).
-Generated RW 2 of 3 (for this sample).
-Generated RW 3 of 3 (for this sample).
-Generated set of RWs 10 of 10 in 0.01 seconds.
-
-Generating distributed samples for Global features with the following properties:
-- Num. points: 60
-- Method: lhs.scipy
-
-Discrepancy: 0.001541
-Generated Global sample 1 of 10 in 0.00 seconds.
-Discrepancy: 0.001947
-Generated Global sample 2 of 10 in 0.00 seconds.
-Discrepancy: 0.001698
-Generated Global sample 3 of 10 in 0.00 seconds.
-Discrepancy: 0.001777
-Generated Global sample 4 of 10 in 0.00 seconds.
-Discrepancy: 0.001367
-Generated Global sample 5 of 10 in 0.00 seconds.
-Discrepancy: 0.001357
-Generated Global sample 6 of 10 in 0.00 seconds.
-Discrepancy: 0.001551
-Generated Global sample 7 of 10 in 0.00 seconds.
-Discrepancy: 0.001031
-Generated Global sample 8 of 10 in 0.00 seconds.
-Discrepancy: 0.001790
-Generated Global sample 9 of 10 in 0.00 seconds.
-Discrepancy: 0.001486
-Generated Global sample 10 of 10 in 0.00 seconds.
-Running PreSampler.py for dimension: 5
-Cleaning up /tmp/ci-vENnIetO4N
+Evaluating features for sample 1 out of 10...
+Evaluated population 1 of 2 in 32.26 seconds.
+Cleaning up /tmp/ci-zhtNF1mbf7
