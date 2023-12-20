@@ -11,21 +11,31 @@ import sys
 
 
 class PreSampler:
-    def __init__(self, dim, num_samples):
+    def __init__(self, dim, num_samples, mode):
         self.dim = dim
         self.num_samples = num_samples
+        self.mode = mode
         self.create_pregen_sample_dir()
         self.save_experimental_setup()
 
     def save_experimental_setup(self):
-        # Alsouly's experimental setup for RWs.
-        self.neighbourhood_size_rw = 2 * self.dim + 1
-        self.num_steps_rw = 1000
-        self.step_size_rw = 0.01  # 1% of the range of the instance domain
+        if self.mode == "eval":
+            # Alsouly's experimental setup for RWs.
+            self.neighbourhood_size_rw = 2 * self.dim + 1
+            self.num_steps_rw = 1000
+            self.step_size_rw = 0.01  # 1% of the range of the instance domain
 
-        # Experimental setup of Liefooghe2021 for global.
-        self.num_points_glob = int(self.dim * 200)
-        self.iterations_glob = self.num_points_glob  # not relevant for lhs scipy.
+            # Experimental setup of Liefooghe2021 for global.
+            self.num_points_glob = int(self.dim * 200)
+            self.iterations_glob = self.num_points_glob  # not relevant for lhs scipy.
+        elif self.mode == "debug":
+            self.neighbourhood_size_rw = 2 * self.dim + 1
+            self.num_steps_rw = 20
+            self.step_size_rw = 0.01  # 1% of the range of the instance domain
+
+            # Experimental setup of Liefooghe2021 for global.
+            self.num_points_glob = int(self.dim * 20)
+            self.iterations_glob = self.num_points_glob  # not relevant for lhs scipy.
 
     def create_pregen_sample_dir(self):
         base_dir = "pregen_samples"
@@ -227,15 +237,16 @@ class PreSampler:
 
 
 def main():
-    if len(sys.argv) != 3:
-        print("Usage: python PreSampler.py dim num_samples")
+    if len(sys.argv) != 4:
+        print("Usage: python PreSampler.py dim num_samples mode")
         return
 
     dim = int(sys.argv[1])
     num_samples = int(sys.argv[2])
+    mode = str(sys.argv[3])
 
     # Create an instance of the PreSampler class
-    pre_sampler = PreSampler(dim, num_samples)
+    pre_sampler = PreSampler(dim, num_samples, mode)
 
     # Generate a random walk sample with the specified number of samples
     pre_sampler.generate_rw_samples()

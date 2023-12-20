@@ -123,29 +123,3 @@ class RandomWalkAnalysis(Analysis):
             self.features["nfronts_avg"],
             self.features["nfronts_r1"],
         ) = compute_neighbourhood_dominance_features(pop_walk, pop_neighbours_list)
-
-
-class MultipleRandomWalkAnalysis(MultipleAnalysis):
-    """
-    Aggregate RW features across populations/walks.
-    """
-
-    def __init__(
-        self,
-        pops_walks,
-        pops_neighbours_list,
-        normalisation_values,
-        single_analysis_class=RandomWalkAnalysis,
-    ):
-        self.pops = pops_walks
-        self.normalisation_values = normalisation_values
-        self.analyses = []
-
-        if len(self.pops) != 0:
-            for pop, neighbour in zip(pops_walks, pops_neighbours_list):
-                self.analyses.append(
-                    single_analysis_class(pop, neighbour, normalisation_values)
-                )
-
-        # Initialise features arrays dict.
-        self.feature_arrays = {}

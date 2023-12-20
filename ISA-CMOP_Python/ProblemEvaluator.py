@@ -74,12 +74,26 @@ class ProblemEvaluator:
             pop_neighbours_list.append(pop_neighbourhood)
 
         # Never need to know the ranks of the walk steps relative to each other.
-        pop_walk.evaluate(self.rescale_pregen_sample(walk, problem), eval_fronts=False)
+        pop_walk.evaluate(
+            self.rescale_pregen_sample(walk, problem), eval_fronts=eval_fronts
+        )
 
         return pop_walk, pop_neighbours_list
 
-    def compute_rw_normalisation_values(self, pre_sampler, problem):
-        normalization_values = {}
+    def generate_global_population(self, problem, global_sample, eval_fronts=True):
+        pop_global = Population(problem, n_individuals=global_sample.shape[0])
+
+        pop_global.evaluate(
+            self.rescale_pregen_sample(global_sample, problem), eval_fronts=eval_fronts
+        )
+
+        return pop_global
+
+    def compute_global_normalisation_values(self, pre_sampler, problem):
+        print(
+            "Initialising normalisation computations for global samples. This requires full evaluation of the entire sample set and may take some time while still being memory-efficient."
+        )
+        norm_start = time.time()
         variables = ["var", "obj", "cv"]
 
         # Arrays to store max and min values from each sample
@@ -90,17 +104,83 @@ class ProblemEvaluator:
         }
         min_values_array = max_values_array
 
+        # Loop over each of the samples.
+        for i in range(pre_sampler.num_samples):
+            # Loop over each of the walks within this sample - note that each sample contains n independent RWs.
+            sample_start_time = time.time()
+            print(
+                "\nEvaluating populations for global sample {} out of {}...".format(
+                    i + 1, pre_sampler.num_samples
+                )
+            )
+
+            # Load the pre-generated sample.
+            global_sample = pre_sampler.read_global_sample(i + 1)
+
+            # Create population and evaluate.
+            pop_global = self.generate_global_population(
+                problem, global_sample, eval_fronts=True
+            )
+
+            # Loop over each variable.
+            for which_variable in variables:
+                combined_array = combine_arrays_for_pops([pop_global], which_variable)
+
+                fmin, fmax = self.compute_maxmin_for_sample(
+                    combined_array, pop_global.extract_pf(), which_variable
+                )
+
+                # Append min and max values for this variable
+                min_values_array[which_variable] = np.vstack(
+                    (min_values_array[which_variable], fmin)
+                )
+                max_values_array[which_variable] = np.vstack(
+                    (max_values_array[which_variable], fmax)
+                )
+
+            sample_end_time = time.time()
+            elapsed_sample_time = sample_end_time - sample_start_time
+            print(
+                "Evaluated populations in sample {} out of {} in {:.2f} seconds.".format(
+                    i + 1, pre_sampler.num_samples, elapsed_sample_time
+                )
+            )
+
+        # Once all samples have been evaluated we can compute normalisation values.
+        normalisation_values = self.compute_norm_values_from_maxmin_arrays(
+            min_values_array,
+            max_values_array,
+        )
+        norm_end = time.time()
+        elapsed_time = norm_end - norm_start
         print(
-            "Initialising normalisation computations. This requires full evaluation of the entire sample set and may take some time while still being memory-efficient."
+            "Evaluated the normalisation values for this sample set in {:.2f} seconds.".format(
+                elapsed_time
+            )
+        )
+        return normalisation_values
+
+    def compute_rw_normalisation_values(self, pre_sampler, problem):
+        print(
+            "Initialising normalisation computations for RW samples. This requires full evaluation of the entire sample set and may take some time while still being memory-efficient."
         )
         norm_start = time.time()
+        variables = ["var", "obj", "cv"]
+
+        # Arrays to store max and min values from each sample
+        max_values_array = {
+            "var": np.empty((0, problem.n_var)),
+            "obj": np.empty((0, problem.n_obj)),
+            "cv": np.empty((0, 1)),
+        }
+        min_values_array = max_values_array
 
         # Loop over each of the samples.
         for i in range(pre_sampler.num_samples):
             # Loop over each of the walks within this sample - note that each sample contains n independent RWs.
             sample_start_time = time.time()
             print(
-                "\nEvaluating populations for sample {} out of {}...".format(
+                "\nEvaluating populations for RW sample {} out of {}...".format(
                     i + 1, pre_sampler.num_samples
                 )
             )
@@ -110,7 +190,10 @@ class ProblemEvaluator:
 
                 # Create population and evaluate.
                 start_time = time.time()
-                pop_walk, pop_neighbours_list = self.generate_rw_neighbours_populations(
+                (
+                    pop_walk,
+                    pop_neighbours_list,
+                ) = self.generate_rw_neighbours_populations(
                     problem, walk, neighbours, eval_fronts=True
                 )
                 end_time = time.time()
@@ -123,27 +206,13 @@ class ProblemEvaluator:
 
                 # Loop over each variable.
                 for which_variable in variables:
-                    # Combine arrays for pops
                     combined_array = combine_arrays_for_pops(
                         [pop_walk] + pop_neighbours_list, which_variable
                     )
 
-                    # Deal with nans here to ensure no nans are returned.
-                    combined_array = combined_array[
-                        ~np.isnan(combined_array).any(axis=1)
-                    ]
-
-                    # Find the min and max of each column.
-                    fmin = np.min(combined_array, axis=0)
-                    fmax = np.max(combined_array, axis=0)
-
-                    # Also consider the PF in the objectives case.
-                    if which_variable == "obj":
-                        PF = pop_walk.extract_pf()
-                        fmin = np.minimum(fmin, np.min(PF, axis=0))
-                        fmax = np.maximum(fmax, np.max(PF, axis=0))
-                    elif which_variable == "cv":
-                        fmin = 0  # only dilate CV values.
+                    fmin, fmax = self.compute_maxmin_for_sample(
+                        combined_array, pop_walk.extract_pf(), which_variable
+                    )
 
                     # Append min and max values for this variable
                     min_values_array[which_variable] = np.vstack(
@@ -152,6 +221,7 @@ class ProblemEvaluator:
                     max_values_array[which_variable] = np.vstack(
                         (max_values_array[which_variable], fmax)
                     )
+
             sample_end_time = time.time()
             elapsed_sample_time = sample_end_time - sample_start_time
             print(
@@ -160,17 +230,11 @@ class ProblemEvaluator:
                 )
             )
 
-        # Calculate the final min, max, and 95th percentile values after the loop
-        for which_variable in variables:
-            min_values = np.min(min_values_array[which_variable], axis=0)
-            max_values = np.max(max_values_array[which_variable], axis=0)
-            perc95_values = np.percentile(max_values_array[which_variable], 95, axis=0)
-
-            # Store the computed values in the dictionary
-            normalization_values[f"{which_variable}_min"] = min_values
-            normalization_values[f"{which_variable}_max"] = max_values
-            normalization_values[f"{which_variable}_95th"] = perc95_values
-
+        # Once all samples have been evaluated we can compute normalisation values.
+        normalisation_values = self.compute_norm_values_from_maxmin_arrays(
+            min_values_array,
+            max_values_array,
+        )
         norm_end = time.time()
         elapsed_time = norm_end - norm_start
         print(
@@ -178,29 +242,70 @@ class ProblemEvaluator:
                 elapsed_time
             )
         )
-        return normalization_values
+        return normalisation_values
+
+    def compute_maxmin_for_sample(self, combined_array, PF, which_variable):
+        # Deal with nans here to ensure no nans are returned.
+        combined_array = combined_array[~np.isnan(combined_array).any(axis=1)]
+
+        # Find the min and max of each column.
+        fmin = np.min(combined_array, axis=0)
+        fmax = np.max(combined_array, axis=0)
+
+        # Also consider the PF in the objectives case.
+        if which_variable == "obj":
+            fmin = np.minimum(fmin, np.min(PF, axis=0))
+            fmax = np.maximum(fmax, np.max(PF, axis=0))
+        elif which_variable == "cv":
+            fmin = 0  # only dilate CV values.
+
+        return fmin, fmax
+
+    def compute_norm_values_from_maxmin_arrays(
+        self,
+        min_values_array,
+        max_values_array,
+    ):
+        variables = ["var", "obj", "cv"]
+        normalisation_values = {}
+
+        # Calculate the final min, max, and 95th percentile values.
+        for which_variable in variables:
+            min_values = np.min(min_values_array[which_variable], axis=0)
+            max_values = np.max(max_values_array[which_variable], axis=0)
+            perc95_values = np.percentile(max_values_array[which_variable], 95, axis=0)
+
+            # Store the computed values in the dictionary
+            normalisation_values[f"{which_variable}_min"] = min_values
+            normalisation_values[f"{which_variable}_max"] = max_values
+            normalisation_values[f"{which_variable}_95th"] = perc95_values
+
+        return normalisation_values
 
     def do_random_walk_analysis(self, problem, pre_sampler, num_samples):
         self.walk_normalisation_values = self.compute_rw_normalisation_values(
-            pre_sampler, problem
+            pre_sampler,
+            problem,
         )
 
-        # Initialise RandomWalkAnalysis evaluator.
-        rw_analysis = RandomWalkAnalysis(self.walk_normalisation_values)
+        rw_multiple_samples_analyses_list = []
 
         # Loop over each of the samples.
         for i in range(num_samples):
             # Initialise list of analyses for this sample.
-            rw_single_sample_analyses = []
+            rw_single_sample_analyses_list = []
 
             # Loop over each of the walks within this sample - note that each sample contains n independent RWs.
             sample_start_time = time.time()
             print(
-                "\nEvaluating features for sample {} out of {}...".format(
+                "\nEvaluating features for RW sample {} out of {}...".format(
                     i + 1, num_samples
                 )
             )
             for j in range(pre_sampler.dim):
+                # Initialise RandomWalkAnalysis evaluator. Do at every iteration or existing list entries get overwritten.
+                rw_analysis = RandomWalkAnalysis(self.walk_normalisation_values)
+
                 # Load the pre-generated sample.
                 walk, neighbours = pre_sampler.read_walk_neighbours(i + 1, j + 1)
 
@@ -229,116 +334,90 @@ class ProblemEvaluator:
                         j + 1, pre_sampler.dim, elapsed_time
                     )
                 )
-                rw_single_sample_analyses.append(rw_analysis)
+                rw_single_sample_analyses_list.append(rw_analysis)
+
+            # Concatenate analyses, generate feature arrays.
+            rw_single_sample = Analysis.concatenate_single_analyses(
+                rw_single_sample_analyses_list
+            )
+            rw_multiple_samples_analyses_list.append(rw_single_sample)
 
             # Print to log for each sample.
             sample_end_time = time.time()
             elapsed_time = sample_end_time - sample_start_time
             print(
-                "Evaluated features for sample {} out of {} in {:.2f} seconds.\n".format(
+                "Completed RW sample {} out of {} in {:.2f} seconds.\n".format(
                     i + 1, num_samples, elapsed_time
                 )
             )
 
-    def sample_for_global_features(self, problem, num_samples, method="lhs.scipy"):
-        n_var = problem.n_var
-
-        distributed_samples = []
-
-        if self.mode == "eval":
-            # Experimental setup of Liefooghe2021.
-            num_points = int(n_var * 200)
-            iterations = num_points
-        elif self.mode == "debug":
-            # Runs quickly.
-            num_points = int(n_var * 100)
-            iterations = num_points
-
-        # Split the method string to extract the method name
-        method_parts = method.split(".")
-        if len(method_parts) == 2:
-            method_name = method_parts[0]
-            lhs_method_name = method_parts[1]
-        else:
-            method_name = method  # Use the full method string as the method name
-
-        print(
-            "Generating distributed samples for Global features with the following properties:"
+        # Concatenate analyses across samples.
+        rw_analysis_all_samples = MultipleAnalysis(
+            rw_multiple_samples_analyses_list, self.walk_normalisation_values
         )
-        print("- Num. points: {}".format(num_points))
-        print("- Num. iterations: {}".format(iterations))
-        print("- Method: {}".format(method))
-        print("")
+        rw_analysis_all_samples.generate_feature_arrays()
 
+        return rw_analysis_all_samples
+
+    def do_global_analysis(self, problem, pre_sampler, num_samples):
+        self.global_normalisation_values = self.compute_global_normalisation_values(
+            pre_sampler, problem
+        )
+
+        # Initialise list of analyses for this sample.
+        global_single_sample_analyses = []
+
+        # Loop over each of the samples.
         for i in range(num_samples):
-            start_time = time.time()  # Record the start time
-            if method_name == "lhs":
-                sampler = LatinHypercubeSampling(
-                    criterion="maximin", iterations=iterations, method=lhs_method_name
-                )
-            elif method_name == "uniform":
-                sampler = RandomSampling()
+            # Initialise GlobalAnalysis evaluator. Do at each iteration to avoid overwriting existing list entries.
+            global_analysis = GlobalAnalysis(self.global_normalisation_values)
 
-            sampler.do(n_samples=num_points, x_lower=problem.xl, x_upper=problem.xu)
-            distributed_samples.append(sampler.x)
+            sample_start_time = time.time()
+            print(
+                "\nEvaluating features for global sample {} out of {}...".format(
+                    i + 1, num_samples
+                )
+            )
+            # Load the pre-generated sample.
+            global_sample = pre_sampler.read_global_sample(i + 1)
+
+            # Create population and evaluate.
+            start_time = time.time()
+            pop_global = self.generate_global_population(problem, global_sample)
+            end_time = time.time()
+            elapsed_time = end_time - start_time
+            print("Evaluated population in {:.2f} seconds.".format(elapsed_time))
+
+            # Pass to Analysis class for evaluation.
+            start_time = time.time()
+            global_analysis.eval_features(pop_global)
             end_time = time.time()  # Record the end time
             elapsed_time = end_time - start_time
 
+            # Print to log for each walk within the sample.
             print(
-                "Generated Global sample {} of {} in {:.2f} seconds.".format(
+                "Evaluated features in {:.2f} seconds.".format(
+                    +1, pre_sampler.dim, elapsed_time
+                )
+            )
+            global_single_sample_analyses.append(global_analysis)
+
+            # Print to log for each sample.
+            sample_end_time = time.time()
+            elapsed_time = sample_end_time - sample_start_time
+            print(
+                "Completed global sample {} out of {} in {:.2f} seconds.\n".format(
                     i + 1, num_samples, elapsed_time
                 )
             )
 
-        return distributed_samples
-
-    def evaluate_populations_for_global_features(self, problem, distributed_samples):
-        print("\nEvaluating populations for global samples...")
-
-        pops_global = []
-
-        for ctr, sample in enumerate(distributed_samples):
-            start_time = time.time()  # Record the start time
-            pop_global = Population(problem, n_individuals=sample.shape[0])
-            pop_global.evaluate(sample, eval_fronts=True)
-            end_time = time.time()  # Record the end time
-            elapsed_time = end_time - start_time
-
-            pops_global.append(pop_global)
-            print(
-                "Evaluated Global population {} of {} in {:.2f} seconds.".format(
-                    ctr + 1, len(distributed_samples), elapsed_time
-                )
-            )
-
-        return pops_global
-
-    def evaluate_global_features(self, pops_global, normalisation_values):
-        global_features = MultipleGlobalAnalysis(pops_global, normalisation_values)
-        global_features.eval_features_for_all_populations()
-
-        return global_features
-
-    def do_global_analysis(self, problem, num_samples):
-        # Generate distributed samples.
-        distributed_samples = self.sample_for_global_features(
-            problem, num_samples, method="lhs.scipy"
+        # Concatenate analyses, generate feature arrays and return.
+        global_multiple_analysis = MultipleAnalysis(
+            global_single_sample_analyses, self.global_normalisation_values
         )
+        global_multiple_analysis.generate_feature_arrays()
 
-        # Evaluate populations
-        pops_global = self.evaluate_populations_for_global_features(
-            problem, distributed_samples
-        )
-
-        # Compute normalisation values for feature calculations later.
-        # self.global_normalisation_values = compute_all_normalisation_values(pops_global)
-
-        # Evaluate features.
-        global_features = self.evaluate_global_features(
-            pops_global, self.global_normalisation_values
-        )
-
-        return global_features
+        return global_multiple_analysis
 
     def sample_for_aw_features(self, problem, num_samples):
         """
@@ -504,7 +583,7 @@ class ProblemEvaluator:
         )
 
         # Load presampler.
-        pre_sampler = PreSampler(self.instance.n_var, num_samples)
+        pre_sampler = PreSampler(self.instance.n_var, num_samples, self.mode)
 
         # RW Analysis.
         print(
@@ -525,7 +604,9 @@ class ProblemEvaluator:
             + self.instance_name
             + " ~~~~~~~~~~~~ \n"
         )
-        global_features = self.do_global_analysis(self.instance, num_samples)
+        global_features = self.do_global_analysis(
+            self.instance, pre_sampler, num_samples
+        )
         global_features.export_unaggregated_features(
             self.instance_name, "glob", save_arrays
         )
@@ -544,8 +625,6 @@ class ProblemEvaluator:
 
         # Overall landscape analysis - putting it all together.
         landscape = LandscapeAnalysis(global_features, rw_features, aw_features)
-
-        # TODO: save results to numpy binary format using savez. Will need to write functions that do so, and ones that can create a population by reading these in.
 
         # Perform aggregation.
         landscape.aggregate_features()

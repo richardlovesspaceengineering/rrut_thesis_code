@@ -10,13 +10,13 @@ problemsMW=("MW3")
 dimensions=("2" "3")
 
 # Number of samples to run.
-num_samples=10
+num_samples=4
 
 # Modes are debug or eval.
-mode="eval"
+mode="debug"
 
 # Use pre-generated samples?
-regenerate_samples=false
+regenerate_samples=true
 
 # Save full feature arrays. Aggregated feature arrays are always saved.
 save_feature_arrays=true
@@ -38,8 +38,8 @@ if [[ "$host" == *"$pc1"* ]]; then # megatrons
   PYTHON_SCRIPT="/home/kj66/Documents/Richard/venv/bin/python3"
   SCRIPT_PATH="/home/kj66/Documents/Richard/rrut_thesis_code/"
 else # richard's pc
-  PYTHON_SCRIPT="D:/richa/anaconda3/envs/thesis_env_windows/python.exe"
-  SCRIPT_PATH="d:/richa/Documents/Thesis/rrut_thesis_code/"
+  PYTHON_SCRIPT="C:/Users/richa/anaconda3/envs/thesis_env_windows/python.exe"
+  SCRIPT_PATH="C:/Users/richa/Documents/Thesis/rrut_thesis_code/"
 fi
 echo "Using interpreter: $PYTHON_SCRIPT" | tee -a "$log_file"
 
@@ -80,7 +80,7 @@ if [ "$regenerate_samples" = true ]; then
   # Run PreSampler.py for each dimension and number of samples
   for dim in "${dimensions[@]}"; do
     echo "Running PreSampler.py for dimension: $dim" | tee -a "$log_file"
-    "$PYTHON_SCRIPT" -u "$pre_sampler_script" "$dim" "$num_samples" 2>&1 | tee -a "$log_file"
+    "$PYTHON_SCRIPT" -u "$pre_sampler_script" "$dim" "$num_samples" "$mode" 2>&1 | tee -a "$log_file"
   done
 fi
 

@@ -22,6 +22,35 @@ class Analysis:
     def eval_features(self, pop):
         pass
 
+    @staticmethod
+    def concatenate_single_analyses(single_analyses):
+        """
+        Concatenate feature values from multiple Analysis objects into one.
+
+        Used when generating a single sample feature set for random/adaptive walks, where a sample contains multiple independent walks.
+        """
+
+        # Determine the class type of the first element in single_analyses
+        analysis_type = type(single_analyses[0])
+
+        # Create a new MultipleAnalysis object with the combined populations based on the inferred class type
+        combined_analysis = analysis_type(single_analyses[0].normalisation_values)
+
+        # Extract the feature names
+        feature_names = single_analyses[0].features.keys()
+
+        # Iterate through feature names
+        for feature_name in feature_names:
+            feature_arrays = [sa.features[feature_name] for sa in single_analyses]
+
+            # Take the average
+            combined_feature_value = np.mean(feature_arrays)
+
+            # Save as attribute array in the combined_analysis object
+            combined_analysis.features[feature_name] = combined_feature_value
+
+        return combined_analysis
+
 
 class MultipleAnalysis:
     """
@@ -32,34 +61,6 @@ class MultipleAnalysis:
         self.analyses = single_sample_analyses
         self.normalisation_values = normalisation_values
         self.feature_arrays = {}
-
-    def extract_features_from_all_populations(self):
-        """
-        Evaluate features for all populations.
-        """
-
-        cls_name = self.__class__.__name__
-        if cls_name == "MultipleGlobalAnalysis":
-            s1 = "Global"
-            s2 = "sample"
-        elif cls_name == "MultipleRandomWalkAnalysis":
-            s1 = "RW"
-            s2 = "walk"
-        elif cls_name == "MultipleAdaptiveWalkAnalysis":
-            s1 = "AW"
-            s2 = "walk"
-
-        for ctr, a in enumerate(self.analyses):
-            a.eval_features()
-
-            print(
-                "Evaluated {} features for {} {} out of {} in {:.2f} seconds.".format(
-                    s1, s2, ctr + 1, len(self.analyses), elapsed_time
-                )
-            )
-
-        # Generate corresponding arrays.
-        self.generate_feature_arrays()
 
     def generate_array_for_feature(self, feature_name):
         feature_array = []
@@ -124,33 +125,3 @@ class MultipleAnalysis:
 
         else:
             print("\nSaving of feature arrays for {} disabled.\n".format(method_suffix))
-
-    @staticmethod
-    def concatenate_multiple_analyses(multiple_analyses, AnalysisType):
-        """
-        Concatenate feature arrays from multiple MultipleAnalysis objects into one.
-        """
-
-        # Determine the type of the first element in multiple_analyses
-        first_analysis = multiple_analyses[0]
-
-        # Create a new MultipleAnalysis object with the combined populations based on the type of the first element
-        if isinstance(first_analysis, AnalysisType):
-            combined_analysis = AnalysisType(
-                [], [], first_analysis.normalisation_values
-            )  # TODO: update to work with global features too.
-
-        # Extract the feature names too.
-        feature_names = first_analysis.feature_arrays.keys()
-
-        # Iterate through feature names
-        for feature_name in feature_names:
-            feature_arrays = [
-                ma.feature_arrays[feature_name] for ma in multiple_analyses
-            ]
-            combined_array = np.concatenate(feature_arrays)
-
-            # Save as attribute array in the combined_analysis object
-            combined_analysis.feature_arrays[feature_name] = combined_array
-
-        return combined_analysis

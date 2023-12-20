@@ -16,10 +16,10 @@
         "name": "Python: Run Single Problem",
         "type": "python",
         "request": "launch",
-        "program": "D:/richa/Documents/Thesis/rrut_thesis_code/ISA-CMOP_Python/runner.py",
-        "args": ["MW10", "3", "10", "debug", "true"],
+        "program": "C:/Users/richa/Documents/Thesis/rrut_thesis_code/ISA-CMOP_Python/runner.py",
+        "args": ["MW10", "3", "2", "debug", "true"],
         "console": "integratedTerminal",
-        "cwd": "D:/richa/Documents/Thesis/rrut_thesis_code/ISA-CMOP_Python",
+        "cwd": "C:/Users/richa/Documents/Thesis/rrut_thesis_code/ISA-CMOP_Python",
     }
     
   ]

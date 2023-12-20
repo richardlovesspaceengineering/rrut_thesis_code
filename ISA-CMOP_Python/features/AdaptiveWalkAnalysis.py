@@ -1,5 +1,5 @@
 import numpy as np
-from features.RandomWalkAnalysis import RandomWalkAnalysis, MultipleRandomWalkAnalysis
+from features.RandomWalkAnalysis import RandomWalkAnalysis
 from features.randomwalkfeatures import *
 
 
@@ -63,13 +63,3 @@ class AdaptiveWalkAnalysis(RandomWalkAnalysis):
         self.features["length_avg"] = len(
             self.pop
         )  # TODO: decide if we need to normalise this.
-
-
-class MultipleAdaptiveWalkAnalysis(MultipleRandomWalkAnalysis):
-    def __init__(self, pops_walks, pops_neighbours_list, normalisation_values):
-        super().__init__(
-            pops_walks,
-            pops_neighbours_list,
-            normalisation_values,
-            single_analysis_class=AdaptiveWalkAnalysis,
-        )
