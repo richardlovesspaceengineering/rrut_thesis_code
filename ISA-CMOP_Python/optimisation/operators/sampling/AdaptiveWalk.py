@@ -9,9 +9,18 @@ from features.Analysis import Analysis, MultipleAnalysis
 
 
 class AdaptiveWalk(RandomWalk):
-    def __init__(self, bounds, max_steps, step_size_pct, neighbourhood_size, problem):
-        super().__init__(bounds, max_steps, step_size_pct, neighbourhood_size)
+    def __init__(self, dim, max_steps, step_size_pct, neighbourhood_size, problem):
+        self.dim = dim
+
+        # Use actual problem bounds as opposed to unit hypercube.
+        self.bounds = generate_bounds_from_problem(problem)
+        self.num_steps = max_steps
+        self.step_size_pct = step_size_pct
+        self.neighbourhood_size = neighbourhood_size
+
         self.problem_instance = problem
+
+        self.initialise_step_sizes()
 
     def do_adaptive_phc_walk_for_starting_point(
         self, starting_point, constrained_ranks, seed=None

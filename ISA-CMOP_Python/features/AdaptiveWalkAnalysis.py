@@ -4,7 +4,16 @@ from features.randomwalkfeatures import *
 
 
 class AdaptiveWalkAnalysis(RandomWalkAnalysis):
-    def eval_features(self):
+    def eval_features(self, pop_walk, pop_neighbours_list):
+        # Preprocess nans and infinities, compute solver crash ratio and update attributes.
+        pop_new, pop_neighbours_new, pop_neighbours_checked = preprocess_nans_on_walks(
+            pop_walk, pop_neighbours_list
+        )
+
+        # Update populations
+        pop_walk = pop_new
+        pop_neighbours_list = pop_neighbours_checked
+
         # Evaluate neighbourhood domination features. Note that no normalisation is needed for these.
         (
             self.features["sup_avg"],
@@ -17,7 +26,7 @@ class AdaptiveWalkAnalysis(RandomWalkAnalysis):
             _,
             _,
             _,
-        ) = compute_neighbourhood_dominance_features(self.pop, self.pop_neighbours_list)
+        ) = compute_neighbourhood_dominance_features(pop_walk, pop_neighbours_list)
 
         # Evaluate unconstrained neighbourhood HV features
         (
@@ -30,8 +39,8 @@ class AdaptiveWalkAnalysis(RandomWalkAnalysis):
             _,
             _,
         ) = compute_neighbourhood_hv_features(
-            self.pop,
-            self.pop_neighbours_list,
+            pop_walk,
+            pop_neighbours_list,
             self.normalisation_values,
             norm_method="95th",
         )
@@ -42,7 +51,7 @@ class AdaptiveWalkAnalysis(RandomWalkAnalysis):
             pop_walk_feas,
             _,
             pop_neighbours_feas,
-        ) = extract_feasible_steps_neighbours(self.pop, self.pop_neighbours_list)
+        ) = extract_feasible_steps_neighbours(pop_walk, pop_neighbours_list)
         (
             self.features["hv_ss_avg"],
             _,
@@ -61,5 +70,5 @@ class AdaptiveWalkAnalysis(RandomWalkAnalysis):
 
         # Compute average length of adaptive walks.
         self.features["length_avg"] = len(
-            self.pop
+            pop_walk
         )  # TODO: decide if we need to normalise this.
