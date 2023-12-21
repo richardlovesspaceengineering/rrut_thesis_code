@@ -212,7 +212,7 @@ def flatten_list(nested_list):
 
 
 def use_no_normalisation(n_var, n_obj):
-    normalization_values = {}
+    normalisation_values = {}
     variables = ["var", "obj", "cv"]
 
     for which_variable in variables:
@@ -226,13 +226,13 @@ def use_no_normalisation(n_var, n_obj):
             fmin = 0
             fmax = 1
 
-        normalization_values[f"{which_variable}_min"] = fmin
-        normalization_values[f"{which_variable}_max"] = fmax
+        normalisation_values[f"{which_variable}_min"] = fmin
+        normalisation_values[f"{which_variable}_max"] = fmax
 
         # For f95th, use fmax
-        normalization_values[f"{which_variable}_95th"] = fmax
+        normalisation_values[f"{which_variable}_95th"] = fmax
 
-    return normalization_values
+    return normalisation_values
 
 
 def flatten_dict(original_dict):

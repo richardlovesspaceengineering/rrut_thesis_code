@@ -25,7 +25,7 @@ from features.Analysis import Analysis, MultipleAnalysis
 
 
 class ProblemEvaluator:
-    def __init__(self, instance, instance_name, mode="eval"):
+    def __init__(self, instance, instance_name, mode, results_dir):
         """
         Possible modes are eval and debug.
         """
@@ -40,6 +40,7 @@ class ProblemEvaluator:
             "pregen_samples",
             "rw",
         )
+        self.results_dir = results_dir
         print("Initialising evaluator in {} mode.".format(self.mode))
 
     def get_bounds(self, problem):
@@ -304,7 +305,9 @@ class ProblemEvaluator:
             )
             for j in range(pre_sampler.dim):
                 # Initialise RandomWalkAnalysis evaluator. Do at every iteration or existing list entries get overwritten.
-                rw_analysis = RandomWalkAnalysis(self.walk_normalisation_values)
+                rw_analysis = RandomWalkAnalysis(
+                    self.walk_normalisation_values, self.results_dir
+                )
 
                 # Load the pre-generated sample.
                 walk, neighbours = pre_sampler.read_walk_neighbours(i + 1, j + 1)
@@ -370,7 +373,9 @@ class ProblemEvaluator:
         # Loop over each of the samples.
         for i in range(num_samples):
             # Initialise GlobalAnalysis evaluator. Do at each iteration to avoid overwriting existing list entries.
-            global_analysis = GlobalAnalysis(self.global_normalisation_values)
+            global_analysis = GlobalAnalysis(
+                self.global_normalisation_values, self.results_dir
+            )
 
             sample_start_time = time.time()
             print(
@@ -469,7 +474,9 @@ class ProblemEvaluator:
             # TODO: decide if this is the best way to do this.
             for j in range(distributed_sample.shape[0]):
                 # Initialise AdaptiveWalkAnalysis evaluator. Do at every iteration or existing list entries get overwritten.
-                aw_analysis = AdaptiveWalkAnalysis(self.global_normalisation_values)
+                aw_analysis = AdaptiveWalkAnalysis(
+                    self.global_normalisation_values, self.results_dir
+                )
 
                 # Generate the adaptive walk sample.
                 walk = awGenerator.do_adaptive_phc_walk_for_starting_point(

@@ -39,10 +39,11 @@ class PreSampler:
 
     def create_pregen_sample_dir(self):
         base_dir = "pregen_samples"
-        rw_dir = os.path.join(base_dir, "rw")
-        global_dir = os.path.join(base_dir, "global")
+        mode_dir = os.path.join(base_dir, self.mode)  # "eval" or "debug" based on mode
+        rw_dir = os.path.join(mode_dir, "rw")
+        global_dir = os.path.join(mode_dir, "global")
 
-        for directory in [base_dir, rw_dir, global_dir]:
+        for directory in [base_dir, mode_dir, rw_dir, global_dir]:
             if not os.path.exists(directory):
                 os.makedirs(directory)
 

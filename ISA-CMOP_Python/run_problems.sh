@@ -1,20 +1,29 @@
 #!/bin/bash
 
-# Message describing the experimental setup.
-desc_msg="Added adaptive walk features; using 95th percentile values for upper bound, min for lower bound. Adaptive walk normalisation values are just taken from the RW. Global normalisation values are separately computed."
+# # Message describing the experimental setup.
+# desc_msg="Added adaptive walk features; using 95th percentile values for upper bound, min for lower bound. Adaptive walk normalisation values are just taken from the RW. Global normalisation values are separately computed."
+
+# # Problem suites
+# problemsCTP=("CTP1", "CTP2", "CTP3", "CTP4", "CTP5", "CTP6", "CTP7", "CTP8")
+# problemsMW=("MW1", "MW2", "MW3", "MW4", "MW5", "MW6", "MW7", "MW8", "MW9", "MW10", "MW11", "MW12", "MW13", "MW14")
+
+desc_msg="Test Run."
 
 # Problem suites
-problemsCTP=("CTP1", "CTP2", "CTP3", "CTP4", "CTP5", "CTP6", "CTP7", "CTP8")
-problemsMW=("MW1", "MW2", "MW3", "MW4", "MW5", "MW6", "MW7", "MW8", "MW9", "MW10", "MW11", "MW12", "MW13", "MW14")
+problemsMW=("MW3", "MW11")
 
-# Dimensions to consider for each of the above.
-n_dim=(2 5 10)
+# Dimensions to consider
+dimensions=("10")
 
 # Number of samples to run.
 num_samples=30
 
 # Modes are debug or eval.
 mode="eval"
+# mode="debug"
+
+# Use pre-generated samples? Always turn on when running from a new commit.
+regenerate_samples=true
 
 # Save full feature arrays. Aggregated feature arrays are always saved.
 save_feature_arrays=true
@@ -45,6 +54,11 @@ echo "Using interpreter: $PYTHON_SCRIPT" | tee -a "$log_file"
 temp_dir=$(mktemp -d -t ci-XXXXXXXXXX --tmpdir="$SCRIPT_PATH")
 echo "New directory: $temp_dir" | tee -a "$log_file"
 
+# Create unique folder for the results of this run.
+results_dir="instance_results/$(date +'%b%d_%H%M')"
+mkdir -p "$results_dir"
+echo "Run folder: $results_dir" | tee -a "$log_file"
+
 # Copy framework to temporary directory
 copy_dir="$SCRIPT_PATH"
 cd_dir="$SCRIPT_PATH"
@@ -55,13 +69,15 @@ cp -R $copy_dir "$temp_dir"
 # Handle CTRL+C event clean up
 trap ctrl_c INT
 function ctrl_c() {
-        if [ -d "$temp_dir" ]; then
-                # Clean up temp dir
-                rm -rf "$temp_dir"
-                echo "Cleaning up $temp_dir" | tee -a "$log_file"
-                exit 0
-        fi
+    if [ -d "$temp_dir" ]; then
+        # Clean up temp dir
+        rm -rf "$temp_dir"
+        echo "Cleaning up $temp_dir" | tee -a "$log_file"
+
+        exit 0
+    fi
 }
+
 
 # Set cwd if not already
 cd "$cd_dir" || { echo "cd $cd_dir failed" | tee -a "$log_file"; }
@@ -69,24 +85,26 @@ cd "$cd_dir" || { echo "cd $cd_dir failed" | tee -a "$log_file"; }
 # Path to execute python script
 run_dir="$temp_dir"
 run_dir+="/runner.py"    # Main script to execute (runner.py)
+pre_sampler_script="PreSampler.py"  # PreSampler script
+
 echo "File running inside: $run_dir" | tee -a "$log_file"
 
-# Determine which set of problems to run based on user input
-if [ "$1" == "MW" ]; then
-  problems=("${problemsMW[@]}")
-elif [ "$1" == "CTP" ]; then
-  problems=("${problemsCTP[@]}")
-else
-  echo "Invalid argument. Use 'MW' or 'CTP'." | tee -a "$log_file"
-  exit 1
+# Check if regenerate_samples is true
+if [ "$regenerate_samples" = true ]; then
+  # Run PreSampler.py for each dimension and number of samples
+  for dim in "${dimensions[@]}"; do
+    echo "Running PreSampler.py for dimension: $dim" | tee -a "$log_file"
+    "$PYTHON_SCRIPT" -u "$pre_sampler_script" "$dim" "$num_samples" "$mode" 2>&1 | tee -a "$log_file"
+  done
 fi
 
-# Run. Note that all logging is done within Python.
-for problem in "${problems[@]}"; do
+# Run runner.py for each problem and dimension
+for problem in "${problemsMW[@]}"; do
   problem=$(echo "$problem" | sed 's/,$//')  # Remove trailing comma if it exists
-  for dim in "${n_dim[@]}"; do
+  for dim in "${dimensions[@]}"; do
     echo "Running problem: $problem, dimension: $dim" | tee -a "$log_file"  # Print message to the terminal and log file
-    "$PYTHON_SCRIPT" -u "$run_dir" "$problem" "$dim" "$num_samples" "$mode" "$save_feature_arrays" 2>&1 | tee -a "$log_file"
+    # Run runner.py
+    "$PYTHON_SCRIPT" -u "$run_dir" "$problem" "$dim" "$num_samples" "$mode" "$save_feature_arrays" "$results_dir" 2>&1 | tee -a "$log_file"
   done
 done
 
