@@ -211,11 +211,12 @@ def compute_neighbourhood_hv_features(
     # Define the nadir
     nadir = 1.1 * np.ones(obj_lb.size)
 
-    # Extract evaluated population values, normalise and trim any points larger than the nadir.
-    obj = pop_walk.extract_obj()
-    if obj.size == 0:
+    if len(pop_walk) == 0:
         # If we are here, the population is empty. This might occur when using this function to determine constrained HV values and there are no feasible solutions.
         return (0,) * 8  # this function returns 8 values
+
+    # Extract evaluated population values, normalise and trim any points larger than the nadir.
+    obj = pop_walk.extract_obj()
 
     obj, mask = trim_obj_using_nadir(
         apply_normalisation(pop_walk.extract_obj(), obj_lb, obj_ub), nadir
@@ -252,6 +253,20 @@ def compute_neighbourhood_hv_features(
         for i in range(obj.shape[0]):
             # Extract neighbours for this point and normalise.
             pop_neighbourhood = pop_neighbours[i]
+
+            # Quick check to see if this is empty.
+            if len(pop_neighbourhood) == 0:
+                hv_ss_array[i] = 0
+                nhv_array[i] = 0
+                hvd_array[i] = 0
+                bhv_array[i] = 0
+                print(
+                    "There are no neighbours for step {} of {} - this may occur when computing HVs of feasible solutions. Setting all neighbourhood HV metrics for this step to 0.".format(
+                        i + 1, obj.shape[0]
+                    )
+                )
+                continue
+
             neig_obj, _ = trim_obj_using_nadir(
                 apply_normalisation(pop_neighbourhood.extract_obj(), obj_lb, obj_ub),
                 nadir,
@@ -266,6 +281,7 @@ def compute_neighbourhood_hv_features(
                         i + 1, obj.shape[0]
                     )
                 )
+                continue
             else:
                 # Compute HV of single solution at this step.
                 hv_ss_array[i] = calculate_hypervolume_pygmo(

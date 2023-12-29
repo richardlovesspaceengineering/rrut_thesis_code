@@ -9,6 +9,7 @@ import seaborn as sns
 import pandas as pd
 from matplotlib.ticker import FuncFormatter
 import time
+import copy
 
 
 class Population(np.ndarray):
@@ -219,13 +220,24 @@ class Population(np.ndarray):
                 self[i].rank_uncons = k + 1  # lowest rank is 1
 
     ### EVALUATE AT A GIVEN SET OF POINTS.
-    def evaluate(self, var_array, eval_fronts):
-        for i in range(len(self)):
-            # Assign decision variables.
-            self[i].set_var(var_array[i, :])
+    def evaluate(self, var_array, eval_fronts, parallel=True):
+        if parallel:
+            # Evaluate vectorized.
+            obj, cons = self[0].problem.evaluate(var_array)
 
-            # Run evaluation of objectives, constraints and CV.
-            self[i].eval_instance()
+            # Assign to individuals.
+            for i in range(len(self)):
+                self[i].var = var_array[i, :]
+                self[i].obj = obj[i, :]
+                self[i].cons = cons[i, :]
+                self[i].eval_cv()
+        else:
+            for i in range(len(self)):
+                # Assign decision variables.
+                self[i].set_var(var_array[i, :])
+
+                # Run evaluation of objectives, constraints and CV.
+                self[i].eval_instance()
 
         if eval_fronts:
             self.evaluate_fronts()
@@ -236,6 +248,12 @@ class Population(np.ndarray):
 
         # Unconstrained ranks
         self.eval_unconstrained_rank()
+
+    def eval_instance(self):
+        obj, cons = self.eval_obj_cons()
+        self.set_obj(obj)
+        self.set_cons(cons)
+        self.set_cv(self.eval_cv())
 
     # Plotters
     def var_scatterplot_matrix(self, bounds=None):
