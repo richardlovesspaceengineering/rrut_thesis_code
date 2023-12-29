@@ -27,42 +27,39 @@ import multiprocessing
 import signal
 from time import sleep
 from functools import wraps
+from itertools import repeat
 
 
 def handle_ctrl_c(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        ctrl_c_entered = kwargs.pop("ctrl_c_entered", False)
-        default_sigint_handler = kwargs.pop("default_sigint_handler", None)
-
+        global ctrl_c_entered
         if not ctrl_c_entered:
-            signal.signal(signal.SIGINT, default_sigint_handler)
+            signal.signal(signal.SIGINT, default_sigint_handler)  # the default
             try:
-                return func(
-                    ctrl_c_entered=True,
-                    default_sigint_handler=default_sigint_handler,
-                    *args,
-                    **kwargs,
-                )
+                return func(*args, **kwargs)
+            except KeyboardInterrupt:
+                ctrl_c_entered = True
+                return KeyboardInterrupt()
             finally:
                 signal.signal(signal.SIGINT, pool_ctrl_c_handler)
         else:
-            return func(
-                ctrl_c_entered=True,
-                default_sigint_handler=default_sigint_handler,
-                *args,
-                **kwargs,
-            )
+            return KeyboardInterrupt()
 
     return wrapper
 
 
 def pool_ctrl_c_handler(*args, **kwargs):
-    kwargs["ctrl_c_entered"] = True
+    global ctrl_c_entered
+    ctrl_c_entered = True
 
 
 def init_pool():
-    return signal.signal(signal.SIGINT, pool_ctrl_c_handler)
+    # set global variable for each process in the pool:
+    global ctrl_c_entered
+    global default_sigint_handler
+    ctrl_c_entered = False
+    default_sigint_handler = signal.signal(signal.SIGINT, pool_ctrl_c_handler)
 
 
 class ProblemEvaluator:
@@ -238,20 +235,8 @@ class ProblemEvaluator:
         return normalisation_values
 
     @handle_ctrl_c
-    def process_rw_sample_norm(
-        self,
-        i,
-        pre_sampler,
-        problem,
-        eval_fronts,
-        variables,
-        ctrl_c_entered=False,
-        default_sigint_handler=None,
-    ):
-        if ctrl_c_entered:
-            print("Ctrl-C was entered during process_rw_sample_norm.")
-            return KeyboardInterrupt()
-
+    def process_rw_sample_norm(self, args):
+        i, pre_sampler, problem, eval_fronts, variables = args
         max_values_array = {
             "var": np.empty((0, problem.n_var)),
             "obj": np.empty((0, problem.n_obj)),
@@ -266,7 +251,7 @@ class ProblemEvaluator:
             )
 
             for which_variable in variables:
-                combined_array = self.combine_arrays_for_pops(
+                combined_array = combine_arrays_for_pops(
                     [pop_walk] + pop_neighbours_list, which_variable
                 )
                 fmin, fmax = self.compute_maxmin_for_sample(
@@ -303,8 +288,8 @@ class ProblemEvaluator:
             ]
 
             results = pool.map(self.process_rw_sample_norm, args_list)
-            if any(isinstance(result, KeyboardInterrupt) for result in results):
-                print("Ctrl-C was entered during multiprocessing.")
+            if any(map(lambda x: isinstance(x, KeyboardInterrupt), results)):
+                print("Ctrl-C was entered.")
 
             for min_values, max_values in results:
                 for var in variables:
@@ -322,12 +307,35 @@ class ProblemEvaluator:
             norm_end = time.time()
             elapsed_time = norm_end - norm_start
             print(
-                "Evaluated the normalisation values for this sample set in {:.2f} seconds.".format(
+                "Evaluated the normalisation values for this sample set in {:.2f} seconds.\n".format(
                     elapsed_time
                 )
             )
 
         return normalisation_values
+
+    @handle_ctrl_c
+    def process_rw_features(self, i, pre_sampler, problem):
+        print("Initialising feature evaluation for RW samples.")
+
+        rw_single_sample_analyses_list = []
+
+        # Loop over each of the walks within this sample.
+        for j in range(pre_sampler.dim):
+            rw_analysis = RandomWalkAnalysis(
+                self.walk_normalisation_values, self.results_dir
+            )
+
+            walk, neighbours = pre_sampler.read_walk_neighbours(i + 1, j + 1)
+
+            pop_walk, pop_neighbours_list = self.generate_rw_neighbours_populations(
+                problem, walk, neighbours
+            )
+            rw_analysis.eval_features(pop_walk, pop_neighbours_list)
+
+            rw_single_sample_analyses_list.append(rw_analysis)
+
+        return rw_single_sample_analyses_list
 
     def do_random_walk_analysis(self, problem, pre_sampler, num_samples):
         self.walk_normalisation_values = self.compute_rw_normalisation_values(
@@ -337,74 +345,34 @@ class ProblemEvaluator:
 
         rw_multiple_samples_analyses_list = []
 
-        # Loop over each of the samples.
-        for i in range(num_samples):
-            # Initialise list of analyses for this sample.
-            rw_single_sample_analyses_list = []
+        start_time = time.time()
 
-            # Loop over each of the walks within this sample - note that each sample contains n independent RWs.
-            sample_start_time = time.time()
-            print(
-                "\nEvaluating features for RW sample {} out of {}...".format(
-                    i + 1, num_samples
-                )
+        with multiprocessing.Pool(self.num_processes, initializer=init_pool) as pool:
+            # Use partial method here.
+            results = pool.starmap(
+                self.process_rw_features,
+                zip(range(num_samples), repeat(pre_sampler), repeat(problem)),
             )
-            for j in range(pre_sampler.dim):
-                # Initialise RandomWalkAnalysis evaluator. Do at every iteration or existing list entries get overwritten.
-                rw_analysis = RandomWalkAnalysis(
-                    self.walk_normalisation_values, self.results_dir
+
+            if any(map(lambda x: isinstance(x, KeyboardInterrupt), results)):
+                print("Ctrl-C was entered.")
+
+            for i, rw_single_sample_analyses_list in enumerate(results):
+                rw_single_sample = Analysis.concatenate_single_analyses(
+                    rw_single_sample_analyses_list
                 )
-
-                # Load the pre-generated sample.
-                walk, neighbours = pre_sampler.read_walk_neighbours(i + 1, j + 1)
-
-                # Create population and evaluate.
-                start_time = time.time()
-                pop_walk, pop_neighbours_list = self.generate_rw_neighbours_populations(
-                    problem, walk, neighbours
-                )
-                end_time = time.time()
-                elapsed_time = end_time - start_time
-                print(
-                    "Evaluated population {} of {} in {:.2f} seconds.".format(
-                        j + 1, pre_sampler.dim, elapsed_time
-                    )
-                )
-
-                # Pass to Analysis class for evaluation.
-                start_time = time.time()
-                rw_analysis.eval_features(pop_walk, pop_neighbours_list)
-                end_time = time.time()  # Record the end time
-                elapsed_time = end_time - start_time
-
-                # Print to log for each walk within the sample.
-                print(
-                    "Evaluated RW features for walk {} out of {} in {:.2f} seconds.".format(
-                        j + 1, pre_sampler.dim, elapsed_time
-                    )
-                )
-                rw_single_sample_analyses_list.append(rw_analysis)
-
-            # Concatenate analyses, generate feature arrays.
-            rw_single_sample = Analysis.concatenate_single_analyses(
-                rw_single_sample_analyses_list
-            )
-            rw_multiple_samples_analyses_list.append(rw_single_sample)
-
-            # Print to log for each sample.
-            sample_end_time = time.time()
-            elapsed_time = sample_end_time - sample_start_time
-            print(
-                "Completed RW sample {} out of {} in {:.2f} seconds.\n".format(
-                    i + 1, num_samples, elapsed_time
-                )
-            )
+                rw_multiple_samples_analyses_list.append(rw_single_sample)
 
         # Concatenate analyses across samples.
         rw_analysis_all_samples = MultipleAnalysis(
             rw_multiple_samples_analyses_list, self.walk_normalisation_values
         )
         rw_analysis_all_samples.generate_feature_arrays()
+
+        end_time = time.time()
+        print(
+            "Evaluated RW features in {:.2f} seconds.\n".format(end_time - start_time)
+        )
 
         return rw_analysis_all_samples
 

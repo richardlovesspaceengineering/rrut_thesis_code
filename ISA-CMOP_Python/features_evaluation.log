@@ -3,9 +3,9 @@ Test Run.
 
 Host is: RichardPC
 Using interpreter: C:/Users/richa/anaconda3/envs/thesis_env_windows/python.exe
-New directory: C:/Users/richa/Documents/Thesis/rrut_thesis_code/ci-MSrnzZNenS
-Run folder: instance_results/Dec29_1148
-File running inside: C:/Users/richa/Documents/Thesis/rrut_thesis_code/ci-MSrnzZNenS/runner.py
+New directory: C:/Users/richa/Documents/Thesis/rrut_thesis_code/ci-w7Yy98fZwt
+Run folder: instance_results/Dec29_1244
+File running inside: C:/Users/richa/Documents/Thesis/rrut_thesis_code/ci-w7Yy98fZwt/runner.py
 Running problem: MW3, dimension: 10
 Initialising evaluator in eval mode.
 
@@ -14,37 +14,43 @@ Initialising evaluator in eval mode.
  ~~~~~~~~~~~~ RW Analysis for MW3_d10 ~~~~~~~~~~~~ 
 
 Initialising normalisation computations for RW samples. This requires full evaluation of the entire sample set and may take some time while still being memory-efficient.
-multiprocessing.pool.RemoteTraceback: 
-"""
-Traceback (most recent call last):
-  File "C:\Users\richa\anaconda3\envs\thesis_env_windows\lib\multiprocessing\pool.py", line 125, in worker
-    result = (True, func(*args, **kwds))
-  File "C:\Users\richa\anaconda3\envs\thesis_env_windows\lib\multiprocessing\pool.py", line 48, in mapstar
-    return list(map(*args))
-  File "C:\Users\richa\Documents\Thesis\rrut_thesis_code\ci-MSrnzZNenS\ProblemEvaluator.py", line 39, in wrapper
-    signal.signal(signal.SIGINT, default_sigint_handler)
-  File "C:\Users\richa\anaconda3\envs\thesis_env_windows\lib\signal.py", line 47, in signal
-    handler = _signal.signal(_enum_to_int(signalnum), _enum_to_int(handler))
-TypeError: signal handler must be signal.SIG_IGN, signal.SIG_DFL, or a callable object
-"""
+Evaluated the normalisation values for this sample set in 277.76 seconds.
+Had to remove 139 rows that were further than the nadir from the origin.
+There are no non-dominated neighbours closer to the origin than the nadir for step 1 of 861. Setting HV metric bhv_avg to 0.
+Evaluated RW features in 639.87 seconds.
 
-The above exception was the direct cause of the following exception:
+Successfully saved rw sample results to csv file for MW3_d10.
 
-Traceback (most recent call last):
-  File "C:/Users/richa/Documents/Thesis/rrut_thesis_code/ci-MSrnzZNenS/runner.py", line 90, in <module>
-    main()
-  File "C:/Users/richa/Documents/Thesis/rrut_thesis_code/ci-MSrnzZNenS/runner.py", line 86, in main
-    evaluator.do(num_samples, save_arrays)
-  File "C:\Users\richa\Documents\Thesis\rrut_thesis_code\ci-MSrnzZNenS\ProblemEvaluator.py", line 622, in do
-    rw_features = self.do_random_walk_analysis(
-  File "C:\Users\richa\Documents\Thesis\rrut_thesis_code\ci-MSrnzZNenS\ProblemEvaluator.py", line 382, in do_random_walk_analysis
-    self.walk_normalisation_values = self.compute_rw_normalisation_values(
-  File "C:\Users\richa\Documents\Thesis\rrut_thesis_code\ci-MSrnzZNenS\ProblemEvaluator.py", line 304, in compute_rw_normalisation_values
-    results = pool.map(self.process_rw_sample_norm, args_list)
-  File "C:\Users\richa\anaconda3\envs\thesis_env_windows\lib\multiprocessing\pool.py", line 364, in map
-    return self._map_async(func, iterable, mapstar, chunksize).get()
-  File "C:\Users\richa\anaconda3\envs\thesis_env_windows\lib\multiprocessing\pool.py", line 771, in get
-    raise self._value
-TypeError: signal handler must be signal.SIG_IGN, signal.SIG_DFL, or a callable object
-Running problem: MW11, dimension: 10
-Cleaning up C:/Users/richa/Documents/Thesis/rrut_thesis_code/ci-MSrnzZNenS
+ 
+ ~~~~~~~~~~~~ Global Analysis for MW3_d10 ~~~~~~~~~~~~ 
+
+Initialising normalisation computations for global samples. This requires full evaluation of the entire sample set and may take some time while still being memory-efficient.
+
+Evaluating populations for global sample 1 out of 2...
+Evaluated populations in sample 1 out of 2 in 7.56 seconds.
+
+Evaluating populations for global sample 2 out of 2...
+Evaluated populations in sample 2 out of 2 in 7.57 seconds.
+Evaluated the normalisation values for this sample set in 15.14 seconds.
+
+Evaluating features for global sample 1 out of 2...
+Evaluated population in 7.56 seconds.
+Evaluated features in 1.00 seconds.
+Completed global sample 1 out of 2 in 7.85 seconds.
+
+
+Evaluating features for global sample 2 out of 2...
+Evaluated population in 7.60 seconds.
+Evaluated features in 1.00 seconds.
+Completed global sample 2 out of 2 in 7.89 seconds.
+
+
+Successfully saved glob sample results to csv file for MW3_d10.
+
+ 
+ ~~~~~~~~~~~~ AW Analysis for MW3_d10 ~~~~~~~~~~~~ 
+
+
+Evaluating features for AW sample 1 out of 2...
+Generated AW 1 of 2000 (for this sample). Length: 204
+Cleaning up C:/Users/richa/Documents/Thesis/rrut_thesis_code/ci-w7Yy98fZwt
