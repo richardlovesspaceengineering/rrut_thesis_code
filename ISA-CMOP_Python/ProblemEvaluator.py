@@ -458,8 +458,9 @@ class ProblemEvaluator:
             pre_sampler.read_global_sample(i + 1), problem
         )
 
-        # Generate an adaptive walk for each point in the sample.
-        for j in range(10):
+        # Generate an adaptive walk for every n/10-th point in the unordered sample.
+        num_walks = distributed_sample.shape[0] / 10
+        for j in range(num_walks):
             # Initialise AdaptiveWalkAnalysis evaluator. Do at every iteration or existing list entries get overwritten.
             aw_analysis = AdaptiveWalkAnalysis(
                 self.global_normalisation_values, self.results_dir
