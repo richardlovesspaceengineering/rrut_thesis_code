@@ -16,14 +16,14 @@ problemsMW=("MW3", "MW11")
 dimensions=("10")
 
 # Number of samples to run.
-num_samples=30
+num_samples=2
 
 # Modes are debug or eval.
 mode="eval"
 # mode="debug"
 
 # Use pre-generated samples? Always turn on when running from a new commit.
-regenerate_samples=true
+regenerate_samples=false
 
 # Save full feature arrays. Aggregated feature arrays are always saved.
 save_feature_arrays=true

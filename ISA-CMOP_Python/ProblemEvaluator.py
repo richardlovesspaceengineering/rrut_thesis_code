@@ -23,6 +23,47 @@ from optimisation.operators.sampling.RandomWalk import RandomWalk
 from optimisation.operators.sampling.AdaptiveWalk import AdaptiveWalk
 from features.Analysis import Analysis, MultipleAnalysis
 
+import multiprocessing
+import signal
+from time import sleep
+from functools import wraps
+
+
+def handle_ctrl_c(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        ctrl_c_entered = kwargs.pop("ctrl_c_entered", False)
+        default_sigint_handler = kwargs.pop("default_sigint_handler", None)
+
+        if not ctrl_c_entered:
+            signal.signal(signal.SIGINT, default_sigint_handler)
+            try:
+                return func(
+                    ctrl_c_entered=True,
+                    default_sigint_handler=default_sigint_handler,
+                    *args,
+                    **kwargs,
+                )
+            finally:
+                signal.signal(signal.SIGINT, pool_ctrl_c_handler)
+        else:
+            return func(
+                ctrl_c_entered=True,
+                default_sigint_handler=default_sigint_handler,
+                *args,
+                **kwargs,
+            )
+
+    return wrapper
+
+
+def pool_ctrl_c_handler(*args, **kwargs):
+    kwargs["ctrl_c_entered"] = True
+
+
+def init_pool():
+    return signal.signal(signal.SIGINT, pool_ctrl_c_handler)
+
 
 class ProblemEvaluator:
     def __init__(self, instance, instance_name, mode, results_dir):
@@ -36,11 +77,8 @@ class ProblemEvaluator:
         self.mode = mode
         self.walk_normalisation_values = {}
         self.global_normalisation_values = {}
-        self.rw_sample_dir = os.path.join(
-            "pregen_samples",
-            "rw",
-        )
         self.results_dir = results_dir
+        self.num_processes = 10
         print("Initialising evaluator in {} mode.".format(self.mode))
 
     def get_bounds(self, problem):
@@ -53,6 +91,44 @@ class ProblemEvaluator:
         # TODO: check the rescaling is working correctly.
         x_lower, x_upper = self.get_bounds(problem)
         return x * (x_upper - x_lower) + x_lower
+
+    def compute_maxmin_for_sample(self, combined_array, PF, which_variable):
+        # Deal with nans here to ensure no nans are returned.
+        combined_array = combined_array[~np.isnan(combined_array).any(axis=1)]
+
+        # Find the min and max of each column.
+        fmin = np.min(combined_array, axis=0)
+        fmax = np.max(combined_array, axis=0)
+
+        # Also consider the PF in the objectives case.
+        if which_variable == "obj":
+            fmin = np.minimum(fmin, np.min(PF, axis=0))
+            fmax = np.maximum(fmax, np.max(PF, axis=0))
+        elif which_variable == "cv":
+            fmin = 0  # only dilate CV values.
+
+        return fmin, fmax
+
+    def compute_norm_values_from_maxmin_arrays(
+        self,
+        min_values_array,
+        max_values_array,
+    ):
+        variables = ["var", "obj", "cv"]
+        normalisation_values = {}
+
+        # Calculate the final min, max, and 95th percentile values.
+        for which_variable in variables:
+            min_values = np.min(min_values_array[which_variable], axis=0)
+            max_values = np.max(max_values_array[which_variable], axis=0)
+            perc95_values = np.percentile(max_values_array[which_variable], 95, axis=0)
+
+            # Store the computed values in the dictionary
+            normalisation_values[f"{which_variable}_min"] = min_values
+            normalisation_values[f"{which_variable}_max"] = max_values
+            normalisation_values[f"{which_variable}_95th"] = perc95_values
+
+        return normalisation_values
 
     def generate_rw_neighbours_populations(
         self, problem, walk, neighbours, eval_fronts=True
@@ -161,14 +237,20 @@ class ProblemEvaluator:
         )
         return normalisation_values
 
-    def compute_rw_normalisation_values(self, pre_sampler, problem):
-        print(
-            "Initialising normalisation computations for RW samples. This requires full evaluation of the entire sample set and may take some time while still being memory-efficient."
-        )
-        norm_start = time.time()
-        variables = ["var", "obj", "cv"]
+    @handle_ctrl_c
+    def process_rw_sample_norm(
+        self,
+        i,
+        pre_sampler,
+        problem,
+        eval_fronts,
+        variables,
+        ctrl_c_entered=False,
+    ):
+        if ctrl_c_entered:
+            print("Ctrl-C was entered during process_rw_sample_norm.")
+            return KeyboardInterrupt()
 
-        # Arrays to store max and min values from each sample
         max_values_array = {
             "var": np.empty((0, problem.n_var)),
             "obj": np.empty((0, problem.n_obj)),
@@ -176,183 +258,163 @@ class ProblemEvaluator:
         }
         min_values_array = max_values_array
 
-        # Loop over each of the samples.
-        for i in range(pre_sampler.num_samples):
-            # Loop over each of the walks within this sample - note that each sample contains n independent RWs.
-            sample_start_time = time.time()
-            print(
-                "\nEvaluating populations for RW sample {} out of {}...".format(
-                    i + 1, pre_sampler.num_samples
-                )
-            )
-            for j in range(pre_sampler.dim):
-                # Load the pre-generated sample.
-                walk, neighbours = pre_sampler.read_walk_neighbours(i + 1, j + 1)
-
-                # Create population and evaluate.
-                start_time = time.time()
-                (
-                    pop_walk,
-                    pop_neighbours_list,
-                ) = self.generate_rw_neighbours_populations(
-                    problem, walk, neighbours, eval_fronts=True
-                )
-                end_time = time.time()
-                elapsed_time = end_time - start_time
-                print(
-                    "Evaluated population {} of {} in {:.2f} seconds.".format(
-                        j + 1, pre_sampler.dim, elapsed_time
-                    )
-                )
-
-                # Loop over each variable.
-                for which_variable in variables:
-                    combined_array = combine_arrays_for_pops(
-                        [pop_walk] + pop_neighbours_list, which_variable
-                    )
-
-                    fmin, fmax = self.compute_maxmin_for_sample(
-                        combined_array, pop_walk.extract_pf(), which_variable
-                    )
-
-                    # Append min and max values for this variable
-                    min_values_array[which_variable] = np.vstack(
-                        (min_values_array[which_variable], fmin)
-                    )
-                    max_values_array[which_variable] = np.vstack(
-                        (max_values_array[which_variable], fmax)
-                    )
-
-            sample_end_time = time.time()
-            elapsed_sample_time = sample_end_time - sample_start_time
-            print(
-                "Evaluated populations in sample {} out of {} in {:.2f} seconds.".format(
-                    i + 1, pre_sampler.num_samples, elapsed_sample_time
-                )
+        for j in range(pre_sampler.dim):
+            walk, neighbours = pre_sampler.read_walk_neighbours(i + 1, j + 1)
+            pop_walk, pop_neighbours_list = self.generate_rw_neighbours_populations(
+                problem, walk, neighbours, eval_fronts=eval_fronts
             )
 
-        # Once all samples have been evaluated we can compute normalisation values.
-        normalisation_values = self.compute_norm_values_from_maxmin_arrays(
-            min_values_array,
-            max_values_array,
-        )
-        norm_end = time.time()
-        elapsed_time = norm_end - norm_start
+            for which_variable in variables:
+                combined_array = self.combine_arrays_for_pops(
+                    [pop_walk] + pop_neighbours_list, which_variable
+                )
+                fmin, fmax = self.compute_maxmin_for_sample(
+                    combined_array, pop_walk.extract_pf(), which_variable
+                )
+
+                min_values_array[which_variable] = np.vstack(
+                    (min_values_array[which_variable], fmin)
+                )
+                max_values_array[which_variable] = np.vstack(
+                    (max_values_array[which_variable], fmax)
+                )
+
+        return min_values_array, max_values_array
+
+    def compute_rw_normalisation_values(self, pre_sampler, problem):
         print(
-            "Evaluated the normalisation values for this sample set in {:.2f} seconds.".format(
-                elapsed_time
-            )
+            "Initialising normalisation computations for RW samples. This requires full evaluation of the entire sample set and may take some time while still being memory-efficient."
         )
-        return normalisation_values
-
-    def compute_maxmin_for_sample(self, combined_array, PF, which_variable):
-        # Deal with nans here to ensure no nans are returned.
-        combined_array = combined_array[~np.isnan(combined_array).any(axis=1)]
-
-        # Find the min and max of each column.
-        fmin = np.min(combined_array, axis=0)
-        fmax = np.max(combined_array, axis=0)
-
-        # Also consider the PF in the objectives case.
-        if which_variable == "obj":
-            fmin = np.minimum(fmin, np.min(PF, axis=0))
-            fmax = np.maximum(fmax, np.max(PF, axis=0))
-        elif which_variable == "cv":
-            fmin = 0  # only dilate CV values.
-
-        return fmin, fmax
-
-    def compute_norm_values_from_maxmin_arrays(
-        self,
-        min_values_array,
-        max_values_array,
-    ):
+        norm_start = time.time()
         variables = ["var", "obj", "cv"]
-        normalisation_values = {}
 
-        # Calculate the final min, max, and 95th percentile values.
-        for which_variable in variables:
-            min_values = np.min(min_values_array[which_variable], axis=0)
-            max_values = np.max(max_values_array[which_variable], axis=0)
-            perc95_values = np.percentile(max_values_array[which_variable], 95, axis=0)
+        max_values_array = {
+            "var": np.empty((0, problem.n_var)),
+            "obj": np.empty((0, problem.n_obj)),
+            "cv": np.empty((0, 1)),
+        }
+        min_values_array = max_values_array
 
-            # Store the computed values in the dictionary
-            normalisation_values[f"{which_variable}_min"] = min_values
-            normalisation_values[f"{which_variable}_max"] = max_values
-            normalisation_values[f"{which_variable}_95th"] = perc95_values
+        with multiprocessing.Pool(self.num_processes, initializer=init_pool) as pool:
+            args_list = [
+                (i, pre_sampler, problem, False, variables)
+                for i in range(pre_sampler.num_samples)
+            ]
+
+            results = pool.map(self.process_rw_sample_norm, args_list)
+            if any(isinstance(result, KeyboardInterrupt) for result in results):
+                print("Ctrl-C was entered during multiprocessing.")
+
+            for min_values, max_values in results:
+                for var in variables:
+                    min_values_array[var] = np.vstack(
+                        (min_values_array[var], min_values[var])
+                    )
+                    max_values_array[var] = np.vstack(
+                        (max_values_array[var], max_values[var])
+                    )
+
+            normalisation_values = self.compute_norm_values_from_maxmin_arrays(
+                min_values_array,
+                max_values_array,
+            )
+            norm_end = time.time()
+            elapsed_time = norm_end - norm_start
+            print(
+                "Evaluated the normalisation values for this sample set in {:.2f} seconds.".format(
+                    elapsed_time
+                )
+            )
 
         return normalisation_values
 
-    def do_random_walk_analysis(self, problem, pre_sampler, num_samples):
+    @handle_ctrl_c
+    def process_rw_sample(
+        self, args, ctrl_c_entered=False, default_sigint_handler=None
+    ):
+        i, j, pre_sampler, problem, ctrl_c_entered = args
+        if ctrl_c_entered:
+            print(
+                f"Ctrl-C was entered during process_rw_sample for sample {i}, walk {j}."
+            )
+            return KeyboardInterrupt()
+
+        print(f"\nEvaluating features for RW sample {i + 1}, walk {j + 1}...")
+
+        rw_analysis = RandomWalkAnalysis(
+            self.walk_normalisation_values, self.results_dir
+        )
+
+        # Load the pre-generated sample.
+        walk, neighbours = pre_sampler.read_walk_neighbours(i + 1, j + 1)
+
+        # Create population and evaluate.
+        start_time = time.time()
+        pop_walk, pop_neighbours_list = self.generate_rw_neighbours_populations(
+            problem, walk, neighbours
+        )
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        print(
+            f"Evaluated population {j + 1} of {pre_sampler.dim} in {elapsed_time:.2f} seconds."
+        )
+
+        # Pass to Analysis class for evaluation.
+        start_time = time.time()
+        rw_analysis.eval_features(pop_walk, pop_neighbours_list)
+        end_time = time.time()  # Record the end time
+        elapsed_time = end_time - start_time
+
+        # Print to log for each walk within the sample.
+        print(
+            f"Evaluated RW features for walk {j + 1} out of {pre_sampler.dim} in {elapsed_time:.2f} seconds."
+        )
+
+        return rw_analysis
+
+    def do_random_walk_analysis(
+        self,
+        problem,
+        pre_sampler,
+        num_samples,
+        ctrl_c_entered=False,
+    ):
         self.walk_normalisation_values = self.compute_rw_normalisation_values(
             pre_sampler,
             problem,
         )
 
+        print("Now running parallel evaluation of samples...\n")
+
         rw_multiple_samples_analyses_list = []
 
-        # Loop over each of the samples.
-        for i in range(num_samples):
-            # Initialise list of analyses for this sample.
-            rw_single_sample_analyses_list = []
+        with multiprocessing.Pool(self.num_processes, initializer=init_pool) as pool:
+            args_list = [
+                (i, j, pre_sampler, problem, ctrl_c_entered)
+                for i in range(num_samples)
+                for j in range(pre_sampler.dim)
+            ]
 
-            # Loop over each of the walks within this sample - note that each sample contains n independent RWs.
-            sample_start_time = time.time()
-            print(
-                "\nEvaluating features for RW sample {} out of {}...".format(
-                    i + 1, num_samples
-                )
-            )
-            for j in range(pre_sampler.dim):
-                # Initialise RandomWalkAnalysis evaluator. Do at every iteration or existing list entries get overwritten.
-                rw_analysis = RandomWalkAnalysis(
-                    self.walk_normalisation_values, self.results_dir
-                )
+            results = pool.map(self.process_rw_sample, args_list)
+            if any(isinstance(result, KeyboardInterrupt) for result in results):
+                print("Ctrl-C was entered during multiprocessing.")
 
-                # Load the pre-generated sample.
-                walk, neighbours = pre_sampler.read_walk_neighbours(i + 1, j + 1)
+            for i in range(num_samples):
+                rw_single_sample_analyses_list = [
+                    result
+                    for result in results
+                    if isinstance(result, RandomWalkAnalysis)
+                ]
 
-                # Create population and evaluate.
-                start_time = time.time()
-                pop_walk, pop_neighbours_list = self.generate_rw_neighbours_populations(
-                    problem, walk, neighbours
+                rw_single_sample = Analysis.concatenate_single_analyses(
+                    rw_single_sample_analyses_list
                 )
-                end_time = time.time()
-                elapsed_time = end_time - start_time
+                rw_multiple_samples_analyses_list.append(rw_single_sample)
+
+                # Print to log for each sample.
                 print(
-                    "Evaluated population {} of {} in {:.2f} seconds.".format(
-                        j + 1, pre_sampler.dim, elapsed_time
-                    )
+                    f"Completed RW sample {i + 1} out of {num_samples} in multiprocessing.\n"
                 )
-
-                # Pass to Analysis class for evaluation.
-                start_time = time.time()
-                rw_analysis.eval_features(pop_walk, pop_neighbours_list)
-                end_time = time.time()  # Record the end time
-                elapsed_time = end_time - start_time
-
-                # Print to log for each walk within the sample.
-                print(
-                    "Evaluated RW features for walk {} out of {} in {:.2f} seconds.".format(
-                        j + 1, pre_sampler.dim, elapsed_time
-                    )
-                )
-                rw_single_sample_analyses_list.append(rw_analysis)
-
-            # Concatenate analyses, generate feature arrays.
-            rw_single_sample = Analysis.concatenate_single_analyses(
-                rw_single_sample_analyses_list
-            )
-            rw_multiple_samples_analyses_list.append(rw_single_sample)
-
-            # Print to log for each sample.
-            sample_end_time = time.time()
-            elapsed_time = sample_end_time - sample_start_time
-            print(
-                "Completed RW sample {} out of {} in {:.2f} seconds.\n".format(
-                    i + 1, num_samples, elapsed_time
-                )
-            )
 
         # Concatenate analyses across samples.
         rw_analysis_all_samples = MultipleAnalysis(
