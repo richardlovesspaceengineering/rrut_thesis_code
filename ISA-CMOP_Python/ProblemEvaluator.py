@@ -75,7 +75,6 @@ class ProblemEvaluator:
         self.walk_normalisation_values = {}
         self.global_normalisation_values = {}
         self.results_dir = results_dir
-        self.num_processes = 10
         print("Initialising evaluator in {} mode.".format(self.mode))
 
     def get_bounds(self, problem):
@@ -163,6 +162,42 @@ class ProblemEvaluator:
 
         return pop_global
 
+    @handle_ctrl_c
+    def eval_single_sample_global_features_norm(self, args):
+        i, pre_sampler, problem, variables = args
+        max_values_array = {
+            "var": np.empty((0, problem.n_var)),
+            "obj": np.empty((0, problem.n_obj)),
+            "cv": np.empty((0, 1)),
+        }
+        min_values_array = max_values_array
+
+        # Load the pre-generated sample.
+        global_sample = pre_sampler.read_global_sample(i + 1)
+
+        # Create population and evaluate.
+        pop_global = self.generate_global_population(
+            problem, global_sample, eval_fronts=False
+        )
+
+        # Loop over each variable.
+        for which_variable in variables:
+            combined_array = combine_arrays_for_pops([pop_global], which_variable)
+
+            fmin, fmax = self.compute_maxmin_for_sample(
+                combined_array, pop_global.extract_pf(), which_variable
+            )
+
+            # Append min and max values for this variable
+            min_values_array[which_variable] = np.vstack(
+                (min_values_array[which_variable], fmin)
+            )
+            max_values_array[which_variable] = np.vstack(
+                (max_values_array[which_variable], fmax)
+            )
+
+        return min_values_array, max_values_array
+
     def compute_global_normalisation_values(self, pre_sampler, problem):
         print(
             "Initialising normalisation computations for global samples. This requires full evaluation of the entire sample set and may take some time while still being memory-efficient."
@@ -178,65 +213,41 @@ class ProblemEvaluator:
         }
         min_values_array = max_values_array
 
-        # Loop over each of the samples.
-        for i in range(pre_sampler.num_samples):
-            # Loop over each of the walks within this sample - note that each sample contains n independent RWs.
-            sample_start_time = time.time()
+        with multiprocessing.Pool(self.num_processes, initializer=init_pool) as pool:
+            args_list = [
+                (i, pre_sampler, problem, variables)
+                for i in range(pre_sampler.num_samples)
+            ]
+
+            results = pool.map(self.eval_single_sample_global_features_norm, args_list)
+            if any(map(lambda x: isinstance(x, KeyboardInterrupt), results)):
+                print("Ctrl-C was entered.")
+
+            for min_values, max_values in results:
+                for var in variables:
+                    min_values_array[var] = np.vstack(
+                        (min_values_array[var], min_values[var])
+                    )
+                    max_values_array[var] = np.vstack(
+                        (max_values_array[var], max_values[var])
+                    )
+
+            normalisation_values = self.compute_norm_values_from_maxmin_arrays(
+                min_values_array,
+                max_values_array,
+            )
+            norm_end = time.time()
+            elapsed_time = norm_end - norm_start
             print(
-                "\nEvaluating populations for global sample {} out of {}...".format(
-                    i + 1, pre_sampler.num_samples
+                "Evaluated the normalisation values for this sample set in {:.2f} seconds.".format(
+                    elapsed_time
                 )
             )
-
-            # Load the pre-generated sample.
-            global_sample = pre_sampler.read_global_sample(i + 1)
-
-            # Create population and evaluate.
-            pop_global = self.generate_global_population(
-                problem, global_sample, eval_fronts=True
-            )
-
-            # Loop over each variable.
-            for which_variable in variables:
-                combined_array = combine_arrays_for_pops([pop_global], which_variable)
-
-                fmin, fmax = self.compute_maxmin_for_sample(
-                    combined_array, pop_global.extract_pf(), which_variable
-                )
-
-                # Append min and max values for this variable
-                min_values_array[which_variable] = np.vstack(
-                    (min_values_array[which_variable], fmin)
-                )
-                max_values_array[which_variable] = np.vstack(
-                    (max_values_array[which_variable], fmax)
-                )
-
-            sample_end_time = time.time()
-            elapsed_sample_time = sample_end_time - sample_start_time
-            print(
-                "Evaluated populations in sample {} out of {} in {:.2f} seconds.".format(
-                    i + 1, pre_sampler.num_samples, elapsed_sample_time
-                )
-            )
-
-        # Once all samples have been evaluated we can compute normalisation values.
-        normalisation_values = self.compute_norm_values_from_maxmin_arrays(
-            min_values_array,
-            max_values_array,
-        )
-        norm_end = time.time()
-        elapsed_time = norm_end - norm_start
-        print(
-            "Evaluated the normalisation values for this sample set in {:.2f} seconds.".format(
-                elapsed_time
-            )
-        )
         return normalisation_values
 
     @handle_ctrl_c
     def process_rw_sample_norm(self, args):
-        i, pre_sampler, problem, eval_fronts, variables = args
+        i, pre_sampler, problem, variables = args
         max_values_array = {
             "var": np.empty((0, problem.n_var)),
             "obj": np.empty((0, problem.n_obj)),
@@ -247,7 +258,7 @@ class ProblemEvaluator:
         for j in range(pre_sampler.dim):
             walk, neighbours = pre_sampler.read_walk_neighbours(i + 1, j + 1)
             pop_walk, pop_neighbours_list = self.generate_rw_neighbours_populations(
-                problem, walk, neighbours, eval_fronts=eval_fronts
+                problem, walk, neighbours, eval_fronts=False
             )
 
             for which_variable in variables:
@@ -283,7 +294,7 @@ class ProblemEvaluator:
 
         with multiprocessing.Pool(self.num_processes, initializer=init_pool) as pool:
             args_list = [
-                (i, pre_sampler, problem, False, variables)
+                (i, pre_sampler, problem, variables)
                 for i in range(pre_sampler.num_samples)
             ]
 
@@ -315,7 +326,7 @@ class ProblemEvaluator:
         return normalisation_values
 
     @handle_ctrl_c
-    def process_rw_features(self, i, pre_sampler, problem):
+    def eval_single_sample_rw_features(self, i, pre_sampler, problem):
         print("Initialising feature evaluation for RW samples.")
 
         rw_single_sample_analyses_list = []
@@ -350,7 +361,7 @@ class ProblemEvaluator:
         with multiprocessing.Pool(self.num_processes, initializer=init_pool) as pool:
             # Use partial method here.
             results = pool.starmap(
-                self.process_rw_features,
+                self.eval_single_sample_rw_features,
                 zip(range(num_samples), repeat(pre_sampler), repeat(problem)),
             )
 
@@ -376,67 +387,125 @@ class ProblemEvaluator:
 
         return rw_analysis_all_samples
 
+    @handle_ctrl_c
+    def eval_single_sample_global_features(self, i, pre_sampler, problem):
+        global_analysis = GlobalAnalysis(
+            self.global_normalisation_values, self.results_dir
+        )
+
+        # Load the pre-generated sample.
+        global_sample = pre_sampler.read_global_sample(i + 1)
+
+        # Create population and evaluate.
+        pop_global = self.generate_global_population(problem, global_sample)
+
+        # Pass to Analysis class for evaluation.
+        global_analysis.eval_features(pop_global)
+
+        return global_analysis
+
     def do_global_analysis(self, problem, pre_sampler, num_samples):
         self.global_normalisation_values = self.compute_global_normalisation_values(
             pre_sampler, problem
         )
 
-        # Initialise list of analyses for this sample.
-        global_single_sample_analyses = []
+        start_time = time.time()
 
-        # Loop over each of the samples.
-        for i in range(num_samples):
-            # Initialise GlobalAnalysis evaluator. Do at each iteration to avoid overwriting existing list entries.
-            global_analysis = GlobalAnalysis(
+        global_multiple_analyses_list = []
+
+        with multiprocessing.Pool(self.num_processes, initializer=init_pool) as pool:
+            # Use starmap with zip and repeat to pass the same pre_sampler and problem to each call
+            results = pool.starmap(
+                self.eval_single_sample_global_features,
+                zip(range(num_samples), repeat(pre_sampler), repeat(problem)),
+            )
+
+            if any(map(lambda x: isinstance(x, KeyboardInterrupt), results)):
+                print("Ctrl-C was entered.")
+
+            for i, global_analysis in enumerate(results):
+                global_multiple_analyses_list.append(global_analysis)
+
+        # Concatenate analyses across samples.
+        global_multiple_analysis = MultipleAnalysis(
+            global_multiple_analyses_list, self.global_normalisation_values
+        )
+        global_multiple_analysis.generate_feature_arrays()
+
+        end_time = time.time()
+        print(
+            "Evaluated global features in {:.2f} seconds.\n".format(
+                end_time - start_time
+            )
+        )
+
+        return global_multiple_analysis
+
+    @handle_ctrl_c
+    def eval_single_sample_aw_features(self, i, pre_sampler, problem, awGenerator):
+        aw_single_sample_analyses_list = []
+
+        # Loop over each of the walks within this sample.
+        sample_start_time = time.time()
+        print(
+            "\nEvaluating features for AW sample {} out of {}...".format(
+                i + 1, pre_sampler.num_samples
+            )
+        )
+
+        # Load in the pre-generated LHS sample as a starting point.
+        distributed_sample = self.rescale_pregen_sample(
+            pre_sampler.read_global_sample(i + 1), problem
+        )
+
+        # Generate an adaptive walk for each point in the sample.
+        for j in range(10):
+            # Initialise AdaptiveWalkAnalysis evaluator. Do at every iteration or existing list entries get overwritten.
+            aw_analysis = AdaptiveWalkAnalysis(
                 self.global_normalisation_values, self.results_dir
             )
 
-            sample_start_time = time.time()
+            # Generate the adaptive walk sample.
+            walk = awGenerator.do_adaptive_phc_walk_for_starting_point(
+                distributed_sample[j, :], constrained_ranks=True
+            )
+            neighbours = awGenerator.generate_neighbours_for_walk(walk)
             print(
-                "\nEvaluating features for global sample {} out of {}...".format(
-                    i + 1, num_samples
+                "Generated AW {} of {} (for this sample). Length: {}".format(
+                    j + 1,
+                    distributed_sample.shape[0],
+                    walk.shape[0],
                 )
             )
-            # Load the pre-generated sample.
-            global_sample = pre_sampler.read_global_sample(i + 1)
 
             # Create population and evaluate.
             start_time = time.time()
-            pop_global = self.generate_global_population(problem, global_sample)
+            pop_walk, pop_neighbours_list = self.generate_rw_neighbours_populations(
+                problem, walk, neighbours
+            )
             end_time = time.time()
             elapsed_time = end_time - start_time
-            print("Evaluated population in {:.2f} seconds.".format(elapsed_time))
+            print(
+                "Evaluated population {} of {} in {:.2f} seconds.".format(
+                    j + 1, distributed_sample.shape[0], elapsed_time
+                )
+            )
 
             # Pass to Analysis class for evaluation.
             start_time = time.time()
-            global_analysis.eval_features(pop_global)
+            aw_analysis.eval_features(pop_walk, pop_neighbours_list)
             end_time = time.time()  # Record the end time
             elapsed_time = end_time - start_time
 
             # Print to log for each walk within the sample.
             print(
-                "Evaluated features in {:.2f} seconds.".format(
-                    +1, pre_sampler.dim, elapsed_time
+                "Evaluated AW features for walk {} out of {} in {:.2f} seconds.\n".format(
+                    j + 1, pre_sampler.dim, elapsed_time
                 )
             )
-            global_single_sample_analyses.append(global_analysis)
+            aw_single_sample_analyses_list.append(aw_analysis)
 
-            # Print to log for each sample.
-            sample_end_time = time.time()
-            elapsed_time = sample_end_time - sample_start_time
-            print(
-                "Completed global sample {} out of {} in {:.2f} seconds.\n".format(
-                    i + 1, num_samples, elapsed_time
-                )
-            )
-
-        # Concatenate analyses, generate feature arrays and return.
-        global_multiple_analysis = MultipleAnalysis(
-            global_single_sample_analyses, self.global_normalisation_values
-        )
-        global_multiple_analysis.generate_feature_arrays()
-
-        return global_multiple_analysis
+        return aw_single_sample_analyses_list
 
     def do_adaptive_walk_analysis(self, problem, pre_sampler, num_samples):
         # Initialise AW generator object before any loops.
@@ -451,7 +520,7 @@ class ProblemEvaluator:
         elif self.mode == "debug":
             # Runs quickly
             neighbourhood_size = 2 * n_var + 1
-            max_steps = 100
+            max_steps = 10
             step_size = 0.01  # 1% of the range of the instance domain
 
         # Now initialise adaptive walk generator.
@@ -463,95 +532,40 @@ class ProblemEvaluator:
             problem,
         )
 
-        # List of adaptive walk analyses.
         aw_multiple_samples_analyses_list = []
 
-        # Loop over each of the samples.
-        for i in range(num_samples):
-            # Initialise list of analyses for this sample.
-            aw_single_sample_analyses_list = []
+        start_time = time.time()
 
-            # Loop over each of the walks within this sample - note that each sample contains n independent RWs.
-            sample_start_time = time.time()
-            print(
-                "\nEvaluating features for AW sample {} out of {}...".format(
-                    i + 1, num_samples
-                )
+        with multiprocessing.Pool(self.num_processes, initializer=init_pool) as pool:
+            results = pool.starmap(
+                self.eval_single_sample_aw_features,
+                zip(
+                    range(num_samples),
+                    repeat(pre_sampler),
+                    repeat(problem),
+                    repeat(awGenerator),
+                ),
             )
 
-            # Load in the pre-generated LHS sample as a starting point.
-            distributed_sample = self.rescale_pregen_sample(
-                pre_sampler.read_global_sample(i + 1), problem
-            )
+            if any(map(lambda x: isinstance(x, KeyboardInterrupt), results)):
+                print("Ctrl-C was entered.")
 
-            # Generate an adaptive walk for each point in the sample.
-            # TODO: decide if this is the best way to do this.
-            for j in range(distributed_sample.shape[0]):
-                # Initialise AdaptiveWalkAnalysis evaluator. Do at every iteration or existing list entries get overwritten.
-                aw_analysis = AdaptiveWalkAnalysis(
-                    self.global_normalisation_values, self.results_dir
+            for i, aw_single_sample_analyses_list in enumerate(results):
+                aw_single_sample = Analysis.concatenate_single_analyses(
+                    aw_single_sample_analyses_list
                 )
-
-                # Generate the adaptive walk sample.
-                walk = awGenerator.do_adaptive_phc_walk_for_starting_point(
-                    distributed_sample[j, :], constrained_ranks=True
-                )  # TODO: add both constrained and unconstrained.
-                neighbours = awGenerator.generate_neighbours_for_walk(walk)
-                print(
-                    "Generated AW {} of {} (for this sample). Length: {}".format(
-                        j + 1,
-                        distributed_sample.shape[0],
-                        walk.shape[0],
-                    )
-                )
-
-                # Create population and evaluate.
-                start_time = time.time()
-                pop_walk, pop_neighbours_list = self.generate_rw_neighbours_populations(
-                    problem, walk, neighbours
-                )
-                end_time = time.time()
-                elapsed_time = end_time - start_time
-                print(
-                    "Evaluated population {} of {} in {:.2f} seconds.".format(
-                        j + 1, distributed_sample.shape[0], elapsed_time
-                    )
-                )
-
-                # Pass to Analysis class for evaluation.
-                start_time = time.time()
-                aw_analysis.eval_features(pop_walk, pop_neighbours_list)
-                end_time = time.time()  # Record the end time
-                elapsed_time = end_time - start_time
-
-                # Print to log for each walk within the sample.
-                print(
-                    "Evaluated AW features for walk {} out of {} in {:.2f} seconds.\n".format(
-                        j + 1, pre_sampler.dim, elapsed_time
-                    )
-                )
-                aw_single_sample_analyses_list.append(aw_analysis)
-
-            # Concatenate analyses, generate feature arrays.
-            aw_single_sample = Analysis.concatenate_single_analyses(
-                aw_single_sample_analyses_list
-            )
-            aw_multiple_samples_analyses_list.append(aw_single_sample)
-
-            # Print to log for each sample.
-            sample_end_time = time.time()
-            elapsed_time = sample_end_time - sample_start_time
-            print(
-                "Completed AW sample {} out of {} in {:.2f} seconds.\n".format(
-                    i + 1, num_samples, elapsed_time
-                )
-            )
+                aw_multiple_samples_analyses_list.append(aw_single_sample)
 
         # Concatenate analyses across samples.
         aw_analysis_all_samples = MultipleAnalysis(
             aw_multiple_samples_analyses_list, self.walk_normalisation_values
         )
         aw_analysis_all_samples.generate_feature_arrays()
+
+        end_time = time.time()
+        print(
+            "Evaluated AW features in {:.2f} seconds.\n".format(end_time - start_time)
+        )
 
         return aw_analysis_all_samples
 
@@ -561,6 +575,9 @@ class ProblemEvaluator:
             + self.instance_name
             + " ------------------------"
         )
+
+        # Define number of cores for multiprocessing.
+        self.num_processes = min(num_samples, 12)
 
         # Load presampler.
         pre_sampler = PreSampler(self.instance.n_var, num_samples, self.mode)

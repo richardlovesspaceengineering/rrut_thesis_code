@@ -16,11 +16,11 @@ problemsMW=("MW3", "MW11")
 dimensions=("10")
 
 # Number of samples to run.
-num_samples=2
+num_samples=12
 
 # Modes are debug or eval.
+# mode="eval"
 mode="eval"
-# mode="debug"
 
 # Use pre-generated samples? Always turn on when running from a new commit.
 regenerate_samples=false
