@@ -591,17 +591,17 @@ class ProblemEvaluator:
         pre_sampler = self.create_pre_sampler(num_samples)
 
         # RW Analysis.
-        # print(
-        #     " \n ~~~~~~~~~~~~ RW Analysis for "
-        #     + self.instance_name
-        #     + " ~~~~~~~~~~~~ \n"
-        # )
-        # rw_features = self.do_random_walk_analysis(
-        #     self.instance,
-        #     pre_sampler,
-        #     num_samples,
-        # )
-        # rw_features.export_unaggregated_features(self.instance_name, "rw", save_arrays)
+        print(
+            " \n ~~~~~~~~~~~~ RW Analysis for "
+            + self.instance_name
+            + " ~~~~~~~~~~~~ \n"
+        )
+        rw_features = self.do_random_walk_analysis(
+            self.instance,
+            pre_sampler,
+            num_samples,
+        )
+        rw_features.export_unaggregated_features(self.instance_name, "rw", save_arrays)
 
         # Global Analysis.
         print(
