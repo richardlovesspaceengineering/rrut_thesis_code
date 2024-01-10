@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from scipy.stats import kurtosis, skew, iqr
 from features.feature_helpers import *
 from scipy.spatial.distance import pdist, cdist
@@ -8,6 +9,7 @@ from optimisation.util.calculate_hypervolume import calculate_hypervolume_pygmo
 from pymoo.indicators.gd import GD
 from pymoo.indicators.igd import IGD
 from scipy.spatial import cKDTree
+from sklearn.neighbors import NearestNeighbors
 
 
 def cv_distr(pop, normalisation_values, norm_method):
@@ -418,3 +420,124 @@ def compute_PF_UPF_features(pop, normalisation_values, norm_method):
         cpo_upo_n,
         cover_cpo_upo_n,
     )
+
+
+def compute_ic_features(pop, sample_type="global"):
+    # Can be reused for RW and global samples.
+
+    # Setup
+    if sample_type == "global":
+        ic_sorting = "nn"  # nearest neighbours sorting. Can change to random if needed.
+    elif sample_type == "rw":
+        ic_sorting = None  # no sorting needed for RWs.
+    ic_nn_neighborhood = 20
+    ic_epsilon = np.insert(10 ** np.linspace(start=-5, stop=15, num=1000), 0, 0)
+    ic_settling_sensitivity = 0.05
+    ic_info_sensitivity = 0.5
+
+    # Taken directly from https://github.com/Reiyan/pflacco/blob/master/pflacco/classical_ela_features.py
+    X = pd.DataFrame(pop.extract_var())
+    y = pd.Series(pop.extract_cv().ravel(), name="y")
+    epsilon = ic_epsilon  # can probably remove later.
+
+    n = X.shape[1]
+
+    # dist based on ic_sorting
+    if ic_sorting == "random":
+        permutation = np.random.choice(
+            range(X.shape[0]), size=X.shape[0], replace=False
+        )
+        X = X.iloc[permutation].reset_index(drop=True)
+        d = [
+            np.sqrt((X.iloc[idx] - X.iloc[idx + 1]).pow(2).sum())
+            for idx in range(X.shape[0] - 1)
+        ]
+    elif ic_sorting is None:
+        # Keep the points in the same order.
+        permutation = range(0, X.shape[0])
+
+        # Calculate the consecutive differences
+        diff_x = np.diff(X, axis=0)
+        # Calculate the norm of each difference vector
+        d = np.linalg.norm(diff_x, axis=1)
+
+    elif ic_sorting == "nn":  # nearest neighbours
+        # Randomly choose start point.
+        ic_nn_start = np.random.choice(range(X.shape[0]), size=1)[0]
+        nbrs = NearestNeighbors(
+            n_neighbors=min(ic_nn_neighborhood, X.shape[0]), algorithm="kd_tree"
+        ).fit(X)
+        distances, indices = nbrs.kneighbors(X)
+
+        current = ic_nn_start
+        candidates = np.delete(np.array([x for x in range(X.shape[0])]), current)
+        permutation = [current]
+        permutation.extend([None] * (X.shape[0] - 1))
+        dists = [None] * (X.shape[0])
+
+        for i in range(1, X.shape[0]):
+            currents = indices[permutation[i - 1]]
+            current = np.array([x for x in currents if x in candidates])
+            if len(current) > 0:
+                current = current[0]
+                permutation[i] = current
+                candidates = candidates[candidates != current]
+                dists[i] = distances[permutation[i - 1], currents == current][0]
+            else:
+                nbrs2 = NearestNeighbors(n_neighbors=min(1, X.shape[0])).fit(
+                    X.iloc[candidates].to_numpy()
+                )
+                (
+                    distances2,
+                    indices2,
+                ) = nbrs2.kneighbors(
+                    X.iloc[permutation[i - 1]].to_numpy().reshape(1, X.shape[1])
+                )
+                current = candidates[np.ravel(indices2)[0]]
+                permutation[i] = current
+                candidates = candidates[candidates != current]
+                dists[i] = np.ravel(distances2)[0]
+
+        d = dists[1:]
+
+    # Calculate phi eps
+    phi_eps = []
+    y_perm = y[permutation]
+    diff_y = np.ediff1d(y_perm)
+    ratio = diff_y / d
+    for eps in ic_epsilon:
+        phi_eps.append([0 if abs(x) < eps else np.sign(x) for x in ratio])
+
+    phi_eps = np.array(phi_eps)
+    H = []
+    M = []
+    for row in phi_eps:
+        # Calculate H values
+        a = row[:-1]
+        b = row[1:]
+        probs = []
+        probs.append(np.bitwise_and(a == -1, b == 0).mean())
+        probs.append(np.bitwise_and(a == -1, b == 1).mean())
+        probs.append(np.bitwise_and(a == 0, b == -1).mean())
+        probs.append(np.bitwise_and(a == 0, b == 1).mean())
+        probs.append(np.bitwise_and(a == 1, b == -1).mean())
+        probs.append(np.bitwise_and(a == 1, b == 0).mean())
+        H.append(-sum([0 if x == 0 else x * np.log(x) / np.log(6) for x in probs]))
+
+        # Calculate M values
+        n = len(row)
+        row = row[row != 0]
+        len_row = (
+            len(row[np.insert(np.ediff1d(row) != 0, 0, False)]) if len(row) > 0 else 0
+        )
+        M.append(len_row / (n - 1))
+
+    H = np.array(H)
+    M = np.array(M)
+    eps_s = epsilon[H < ic_settling_sensitivity]
+    eps_s = np.log(eps_s.min()) / np.log(10) if len(eps_s) > 0 else None
+
+    m0 = M[epsilon == 0]
+    eps05 = np.where(M > ic_info_sensitivity * m0)[0]
+    eps05 = np.log(epsilon[eps05].max()) / np.log(10) if len(eps05) > 0 else None
+    return (H.max(), eps_s, m0, eps05)

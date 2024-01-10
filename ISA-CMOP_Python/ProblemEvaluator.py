@@ -77,6 +77,9 @@ class ProblemEvaluator:
         self.results_dir = results_dir
         print("Initialising evaluator in {} mode.".format(self.mode))
 
+    def create_pre_sampler(self, num_samples):
+        return PreSampler(self.instance.n_var, num_samples, self.mode)
+
     def get_bounds(self, problem):
         # Bounds of the decision variables.
         x_lower = problem.xl
@@ -581,7 +584,7 @@ class ProblemEvaluator:
         self.num_processes = min(num_samples, 12)
 
         # Load presampler.
-        pre_sampler = PreSampler(self.instance.n_var, num_samples, self.mode)
+        pre_sampler = self.create_pre_sampler(num_samples)
 
         # RW Analysis.
         print(

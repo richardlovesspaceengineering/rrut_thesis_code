@@ -1,5 +1,6 @@
 import numpy as np
 from features.randomwalkfeatures import *
+from features.globalfeatures import compute_ic_features
 from scipy.stats import yeojohnson
 from features.Analysis import Analysis, MultipleAnalysis
 
@@ -123,3 +124,11 @@ class RandomWalkAnalysis(Analysis):
             self.features["nfronts_avg"],
             self.features["nfronts_r1"],
         ) = compute_neighbourhood_dominance_features(pop_walk, pop_neighbours_list)
+
+        # Information content features.
+        (
+            self.features["H_max"],
+            self.features["eps_s"],
+            self.features["m0"],
+            self.features["eps05"],
+        ) = compute_ic_features(pop_walk, sample_type="rw")

@@ -117,73 +117,69 @@ def plot_transformed_objective_space(
 
 if __name__ == "__main__":
     # Flags for which feature set we want to test.
-    sample_global = False
+    sample_global = True
     sample_rw = False
-    sample_aw = True
+    sample_aw = False
 
     # Example problem.
+    num_samples = 2
     n_var = 5
     problem_name = "MW1"
     problem = get_problem(problem_name, n_var)
     instance_string = f"{problem_name}_d{n_var}"
 
     # Generate evaluator which can generate RW samples and LHS samples.
-    evaluator = ProblemEvaluator(problem, instance_string)
+    evaluator = ProblemEvaluator(problem, instance_string, "eval", None)
+    pre_sampler = evaluator.create_pre_sampler(num_samples)
 
     if sample_global:
         ### GLOBAL FEATURES.
 
         # Generate distributed samples and evaluate populations on these samples.
-        distributed_samples = evaluator.sample_for_global_features(
-            problem, num_samples=2, method="lhs.scipy"
+        sample = pre_sampler.read_global_sample(1)
+        pop_global = evaluator.generate_global_population(
+            problem, sample, eval_fronts=False
         )
-        pop_global = evaluator.evaluate_populations_for_global_features(
-            problem, [distributed_samples[0]]
-        )[0]
+
+        test_ic_features = True
+        if test_ic_features:
+            (H_max, eps_s, m0, eps05) = compute_ic_features(pop_global)
 
     if sample_rw:
         test_obj_normalisation = False
         test_neighbourhood_dist_features = False
         test_neighbourhood_hv_features = False
         test_neighbourhood_violation_features = False
-        test_scr = True
+        test_scr = False
 
         ### RW FEATURES
-        # Repeat the above but for RW samples.
-        walks_neighbours_list = evaluator.sample_for_rw_features(
-            problem, num_steps=8, step_size=0.01, neighbourhood_size=2 * n_var + 1
+        walk, neighbours = pre_sampler.read_walk_neighbours(2, 3)
+        pop_walk, pop_neighbours_list = evaluator.generate_rw_neighbours_populations(
+            problem, walk, neighbours, eval_fronts=False
         )
+        # if test_obj_normalisation:
+        #     # Compute normalised objectives.
+        #     scale_offset = 1
+        #     (
+        #         pop_walk_normalised,
+        #         pop_neighbours_normalised,
+        #         PF_normalised,
+        #     ) = normalise_objective_space(
+        #         pop_walk,
+        #         pop_neighbours,
+        #         pop_walk.extract_pf(),
+        #         scale_offset=scale_offset,
+        #         region_of_interest=False,
+        #     )
 
-        pop_walk_neighbourhood = evaluator.evaluate_populations_for_rw_features(
-            problem, [walks_neighbours_list[0]]
-        )[0]
-
-        pop_walk = pop_walk_neighbourhood[0]
-        pop_neighbours = pop_walk_neighbourhood[1]
-
-        if test_obj_normalisation:
-            # Compute normalised objectives.
-            scale_offset = 1
-            (
-                pop_walk_normalised,
-                pop_neighbours_normalised,
-                PF_normalised,
-            ) = normalise_objective_space(
-                pop_walk,
-                pop_neighbours,
-                pop_walk.extract_pf(),
-                scale_offset=scale_offset,
-                region_of_interest=False,
-            )
-
-            plot_transformed_objective_space(
-                pop_walk,
-                pop_neighbours,
-                pop_walk_normalised,
-                pop_neighbours_normalised,
-                PF_normalised,
-                scale_offset,
-            )
+        #     plot_transformed_objective_space(
+        #         pop_walk,
+        #         pop_neighbours,
+        #         pop_walk_normalised,
+        #         pop_neighbours_normalised,
+        #         PF_normalised,
+        #         scale_offset,
+        # )
 
         # Neighbourhood distance features
         if test_neighbourhood_dist_features:

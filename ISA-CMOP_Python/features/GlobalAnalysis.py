@@ -126,3 +126,11 @@ class GlobalAnalysis(Analysis):
             self.features["cv_mdl_r2"],
             self.features["cv_range_coeff"],
         ) = rk_uc_var_mdl(pop_global)
+
+        # Information content features.
+        (
+            self.features["H_max"],
+            self.features["eps_s"],
+            self.features["m0"],
+            self.features["eps05"],
+        ) = compute_ic_features(pop_global, sample_type="global")

@@ -230,7 +230,7 @@ class Population(np.ndarray):
                 self[i].var = var_array[i, :]
                 self[i].obj = obj[i, :]
                 self[i].cons = cons[i, :]
-                self[i].eval_cv()
+                self[i].cv = self[i].eval_cv()
         else:
             for i in range(len(self)):
                 # Assign decision variables.
