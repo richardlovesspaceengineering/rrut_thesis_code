@@ -585,7 +585,7 @@ class ProblemEvaluator:
         )
 
         # Define number of cores for multiprocessing.
-        self.num_processes = min(num_samples, 12) if self.mode == "eval" else 1
+        self.num_processes = min(num_samples, 12)
 
         # Load presampler.
         pre_sampler = self.create_pre_sampler(num_samples)
