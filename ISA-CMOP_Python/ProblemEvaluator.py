@@ -363,6 +363,7 @@ class ProblemEvaluator:
 
         with multiprocessing.Pool(self.num_processes, initializer=init_pool) as pool:
             # Use partial method here.
+            print("Initialising parallel computation for RW features.\n")
             results = pool.starmap(
                 self.eval_single_sample_rw_features,
                 zip(range(num_samples), repeat(pre_sampler), repeat(problem)),
@@ -417,6 +418,8 @@ class ProblemEvaluator:
         global_multiple_analyses_list = []
 
         with multiprocessing.Pool(self.num_processes, initializer=init_pool) as pool:
+            print("Initialising parallel computation for global features.\n")
+
             # Use starmap with zip and repeat to pass the same pre_sampler and problem to each call
             results = pool.starmap(
                 self.eval_single_sample_global_features,
@@ -462,7 +465,7 @@ class ProblemEvaluator:
         )
 
         # Generate an adaptive walk for every n/10-th point in the unordered sample.
-        num_walks = distributed_sample.shape[0] / 10
+        num_walks = int(distributed_sample.shape[0] / 10)
         for j in range(num_walks):
             # Initialise AdaptiveWalkAnalysis evaluator. Do at every iteration or existing list entries get overwritten.
             aw_analysis = AdaptiveWalkAnalysis(
@@ -477,7 +480,7 @@ class ProblemEvaluator:
             print(
                 "Generated AW {} of {} (for this sample). Length: {}".format(
                     j + 1,
-                    distributed_sample.shape[0],
+                    num_walks,
                     walk.shape[0],
                 )
             )
@@ -491,7 +494,7 @@ class ProblemEvaluator:
             elapsed_time = end_time - start_time
             print(
                 "Evaluated population {} of {} in {:.2f} seconds.".format(
-                    j + 1, distributed_sample.shape[0], elapsed_time
+                    j + 1, num_walks, elapsed_time
                 )
             )
 
@@ -504,7 +507,7 @@ class ProblemEvaluator:
             # Print to log for each walk within the sample.
             print(
                 "Evaluated AW features for walk {} out of {} in {:.2f} seconds.\n".format(
-                    j + 1, pre_sampler.dim, elapsed_time
+                    j + 1, num_walks, elapsed_time
                 )
             )
             aw_single_sample_analyses_list.append(aw_analysis)
@@ -541,6 +544,7 @@ class ProblemEvaluator:
         start_time = time.time()
 
         with multiprocessing.Pool(self.num_processes, initializer=init_pool) as pool:
+            print("Initialising parallel computation for AW features.\n")
             results = pool.starmap(
                 self.eval_single_sample_aw_features,
                 zip(
@@ -581,23 +585,23 @@ class ProblemEvaluator:
         )
 
         # Define number of cores for multiprocessing.
-        self.num_processes = min(num_samples, 12)
+        self.num_processes = min(num_samples, 12) if self.mode == "eval" else 1
 
         # Load presampler.
         pre_sampler = self.create_pre_sampler(num_samples)
 
         # RW Analysis.
-        print(
-            " \n ~~~~~~~~~~~~ RW Analysis for "
-            + self.instance_name
-            + " ~~~~~~~~~~~~ \n"
-        )
-        rw_features = self.do_random_walk_analysis(
-            self.instance,
-            pre_sampler,
-            num_samples,
-        )
-        rw_features.export_unaggregated_features(self.instance_name, "rw", save_arrays)
+        # print(
+        #     " \n ~~~~~~~~~~~~ RW Analysis for "
+        #     + self.instance_name
+        #     + " ~~~~~~~~~~~~ \n"
+        # )
+        # rw_features = self.do_random_walk_analysis(
+        #     self.instance,
+        #     pre_sampler,
+        #     num_samples,
+        # )
+        # rw_features.export_unaggregated_features(self.instance_name, "rw", save_arrays)
 
         # Global Analysis.
         print(

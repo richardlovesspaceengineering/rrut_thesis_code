@@ -126,17 +126,28 @@ class LandscapeAnalysis:
     def apply_YJ_transform(self, array):
         return yeojohnson(array)[0]
 
-    def compute_statistic_for_feature(self, array, stat="mean"):
+    def compute_statistic_for_feature(self, array, feature_name, stat="mean"):
+        # Remove NaN values from the array and count them
+        clean_array = np.array(array)[~np.isnan(array)]
+        nan_count = np.count_nonzero(np.isnan(array))
+
+        # Print the message about NaN removal
+        if nan_count > 0:
+            print(
+                f"Removed {nan_count} NaN entries for feature '{feature_name}' when performing final aggregation."
+            )
+
+        # Compute the requested statistic on the array without NaNs
         if stat == "mean":
-            return np.mean(array)
+            return np.mean(clean_array)
         elif stat == "median":
-            return np.median(array)
+            return np.median(clean_array)
         elif stat == "min":
-            return np.min(array)
+            return np.min(clean_array)
         elif stat == "max":
-            return np.max(array)
+            return np.max(clean_array)
         elif stat == "std":
-            return np.std(array)
+            return np.std(clean_array)
         else:
             raise ValueError(
                 "Invalid statistic choice. Use 'mean', 'median', 'min', 'max', or 'std'."
@@ -161,7 +172,9 @@ class LandscapeAnalysis:
 
                     # Compute the statistic for the feature array
                     aggregated_value = self.compute_statistic_for_feature(
-                        self.feature_arrays[feature_name], stat
+                        self.feature_arrays[feature_name],
+                        feature_name,
+                        stat,
                     )
 
                     # Store the aggregated value in the dictionary

@@ -535,9 +535,13 @@ def compute_ic_features(pop, sample_type="global"):
     H = np.array(H)
     M = np.array(M)
     eps_s = epsilon[H < ic_settling_sensitivity]
-    eps_s = np.log(eps_s.min()) / np.log(10) if len(eps_s) > 0 else None
+    eps_s = (
+        np.log(eps_s.min()) / np.log(10)
+        if len(eps_s) > 0 and eps_s.min() != 0
+        else np.nan
+    )
 
-    m0 = M[epsilon == 0]
+    m0 = M[epsilon == 0][0]
     eps05 = np.where(M > ic_info_sensitivity * m0)[0]
-    eps05 = np.log(epsilon[eps05].max()) / np.log(10) if len(eps05) > 0 else None
+    eps05 = np.log(epsilon[eps05].max()) / np.log(10) if len(eps05) > 0 else np.nan
     return (H.max(), eps_s, m0, eps05)

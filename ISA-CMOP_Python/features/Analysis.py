@@ -44,10 +44,27 @@ class Analysis:
 
         # Iterate through feature names
         for feature_name in feature_names:
-            feature_arrays = [sa.features[feature_name] for sa in single_analyses]
+            feature_values = [sa.features[feature_name] for sa in single_analyses]
+            # Remove NaN values
+            clean_feature_values = [
+                value for value in feature_values if not np.isnan(value)
+            ]
+            # Count the NaN entries that were removed
+            nan_count = len(feature_values) - len(clean_feature_values)
 
-            # Take the average
-            combined_feature_value = np.mean(feature_arrays)
+            # Take the average of the non-NaN values
+            if clean_feature_values:  # Check if the list is not empty
+                combined_feature_value = np.mean(clean_feature_values)
+            else:
+                combined_feature_value = (
+                    np.nan
+                )  # or some other placeholder for features with all NaN values
+
+            # Print how many NaN entries were removed
+            if nan_count > 0:
+                print(
+                    f"Removed {nan_count} NaN entries for {feature_name} when concatenating within-sample feature arrays."
+                )
 
             # Save as attribute array in the combined_analysis object
             combined_analysis.features[feature_name] = combined_feature_value

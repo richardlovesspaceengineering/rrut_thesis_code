@@ -117,19 +117,19 @@ def plot_transformed_objective_space(
 
 if __name__ == "__main__":
     # Flags for which feature set we want to test.
-    sample_global = True
-    sample_rw = False
+    sample_global = False
+    sample_rw = True
     sample_aw = False
 
     # Example problem.
     num_samples = 2
-    n_var = 5
-    problem_name = "MW1"
+    n_var = 10
+    problem_name = "MW11"
     problem = get_problem(problem_name, n_var)
     instance_string = f"{problem_name}_d{n_var}"
 
     # Generate evaluator which can generate RW samples and LHS samples.
-    evaluator = ProblemEvaluator(problem, instance_string, "eval", None)
+    evaluator = ProblemEvaluator(problem, instance_string, "debug", None)
     pre_sampler = evaluator.create_pre_sampler(num_samples)
 
     if sample_global:
@@ -153,7 +153,7 @@ if __name__ == "__main__":
         test_scr = False
 
         ### RW FEATURES
-        walk, neighbours = pre_sampler.read_walk_neighbours(2, 3)
+        walk, neighbours = pre_sampler.read_walk_neighbours(1, 3)
         pop_walk, pop_neighbours_list = evaluator.generate_rw_neighbours_populations(
             problem, walk, neighbours, eval_fronts=False
         )
@@ -257,6 +257,10 @@ if __name__ == "__main__":
             ncr = compute_neighbourhood_crash_ratio(
                 pop_neighbours_new, pop_neighbours_checked
             )
+
+        test_ic_features = True
+        if test_ic_features:
+            (H_max, eps_s, m0, eps05) = compute_ic_features(pop_walk, sample_type="rw")
 
     if sample_aw:
         plot_aw = True

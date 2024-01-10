@@ -16,7 +16,7 @@ problemsMW=("MW3", "MW11")
 dimensions=("10")
 
 # Number of samples to run.
-num_samples=12
+num_samples=2
 
 # Modes are debug or eval.
 # mode="eval"
