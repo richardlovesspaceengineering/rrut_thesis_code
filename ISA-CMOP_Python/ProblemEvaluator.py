@@ -70,11 +70,11 @@ class ProblemEvaluator:
         self.instance = instance
         self.instance_name = instance_name
         self.features_table = pd.DataFrame()
-        self.csv_filename = "features.csv"
         self.mode = mode
         self.walk_normalisation_values = {}
         self.global_normalisation_values = {}
         self.results_dir = results_dir
+        self.csv_filename = results_dir + "/features.csv"
         print("Initialising evaluator in {} mode.".format(self.mode))
 
     def create_pre_sampler(self, num_samples):

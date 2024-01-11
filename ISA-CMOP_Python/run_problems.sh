@@ -10,7 +10,7 @@
 desc_msg="Test Run."
 
 # Problem suites
-problemsMW=("MW11")
+problemsMW=("MW11", "MW3")
 
 # Dimensions to consider
 dimensions=("10")
@@ -20,7 +20,7 @@ num_samples=2
 
 # Modes are debug or eval.
 # mode="eval"
-mode="eval"
+mode="debug"
 
 # Use pre-generated samples? Always turn on when running from a new commit.
 regenerate_samples=false
@@ -28,11 +28,16 @@ regenerate_samples=false
 # Save full feature arrays. Aggregated feature arrays are always saved.
 save_feature_arrays=true
 
+# Create unique folder for the results of this run.
+results_dir="instance_results/$(date +'%b%d_%H%M')"
+mkdir -p "$results_dir"
+
 # Define the log file and wipe it
-log_file="features_evaluation.log"
+log_file="${results_dir}/features_evaluation.log"
 > "$log_file"
 
 # Print experimental setup.
+echo "Run folder: $results_dir" | tee -a "$log_file"
 echo -e "Experimental setup:\n$desc_msg\n" | tee -a "$log_file"
 
 # Get hostname
@@ -53,11 +58,6 @@ echo "Using interpreter: $PYTHON_SCRIPT" | tee -a "$log_file"
 # Create unique temporary directory
 temp_dir=$(mktemp -d -t ci-XXXXXXXXXX --tmpdir="$SCRIPT_PATH")
 echo "New directory: $temp_dir" | tee -a "$log_file"
-
-# Create unique folder for the results of this run.
-results_dir="instance_results/$(date +'%b%d_%H%M')"
-mkdir -p "$results_dir"
-echo "Run folder: $results_dir" | tee -a "$log_file"
 
 # Copy framework to temporary directory
 copy_dir="$SCRIPT_PATH"
