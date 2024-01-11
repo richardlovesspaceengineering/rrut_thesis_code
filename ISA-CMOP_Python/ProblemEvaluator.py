@@ -484,8 +484,7 @@ class ProblemEvaluator:
         )
 
         # Generate an adaptive walk for every n/10-th point in the unordered sample.
-        # num_walks = int(distributed_sample.shape[0] / 50)
-        num_walks = 10
+        num_walks = int(distributed_sample.shape[0] / 20)
         for j in range(num_walks):
             # Initialise AdaptiveWalkAnalysis evaluator. Do at every iteration or existing list entries get overwritten.
             aw_analysis = AdaptiveWalkAnalysis(

@@ -13,14 +13,14 @@ desc_msg="Test Run."
 problemsMW=("MW11", "MW3")
 
 # Dimensions to consider
-dimensions=("10")
+dimensions=("2" "3" "5" "10")
 
 # Number of samples to run.
-num_samples=2
+num_samples=30
 
 # Modes are debug or eval.
-# mode="eval"
-mode="debug"
+mode="eval"
+# mode="debug"
 
 # Use pre-generated samples? Always turn on when running from a new commit.
 regenerate_samples=false
