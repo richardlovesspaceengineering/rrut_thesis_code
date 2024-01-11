@@ -13,7 +13,7 @@ desc_msg="Test Run."
 problemsMW=("MW11", "MW3")
 
 # Dimensions to consider
-dimensions=("2" "3" "5" "10")
+dimensions=("10")
 
 # Number of samples to run.
 num_samples=30
