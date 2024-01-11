@@ -42,7 +42,7 @@ class AdaptiveWalk(RandomWalk):
         # Continue adaptive walk.
         improving_solutions_exist = True
         step_counter = 0
-        while improving_solutions_exist:
+        while improving_solutions_exist and step_counter <= self.num_steps:
             # Generate neighbours for this step.
             potential_next_steps = self.generate_neighbours_for_step(
                 walk[step_counter, :], self.neighbourhood_size

@@ -129,8 +129,8 @@ class ProblemEvaluator:
 
         return normalisation_values
 
-    def generate_rw_neighbours_populations(
-        self, problem, walk, neighbours, eval_fronts=True
+    def generate_walk_neig_populations(
+        self, problem, walk, neighbours, eval_fronts=True, adaptive_walk=False
     ):
         # Generate populations for walk and neighbours separately.
         pop_walk = Population(problem, n_individuals=walk.shape[0])
@@ -143,16 +143,27 @@ class ProblemEvaluator:
             pop_neighbourhood = Population(
                 problem, n_individuals=neighbourhood.shape[0]
             )
-            pop_neighbourhood.evaluate(
-                self.rescale_pregen_sample(neighbourhood, problem),
-                eval_fronts=eval_fronts,
-            )
+            if not adaptive_walk:
+                pop_neighbourhood.evaluate(
+                    self.rescale_pregen_sample(neighbourhood, problem),
+                    eval_fronts=eval_fronts,
+                )
+            else:
+                # Adaptive walks are already rescaled.
+                pop_neighbourhood.evaluate(
+                    neighbourhood,
+                    eval_fronts=eval_fronts,
+                )
             pop_neighbours_list.append(pop_neighbourhood)
 
         # Never need to know the ranks of the walk steps relative to each other.
-        pop_walk.evaluate(
-            self.rescale_pregen_sample(walk, problem), eval_fronts=eval_fronts
-        )
+
+        if not adaptive_walk:
+            pop_walk.evaluate(
+                self.rescale_pregen_sample(walk, problem), eval_fronts=eval_fronts
+            )
+        else:
+            pop_walk.evaluate(walk, eval_fronts=eval_fronts)
 
         return pop_walk, pop_neighbours_list
 
@@ -242,7 +253,7 @@ class ProblemEvaluator:
             norm_end = time.time()
             elapsed_time = norm_end - norm_start
             print(
-                "Evaluated the normalisation values for this sample set in {:.2f} seconds.".format(
+                "Evaluated the normalisation values for this sample set in {:.2f} seconds.\n".format(
                     elapsed_time
                 )
             )
@@ -260,7 +271,7 @@ class ProblemEvaluator:
 
         for j in range(pre_sampler.dim):
             walk, neighbours = pre_sampler.read_walk_neighbours(i + 1, j + 1)
-            pop_walk, pop_neighbours_list = self.generate_rw_neighbours_populations(
+            pop_walk, pop_neighbours_list = self.generate_walk_neig_populations(
                 problem, walk, neighbours, eval_fronts=False
             )
 
@@ -342,8 +353,8 @@ class ProblemEvaluator:
 
             walk, neighbours = pre_sampler.read_walk_neighbours(i + 1, j + 1)
 
-            pop_walk, pop_neighbours_list = self.generate_rw_neighbours_populations(
-                problem, walk, neighbours
+            pop_walk, pop_neighbours_list = self.generate_walk_neig_populations(
+                problem, walk, neighbours, adaptive_walk=False
             )
             rw_analysis.eval_features(pop_walk, pop_neighbours_list)
 
@@ -363,7 +374,11 @@ class ProblemEvaluator:
 
         with multiprocessing.Pool(self.num_processes, initializer=init_pool) as pool:
             # Use partial method here.
-            print("Initialising parallel computation for RW features.\n")
+            print(
+                "Running parallel computation for RW features with {} processes. \n".format(
+                    self.num_processes
+                )
+            )
             results = pool.starmap(
                 self.eval_single_sample_rw_features,
                 zip(range(num_samples), repeat(pre_sampler), repeat(problem)),
@@ -418,7 +433,11 @@ class ProblemEvaluator:
         global_multiple_analyses_list = []
 
         with multiprocessing.Pool(self.num_processes, initializer=init_pool) as pool:
-            print("Initialising parallel computation for global features.\n")
+            print(
+                "Running parallel computation for global features with {} processes. \n".format(
+                    self.num_processes
+                )
+            )
 
             # Use starmap with zip and repeat to pass the same pre_sampler and problem to each call
             results = pool.starmap(
@@ -465,7 +484,8 @@ class ProblemEvaluator:
         )
 
         # Generate an adaptive walk for every n/10-th point in the unordered sample.
-        num_walks = int(distributed_sample.shape[0] / 10)
+        # num_walks = int(distributed_sample.shape[0] / 50)
+        num_walks = 10
         for j in range(num_walks):
             # Initialise AdaptiveWalkAnalysis evaluator. Do at every iteration or existing list entries get overwritten.
             aw_analysis = AdaptiveWalkAnalysis(
@@ -477,6 +497,7 @@ class ProblemEvaluator:
                 distributed_sample[j, :], constrained_ranks=True
             )
             neighbours = awGenerator.generate_neighbours_for_walk(walk)
+            # _, neighbours = pre_sampler.read_walk_neighbours(i + 1, 10)
             print(
                 "Generated AW {} of {} (for this sample). Length: {}".format(
                     j + 1,
@@ -487,8 +508,8 @@ class ProblemEvaluator:
 
             # Create population and evaluate.
             start_time = time.time()
-            pop_walk, pop_neighbours_list = self.generate_rw_neighbours_populations(
-                problem, walk, neighbours
+            pop_walk, pop_neighbours_list = self.generate_walk_neig_populations(
+                problem, walk, neighbours, adaptive_walk=True
             )
             end_time = time.time()
             elapsed_time = end_time - start_time
@@ -544,7 +565,11 @@ class ProblemEvaluator:
         start_time = time.time()
 
         with multiprocessing.Pool(self.num_processes, initializer=init_pool) as pool:
-            print("Initialising parallel computation for AW features.\n")
+            print(
+                "Running parallel computation for AW features with {} processes. \n".format(
+                    self.num_processes
+                )
+            )
             results = pool.starmap(
                 self.eval_single_sample_aw_features,
                 zip(

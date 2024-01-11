@@ -10,7 +10,7 @@
 desc_msg="Test Run."
 
 # Problem suites
-problemsMW=("MW3", "MW11")
+problemsMW=("MW11")
 
 # Dimensions to consider
 dimensions=("10")

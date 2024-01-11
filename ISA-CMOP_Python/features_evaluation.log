@@ -3,28 +3,162 @@ Test Run.
 
 Host is: RichardPC
 Using interpreter: C:/Users/richa/anaconda3/envs/thesis_env_windows/python.exe
-New directory: C:/Users/richa/Documents/Thesis/rrut_thesis_code/ci-jQ2dkuy97t
-Run folder: instance_results/Jan10_2020
-File running inside: C:/Users/richa/Documents/Thesis/rrut_thesis_code/ci-jQ2dkuy97t/runner.py
-Running problem: MW3, dimension: 10
-Initialising evaluator in eval mode.
+New directory: C:/Users/richa/Documents/Thesis/rrut_thesis_code/ci-TZAPSSaqYE
+Run folder: instance_results/Jan11_1413
+File running inside: C:/Users/richa/Documents/Thesis/rrut_thesis_code/ci-TZAPSSaqYE/runner.py
+Running problem: MW11, dimension: 10
+Initialising evaluator in debug mode.
 
------------------------- Evaluating instance: MW3_d10 ------------------------
+------------------------ Evaluating instance: MW11_d10 ------------------------
  
- ~~~~~~~~~~~~ Global Analysis for MW3_d10 ~~~~~~~~~~~~ 
+ ~~~~~~~~~~~~ RW Analysis for MW11_d10 ~~~~~~~~~~~~ 
+
+Initialising normalisation computations for RW samples. This requires full evaluation of the entire sample set and may take some time while still being memory-efficient.
+Evaluated the normalisation values for this sample set in 3.10 seconds.
+
+Running parallel computation for RW features with 2 processes. 
+
+Removed 5 NaN entries for eps_s when concatenating within-sample feature arrays.
+Removed 5 NaN entries for eps05 when concatenating within-sample feature arrays.
+Removed 4 NaN entries for eps_s when concatenating within-sample feature arrays.
+Removed 4 NaN entries for eps05 when concatenating within-sample feature arrays.
+Initialising feature evaluation for RW samples.
+Initialising feature evaluation for RW samples.
+Had to remove 2 rows that were further than the nadir from the origin.
+Had to remove 1 rows that were further than the nadir from the origin.
+Evaluated RW features in 5.94 seconds.
+
+
+Successfully saved rw sample results to csv file for MW11_d10.
+
+ 
+ ~~~~~~~~~~~~ Global Analysis for MW11_d10 ~~~~~~~~~~~~ 
 
 Initialising normalisation computations for global samples. This requires full evaluation of the entire sample set and may take some time while still being memory-efficient.
-Evaluated the normalisation values for this sample set in 3.78 seconds.
-Initialising parallel computation for global features.
+Evaluated the normalisation values for this sample set in 1.29 seconds.
 
-Evaluated global features in 9.16 seconds.
+Running parallel computation for global features with 2 processes. 
+
+C:\Users\richa\anaconda3\envs\thesis_env_windows\lib\site-packages\threadpoolctl.py:1010: RuntimeWarning: 
+Found Intel OpenMP ('libiomp') and LLVM OpenMP ('libomp') loaded at
+the same time. Both libraries are known to be incompatible and this
+can cause random crashes or deadlocks on Linux when loaded in the
+same Python program.
+Using threadpoolctl may cause crashes or deadlocks. For more
+information and possible workarounds, please see
+    https://github.com/joblib/threadpoolctl/blob/master/multiple_openmp.md
+
+  warnings.warn(msg, RuntimeWarning)
+C:\Users\richa\anaconda3\envs\thesis_env_windows\lib\site-packages\threadpoolctl.py:1010: RuntimeWarning: 
+Found Intel OpenMP ('libiomp') and LLVM OpenMP ('libomp') loaded at
+the same time. Both libraries are known to be incompatible and this
+can cause random crashes or deadlocks on Linux when loaded in the
+same Python program.
+Using threadpoolctl may cause crashes or deadlocks. For more
+information and possible workarounds, please see
+    https://github.com/joblib/threadpoolctl/blob/master/multiple_openmp.md
+
+  warnings.warn(msg, RuntimeWarning)
+Evaluated global features in 1.67 seconds.
 
 
-Successfully saved glob sample results to csv file for MW3_d10.
+Successfully saved glob sample results to csv file for MW11_d10.
 
  
- ~~~~~~~~~~~~ AW Analysis for MW3_d10 ~~~~~~~~~~~~ 
+ ~~~~~~~~~~~~ AW Analysis for MW11_d10 ~~~~~~~~~~~~ 
 
-Initialising parallel computation for AW features.
+Running parallel computation for AW features with 2 processes. 
 
-Cleaning up C:/Users/richa/Documents/Thesis/rrut_thesis_code/ci-jQ2dkuy97t
+
+Evaluating features for AW sample 2 out of 2...
+Generated AW 1 of 10 (for this sample). Length: 10
+Evaluated population 1 of 10 in 0.09 seconds.
+Evaluated AW features for walk 1 out of 10 in 0.11 seconds.
+
+Generated AW 2 of 10 (for this sample). Length: 10
+Evaluated population 2 of 10 in 0.09 seconds.
+Evaluated AW features for walk 2 out of 10 in 0.10 seconds.
+
+Generated AW 3 of 10 (for this sample). Length: 10
+Evaluated population 3 of 10 in 0.09 seconds.
+Evaluated AW features for walk 3 out of 10 in 0.10 seconds.
+
+Generated AW 4 of 10 (for this sample). Length: 10
+Evaluated population 4 of 10 in 0.09 seconds.
+Evaluated AW features for walk 4 out of 10 in 0.11 seconds.
+
+Generated AW 5 of 10 (for this sample). Length: 10
+Evaluated population 5 of 10 in 0.09 seconds.
+Evaluated AW features for walk 5 out of 10 in 0.10 seconds.
+
+Generated AW 6 of 10 (for this sample). Length: 10
+Evaluated population 6 of 10 in 0.09 seconds.
+Evaluated AW features for walk 6 out of 10 in 0.10 seconds.
+
+Generated AW 7 of 10 (for this sample). Length: 10
+Evaluated population 7 of 10 in 0.08 seconds.
+Evaluated AW features for walk 7 out of 10 in 0.11 seconds.
+
+Generated AW 8 of 10 (for this sample). Length: 10
+Evaluated population 8 of 10 in 0.09 seconds.
+Evaluated AW features for walk 8 out of 10 in 0.11 seconds.
+
+Generated AW 9 of 10 (for this sample). Length: 10
+Evaluated population 9 of 10 in 0.09 seconds.
+Evaluated AW features for walk 9 out of 10 in 0.10 seconds.
+
+Generated AW 10 of 10 (for this sample). Length: 10
+Evaluated population 10 of 10 in 0.09 seconds.
+Evaluated AW features for walk 10 out of 10 in 0.10 seconds.
+
+
+Evaluating features for AW sample 1 out of 2...
+Generated AW 1 of 10 (for this sample). Length: 10
+Evaluated population 1 of 10 in 0.09 seconds.
+Evaluated AW features for walk 1 out of 10 in 0.11 seconds.
+
+Generated AW 2 of 10 (for this sample). Length: 10
+Evaluated population 2 of 10 in 0.09 seconds.
+Evaluated AW features for walk 2 out of 10 in 0.10 seconds.
+
+Generated AW 3 of 10 (for this sample). Length: 10
+Evaluated population 3 of 10 in 0.09 seconds.
+Evaluated AW features for walk 3 out of 10 in 0.10 seconds.
+
+Generated AW 4 of 10 (for this sample). Length: 10
+Evaluated population 4 of 10 in 0.09 seconds.
+Evaluated AW features for walk 4 out of 10 in 0.11 seconds.
+
+Generated AW 5 of 10 (for this sample). Length: 10
+Evaluated population 5 of 10 in 0.09 seconds.
+Evaluated AW features for walk 5 out of 10 in 0.10 seconds.
+
+Generated AW 6 of 10 (for this sample). Length: 10
+Evaluated population 6 of 10 in 0.09 seconds.
+Evaluated AW features for walk 6 out of 10 in 0.10 seconds.
+
+Generated AW 7 of 10 (for this sample). Length: 10
+Evaluated population 7 of 10 in 0.08 seconds.
+Evaluated AW features for walk 7 out of 10 in 0.11 seconds.
+
+Generated AW 8 of 10 (for this sample). Length: 10
+Evaluated population 8 of 10 in 0.09 seconds.
+Evaluated AW features for walk 8 out of 10 in 0.11 seconds.
+
+Generated AW 9 of 10 (for this sample). Length: 10
+Evaluated population 9 of 10 in 0.09 seconds.
+Evaluated AW features for walk 9 out of 10 in 0.10 seconds.
+
+Generated AW 10 of 10 (for this sample). Length: 10
+Evaluated population 10 of 10 in 0.09 seconds.
+Evaluated AW features for walk 10 out of 10 in 0.10 seconds.
+
+Evaluated AW features in 4.10 seconds.
+
+
+Successfully saved aw sample results to csv file for MW11_d10.
+
+Success!
+Successfully appended aggregated results to csv file.
+
+
