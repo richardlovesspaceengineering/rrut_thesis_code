@@ -13,7 +13,7 @@ desc_msg="Test Run."
 problemsMW=("MW11", "MW3")
 
 # Dimensions to consider
-dimensions=("10")
+dimensions=(2 5 10)
 
 # Number of samples to run.
 num_samples=30
@@ -23,7 +23,7 @@ mode="eval"
 # mode="debug"
 
 # Use pre-generated samples? Always turn on when running from a new commit.
-regenerate_samples=false
+regenerate_samples=true
 
 # Save full feature arrays. Aggregated feature arrays are always saved.
 save_feature_arrays=true
@@ -49,9 +49,11 @@ echo "Host is: $host" | tee -a "$log_file"
 if [[ "$host" == *"$pc1"* ]]; then # megatrons
   PYTHON_SCRIPT="/home/kj66/Documents/Richard/venv/bin/python3"
   SCRIPT_PATH="/home/kj66/Documents/Richard/rrut_thesis_code/"
+  num_cores=10 # @JUAN NEED TO SPECIFY.
 else # richard's pc
   PYTHON_SCRIPT="C:/Users/richa/anaconda3/envs/thesis_env_windows/python.exe"
   SCRIPT_PATH="C:/Users/richa/Documents/Thesis/rrut_thesis_code/"
+  num_cores=10 # 10 cores keeps i7-14700KF at 70-80% avg. utilisation, max 22 GB memory usage
 fi
 echo "Using interpreter: $PYTHON_SCRIPT" | tee -a "$log_file"
 
@@ -104,7 +106,7 @@ for problem in "${problemsMW[@]}"; do
   for dim in "${dimensions[@]}"; do
     echo "Running problem: $problem, dimension: $dim" | tee -a "$log_file"  # Print message to the terminal and log file
     # Run runner.py
-    "$PYTHON_SCRIPT" -u "$run_dir" "$problem" "$dim" "$num_samples" "$mode" "$save_feature_arrays" "$results_dir" 2>&1 | tee -a "$log_file"
+    "$PYTHON_SCRIPT" -u "$run_dir" "$problem" "$dim" "$num_samples" "$mode" "$save_feature_arrays" "$results_dir" "$num_cores" 2>&1 | tee -a "$log_file"
   done
 done
 

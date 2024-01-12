@@ -63,7 +63,7 @@ def init_pool():
 
 
 class ProblemEvaluator:
-    def __init__(self, instance, instance_name, mode, results_dir):
+    def __init__(self, instance, instance_name, mode, results_dir, num_cores):
         """
         Possible modes are eval and debug.
         """
@@ -75,6 +75,7 @@ class ProblemEvaluator:
         self.global_normalisation_values = {}
         self.results_dir = results_dir
         self.csv_filename = results_dir + "/features.csv"
+        self.num_processes = num_cores
         print("Initialising evaluator in {} mode.".format(self.mode))
 
     def create_pre_sampler(self, num_samples):
@@ -483,8 +484,9 @@ class ProblemEvaluator:
             pre_sampler.read_global_sample(i + 1), problem
         )
 
-        # Generate an adaptive walk for every n/10-th point in the unordered sample.
-        num_walks = int(distributed_sample.shape[0] / 20)
+        # Each sample contains 10n walks.
+        num_walks = int(distributed_sample.shape[0] / 100)
+
         for j in range(num_walks):
             # Initialise AdaptiveWalkAnalysis evaluator. Do at every iteration or existing list entries get overwritten.
             aw_analysis = AdaptiveWalkAnalysis(
@@ -608,8 +610,11 @@ class ProblemEvaluator:
             + " ------------------------"
         )
 
-        # Define number of cores for multiprocessing.
-        self.num_processes = min(num_samples, 12)
+        if num_samples < self.num_processes:
+            print(
+                f"\n{self.num_processes} cores were specified for evaluation of {num_samples} samples. Proceeding instead with {num_samples} cores."
+            )
+            self.num_processes = num_samples
 
         # Load presampler.
         pre_sampler = self.create_pre_sampler(num_samples)

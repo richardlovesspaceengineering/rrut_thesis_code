@@ -64,9 +64,9 @@ def generate_instance(problem_name, n_var):
 
 
 def main():
-    if len(sys.argv) != 7:
+    if len(sys.argv) != 8:
         print(
-            "Usage: python runner.py problem_name n_dimensions num_samples mode save_features_array results_dir"
+            "Usage: python runner.py problem_name n_dimensions num_samples mode save_features_array results_dir num_cores"
         )
         return
 
@@ -75,6 +75,7 @@ def main():
     num_samples = int(sys.argv[3])
     mode = sys.argv[4].replace(",", "")
     results_dir = str(sys.argv[6])
+    num_cores = int(sys.argv[7])
 
     if sys.argv[5].lower() == "true":
         save_arrays = True
@@ -82,7 +83,7 @@ def main():
         save_arrays = False
 
     problem, instance_string = generate_instance(problem_name, n_var)
-    evaluator = ProblemEvaluator(problem, instance_string, mode, results_dir)
+    evaluator = ProblemEvaluator(problem, instance_string, mode, results_dir, num_cores)
     evaluator.do(num_samples, save_arrays)
 
 

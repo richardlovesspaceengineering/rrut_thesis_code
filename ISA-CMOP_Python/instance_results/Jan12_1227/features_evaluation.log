@@ -1,0 +1,17 @@
+Run folder: instance_results/Jan12_1227
+Experimental setup:
+Test Run.
+
+Host is: RichardPC
+Using interpreter: C:/Users/richa/anaconda3/envs/thesis_env_windows/python.exe
+New directory: C:/Users/richa/Documents/Thesis/rrut_thesis_code/ci-P5nK5QMtqw
+File running inside: C:/Users/richa/Documents/Thesis/rrut_thesis_code/ci-P5nK5QMtqw/runner.py
+Running PreSampler.py for dimension: 2,3,5,10
+Traceback (most recent call last):
+  File "PreSampler.py", line 260, in <module>
+    main()
+  File "PreSampler.py", line 245, in main
+    dim = int(sys.argv[1])
+ValueError: invalid literal for int() with base 10: '2,3,5,10'
+Running problem: MW11, dimension: 2,3,5,10
+Cleaning up C:/Users/richa/Documents/Thesis/rrut_thesis_code/ci-P5nK5QMtqw

@@ -26,7 +26,7 @@ class PreSampler:
             self.step_size_rw = 0.01  # 1% of the range of the instance domain
 
             # Experimental setup of Liefooghe2021 for global.
-            self.num_points_glob = int(self.dim * 200)  # may need to increase.
+            self.num_points_glob = int(self.dim * 1000)  # may need to increase.
             self.iterations_glob = self.num_points_glob  # not relevant for lhs scipy.
         elif self.mode == "debug":
             self.neighbourhood_size_rw = 2 * self.dim + 1
