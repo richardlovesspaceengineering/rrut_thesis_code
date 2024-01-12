@@ -97,8 +97,18 @@ if [ "$regenerate_samples" = true ]; then
   done
 fi
 
+# Check command line argument for problem set selection
+if [ "$1" = "MW" ]; then
+    selected_problems=("${problemsMW[@]}")
+elif [ "$1" = "CTP" ]; then
+    selected_problems=("${problemsCTP[@]}")
+else
+    echo "Invalid argument. Please specify 'MW' or 'CTP'."
+    exit 1
+fi
+
 # Run runner.py for each problem and dimension
-for problem in "${problemsMW[@]}"; do
+for problem in "${selected_problems[@]}"; do
   problem=$(echo "$problem" | sed 's/,$//')  # Remove trailing comma if it exists
   for dim in "${dimensions[@]}"; do
     echo "Running problem: $problem, dimension: $dim" | tee -a "$log_file"  # Print message to the terminal and log file
