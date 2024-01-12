@@ -53,9 +53,9 @@ def uc_rk_distr(pop):
 
     # Check if the vector is constant
     if std_uc_rk == 0:
-        kurt_uc_rk = skew_uc_rk = np.nan
+        kurt_uc_rk = skew_uc_rk = 0
         print(
-            "Unconstrained ranks are all equal - setting skew_uc_rk = kurtosis_uc_rk to NaN."
+            "Unconstrained ranks are all equal - setting skew_uc_rk = kurtosis_uc_rk to 0."
         )
     else:
         kurt_uc_rk = kurtosis(rank_uncons)
