@@ -63,7 +63,7 @@ class Analysis:
             # Print how many NaN entries were removed
             if nan_count > 0:
                 print(
-                    f"Removed {nan_count} NaN entries for {feature_name} when concatenating within-sample feature arrays."
+                    f"Removed {nan_count} NaN entries (out of {len(feature_values)}) for {feature_name} when concatenating within-sample feature arrays."
                 )
 
             # Save as attribute array in the combined_analysis object
