@@ -4,13 +4,10 @@
 # desc_msg="Added adaptive walk features; using 95th percentile values for upper bound, min for lower bound. Adaptive walk normalisation values are just taken from the RW. Global normalisation values are separately computed."
 
 # # Problem suites
-# problemsCTP=("CTP1", "CTP2", "CTP3", "CTP4", "CTP5", "CTP6", "CTP7", "CTP8")
-# problemsMW=("MW1", "MW2", "MW3", "MW4", "MW5", "MW6", "MW7", "MW8", "MW9", "MW10", "MW11", "MW12", "MW13", "MW14")
+problemsCTP=("CTP1", "CTP2", "CTP3", "CTP4", "CTP5", "CTP6", "CTP7", "CTP8")
+problemsMW=("MW1", "MW2", "MW3", "MW4", "MW5", "MW6", "MW7", "MW8", "MW9", "MW10", "MW11", "MW12", "MW13", "MW14")
 
-desc_msg="Test Run."
-
-# Problem suites
-problemsMW=("MW11", "MW3")
+desc_msg="Added information content features."
 
 # Dimensions to consider
 dimensions=(2 5 10)
@@ -23,7 +20,7 @@ mode="eval"
 # mode="debug"
 
 # Use pre-generated samples? Always turn on when running from a new commit.
-regenerate_samples=true
+regenerate_samples=false
 
 # Save full feature arrays. Aggregated feature arrays are always saved.
 save_feature_arrays=true
