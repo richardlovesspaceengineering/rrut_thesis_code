@@ -60,7 +60,7 @@ class Analysis:
                     np.nan
                 )  # or some other placeholder for features with all NaN values
 
-            # Print how many NaN entries were removed
+            # Print how man y NaN entries were removed
             if nan_count > 0:
                 print(
                     f"Removed {nan_count} NaN entries (out of {len(feature_values)}) for {feature_name} when concatenating within-sample feature arrays."

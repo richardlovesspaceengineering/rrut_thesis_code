@@ -1,16 +1,20 @@
 #!/bin/bash
 
-# # Message describing the experimental setup.
-# desc_msg="Added adaptive walk features; using 95th percentile values for upper bound, min for lower bound. Adaptive walk normalisation values are just taken from the RW. Global normalisation values are separately computed."
+# Message describing the experimental setup.
+desc_msg="Uppped dimensionality, now running full benchmark suites (other than aerofoils)."
 
-# # Problem suites
+# Problem suites
 problemsCTP=("CTP1", "CTP2", "CTP3", "CTP4", "CTP5", "CTP6", "CTP7", "CTP8")
 problemsMW=("MW1", "MW2", "MW3", "MW4", "MW5", "MW6", "MW7", "MW8", "MW9", "MW10", "MW11", "MW12", "MW13", "MW14")
-
-desc_msg="Added information content features."
+problemsDASCMOP=("DASCMOP1", "DASCMOP2", "DASCMOP3", "DASCMOP4", "DASCMOP5", "DASCMOP6", "DASCMOP7", "DASCMOP8", "DASCMOP9")
+problemsZDT=("ZDT1", "ZDT2", "ZDT3", "ZDT4", "ZDT5", "ZDT6")
+problemsDCDTLZ=("DC1DTLZ1" "DC1DTLZ3" "DC2DTLZ1" "DC2DTLZ3" "DC3DTLZ1" "DC3DTLZ3")
+problemsCDTLZ=("C1DTLZ1" "C1DTLZ3" "C2DTLZ2" "C3DTLZ1" "C3DTLZ4")
+problemsRW=("Truss2D", "WeldedBeam")
+# problemsMODACT=("MODACT")
 
 # Dimensions to consider
-dimensions=(2 5 10)
+dimensions=(5 10 15 20 30)
 
 # Number of samples to run.
 num_samples=30
@@ -102,8 +106,18 @@ if [ "$1" = "MW" ]; then
     selected_problems=("${problemsMW[@]}")
 elif [ "$1" = "CTP" ]; then
     selected_problems=("${problemsCTP[@]}")
+elif [ "$1" = "DASCMOP" ]; then
+    selected_problems=("${problemsDASCMOP[@]}")
+elif [ "$1" = "ZDT" ]; then
+    selected_problems=("${problemsZDT[@]}")
+elif [ "$1" = "DCDTLZ" ]; then
+    selected_problems=("${problemsDCDTLZ[@]}")
+elif [ "$1" = "CDTLZ" ]; then
+    selected_problems=("${problemsCDTLZ[@]}")
+elif [ "$1" = "RW" ]; then
+    selected_problems=("${problemsRW[@]}")
 else
-    echo "Invalid argument. Please specify 'MW' or 'CTP'."
+    echo "Invalid argument. Please specify 'MW', 'CTP', 'DASCMOP', 'ZDT', 'DCDTLZ', 'CDTLZ', or 'RW'."
     exit 1
 fi
 
