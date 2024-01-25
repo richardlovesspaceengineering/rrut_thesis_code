@@ -4,7 +4,8 @@
 desc_msg="Uppped dimensionality, now running full benchmark suites (other than aerofoils)."
 
 # Problem suites
-problemsCTP=("CTP1", "CTP2", "CTP3", "CTP4", "CTP5", "CTP6", "CTP7", "CTP8")
+problemsCTP=("CTP6")
+# problemsCTP=("CTP1", "CTP2", "CTP3", "CTP4", "CTP5", "CTP6", "CTP7", "CTP8")
 problemsMW=("MW1", "MW2", "MW3", "MW4", "MW5", "MW6", "MW7", "MW8", "MW9", "MW10", "MW11", "MW12", "MW13", "MW14")
 problemsDASCMOP=("DASCMOP1", "DASCMOP2", "DASCMOP3", "DASCMOP4", "DASCMOP5", "DASCMOP6", "DASCMOP7", "DASCMOP8", "DASCMOP9")
 problemsZDT=("ZDT1", "ZDT2", "ZDT3", "ZDT4", "ZDT5", "ZDT6")
@@ -17,7 +18,7 @@ problemsRW=("Truss2D", "WeldedBeam")
 dimensions=(5 10 15 20 30)
 
 # Number of samples to run.
-num_samples=30
+num_samples=1
 
 # Modes are debug or eval.
 mode="eval"

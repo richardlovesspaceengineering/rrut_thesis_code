@@ -81,6 +81,11 @@ class ProblemEvaluator:
     def create_pre_sampler(self, num_samples):
         return PreSampler(self.instance.n_var, num_samples, self.mode)
 
+    def initialise_pf(self, problem):
+        # Pymoo requires creation of a population to initialise PF.
+        print("\nCreating a single population to initialise PF.")
+        pop = Population(problem, n_individuals=1)
+
     def get_bounds(self, problem):
         # Bounds of the decision variables.
         x_lower = problem.xl
@@ -618,6 +623,9 @@ class ProblemEvaluator:
 
         # Load presampler.
         pre_sampler = self.create_pre_sampler(num_samples)
+
+        # Initialise PF text file.
+        self.initialise_pf(self.instance)
 
         # RW Analysis.
         print(
