@@ -23,7 +23,7 @@ mode="eval"
 # mode="debug"
 
 # Use pre-generated samples?
-regenerate_samples=false
+regenerate_samples=true
 
 # Save full feature arrays. Aggregated feature arrays are always saved.
 save_feature_arrays=true
