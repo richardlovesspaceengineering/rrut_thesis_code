@@ -30,8 +30,14 @@ def cv_distr(pop, normalisation_values, norm_method):
     std_cv = np.std(cv)
     min_cv = np.min(cv)
     max_cv = np.max(cv)
-    kurt_cv = kurtosis(cv, axis=None)
-    skew_cv = skew(cv, axis=None)
+
+    # Check if the vector is constant
+    if std_cv == 0:
+        kurt_cv = skew_cv = 0
+        print("CVs are all equal - setting skew_cv = kurtosis_cv to 0.")
+    else:
+        kurt_cv = kurtosis(cv, axis=None)
+        skew_cv = skew(cv, axis=None)
 
     return mean_cv, std_cv, min_cv, max_cv, skew_cv, kurt_cv
 

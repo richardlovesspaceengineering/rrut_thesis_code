@@ -17,7 +17,15 @@
         "type": "python",
         "request": "launch",
         "program": "C:/Users/richa/Documents/Thesis/rrut_thesis_code/ISA-CMOP_Python/runner.py",
-        "args": ["MW11", "10", "4", "eval", "true", "instance_results"],
+        "args": [
+            "MW6", //problem
+            "2", // dimension
+            "1", // num samples
+            "debug", // mode
+            "true", // save results
+            "instance_results", 
+            "1", // num cores
+        ],
         "console": "integratedTerminal",
         "cwd": "C:/Users/richa/Documents/Thesis/rrut_thesis_code/ISA-CMOP_Python",
         "justMyCode": false

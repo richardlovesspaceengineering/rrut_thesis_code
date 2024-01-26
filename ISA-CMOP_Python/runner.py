@@ -58,7 +58,12 @@ def generate_suite_structure(benchmark_problem_names, dimensions):
 
 # Function to generate a single problem instance
 def generate_instance(problem_name, n_var):
-    problem = get_problem(problem_name, n_var=n_var)
+    # Check if problem_name contains 'DASCMOP'
+    if "dascmop" in problem_name.lower():
+        problem = get_problem(problem_name, n_var=n_var, difficulty=8)
+    else:
+        problem = get_problem(problem_name, n_var=n_var)
+
     instance_string = f"{problem_name}_d{n_var}"
     return problem, instance_string
 
