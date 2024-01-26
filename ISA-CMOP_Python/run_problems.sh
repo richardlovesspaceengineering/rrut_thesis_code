@@ -62,6 +62,7 @@ temp_dir=$(mktemp -d -t ci-XXXXXXXXXX --tmpdir="$SCRIPT_PATH")
 echo "New directory: $temp_dir" | tee -a "$log_file"
 
 # Copy framework to temporary directory
+echo "Writing ISA-CMOP_Python to temporary directory. This may take some time if pregenerated samples are being used." | tee -a "$log_file"
 copy_dir="$SCRIPT_PATH"
 cd_dir="$SCRIPT_PATH"
 cd_dir+="ISA-CMOP_Python/"
