@@ -38,7 +38,7 @@ class PreSampler:
             self.iterations_glob = self.num_points_glob  # not relevant for lhs scipy.
 
     def create_pregen_sample_dir(self):
-        base_dir = "pregen_samples"
+        base_dir = "../pregen_samples"
         mode_dir = os.path.join(base_dir, self.mode)  # "eval" or "debug" based on mode
         rw_dir = os.path.join(mode_dir, "rw")
         global_dir = os.path.join(mode_dir, "global")
