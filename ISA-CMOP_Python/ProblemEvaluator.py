@@ -26,9 +26,13 @@ from features.Analysis import Analysis, MultipleAnalysis
 
 import multiprocessing
 import signal
-from time import sleep
 from functools import wraps
 from itertools import repeat
+
+import smtplib
+
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 
 def handle_ctrl_c(func):
@@ -78,6 +82,49 @@ class ProblemEvaluator:
         self.csv_filename = results_dir + "/features.csv"
         self.num_cores_user_input = num_cores
         print("Initialising evaluator in {} mode.".format(self.mode))
+
+        # Gmail account credentials for email updates.
+        self.gmail_user = "rrutthesisupdates@gmail.com"  # Your full Gmail address
+        self.gmail_app_password = "binsjoipgwzyszxe "  # Your generated App Password
+
+    def send_update_email(self, subject, body=""):
+        # Only send in eval mode.
+        if self.mode == "eval":
+
+            # Email details
+            sent_from = self.gmail_user
+            to = [self.gmail_user]  # Sending to the same account or specify a recipient
+
+            # Setup MIME
+            message = MIMEMultipart()
+            message["From"] = sent_from
+            message["To"] = ", ".join(to)
+            message["Subject"] = (
+                self.results_dir.replace("instance_results/", "") + " | " + subject
+            )
+
+            # Attach the email body
+            message.attach(MIMEText(body, "plain"))
+
+            # Convert the message to a string
+            email_text = message.as_string()
+
+            try:
+                # Connect to Gmail's SMTP server
+                server = smtplib.SMTP_SSL("smtp.gmail.com", 465)  # SSL port 465
+                server.login(self.gmail_user, self.gmail_app_password)
+                server.sendmail(sent_from, to, email_text)
+                server.close()
+
+            except Exception as e:
+                print(f"Failed to send email: {e}")
+
+    def send_analysis_completion_email(self, problem_name, analysis_type, elapsed_time):
+
+        self.send_update_email(
+            f"{problem_name} finished {analysis_type} analysis in {round(elapsed_time,2)} seconds",
+            f"The analysis of {problem_name} with type {analysis_type} has completed in {round(elapsed_time,2)} seconds.",
+        )
 
     def initialize_number_of_cores(self, num_cores, num_samples):
         # Number of cores to use for RW.
@@ -453,6 +500,9 @@ class ProblemEvaluator:
         print_with_timestamp(
             "Evaluated RW features in {:.2f} seconds.\n".format(end_time - start_time)
         )
+        self.send_analysis_completion_email(
+            self.instance_name, "RW", end_time - start_time
+        )
 
         return rw_analysis_all_samples
 
@@ -514,6 +564,9 @@ class ProblemEvaluator:
             "Evaluated global features in {:.2f} seconds.\n".format(
                 end_time - start_time
             )
+        )
+        self.send_analysis_completion_email(
+            self.instance_name, "Global", end_time - start_time
         )
 
         return global_multiple_analysis
@@ -651,6 +704,9 @@ class ProblemEvaluator:
         print_with_timestamp(
             "Evaluated AW features in {:.2f} seconds.\n".format(end_time - start_time)
         )
+        self.send_analysis_completion_email(
+            self.instance_name, "AW", end_time - start_time
+        )
 
         return aw_analysis_all_samples
 
@@ -660,6 +716,7 @@ class ProblemEvaluator:
             + self.instance_name
             + " ------------------------"
         )
+        self.send_update_email(f"STARTED RUN OF {self.instance_name}.")
 
         # Load presampler.
         pre_sampler = self.create_pre_sampler(num_samples)
@@ -732,6 +789,8 @@ class ProblemEvaluator:
         print_with_timestamp(
             "Successfully appended aggregated results to csv file.\n\n"
         )
+
+        self.send_update_email(f"COMPLETED RUN OF {self.instance_name}.")
 
     def append_dataframe_to_csv(
         self,
