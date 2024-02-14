@@ -94,10 +94,11 @@ class ProblemEvaluator:
                 "30d": 5,
             }
         else:
+            # Megatrons. Assumed available RAM of 128 GB.
             self.num_processes_dim_dict = {
-                "15d": 15,
-                "20d": 15,
-                "30d": 10,
+                "15d": 30,
+                "20d": 30,
+                "30d": 15,
             }
 
         # Now we will allocate num_cores_global. This value will need to be smaller to deal with memory issues related to large matrices.
