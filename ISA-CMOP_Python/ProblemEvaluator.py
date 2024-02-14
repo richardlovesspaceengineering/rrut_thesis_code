@@ -75,8 +75,39 @@ class ProblemEvaluator:
         self.global_normalisation_values = {}
         self.results_dir = results_dir
         self.csv_filename = results_dir + "/features.csv"
-        self.num_processes = num_cores
+        self.num_cores_user_input = num_cores
         print("Initialising evaluator in {} mode.".format(self.mode))
+
+    def initialize_number_of_cores(self, num_cores, num_samples):
+        # Number of cores to use for RW.
+        self.num_processes_rw = min(num_cores, num_samples)
+        self.num_processes_aw = min(num_cores, num_samples)
+
+        # Dictionary mapping dimensions to the number of processes. used only for global eval currently.
+        # 15,000 points uses about 4 GB memory per process.
+        self.num_processes_dim_dict = {
+            "15d": 5,
+            "20d": 5,
+            "30d": 5,
+        }
+
+        # Now we will allocate num_cores_global. This value will need to be smaller to deal with memory issues related to large matrices.
+        dim_key = f"{self.instance.n_var}d"  # Assuming self.dim is an integer or string that matches the keys in the dictionary
+
+        # Check if the current dimension has a specified number of processes
+        if dim_key in self.num_processes_dim_dict:
+            # Update num_processes based on the dictionary entry
+            self.num_processes_global = self.num_processes_dim_dict[dim_key]
+        else:
+            self.num_processes_global = min(num_cores, num_samples)
+
+        # After everything is run, print the number of cores allocated for each process
+        print(
+            f"\nSummary of cores allocation (have taken the minimum of num_samples and num_cores except for larger-dimension global cases):"
+        )
+        print(f"RW processes will use {self.num_processes_rw} cores.")
+        print(f"AW processes will use {self.num_processes_aw} cores.")
+        print(f"Global processes will use {self.num_processes_global} cores.")
 
     def create_pre_sampler(self, num_samples):
         return PreSampler(self.instance.n_var, num_samples, self.mode)
@@ -233,7 +264,10 @@ class ProblemEvaluator:
         }
         min_values_array = max_values_array
 
-        with multiprocessing.Pool(self.num_processes, initializer=init_pool) as pool:
+        # Can use max amount of cores here since NDSorting does not happen here.
+        with multiprocessing.Pool(
+            self.num_cores_user_input, initializer=init_pool
+        ) as pool:
             args_list = [
                 (i, pre_sampler, problem, variables)
                 for i in range(pre_sampler.num_samples)
@@ -378,11 +412,11 @@ class ProblemEvaluator:
 
         start_time = time.time()
 
-        with multiprocessing.Pool(self.num_processes, initializer=init_pool) as pool:
+        with multiprocessing.Pool(self.num_processes_rw, initializer=init_pool) as pool:
             # Use partial method here.
             print(
                 "Running parallel computation for RW features with {} processes. \n".format(
-                    self.num_processes
+                    self.num_processes_rw
                 )
             )
             results = pool.starmap(
@@ -438,10 +472,12 @@ class ProblemEvaluator:
 
         global_multiple_analyses_list = []
 
-        with multiprocessing.Pool(self.num_processes, initializer=init_pool) as pool:
+        with multiprocessing.Pool(
+            self.num_processes_global, initializer=init_pool
+        ) as pool:
             print(
                 "Running parallel computation for global features with {} processes. \n".format(
-                    self.num_processes
+                    self.num_processes_global
                 )
             )
 
@@ -570,10 +606,10 @@ class ProblemEvaluator:
 
         start_time = time.time()
 
-        with multiprocessing.Pool(self.num_processes, initializer=init_pool) as pool:
+        with multiprocessing.Pool(self.num_processes_aw, initializer=init_pool) as pool:
             print(
                 "Running parallel computation for AW features with {} processes. \n".format(
-                    self.num_processes
+                    self.num_processes_aw
                 )
             )
             results = pool.starmap(
@@ -615,30 +651,26 @@ class ProblemEvaluator:
             + " ------------------------"
         )
 
-        if num_samples < self.num_processes:
-            print(
-                f"\n{self.num_processes} cores were specified for evaluation of {num_samples} samples. Proceeding instead with {num_samples} cores."
-            )
-            self.num_processes = num_samples
-
         # Load presampler.
         pre_sampler = self.create_pre_sampler(num_samples)
+
+        self.initialize_number_of_cores(self.num_cores_user_input, num_samples)
 
         # Initialise PF text file.
         self.initialise_pf(self.instance)
 
         # RW Analysis.
-        print(
-            " \n ~~~~~~~~~~~~ RW Analysis for "
-            + self.instance_name
-            + " ~~~~~~~~~~~~ \n"
-        )
-        rw_features = self.do_random_walk_analysis(
-            self.instance,
-            pre_sampler,
-            num_samples,
-        )
-        rw_features.export_unaggregated_features(self.instance_name, "rw", save_arrays)
+        # print(
+        #     " \n ~~~~~~~~~~~~ RW Analysis for "
+        #     + self.instance_name
+        #     + " ~~~~~~~~~~~~ \n"
+        # )
+        # rw_features = self.do_random_walk_analysis(
+        #     self.instance,
+        #     pre_sampler,
+        #     num_samples,
+        # )
+        # rw_features.export_unaggregated_features(self.instance_name, "rw", save_arrays)
 
         # Global Analysis.
         print(

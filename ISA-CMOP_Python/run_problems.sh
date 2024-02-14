@@ -13,7 +13,7 @@ problemsCDTLZ=("C1DTLZ1" "C1DTLZ3" "C2DTLZ2" "C3DTLZ1" "C3DTLZ4")
 # problemsMODACT=("MODACT") # requires extra package
 
 # Dimensions to consider
-dimensions=(5 10 15 20 30)
+dimensions=(15 20 30)
 
 # Number of samples to run.
 num_samples=30
