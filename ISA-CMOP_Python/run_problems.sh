@@ -19,8 +19,8 @@ dimensions=(5 10 15 20 30)
 num_samples=30
 
 # Modes are debug or eval.
-mode="eval"
-# mode="debug"
+# mode="eval"
+mode="debug"
 
 # Use pre-generated samples?
 regenerate_samples=true
@@ -119,14 +119,24 @@ else
     exit 1
 fi
 
-# Run runner.py for each problem and dimension
-for problem in "${selected_problems[@]}"; do
-  problem=$(echo "$problem" | sed 's/,$//')  # Remove trailing comma if it exists
-  for dim in "${dimensions[@]}"; do
-    echo "Running problem: $problem, dimension: $dim" | tee -a "$log_file"  # Print message to the terminal and log file
-    # Run runner.py
-    "$PYTHON_SCRIPT" -u "$run_dir" "$problem" "$dim" "$num_samples" "$mode" "$save_feature_arrays" "$results_dir" "$num_cores" 2>&1 | tee -a "$log_file"
-  done
+echo "Problems will be run in the following order:"
+
+# Loop to print the execution order
+for dim in "${dimensions[@]}"; do
+    for problem in "${selected_problems[@]}"; do
+        problem=$(echo "$problem" | sed 's/,$//')  # Remove trailing comma if it exists
+        echo "Problem: $problem, Dimension: $dim"
+    done
+done
+
+# Run runner.py for each dimension, then for each problem within that dimension
+for dim in "${dimensions[@]}"; do
+    for problem in "${selected_problems[@]}"; do
+      problem=$(echo "$problem" | sed 's/,$//')  # Remove trailing comma if it exists
+      echo "Running problem: $problem, dimension: $dim" | tee -a "$log_file"  # Print message to the terminal and log file
+      # Run runner.py
+      "$PYTHON_SCRIPT" -u "$run_dir" "$problem" "$dim" "$num_samples" "$mode" "$save_feature_arrays" "$results_dir" "$num_cores" 2>&1 | tee -a "$log_file"
+    done
 done
 
 # Clean up temp dir
