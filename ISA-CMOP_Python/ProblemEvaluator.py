@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import time
 import os
+import socket
 
 # User packages.
 from features.feature_helpers import *
@@ -85,11 +86,19 @@ class ProblemEvaluator:
 
         # Dictionary mapping dimensions to the number of processes. used only for global eval currently.
         # 15,000 points uses about 4 GB memory per process.
-        self.num_processes_dim_dict = {
-            "15d": 5,
-            "20d": 5,
-            "30d": 5,
-        }
+        hostname = socket.gethostname()
+        if hostname == "RichardPC":
+            self.num_processes_dim_dict = {
+                "15d": 5,
+                "20d": 5,
+                "30d": 5,
+            }
+        else:
+            self.num_processes_dim_dict = {
+                "15d": 15,
+                "20d": 15,
+                "30d": 10,
+            }
 
         # Now we will allocate num_cores_global. This value will need to be smaller to deal with memory issues related to large matrices.
         dim_key = f"{self.instance.n_var}d"  # Assuming self.dim is an integer or string that matches the keys in the dictionary
