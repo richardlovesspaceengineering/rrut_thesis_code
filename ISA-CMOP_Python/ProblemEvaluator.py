@@ -124,7 +124,7 @@ class ProblemEvaluator:
 
     def initialise_pf(self, problem):
         # Pymoo requires creation of a population to initialise PF.
-        print("\nCreating a single population to initialise PF.")
+        print_with_timestamp("\nCreating a single population to initialise PF.")
         pop = Population(problem, n_individuals=1)
 
     def get_bounds(self, problem):
@@ -260,7 +260,7 @@ class ProblemEvaluator:
         return min_values_array, max_values_array
 
     def compute_global_normalisation_values(self, pre_sampler, problem):
-        print(
+        print_with_timestamp(
             "Initialising normalisation computations for global samples. This requires full evaluation of the entire sample set and may take some time while still being memory-efficient."
         )
         norm_start = time.time()
@@ -302,7 +302,7 @@ class ProblemEvaluator:
             )
             norm_end = time.time()
             elapsed_time = norm_end - norm_start
-            print(
+            print_with_timestamp(
                 "Evaluated the normalisation values for this sample set in {:.2f} seconds.\n".format(
                     elapsed_time
                 )
@@ -343,7 +343,7 @@ class ProblemEvaluator:
         return min_values_array, max_values_array
 
     def compute_rw_normalisation_values(self, pre_sampler, problem):
-        print(
+        print_with_timestamp(
             "Initialising normalisation computations for RW samples. This requires full evaluation of the entire sample set and may take some time while still being memory-efficient."
         )
         norm_start = time.time()
@@ -381,7 +381,7 @@ class ProblemEvaluator:
             )
             norm_end = time.time()
             elapsed_time = norm_end - norm_start
-            print(
+            print_with_timestamp(
                 "Evaluated the normalisation values for this sample set in {:.2f} seconds.\n".format(
                     elapsed_time
                 )
@@ -391,7 +391,7 @@ class ProblemEvaluator:
 
     @handle_ctrl_c
     def eval_single_sample_rw_features(self, i, pre_sampler, problem):
-        print("Initialising feature evaluation for RW samples.")
+        print_with_timestamp("Initialising feature evaluation for RW samples.")
 
         rw_single_sample_analyses_list = []
 
@@ -424,7 +424,7 @@ class ProblemEvaluator:
 
         with multiprocessing.Pool(self.num_processes_rw, initializer=init_pool) as pool:
             # Use partial method here.
-            print(
+            print_with_timestamp(
                 "Running parallel computation for RW features with {} processes. \n".format(
                     self.num_processes_rw
                 )
@@ -450,7 +450,7 @@ class ProblemEvaluator:
         rw_analysis_all_samples.generate_feature_arrays()
 
         end_time = time.time()
-        print(
+        print_with_timestamp(
             "Evaluated RW features in {:.2f} seconds.\n".format(end_time - start_time)
         )
 
@@ -485,7 +485,7 @@ class ProblemEvaluator:
         with multiprocessing.Pool(
             self.num_processes_global, initializer=init_pool
         ) as pool:
-            print(
+            print_with_timestamp(
                 "Running parallel computation for global features with {} processes. \n".format(
                     self.num_processes_global
                 )
@@ -510,7 +510,7 @@ class ProblemEvaluator:
         global_multiple_analysis.generate_feature_arrays()
 
         end_time = time.time()
-        print(
+        print_with_timestamp(
             "Evaluated global features in {:.2f} seconds.\n".format(
                 end_time - start_time
             )
@@ -617,7 +617,7 @@ class ProblemEvaluator:
         start_time = time.time()
 
         with multiprocessing.Pool(self.num_processes_aw, initializer=init_pool) as pool:
-            print(
+            print_with_timestamp(
                 "Running parallel computation for AW features with {} processes. \n".format(
                     self.num_processes_aw
                 )
@@ -648,7 +648,7 @@ class ProblemEvaluator:
         aw_analysis_all_samples.generate_feature_arrays()
 
         end_time = time.time()
-        print(
+        print_with_timestamp(
             "Evaluated AW features in {:.2f} seconds.\n".format(end_time - start_time)
         )
 
@@ -729,7 +729,9 @@ class ProblemEvaluator:
         # Save to a csv at end of every problem instance.
         self.append_dataframe_to_csv(self.csv_filename, self.features_table)
 
-        print("Successfully appended aggregated results to csv file.\n\n")
+        print_with_timestamp(
+            "Successfully appended aggregated results to csv file.\n\n"
+        )
 
     def append_dataframe_to_csv(
         self,
