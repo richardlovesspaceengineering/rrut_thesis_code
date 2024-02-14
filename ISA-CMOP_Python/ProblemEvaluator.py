@@ -356,7 +356,7 @@ class ProblemEvaluator:
         }
         min_values_array = max_values_array
 
-        with multiprocessing.Pool(self.num_processes, initializer=init_pool) as pool:
+        with multiprocessing.Pool(self.num_processes_rw, initializer=init_pool) as pool:
             args_list = [
                 (i, pre_sampler, problem, variables)
                 for i in range(pre_sampler.num_samples)

@@ -123,7 +123,7 @@ fi
 for dim in "${dimensions[@]}"; do
     for problem in "${selected_problems[@]}"; do
       problem=$(echo "$problem" | sed 's/,$//')  # Remove trailing comma if it exists
-      echo "Running problem: $problem, dimension: $dim" | tee -a "$log_file"  # Print message to the terminal and log file
+      echo -e "\nRunning problem: $problem, dimension: $dim" | tee -a "$log_file"  # Print message to the terminal and log file
       # Run runner.py
       "$PYTHON_SCRIPT" -u "$run_dir" "$problem" "$dim" "$num_samples" "$mode" "$save_feature_arrays" "$results_dir" "$num_cores" 2>&1 | tee -a "$log_file"
     done
