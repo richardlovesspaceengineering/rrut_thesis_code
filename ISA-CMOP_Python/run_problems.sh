@@ -23,7 +23,7 @@ mode="eval"
 # mode="debug"
 
 # Use pre-generated samples?
-regenerate_samples=true
+regenerate_samples=false #@JUAN set to true if you need to generate/can't see the pregen_samples folder as a sibling folder.
 
 # Save full feature arrays. Aggregated feature arrays are always saved.
 save_feature_arrays=true
@@ -49,7 +49,11 @@ echo "Host is: $host" | tee -a "$log_file"
 if [[ "$host" == *"$pc1"* ]]; then # megatrons
   PYTHON_SCRIPT="/home/kj66/Documents/Richard/venv/bin/python3"
   SCRIPT_PATH="/home/kj66/Documents/Richard/rrut_thesis_code/"
+<<<<<<< HEAD
   num_cores=24 # @JUAN NEED TO SPECIFY.
+=======
+  num_cores=30 # @JUAN NEED TO SPECIFY.
+>>>>>>> 1636c77ff8ad2212f05b09fa1c7e76cccbc24c6d
 else # richard's pc
   PYTHON_SCRIPT="C:/Users/richa/anaconda3/envs/thesis_env_windows/python.exe"
   SCRIPT_PATH="C:/Users/richa/Documents/Thesis/rrut_thesis_code/"
@@ -119,14 +123,14 @@ else
     exit 1
 fi
 
-# Run runner.py for each problem and dimension
-for problem in "${selected_problems[@]}"; do
-  problem=$(echo "$problem" | sed 's/,$//')  # Remove trailing comma if it exists
-  for dim in "${dimensions[@]}"; do
-    echo "Running problem: $problem, dimension: $dim" | tee -a "$log_file"  # Print message to the terminal and log file
-    # Run runner.py
-    "$PYTHON_SCRIPT" -u "$run_dir" "$problem" "$dim" "$num_samples" "$mode" "$save_feature_arrays" "$results_dir" "$num_cores" 2>&1 | tee -a "$log_file"
-  done
+# Run runner.py for each dimension, then for each problem within that dimension
+for dim in "${dimensions[@]}"; do
+    for problem in "${selected_problems[@]}"; do
+      problem=$(echo "$problem" | sed 's/,$//')  # Remove trailing comma if it exists
+      echo -e "\nRunning problem: $problem, dimension: $dim" | tee -a "$log_file"  # Print message to the terminal and log file
+      # Run runner.py
+      "$PYTHON_SCRIPT" -u "$run_dir" "$problem" "$dim" "$num_samples" "$mode" "$save_feature_arrays" "$results_dir" "$num_cores" 2>&1 | tee -a "$log_file"
+    done
 done
 
 # Clean up temp dir

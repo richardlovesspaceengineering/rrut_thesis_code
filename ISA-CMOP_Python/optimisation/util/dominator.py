@@ -1,9 +1,10 @@
 import numpy as np
+
 # import numba
 
 
 # @numba.njit
-def calculate_domination_matrix(f, cv=None, domination_type='pareto'):
+def calculate_domination_matrix(f, cv=None, domination_type="pareto"):
 
     # Obtain domination relation method
     dom_func = select_dom(domination_type)
@@ -16,9 +17,9 @@ def calculate_domination_matrix(f, cv=None, domination_type='pareto'):
         cv = [None for _ in range(n)]
 
     # Output matrix
-    m = np.zeros((n, n))
+    m = np.zeros((n, n), dtype=np.float32)
     for i in range(n):
-        for j in range(i+1, n):
+        for j in range(i + 1, n):
             m[i, j] = dom_func(f[i, :], f[j, :], cv[i], cv[j])
             m[j, i] = -m[i, j]
 
@@ -30,15 +31,15 @@ def select_dom(flag):
     Returns pointer to dominance relation method
     """
     # Switch to different domination relations
-    if 'pareto' in flag:
+    if "pareto" in flag:
         dom_func = get_relation
-    elif 'alpha' in flag:
+    elif "alpha" in flag:
         dom_func = get_alpha_relation
-    elif 'c_alpha' in flag:
+    elif "c_alpha" in flag:
         dom_func = get_c_alpha_relation
-    elif 'nlad' in flag:
+    elif "nlad" in flag:
         dom_func = get_nlad_relation
-    elif 'epsilon' in flag:
+    elif "epsilon" in flag:
         dom_func = get_epsilon_relation
     else:
         dom_func = get_relation

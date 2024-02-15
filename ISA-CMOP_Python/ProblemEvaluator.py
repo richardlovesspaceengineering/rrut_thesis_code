@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import time
 import os
+import socket
 
 # User packages.
 from features.feature_helpers import *
@@ -25,9 +26,13 @@ from features.Analysis import Analysis, MultipleAnalysis
 
 import multiprocessing
 import signal
-from time import sleep
 from functools import wraps
 from itertools import repeat
+
+import smtplib
+
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 
 def handle_ctrl_c(func):
@@ -75,15 +80,98 @@ class ProblemEvaluator:
         self.global_normalisation_values = {}
         self.results_dir = results_dir
         self.csv_filename = results_dir + "/features.csv"
-        self.num_processes = num_cores
+        self.num_cores_user_input = num_cores
         print("Initialising evaluator in {} mode.".format(self.mode))
+
+        # Gmail account credentials for email updates.
+        self.gmail_user = "rrutthesisupdates@gmail.com"  # Your full Gmail address
+        self.gmail_app_password = "binsjoipgwzyszxe "  # Your generated App Password
+
+    def send_update_email(self, subject, body=""):
+        # Only send in eval mode.
+        if self.mode == "eval":
+
+            # Email details
+            sent_from = self.gmail_user
+            to = [self.gmail_user]  # Sending to the same account or specify a recipient
+
+            # Setup MIME
+            message = MIMEMultipart()
+            message["From"] = sent_from
+            message["To"] = ", ".join(to)
+            message["Subject"] = (
+                self.results_dir.replace("instance_results/", "") + " | " + subject
+            )
+
+            # Attach the email body
+            message.attach(MIMEText(body, "plain"))
+
+            # Convert the message to a string
+            email_text = message.as_string()
+
+            try:
+                # Connect to Gmail's SMTP server
+                server = smtplib.SMTP_SSL("smtp.gmail.com", 465)  # SSL port 465
+                server.login(self.gmail_user, self.gmail_app_password)
+                server.sendmail(sent_from, to, email_text)
+                server.close()
+
+            except Exception as e:
+                print(f"Failed to send email: {e}")
+
+    def send_analysis_completion_email(self, problem_name, analysis_type, elapsed_time):
+
+        self.send_update_email(
+            f"{problem_name} finished {analysis_type} analysis in {round(elapsed_time,2)} seconds",
+            f"The analysis of {problem_name} with type {analysis_type} has completed in {round(elapsed_time,2)} seconds.",
+        )
+
+    def initialize_number_of_cores(self, num_cores, num_samples):
+        # Number of cores to use for RW.
+        self.num_processes_rw = min(num_cores, num_samples)
+        self.num_processes_aw = min(num_cores, num_samples)
+
+        # Dictionary mapping dimensions to the number of processes. used only for global eval currently.
+        # 15,000 points uses about 4 GB memory per process.
+        hostname = socket.gethostname()
+        if hostname == "RichardPC":
+            self.num_processes_dim_dict = {
+                "15d": 5,
+                "20d": 5,
+                "30d": 5,
+            }
+        else:
+            # Megatrons. Assumed available RAM of 128 GB.
+            self.num_processes_dim_dict = {
+                "15d": 30,
+                "20d": 30,
+                "30d": 15,
+            }
+
+        # Now we will allocate num_cores_global. This value will need to be smaller to deal with memory issues related to large matrices.
+        dim_key = f"{self.instance.n_var}d"  # Assuming self.dim is an integer or string that matches the keys in the dictionary
+
+        # Check if the current dimension has a specified number of processes
+        if dim_key in self.num_processes_dim_dict:
+            # Update num_processes based on the dictionary entry
+            self.num_processes_global = self.num_processes_dim_dict[dim_key]
+        else:
+            self.num_processes_global = min(num_cores, num_samples)
+
+        # After everything is run, print the number of cores allocated for each process
+        print(
+            f"\nSummary of cores allocation (have taken the minimum of num_samples and num_cores except for larger-dimension global cases):"
+        )
+        print(f"RW processes will use {self.num_processes_rw} cores.")
+        print(f"AW processes will use {self.num_processes_aw} cores.")
+        print(f"Global processes will use {self.num_processes_global} cores.")
 
     def create_pre_sampler(self, num_samples):
         return PreSampler(self.instance.n_var, num_samples, self.mode)
 
     def initialise_pf(self, problem):
         # Pymoo requires creation of a population to initialise PF.
-        print("\nCreating a single population to initialise PF.")
+        print_with_timestamp("\nCreating a single population to initialise PF.")
         pop = Population(problem, n_individuals=1)
 
     def get_bounds(self, problem):
@@ -219,7 +307,7 @@ class ProblemEvaluator:
         return min_values_array, max_values_array
 
     def compute_global_normalisation_values(self, pre_sampler, problem):
-        print(
+        print_with_timestamp(
             "Initialising normalisation computations for global samples. This requires full evaluation of the entire sample set and may take some time while still being memory-efficient."
         )
         norm_start = time.time()
@@ -233,7 +321,10 @@ class ProblemEvaluator:
         }
         min_values_array = max_values_array
 
-        with multiprocessing.Pool(self.num_processes, initializer=init_pool) as pool:
+        # Can use max amount of cores here since NDSorting does not happen here.
+        with multiprocessing.Pool(
+            self.num_cores_user_input, initializer=init_pool
+        ) as pool:
             args_list = [
                 (i, pre_sampler, problem, variables)
                 for i in range(pre_sampler.num_samples)
@@ -258,7 +349,7 @@ class ProblemEvaluator:
             )
             norm_end = time.time()
             elapsed_time = norm_end - norm_start
-            print(
+            print_with_timestamp(
                 "Evaluated the normalisation values for this sample set in {:.2f} seconds.\n".format(
                     elapsed_time
                 )
@@ -299,7 +390,7 @@ class ProblemEvaluator:
         return min_values_array, max_values_array
 
     def compute_rw_normalisation_values(self, pre_sampler, problem):
-        print(
+        print_with_timestamp(
             "Initialising normalisation computations for RW samples. This requires full evaluation of the entire sample set and may take some time while still being memory-efficient."
         )
         norm_start = time.time()
@@ -312,7 +403,7 @@ class ProblemEvaluator:
         }
         min_values_array = max_values_array
 
-        with multiprocessing.Pool(self.num_processes, initializer=init_pool) as pool:
+        with multiprocessing.Pool(self.num_processes_rw, initializer=init_pool) as pool:
             args_list = [
                 (i, pre_sampler, problem, variables)
                 for i in range(pre_sampler.num_samples)
@@ -337,7 +428,7 @@ class ProblemEvaluator:
             )
             norm_end = time.time()
             elapsed_time = norm_end - norm_start
-            print(
+            print_with_timestamp(
                 "Evaluated the normalisation values for this sample set in {:.2f} seconds.\n".format(
                     elapsed_time
                 )
@@ -347,7 +438,7 @@ class ProblemEvaluator:
 
     @handle_ctrl_c
     def eval_single_sample_rw_features(self, i, pre_sampler, problem):
-        print("Initialising feature evaluation for RW samples.")
+        print_with_timestamp("Initialising feature evaluation for RW samples.")
 
         rw_single_sample_analyses_list = []
 
@@ -378,11 +469,11 @@ class ProblemEvaluator:
 
         start_time = time.time()
 
-        with multiprocessing.Pool(self.num_processes, initializer=init_pool) as pool:
+        with multiprocessing.Pool(self.num_processes_rw, initializer=init_pool) as pool:
             # Use partial method here.
-            print(
+            print_with_timestamp(
                 "Running parallel computation for RW features with {} processes. \n".format(
-                    self.num_processes
+                    self.num_processes_rw
                 )
             )
             results = pool.starmap(
@@ -406,8 +497,11 @@ class ProblemEvaluator:
         rw_analysis_all_samples.generate_feature_arrays()
 
         end_time = time.time()
-        print(
+        print_with_timestamp(
             "Evaluated RW features in {:.2f} seconds.\n".format(end_time - start_time)
+        )
+        self.send_analysis_completion_email(
+            self.instance_name, "RW", end_time - start_time
         )
 
         return rw_analysis_all_samples
@@ -438,10 +532,12 @@ class ProblemEvaluator:
 
         global_multiple_analyses_list = []
 
-        with multiprocessing.Pool(self.num_processes, initializer=init_pool) as pool:
-            print(
+        with multiprocessing.Pool(
+            self.num_processes_global, initializer=init_pool
+        ) as pool:
+            print_with_timestamp(
                 "Running parallel computation for global features with {} processes. \n".format(
-                    self.num_processes
+                    self.num_processes_global
                 )
             )
 
@@ -464,10 +560,13 @@ class ProblemEvaluator:
         global_multiple_analysis.generate_feature_arrays()
 
         end_time = time.time()
-        print(
+        print_with_timestamp(
             "Evaluated global features in {:.2f} seconds.\n".format(
                 end_time - start_time
             )
+        )
+        self.send_analysis_completion_email(
+            self.instance_name, "Global", end_time - start_time
         )
 
         return global_multiple_analysis
@@ -570,10 +669,10 @@ class ProblemEvaluator:
 
         start_time = time.time()
 
-        with multiprocessing.Pool(self.num_processes, initializer=init_pool) as pool:
-            print(
+        with multiprocessing.Pool(self.num_processes_aw, initializer=init_pool) as pool:
+            print_with_timestamp(
                 "Running parallel computation for AW features with {} processes. \n".format(
-                    self.num_processes
+                    self.num_processes_aw
                 )
             )
             results = pool.starmap(
@@ -602,8 +701,11 @@ class ProblemEvaluator:
         aw_analysis_all_samples.generate_feature_arrays()
 
         end_time = time.time()
-        print(
+        print_with_timestamp(
             "Evaluated AW features in {:.2f} seconds.\n".format(end_time - start_time)
+        )
+        self.send_analysis_completion_email(
+            self.instance_name, "AW", end_time - start_time
         )
 
         return aw_analysis_all_samples
@@ -614,15 +716,12 @@ class ProblemEvaluator:
             + self.instance_name
             + " ------------------------"
         )
-
-        if num_samples < self.num_processes:
-            print(
-                f"\n{self.num_processes} cores were specified for evaluation of {num_samples} samples. Proceeding instead with {num_samples} cores."
-            )
-            self.num_processes = num_samples
+        self.send_update_email(f"STARTED RUN OF {self.instance_name}.")
 
         # Load presampler.
         pre_sampler = self.create_pre_sampler(num_samples)
+
+        self.initialize_number_of_cores(self.num_cores_user_input, num_samples)
 
         # Initialise PF text file.
         self.initialise_pf(self.instance)
@@ -687,7 +786,11 @@ class ProblemEvaluator:
         # Save to a csv at end of every problem instance.
         self.append_dataframe_to_csv(self.csv_filename, self.features_table)
 
-        print("Successfully appended aggregated results to csv file.\n\n")
+        print_with_timestamp(
+            "Successfully appended aggregated results to csv file.\n\n"
+        )
+
+        self.send_update_email(f"COMPLETED RUN OF {self.instance_name}.")
 
     def append_dataframe_to_csv(
         self,

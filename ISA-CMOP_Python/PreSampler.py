@@ -25,8 +25,10 @@ class PreSampler:
             self.num_steps_rw = 1000
             self.step_size_rw = 0.01  # 1% of the range of the instance domain
 
-            # Experimental setup of Liefooghe2021 for global.
-            self.num_points_glob = int(self.dim * 1000)  # may need to increase.
+            if self.dim <= 10:
+                self.num_points_glob = int(self.dim * 1000)
+            else:
+                self.num_points_glob = int(1e4 / 40 * self.dim + 0.75e4)
             self.iterations_glob = self.num_points_glob  # not relevant for lhs scipy.
         elif self.mode == "debug":
             self.neighbourhood_size_rw = 2 * self.dim + 1
@@ -38,7 +40,7 @@ class PreSampler:
             self.iterations_glob = self.num_points_glob  # not relevant for lhs scipy.
 
     def create_pregen_sample_dir(self):
-        base_dir = "pregen_samples"
+        base_dir = "../pregen_samples"
         mode_dir = os.path.join(base_dir, self.mode)  # "eval" or "debug" based on mode
         rw_dir = os.path.join(mode_dir, "rw")
         global_dir = os.path.join(mode_dir, "global")
