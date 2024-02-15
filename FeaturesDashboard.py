@@ -30,7 +30,7 @@ class FeaturesDashboard:
         """
         self.features_path = features_path
         self.algo_perf_path = algo_perf_path
-        self.overall_features_df = self.get_overall_features_df()
+        self.overall_df = self.get_overall_df()
 
     def get_landscape_features_df(self, give_sd=True):
         features_filepath = os.path.join(self.features_path, "features.csv")
@@ -40,7 +40,7 @@ class FeaturesDashboard:
         algo_perf_file_path = os.path.join(self.algo_perf_path, "algo_performance.csv")
         return get_df_from_filepath(algo_perf_file_path, give_sd=give_sd)
 
-    def get_overall_features_df(self, give_sd=True):
+    def get_overall_df(self, give_sd=True):
         """
         Reads the features.csv and algo_performance.csv files from their respective directories
         and joins them into a single DataFrame, resolving any 'D' column duplication.
