@@ -2,6 +2,25 @@ import pandas as pd
 import os
 
 
+def remove_sd_cols(df, suffix="_std"):
+    df = df[[col for col in df.columns if not col.endswith(suffix)]]
+    return df
+
+
+def get_df_from_filepath(filepath, give_sd):
+
+    # Check if the files exist
+    if not os.path.exists(filepath):
+        raise FileNotFoundError(f"The file {filepath} does not exist.")
+
+    features_df = pd.read_csv(filepath)
+
+    if not give_sd:
+        features_df = remove_sd_cols(features_df)
+
+    return features_df
+
+
 class FeaturesDashboard:
     def __init__(self, features_path, algo_perf_path):
         """
@@ -13,25 +32,24 @@ class FeaturesDashboard:
         self.algo_perf_path = algo_perf_path
         self.overall_features_df = self.get_overall_features_df()
 
+    def get_landscape_features_df(self, give_sd=True):
+        features_filepath = os.path.join(self.features_path, "features.csv")
+        return get_df_from_filepath(features_filepath, give_sd=give_sd)
+
+    def get_algo_performance_df(self, give_sd=True):
+        algo_perf_file_path = os.path.join(self.algo_perf_path, "algo_performance.csv")
+        return get_df_from_filepath(algo_perf_file_path, give_sd=give_sd)
+
     def get_overall_features_df(self, give_sd=True):
         """
         Reads the features.csv and algo_performance.csv files from their respective directories
         and joins them into a single DataFrame, resolving any 'D' column duplication.
         :return: A pandas DataFrame containing the joined data with a single 'D' column.
         """
-        # Construct the paths to the CSV files
-        features_file_path = os.path.join(self.features_path, "features.csv")
-        algo_perf_file_path = os.path.join(self.algo_perf_path, "algo_performance.csv")
-
-        # Check if the files exist
-        if not os.path.exists(features_file_path):
-            raise FileNotFoundError(f"The file {features_file_path} does not exist.")
-        if not os.path.exists(algo_perf_file_path):
-            raise FileNotFoundError(f"The file {algo_perf_file_path} does not exist.")
 
         # Read the CSV files into DataFrames
-        features_df = pd.read_csv(features_file_path)
-        algo_perf_df = pd.read_csv(algo_perf_file_path)
+        features_df = self.get_landscape_features_df(give_sd=give_sd)
+        algo_perf_df = self.get_algo_performance_df(give_sd=give_sd)
 
         # Join the DataFrames, specifying suffixes for overlapping column names other than the join key
         overall_df = pd.merge(
@@ -43,12 +61,6 @@ class FeaturesDashboard:
         overall_df.drop(
             [col for col in overall_df.columns if "drop" in col], axis=1, inplace=True
         )
-
-        # If give_sd is False, remove columns ending with '_std'
-        if not give_sd:
-            overall_df = overall_df[
-                [col for col in overall_df.columns if not col.endswith("_std")]
-            ]
 
         return overall_df
 
