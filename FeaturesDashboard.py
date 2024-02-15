@@ -3,36 +3,54 @@ import os
 
 
 class FeaturesDashboard:
-    def __init__(self, folder_path):
+    def __init__(self, features_path, algo_perf_path):
         """
-        Initialize the FeaturesDashboard with the path to the folder containing features.csv.
-        :param folder_path: Path to the folder containing the features.csv file.
+        Initialize the FeaturesDashboard with paths to the directories containing features.csv and algo_performance.csv.
+        :param features_path: Path to the folder containing the features.csv file.
+        :param algo_perf_path: Path to the folder containing the algo_performance.csv file.
         """
-        self.folder_path = folder_path
+        self.features_path = features_path
+        self.algo_perf_path = algo_perf_path
         self.overall_features_df = self.get_overall_features_df()
 
     def get_overall_features_df(self, give_sd=True):
         """
-        Reads the features.csv file from the folder specified during initialization.
-        Optionally removes columns with the suffix '_std' if give_sd is False.
-        :param give_sd: If True, include standard deviation columns. If False, exclude them.
-        :return: A pandas DataFrame containing the data from features.csv, optionally without _std columns.
+        Reads the features.csv and algo_performance.csv files from their respective directories
+        and joins them into a single DataFrame, resolving any 'D' column duplication.
+        :return: A pandas DataFrame containing the joined data with a single 'D' column.
         """
-        # Construct the path to the CSV file
-        file_path = os.path.join(self.folder_path, "features.csv")
+        # Construct the paths to the CSV files
+        features_file_path = os.path.join(self.features_path, "features.csv")
+        algo_perf_file_path = os.path.join(self.algo_perf_path, "algo_performance.csv")
 
-        # Check if the file exists
-        if not os.path.exists(file_path):
-            raise FileNotFoundError(f"The file {file_path} does not exist.")
+        # Check if the files exist
+        if not os.path.exists(features_file_path):
+            raise FileNotFoundError(f"The file {features_file_path} does not exist.")
+        if not os.path.exists(algo_perf_file_path):
+            raise FileNotFoundError(f"The file {algo_perf_file_path} does not exist.")
 
-        # Read the CSV file into a DataFrame
-        df = pd.read_csv(file_path)
+        # Read the CSV files into DataFrames
+        features_df = pd.read_csv(features_file_path)
+        algo_perf_df = pd.read_csv(algo_perf_file_path)
+
+        # Join the DataFrames, specifying suffixes for overlapping column names other than the join key
+        overall_df = pd.merge(
+            features_df, algo_perf_df, on="Name", how="inner", suffixes=("", "_drop")
+        )
+
+        # Drop the redundant 'D' column from the right DataFrame (algo_performance.csv)
+        # and any other unwanted duplicate columns that were suffixed with '_drop'
+        overall_df.drop(
+            [col for col in overall_df.columns if "drop" in col], axis=1, inplace=True
+        )
 
         # If give_sd is False, remove columns ending with '_std'
         if not give_sd:
-            df = df[[col for col in df.columns if not col.endswith("_std")]]
+            overall_df = overall_df[
+                [col for col in overall_df.columns if not col.endswith("_std")]
+            ]
 
-        return df
+        return overall_df
 
     def get_problem_features_df(self, problem_name, dim, analysis_type):
         """
@@ -44,7 +62,9 @@ class FeaturesDashboard:
         """
         # Constructing the file path based on problem name, dimension, and analysis type
         file_name = f"{problem_name}_d{dim}_{analysis_type}_features.csv"
-        file_path = os.path.join(self.folder_path, f"{problem_name}_d{dim}", file_name)
+        file_path = os.path.join(
+            self.features_path, f"{problem_name}_d{dim}", file_name
+        )
 
         # Check if the file exists
         if not os.path.exists(file_path):
@@ -54,6 +74,22 @@ class FeaturesDashboard:
         df = pd.read_csv(file_path)
 
         return df
+
+    def get_problem_algo_df(self, problem_name, dim):
+        algo_perf_file_name = f"{problem_name}_d{dim}_algo.csv"
+        algo_perf_file_path = os.path.join(
+            self.algo_perf_path, f"{problem_name}_d{dim}", algo_perf_file_name
+        )
+
+        # Check if the files exist
+        if not os.path.exists(algo_perf_file_path):
+            raise FileNotFoundError(
+                f"The algorithm performance file {algo_perf_file_path} does not exist."
+            )
+        # Read the CSV files into DataFrames
+        algo_perf_df = pd.read_csv(algo_perf_file_path)
+
+        return algo_perf_df
 
     @staticmethod
     def get_features_for_analysis_type(df, analysis_type):
