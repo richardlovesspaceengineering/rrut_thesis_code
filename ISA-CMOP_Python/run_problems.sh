@@ -49,7 +49,7 @@ echo "Host is: $host" | tee -a "$log_file"
 if [[ "$host" == *"$pc1"* ]]; then # megatrons
   PYTHON_SCRIPT="/home/kj66/Documents/Richard/venv/bin/python3"
   SCRIPT_PATH="/home/kj66/Documents/Richard/rrut_thesis_code/"
-  num_cores=32 # @JUAN NEED TO SPECIFY.
+  num_cores=24 # @JUAN NEED TO SPECIFY.
 else # richard's pc
   PYTHON_SCRIPT="C:/Users/richa/anaconda3/envs/thesis_env_windows/python.exe"
   SCRIPT_PATH="C:/Users/richa/Documents/Thesis/rrut_thesis_code/"
