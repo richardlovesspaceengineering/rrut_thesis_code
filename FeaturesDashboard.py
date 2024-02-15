@@ -1,5 +1,8 @@
 import pandas as pd
 import os
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
 
 
 def remove_sd_cols(df, suffix="_std"):
@@ -147,3 +150,69 @@ class FeaturesDashboard:
 
         df_filtered = df[df["Name"].str.contains(suite_name, na=False)]
         return df_filtered
+
+    def plot_feature_across_suites(self, feature_name, suite_names):
+        """
+        Generates a 1xN grid of violin plots for a specified feature across different benchmark suites.
+        :param feature_name: The name of the feature to plot.
+        :param suite_names: A list of benchmark suite names.
+        """
+        plt.figure(figsize=(10, 6))
+
+        feature_name = feature_name + "_mean"
+
+        for i, suite_name in enumerate(suite_names, start=1):
+            df_filtered = self.get_features_for_suite(self.overall_df, suite_name)
+            if feature_name in df_filtered.columns:
+                plt.subplot(1, len(suite_names), i)
+                sns.violinplot(y=df_filtered[feature_name])
+                plt.title(suite_name)
+                plt.ylabel(
+                    feature_name if i == 1 else ""
+                )  # Only add y-label to the first plot
+                plt.xlabel("")
+
+        plt.tight_layout()
+        plt.show()
+
+    def plot_problem_features(self, problem_name, dim, analysis_type, features=None):
+        """
+        Creates a grid of violin plots for specified features for a specific problem instance.
+        :param problem_name: Name of the problem.
+        :param dim: Dimension of the problem.
+        :param analysis_type: Type of analysis (e.g., "summary", "detailed").
+        :param features: Optional list of features to plot. If None, plots all columns.
+        """
+
+        df = self.get_problem_features_df(problem_name, dim, analysis_type)
+
+        # If no specific features are provided, use all numeric columns
+        if features is None:
+            features = df.select_dtypes(include=[np.number]).columns.tolist()
+
+        n_features = len(features)
+
+        # Calculate grid size for plotting
+        grid_size = int(np.ceil(np.sqrt(n_features)))
+
+        fig, axes = plt.subplots(grid_size, grid_size, figsize=(15, 15))
+        fig.suptitle(
+            f"Violin Plots for {problem_name} (Dimension: {dim}, Analysis: {analysis_type})",
+            fontsize=16,
+        )
+
+        # Flatten axes array for easy indexing
+        axes = axes.flatten()
+
+        for i, feature in enumerate(features):
+            if i < n_features:
+                sns.violinplot(y=df[feature], ax=axes[i])
+                axes[i].set_title(feature)
+            else:
+                # Hide unused subplots
+                axes[i].axis("off")
+
+        plt.tight_layout(
+            rect=[0, 0.03, 1, 0.95]
+        )  # Adjust layout to make room for the main title
+        plt.show()
