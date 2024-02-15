@@ -154,7 +154,7 @@ class FeaturesDashboard:
     def plot_feature_across_suites(self, feature_name, suite_names):
         """
         Generates a 1xN grid of violin plots for a specified feature across different benchmark suites.
-        :param feature_name: The name of the feature to plot.
+        :param feature_name: The name of the feature to plot. Can be a landscape feature or algo performance.
         :param suite_names: A list of benchmark suite names.
         """
         plt.figure(figsize=(10, 6))
@@ -211,6 +211,43 @@ class FeaturesDashboard:
             else:
                 # Hide unused subplots
                 axes[i].axis("off")
+
+        plt.tight_layout(
+            rect=[0, 0.03, 1, 0.95]
+        )  # Adjust layout to make room for the main title
+        plt.show()
+
+    def plot_problem_algo_performance(self, problem_name, dim, algorithms=None):
+        """
+        Creates a row of violin plots for algorithm performance metrics for a specific problem instance.
+        :param problem_name: Name of the problem.
+        :param dim: Dimension of the problem.
+        :param algorithms: Optional list of algorithms to plot. If None, plots all algorithms.
+        """
+        df = self.get_problem_algo_df(problem_name, dim)
+
+        # If no specific algorithms are provided, plot for all available in the DataFrame
+        if algorithms is None:
+            algorithms = df.columns.tolist()
+        else:
+            # Filter only the columns that match the specified algorithms
+            df = df[algorithms]
+
+        n_algorithms = len(algorithms)
+
+        # Create a 1xn grid of plots
+        fig, axes = plt.subplots(1, n_algorithms, figsize=(5 * n_algorithms, 5))
+        fig.suptitle(
+            f"Algorithm Performance for {problem_name} (Dimension: {dim})", fontsize=16
+        )
+
+        # In case there's only one algorithm, ensure axes is iterable
+        if n_algorithms == 1:
+            axes = [axes]
+
+        for i, algorithm in enumerate(algorithms):
+            sns.violinplot(y=df[algorithm], ax=axes[i])
+            axes[i].set_title(algorithm)
 
         plt.tight_layout(
             rect=[0, 0.03, 1, 0.95]
