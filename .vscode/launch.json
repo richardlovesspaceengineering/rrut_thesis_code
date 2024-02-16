@@ -18,8 +18,9 @@
         "request": "launch",
         "program": "C:/Users/richa/Documents/Thesis/rrut_thesis_code/ISA-CMOP_Python/runner.py",
         "args": [
-            "MW6", //problem
-            "2", // dimension
+            "ICAS2024Test", //problem
+            // "MW6",
+            "10", // dimension
             "1", // num samples
             "debug", // mode
             "true", // save results
