@@ -170,7 +170,7 @@ class ProblemEvaluator:
 
             # After everything is run, print the number of cores allocated for each process
 
-    def send_initialisation_email(self):
+    def send_initialisation_email(self, header):
         # Summarize the core allocation
         cores_summary = textwrap.dedent(
             f"""
@@ -189,10 +189,7 @@ class ProblemEvaluator:
 
         print(full_summary)
 
-        # Assuming send_update_email is a method defined elsewhere in your class that sends an email
-        self.send_update_email(
-            f"STARTED RUN OF {self.instance_name}.", body=full_summary
-        )
+        self.send_update_email(header, body=full_summary)
 
     def create_pre_sampler(self, num_samples):
         return PreSampler(self.instance.n_var, num_samples, self.mode)
@@ -330,7 +327,8 @@ class ProblemEvaluator:
 
     @handle_ctrl_c
     def eval_single_sample_global_features_norm(self, args):
-        i, pre_sampler, problem, variables = args
+        i, pre_sampler, problem = args
+        variables = ["var", "obj", "cv"]
         max_values_array = {
             "var": np.empty((0, problem.n_var)),
             "obj": np.empty((0, problem.n_obj)),
@@ -377,8 +375,7 @@ class ProblemEvaluator:
             self.num_cores_user_input, initializer=init_pool
         ) as pool:
             args_list = [
-                (i, pre_sampler, problem, variables)
-                for i in range(pre_sampler.num_samples)
+                (i, pre_sampler, problem) for i in range(pre_sampler.num_samples)
             ]
 
             results = pool.map(self.eval_single_sample_global_features_norm, args_list)
@@ -798,8 +795,6 @@ class ProblemEvaluator:
         # Define number of cores for multiprocessing.
         self.initialize_number_of_cores(self.num_cores_user_input, num_samples)
 
-        self.send_initialisation_email()
-
         # Initialise PF text file.
         self.initialise_pf(self.instance)
 
@@ -813,6 +808,8 @@ class ProblemEvaluator:
         )
 
         pre_sampler = self.initialize_evaluator(num_samples)
+
+        self.send_initialisation_email(f"STARTED RUN OF {self.instance_name}.")
 
         # RW Analysis.
         print(
@@ -887,12 +884,14 @@ class ProblemEvaluator:
         Evaluate populations for the problem first to cut down on CPU overhead later.
         """
         print(
-            "\n------------------------ Evaluating instance: "
+            "\n------------------------ Evaluating instance (POPULATIONS ONLY): "
             + self.instance_name
             + " ------------------------"
         )
 
         pre_sampler = self.initialize_evaluator(num_samples)
+
+        self.send_initialisation_email(f"STARTED POPS RUN OF {self.instance_name}.")
 
         # RW Analysis.
         print(
@@ -917,12 +916,19 @@ class ProblemEvaluator:
             + " ~~~~~~~~~~~~ \n"
         )
 
-        global_features = self.do_global_analysis(
-            self.instance, pre_sampler, num_samples
-        )
-        global_features.export_unaggregated_features(
-            self.instance_name, "glob", save_arrays
-        )
+        # Can use max amount of cores here since NDSorting does not happen here.
+        with multiprocessing.Pool(
+            self.num_cores_user_input, initializer=init_pool
+        ) as pool:
+            args_list = [
+                (i, pre_sampler, self.instance) for i in range(pre_sampler.num_samples)
+            ]
+
+            results = pool.map(self.eval_single_sample_global_features_norm, args_list)
+            if any(map(lambda x: isinstance(x, KeyboardInterrupt), results)):
+                print("Ctrl-C was entered.")
+
+        self.send_update_email(f"COMPLETED POPS RUN OF {self.instance_name}.")
 
     def append_dataframe_to_csv(
         self,
