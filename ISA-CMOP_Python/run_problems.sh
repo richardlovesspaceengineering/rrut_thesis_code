@@ -26,6 +26,10 @@ mode="debug"
 # Use pre-generated samples?
 regenerate_samples=false #@JUAN set to true if you need to generate/can't see the pregen_samples folder as a sibling folder.
 
+regenerate_pops=false # only set to true when the samples have been regenerated.
+
+run_populations_only=false
+
 # Save full feature arrays. Aggregated feature arrays are always saved.
 save_feature_arrays=true
 
@@ -131,7 +135,7 @@ for dim in "${dimensions[@]}"; do
       problem=$(echo "$problem" | sed 's/,$//')  # Remove trailing comma if it exists
       echo -e "\nRunning problem: $problem, dimension: $dim" | tee -a "$log_file"  # Print message to the terminal and log file
       # Run runner.py
-      "$PYTHON_SCRIPT" -u "$run_dir" "$problem" "$dim" "$num_samples" "$mode" "$save_feature_arrays" "$results_dir" "$num_cores" 2>&1 | tee -a "$log_file"
+      "$PYTHON_SCRIPT" -u "$run_dir" "$problem" "$dim" "$num_samples" "$mode" "$save_feature_arrays" "$results_dir" "$num_cores" "$run_problems_only" "$regenerate_pops" 2>&1 | tee -a "$log_file"
     done
 done
 

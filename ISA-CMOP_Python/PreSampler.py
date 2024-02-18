@@ -68,11 +68,6 @@ class PreSampler:
         for dir_name in dirs_to_create:
             dir_path = os.path.join(pops_dir, problem_name, self.mode, dir_name)
 
-            # Remove the directory if it exists and reeval_pops is True
-            # if os.path.exists(dir_path) and reeval_pops:
-            #     shutil.rmtree(dir_path)
-            #     print(f"Cleaning directory at: {dir_path} since reval_pops=True.")
-
             # Create the directory if not exists or after removal
             os.makedirs(dir_path, exist_ok=True)
 
@@ -100,6 +95,61 @@ class PreSampler:
             patterns.append([int(bit) for bit in binary_pattern])
         return patterns
 
+    def generate_single_rw_walk(self, sample_number, ind_walk_number):
+        """
+        Generate a single walk within a sample (collection of walks)
+        """
+
+        # Make RW generator object.
+        rwGenerator = RandomWalk(
+            self.dim, self.num_steps_rw, self.step_size_rw, self.neighbourhood_size_rw
+        )
+
+        starting_zones = self.generate_binary_patterns()
+        starting_zone = starting_zones[ind_walk_number - 1]  # indices start at 1
+
+        # Generate random walk starting at this iteration's starting zone.
+        walk = rwGenerator.do_progressive_walk(seed=None, starting_zone=starting_zone)
+
+        # Generate neighbors for each step on the walk. Currently, we just randomly sample points in the [-stepsize, stepsize] hypercube
+        neighbours = rwGenerator.generate_neighbours_for_walk(walk)
+
+        # Save walk and neighbours arrays in the sample folder
+        # Create a folder for each sample
+        sample_folder = os.path.join(self.rw_samples_dir, f"sample{sample_number}")
+        os.makedirs(sample_folder, exist_ok=True)
+        save_path = os.path.join(
+            sample_folder, f"walk_neighbours_{ind_walk_number}.npz"
+        )
+        np.savez(save_path, walk=walk, neighbours=neighbours)
+
+        print(
+            "Generated RW {} of {} (for this sample).".format(
+                ind_walk_number,
+                len(starting_zones),
+            )
+        )
+
+        return walk, neighbours
+
+    def generate_single_rw_sample(self, sample_number):
+
+        starting_zones = self.generate_binary_patterns()
+
+        start_time = time.time()  # Record the start time for this sample
+
+        for ctr, starting_zone in enumerate(starting_zones):
+            self.generate_single_rw_walk(sample_number, ctr + 1)
+
+        # Record elapsed time and print.
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        print(
+            "Generated set of RWs {} of {} in {:.2f} seconds.\n".format(
+                sample_number, self.num_samples, elapsed_time
+            )
+        )
+
     def generate_rw_samples(self):
         """
         Generate a RW sample on the unit hypercube.
@@ -107,110 +157,63 @@ class PreSampler:
         Note that a RW sample refers to a set of independent RWs.
         """
 
-        # Make RW generator object.
-        rwGenerator = RandomWalk(
-            self.dim, self.num_steps_rw, self.step_size_rw, self.neighbourhood_size_rw
-        )
-        starting_zones = self.generate_binary_patterns()
-
         print("")
         print(
             "Generating {} samples (walks + neighbours) for RW features with the following properties:".format(
                 self.num_samples
             )
         )
-        print("- Number of walks: {}".format(len(starting_zones)))
+        print("- Number of walks: {}".format(self.dim))
         print("- Number of steps per walk: {}".format(self.num_steps_rw))
         print("- Step size (% of instance domain): {}".format(self.step_size_rw * 100))
         print("- Neighbourhood size: {}".format(self.neighbourhood_size_rw))
         print("")
 
         for i in range(self.num_samples):
-            start_time = time.time()  # Record the start time for this sample
+            self.generate_single_rw_sample(i + 1)
 
-            # Create a folder for each sample
-            sample_folder = os.path.join(self.rw_samples_dir, f"sample{i + 1}")
-            os.makedirs(sample_folder, exist_ok=True)
+    def generate_single_global_sample(self, sample_number):
+        start_time = time.time()  # Record the start time
+        sampler = LatinHypercubeSampling(
+            criterion="maximin",
+            iterations=self.iterations_glob,
+            method="scipy",
+        )
 
-            for ctr, starting_zone in enumerate(starting_zones):
-                # Generate random walk starting at this iteration's starting zone.
-                walk = rwGenerator.do_progressive_walk(
-                    seed=None, starting_zone=starting_zone
-                )
+        sampler.do(
+            n_samples=self.num_points_glob,
+            x_lower=np.zeros(self.dim),
+            x_upper=np.ones(self.dim),
+        )
 
-                # Generate neighbors for each step on the walk. Currently, we just randomly sample points in the [-stepsize, stepsize] hypercube
-                neighbours = rwGenerator.generate_neighbours_for_walk(walk)
+        # Save to numpy binary.
+        save_path = os.path.join(
+            self.global_samples_dir, f"lhs_sample_{sample_number}.npz"
+        )
+        np.savez(save_path, global_sample=sampler.x)
+        end_time = time.time()  # Record the end time
+        elapsed_time = end_time - start_time
 
-                # Save walk and neighbours arrays in the sample folder
-                save_path = os.path.join(
-                    sample_folder, f"walk_neighbours_{ctr + 1}.npz"
-                )
-                np.savez(save_path, walk=walk, neighbours=neighbours)
-
-                print(
-                    "Generated RW {} of {} (for this sample).".format(
-                        ctr + 1,
-                        len(starting_zones),
-                    )
-                )
-
-            # Record elapsed time and print.
-            end_time = time.time()
-            elapsed_time = end_time - start_time
-            print(
-                "Generated set of RWs {} of {} in {:.2f} seconds.\n".format(
-                    i + 1, self.num_samples, elapsed_time
-                )
+        print(
+            "Generated Global sample {} of {} in {:.2f} seconds.".format(
+                sample_number, self.num_samples, elapsed_time
             )
+        )
 
-    def generate_global_samples(self, method="lhs.scipy"):
+    def generate_all_global_samples(self):
         """
         Generate a LHS sample on the unit hypercube.
         """
-
-        # Split the method string to extract the method name
-        method_parts = method.split(".")
-        if len(method_parts) == 2:
-            method_name = method_parts[0]
-            lhs_method_name = method_parts[1]
-        else:
-            method_name = method  # Use the full method string as the method name
 
         print(
             "Generating distributed samples for Global features with the following properties:"
         )
         print("- Num. points: {}".format(self.num_points_glob))
-        print("- Method: {}".format(method))
+        print("- Method: {}".format("lhs.scipy"))
         print("")
 
         for i in range(self.num_samples):
-            start_time = time.time()  # Record the start time
-            if method_name == "lhs":
-                sampler = LatinHypercubeSampling(
-                    criterion="maximin",
-                    iterations=self.iterations_glob,
-                    method=lhs_method_name,
-                )
-            elif method_name == "uniform":
-                sampler = RandomSampling()
-
-            sampler.do(
-                n_samples=self.num_points_glob,
-                x_lower=np.zeros(self.dim),
-                x_upper=np.ones(self.dim),
-            )
-
-            # Save to numpy binary.
-            save_path = os.path.join(self.global_samples_dir, f"lhs_sample_{i + 1}.npz")
-            np.savez(save_path, global_sample=sampler.x)
-            end_time = time.time()  # Record the end time
-            elapsed_time = end_time - start_time
-
-            print(
-                "Generated Global sample {} of {} in {:.2f} seconds.".format(
-                    i + 1, self.num_samples, elapsed_time
-                )
-            )
+            self.generate_single_global_sample(i + 1)
 
     def read_walk_neighbours(self, sample_number, ind_walk_number):
         """
@@ -225,14 +228,14 @@ class PreSampler:
         sample_folder = f"sample{sample_number}"
         sample_path = os.path.join(self.rw_samples_dir, sample_folder)
 
-        if not os.path.exists(sample_path):
-            raise FileNotFoundError(f"Sample folder not found: {sample_path}")
-
         walk_neighbours_file = f"walk_neighbours_{ind_walk_number}.npz"
         file_path = os.path.join(sample_path, walk_neighbours_file)
 
         if not os.path.exists(file_path):
-            raise FileNotFoundError(f"Walk and neighbours file not found: {file_path}")
+            print(
+                f"RW sample no. {sample_number} / walk no. {ind_walk_number} does not exist. Generating..."
+            )
+            return self.generate_single_rw_walk(sample_number, ind_walk_number)
 
         # Load data from the npz file
         data = np.load(file_path)
@@ -255,7 +258,10 @@ class PreSampler:
         file_path = os.path.join(self.global_samples_dir, file_name)
 
         if not os.path.exists(file_path):
-            raise FileNotFoundError(f"Global sample file not found: {file_path}")
+            print(f"Global sample no. {sample_number} does not exist. Generating...")
+            self.generate_single_global_sample(sample_number)
+        else:
+            print(f"Global sample no. {sample_number} does not exist. Generating...")
 
         # Load data from the npz file
         data = np.load(file_path)
@@ -398,7 +404,7 @@ class PreSampler:
             pop_neighbours_list = pickle.load(file)
 
         print_with_timestamp(
-            f"Walk and neighbours populations for sample {sample_number}, walk {walk_ind_number} loaded from {sample_dir_path}."
+            f"Loaded walk and neighbours populations for sample {sample_number}, walk {walk_ind_number} from {sample_dir_path}."
         )
 
         return pop_walk, pop_neighbours_list

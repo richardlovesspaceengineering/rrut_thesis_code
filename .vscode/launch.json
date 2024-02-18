@@ -26,6 +26,8 @@
             "true", // save results
             "instance_results", 
             "1", // num cores
+            "false",
+            "false"
         ],
         "console": "integratedTerminal",
         "cwd": "C:/Users/richa/Documents/Thesis/rrut_thesis_code/ISA-CMOP_Python",

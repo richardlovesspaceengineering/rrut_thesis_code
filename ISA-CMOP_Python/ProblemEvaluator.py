@@ -70,7 +70,9 @@ def init_pool():
 
 
 class ProblemEvaluator:
-    def __init__(self, instance, instance_name, mode, results_dir, num_cores):
+    def __init__(
+        self, instance, instance_name, mode, results_dir, num_cores, regen_problems
+    ):
         """
         Possible modes are eval and debug.
         """
@@ -90,6 +92,10 @@ class ProblemEvaluator:
         # Gmail account credentials for email updates.
         self.gmail_user = "rrutthesisupdates@gmail.com"  # Your full Gmail address
         self.gmail_app_password = "binsjoipgwzyszxe "  # Your generated App Password
+
+        # Should we re-evaluate pops again?
+        self.rw_reeval = regen_problems
+        self.global_reeval = regen_problems
 
     def send_update_email(self, subject, body=""):
         # Only send in eval mode.
@@ -163,11 +169,6 @@ class ProblemEvaluator:
             self.num_processes_global = min(num_cores, num_samples)
 
             # After everything is run, print the number of cores allocated for each process
-
-    def initialize_reevaluation_state(self, pre_sampler):
-        # Check to see if rw_populations have already been evaluated.
-        self.rw_reeval = not pre_sampler.check_rw_preeval_pops()
-        self.global_reeval = not pre_sampler.check_global_preeval_pops()
 
     def send_initialisation_email(self):
         # Summarize the core allocation
@@ -302,6 +303,31 @@ class ProblemEvaluator:
 
         return pop_global
 
+    def get_global_pop(self, pre_sampler, problem, sample_number):
+
+        # Flag for whether we should manually generate new populations.
+        continue_generation = True
+
+        if not self.global_reeval:
+            try:
+                # Attempting to use pre-evaluated populations.
+                pop_global = pre_sampler.load_global_population(sample_number)
+                # If loading is successful, no need to generate a new population.
+                continue_generation = False
+            except FileNotFoundError:
+                print(
+                    f"Global population for sample {sample_number} not found. Generating new population."
+                )
+
+        if continue_generation:
+            global_sample = pre_sampler.read_global_sample(sample_number)
+            pop_global = self.generate_global_population(
+                problem, global_sample, eval_fronts=True
+            )
+            pre_sampler.save_global_population(pop_global, sample_number)
+
+        return pop_global
+
     @handle_ctrl_c
     def eval_single_sample_global_features_norm(self, args):
         i, pre_sampler, problem, variables = args
@@ -312,18 +338,7 @@ class ProblemEvaluator:
         }
         min_values_array = max_values_array
 
-        # Load the pre-generated sample.
-        global_sample = pre_sampler.read_global_sample(i + 1)
-
-        if not self.global_reeval:
-            # Using pre-evaluated populations.
-            pop_global = pre_sampler.load_global_population(i + 1)
-
-        else:
-            pop_global = self.generate_global_population(
-                problem, global_sample, eval_fronts=True
-            )
-            pre_sampler.save_global_population(pop_global, i + 1)
+        pop_global = self.get_global_pop(pre_sampler, problem, i + 1)
 
         # Loop over each variable.
         for which_variable in variables:
@@ -340,7 +355,6 @@ class ProblemEvaluator:
             max_values_array[which_variable] = np.vstack(
                 (max_values_array[which_variable], fmax)
             )
-
         return min_values_array, max_values_array
 
     def compute_global_normalisation_values(self, pre_sampler, problem):
@@ -393,6 +407,37 @@ class ProblemEvaluator:
             )
         return normalisation_values
 
+    def get_rw_pop(self, pre_sampler, problem, sample_number, walk_number):
+
+        # Flag for whether we should manually generate new populations.
+        continue_generation = True
+
+        if not self.rw_reeval:
+            try:
+                # Attempt to use pre-generated samples.
+                pop_walk, pop_neighbours_list = pre_sampler.load_walk_neig_population(
+                    sample_number, walk_number
+                )
+                # If loading is successful, skip the generation and saving process.
+                continue_generation = False
+            except FileNotFoundError:
+                print(
+                    f"Generating RW pop no. {sample_number} / walk no. {walk_number} as it was not found."
+                )
+
+        if continue_generation:
+            walk, neighbours = pre_sampler.read_walk_neighbours(
+                sample_number, walk_number
+            )
+            pop_walk, pop_neighbours_list = self.generate_walk_neig_populations(
+                problem, walk, neighbours, eval_fronts=True
+            )
+            pre_sampler.save_walk_neig_population(
+                pop_walk, pop_neighbours_list, sample_number, walk_number
+            )
+
+        return pop_walk, pop_neighbours_list
+
     @handle_ctrl_c
     def process_rw_sample_norm(self, args):
         variables = ["var", "obj", "cv"]
@@ -407,20 +452,9 @@ class ProblemEvaluator:
 
         for j in range(pre_sampler.dim):
 
-            if not self.rw_reeval:
-                # Using pre-generated samples.
-                pop_walk, pop_neighbours_list = pre_sampler.load_walk_neig_population(
-                    i + 1, j + 1
-                )
-            else:
-                walk, neighbours = pre_sampler.read_walk_neighbours(i + 1, j + 1)
-
-                pop_walk, pop_neighbours_list = self.generate_walk_neig_populations(
-                    problem, walk, neighbours, eval_fronts=True
-                )
-                pre_sampler.save_walk_neig_population(
-                    pop_walk, pop_neighbours_list, i + 1, j + 1
-                )
+            pop_walk, pop_neighbours_list = self.get_rw_pop(
+                pre_sampler, problem, i + 1, j + 1
+            )
 
             for which_variable in variables:
                 combined_array = combine_arrays_for_pops(
@@ -755,13 +789,7 @@ class ProblemEvaluator:
 
         return aw_analysis_all_samples
 
-    def do(self, num_samples, save_arrays):
-        print(
-            "\n------------------------ Evaluating instance: "
-            + self.instance_name
-            + " ------------------------"
-        )
-
+    def initialize_evaluator(self, num_samples):
         # Load presampler and create directories for populations.
         pre_sampler = self.create_pre_sampler(num_samples)
         pre_sampler.create_pregen_sample_dir()
@@ -770,16 +798,21 @@ class ProblemEvaluator:
         # Define number of cores for multiprocessing.
         self.initialize_number_of_cores(self.num_cores_user_input, num_samples)
 
-        # Define whether we will use pre-saved populations or not.
-        print(
-            "\n~~~~~~~~~~~~ Running checks for pre-evaluated populations. ~~~~~~~~~~~~ "
-        )
-        self.initialize_reevaluation_state(pre_sampler)
-
         self.send_initialisation_email()
 
         # Initialise PF text file.
         self.initialise_pf(self.instance)
+
+        return pre_sampler
+
+    def do(self, num_samples, save_arrays):
+        print(
+            "\n------------------------ Evaluating instance: "
+            + self.instance_name
+            + " ------------------------"
+        )
+
+        pre_sampler = self.initialize_evaluator(num_samples)
 
         # RW Analysis.
         print(
@@ -848,6 +881,48 @@ class ProblemEvaluator:
         )
 
         self.send_update_email(f"COMPLETED RUN OF {self.instance_name}.")
+
+    def run_populations(self, num_samples):
+        """
+        Evaluate populations for the problem first to cut down on CPU overhead later.
+        """
+        print(
+            "\n------------------------ Evaluating instance: "
+            + self.instance_name
+            + " ------------------------"
+        )
+
+        pre_sampler = self.initialize_evaluator(num_samples)
+
+        # RW Analysis.
+        print(
+            " \n ~~~~~~~~~~~~ RW Populations for "
+            + self.instance_name
+            + " ~~~~~~~~~~~~ \n"
+        )
+
+        with multiprocessing.Pool(self.num_processes_rw, initializer=init_pool) as pool:
+            args_list = [
+                (i, pre_sampler, self.instance) for i in range(pre_sampler.num_samples)
+            ]
+
+            results = pool.map(self.process_rw_sample_norm, args_list)
+            if any(map(lambda x: isinstance(x, KeyboardInterrupt), results)):
+                print("Ctrl-C was entered.")
+
+        # Global Analysis.
+        print(
+            " \n ~~~~~~~~~~~~ Global Populations for "
+            + self.instance_name
+            + " ~~~~~~~~~~~~ \n"
+        )
+
+        global_features = self.do_global_analysis(
+            self.instance, pre_sampler, num_samples
+        )
+        global_features.export_unaggregated_features(
+            self.instance_name, "glob", save_arrays
+        )
 
     def append_dataframe_to_csv(
         self,

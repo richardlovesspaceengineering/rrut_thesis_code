@@ -83,9 +83,9 @@ def generate_instance(problem_name, n_var):
 
 
 def main():
-    if len(sys.argv) != 8:
+    if len(sys.argv) != 10:
         print(
-            "Usage: python runner.py problem_name n_dimensions num_samples mode save_features_array results_dir num_cores"
+            "Usage: python runner.py problem_name n_dimensions num_samples mode save_features_array results_dir num_cores run_populations_only regen_pops"
         )
         return
 
@@ -101,9 +101,29 @@ def main():
     else:
         save_arrays = False
 
+    if sys.argv[8].lower() == "true":
+        run_populations_only = True
+    else:
+        run_populations_only = False
+
+    if sys.argv[9].lower() == "true":
+        reeval_pops = True
+    else:
+        reeval_pops = False
+
     problem, instance_string = generate_instance(problem_name, n_var)
-    evaluator = ProblemEvaluator(problem, instance_string, mode, results_dir, num_cores)
-    evaluator.do(num_samples, save_arrays)
+    evaluator = ProblemEvaluator(
+        problem, instance_string, mode, results_dir, num_cores, reeval_pops
+    )
+
+    if run_populations_only:
+
+        # Just run populations calculations to reduce computational time.
+        evaluator.run_populations(num_samples)
+    else:
+
+        # Full evaluation.
+        evaluator.do(num_samples, save_arrays)
 
 
 if __name__ == "__main__":
