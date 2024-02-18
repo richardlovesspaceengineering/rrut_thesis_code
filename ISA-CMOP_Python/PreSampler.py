@@ -117,7 +117,10 @@ class PreSampler:
         # Save walk and neighbours arrays in the sample folder
         # Create a folder for each sample
         sample_folder = os.path.join(self.rw_samples_dir, f"sample{sample_number}")
-        os.makedirs(sample_folder, exist_ok=True)
+
+        if not os.path.exists(sample_folder):
+            os.makedirs(sample_folder, exist_ok=True)
+
         save_path = os.path.join(
             sample_folder, f"walk_neighbours_{ind_walk_number}.npz"
         )
@@ -260,12 +263,13 @@ class PreSampler:
         if not os.path.exists(file_path):
             print(f"Global sample no. {sample_number} does not exist. Generating...")
             self.generate_single_global_sample(sample_number)
-        else:
-            print(f"Global sample no. {sample_number} does not exist. Generating...")
 
         # Load data from the npz file
         data = np.load(file_path)
         global_sample = data["global_sample"]
+        print(
+            f"Global sample size for {self.dim}d, no. {sample_number}: {global_sample.shape[0]}"
+        )
 
         return global_sample
 
@@ -297,7 +301,7 @@ class PreSampler:
             pop_global = pickle.load(file)
 
         print_with_timestamp(
-            f"Global population for sample {sample_number} loaded from {file_path}."
+            f"Global population for sample {sample_number} loaded from {file_path}. Length: {len(pop_global)}"
         )
 
         return pop_global
