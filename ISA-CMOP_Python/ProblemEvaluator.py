@@ -82,7 +82,6 @@ class ProblemEvaluator:
         self.global_normalisation_values = {}
         self.results_dir = results_dir
         self.csv_filename = results_dir + "/features.csv"
-        self.pops_dir = "/evaluated_pops"
         self.num_cores_user_input = num_cores
         print("Initialising evaluator in {} mode.".format(self.mode))
 
@@ -298,10 +297,11 @@ class ProblemEvaluator:
         # Load the pre-generated sample.
         global_sample = pre_sampler.read_global_sample(i + 1)
 
-        # Create population and evaluate.
+        # Create population and evaluate. Then save for future use.
         pop_global = self.generate_global_population(
-            problem, global_sample, eval_fronts=False
+            problem, global_sample, eval_fronts=True
         )
+        pre_sampler.save_global_population(pop_global, i + 1)
 
         # Loop over each variable.
         for which_variable in variables:
@@ -386,7 +386,10 @@ class ProblemEvaluator:
         for j in range(pre_sampler.dim):
             walk, neighbours = pre_sampler.read_walk_neighbours(i + 1, j + 1)
             pop_walk, pop_neighbours_list = self.generate_walk_neig_populations(
-                problem, walk, neighbours, eval_fronts=False
+                problem, walk, neighbours, eval_fronts=True
+            )
+            pre_sampler.save_walk_neig_population(
+                pop_walk, pop_neighbours_list, i + 1, j + 1
             )
 
             for which_variable in variables:
@@ -464,10 +467,9 @@ class ProblemEvaluator:
                 self.walk_normalisation_values, self.results_dir
             )
 
-            walk, neighbours = pre_sampler.read_walk_neighbours(i + 1, j + 1)
-
-            pop_walk, pop_neighbours_list = self.generate_walk_neig_populations(
-                problem, walk, neighbours, adaptive_walk=False
+            # We already evaluated the populations when we computed the norms.
+            pop_walk, pop_neighbours_list = pre_sampler.load_walk_neig_population(
+                i + 1, j + 1
             )
             rw_analysis.eval_features(pop_walk, pop_neighbours_list)
 
@@ -528,11 +530,8 @@ class ProblemEvaluator:
             self.global_normalisation_values, self.results_dir
         )
 
-        # Load the pre-generated sample.
-        global_sample = pre_sampler.read_global_sample(i + 1)
-
-        # Create population and evaluate.
-        pop_global = self.generate_global_population(problem, global_sample)
+        # We already evaluated the populations when we computed the norms.
+        pop_global = pre_sampler.load_global_population(i + 1)
 
         # Pass to Analysis class for evaluation.
         global_analysis.eval_features(pop_global)
@@ -733,8 +732,10 @@ class ProblemEvaluator:
             + " ------------------------"
         )
 
-        # Load presampler.
+        # Load presampler and create temporary directories for populations.
         pre_sampler = self.create_pre_sampler(num_samples)
+        pre_sampler.create_pregen_sample_dir()
+        pre_sampler.create_pops_dir(self.instance_name)
 
         self.initialize_number_of_cores(self.num_cores_user_input, num_samples)
 

@@ -3,11 +3,14 @@ from optimisation.operators.sampling.latin_hypercube_sampling import (
     LatinHypercubeSampling,
 )
 from optimisation.operators.sampling.random_sampling import RandomSampling
+from features.feature_helpers import print_with_timestamp
 import time
 import math
 import numpy as np
 import os
 import sys
+import shutil
+import pickle
 
 
 class PreSampler:
@@ -15,7 +18,6 @@ class PreSampler:
         self.dim = dim
         self.num_samples = num_samples
         self.mode = mode
-        self.create_pregen_sample_dir()
         self.save_experimental_setup()
 
     def save_experimental_setup(self):
@@ -50,14 +52,39 @@ class PreSampler:
                 os.makedirs(directory)
 
         # Create subdirectory for the specific dimension inside the "rw" directory
-        self.rw_dim_subdirectory = os.path.join(rw_dir, f"{self.dim}d")
-        if not os.path.exists(self.rw_dim_subdirectory):
-            os.makedirs(self.rw_dim_subdirectory)
+        self.rw_samples_dir = os.path.join(rw_dir, f"{self.dim}d")
+        if not os.path.exists(self.rw_samples_dir):
+            os.makedirs(self.rw_samples_dir)
 
         # Create subdirectory for the specific dimension inside the "global" directory
-        self.global_dim_subdirectory = os.path.join(global_dir, f"{self.dim}d")
-        if not os.path.exists(self.global_dim_subdirectory):
-            os.makedirs(self.global_dim_subdirectory)
+        self.global_samples_dir = os.path.join(global_dir, f"{self.dim}d")
+        if not os.path.exists(self.global_samples_dir):
+            os.makedirs(self.global_samples_dir)
+
+    def create_pops_dir(self, problem_name, reeval_pops=False):
+        pops_dir = "../evaluated_pops"
+        dirs_to_create = ["global", "rw"]
+
+        for dir_name in dirs_to_create:
+            dir_path = os.path.join(pops_dir, problem_name, self.mode, dir_name)
+
+            # Remove the directory if it exists and reeval_pops is True
+            if os.path.exists(dir_path) and reeval_pops:
+                shutil.rmtree(dir_path)
+                print(f"Cleaning directory at: {dir_path} since reval_pops=True.")
+
+            # Create the directory if not exists or after removal
+            os.makedirs(dir_path, exist_ok=True)
+
+            # Save the directory paths to instance variables for later use
+            if dir_name == "global":
+                self.global_pop_dir = dir_path
+            elif dir_name == "rw":
+                self.rw_pop_dir = dir_path
+
+        print(
+            f"Directories created or refreshed:\nGlobal: {self.global_pop_dir}\nRW: {self.rw_pop_dir}"
+        )
 
     def generate_binary_patterns(self):
         """
@@ -102,7 +129,7 @@ class PreSampler:
             start_time = time.time()  # Record the start time for this sample
 
             # Create a folder for each sample
-            sample_folder = os.path.join(self.rw_dim_subdirectory, f"sample{i + 1}")
+            sample_folder = os.path.join(self.rw_samples_dir, f"sample{i + 1}")
             os.makedirs(sample_folder, exist_ok=True)
 
             for ctr, starting_zone in enumerate(starting_zones):
@@ -174,9 +201,7 @@ class PreSampler:
             )
 
             # Save to numpy binary.
-            save_path = os.path.join(
-                self.global_dim_subdirectory, f"lhs_sample_{i + 1}.npz"
-            )
+            save_path = os.path.join(self.global_samples_dir, f"lhs_sample_{i + 1}.npz")
             np.savez(save_path, global_sample=sampler.x)
             end_time = time.time()  # Record the end time
             elapsed_time = end_time - start_time
@@ -198,7 +223,7 @@ class PreSampler:
         - Tuple containing the walk array and neighbours array.
         """
         sample_folder = f"sample{sample_number}"
-        sample_path = os.path.join(self.rw_dim_subdirectory, sample_folder)
+        sample_path = os.path.join(self.rw_samples_dir, sample_folder)
 
         if not os.path.exists(sample_path):
             raise FileNotFoundError(f"Sample folder not found: {sample_path}")
@@ -227,7 +252,7 @@ class PreSampler:
         - Array containing the global sample.
         """
         file_name = f"lhs_sample_{sample_number}.npz"
-        file_path = os.path.join(self.global_dim_subdirectory, file_name)
+        file_path = os.path.join(self.global_samples_dir, file_name)
 
         if not os.path.exists(file_path):
             raise FileNotFoundError(f"Global sample file not found: {file_path}")
@@ -237,6 +262,106 @@ class PreSampler:
         global_sample = data["global_sample"]
 
         return global_sample
+
+    def save_global_population(self, pop_global, sample_number):
+
+        # Ensure the "global" directory exists
+        if not os.path.exists(self.global_pop_dir):
+            os.makedirs(self.global_pop_dir, exist_ok=True)
+
+        # Define the path for the file to save the global population
+        file_path = os.path.join(self.global_pop_dir, f"pop_global_{sample_number}.pkl")
+
+        # Save the `pop_global` object to the file
+        with open(file_path, "wb") as file:
+            pickle.dump(pop_global, file)
+
+        print(f"Global population for sample {sample_number} saved to {file_path}.")
+
+    def load_global_population(self, sample_number):
+        # Path for the file from which to load the global population
+        file_path = os.path.join(self.global_pop_dir, f"pop_global_{sample_number}.pkl")
+
+        # Check if the file exists
+        if not os.path.exists(file_path):
+            raise FileNotFoundError(
+                f"No saved global population found for sample {sample_number} at {file_path}"
+            )
+
+        # Load and return the `pop_global` object from the file
+        with open(file_path, "rb") as file:
+            pop_global = pickle.load(file)
+
+        print_with_timestamp(
+            f"Global population for sample {sample_number} loaded from {file_path}."
+        )
+
+        return pop_global
+
+    def save_walk_neig_population(
+        self, pop_walk, pop_neighbours_list, sample_number, walk_ind_number
+    ):
+
+        # Path for the specific sample directory within the "rw" directory
+        sample_dir_path = os.path.join(self.rw_pop_dir, f"sample{sample_number}")
+
+        # Ensure the sample directory exists
+        if not os.path.exists(sample_dir_path):
+            os.makedirs(sample_dir_path, exist_ok=True)
+
+        # Define the file paths for the walk and neighbors populations within the sample directory
+        walk_file_path = os.path.join(
+            sample_dir_path, f"pop_walk_{walk_ind_number}.pkl"
+        )
+        neighbours_file_path = os.path.join(
+            sample_dir_path, f"pop_neighbours_list_{walk_ind_number}.pkl"
+        )
+
+        # Save the `pop_walk` object to its file
+        with open(walk_file_path, "wb") as file:
+            pickle.dump(pop_walk, file)
+
+        # Save the `pop_neighbours_list` object to its file
+        with open(neighbours_file_path, "wb") as file:
+            pickle.dump(pop_neighbours_list, file)
+
+        print(
+            f"Walk and neighbours populations for sample {sample_number}, walk {walk_ind_number} saved in {sample_dir_path}."
+        )
+
+    def load_walk_neig_population(self, sample_number, walk_ind_number):
+        # Path for the specific sample directory within the "rw" directory
+        sample_dir_path = os.path.join(self.rw_pop_dir, f"sample{sample_number}")
+
+        # Define the file paths for the walk and neighbors populations within the sample directory
+        walk_file_path = os.path.join(
+            sample_dir_path, f"pop_walk_{walk_ind_number}.pkl"
+        )
+        neighbours_file_path = os.path.join(
+            sample_dir_path, f"pop_neighbours_list_{walk_ind_number}.pkl"
+        )
+
+        # Check if the files exist and raise an error if not
+        if not os.path.exists(walk_file_path) or not os.path.exists(
+            neighbours_file_path
+        ):
+            raise FileNotFoundError(
+                f"Files for sample {sample_number}, walk {walk_ind_number} not found in {sample_dir_path}"
+            )
+
+        # Load the `pop_walk` object from its file
+        with open(walk_file_path, "rb") as file:
+            pop_walk = pickle.load(file)
+
+        # Load the `pop_neighbours_list` object from its file
+        with open(neighbours_file_path, "rb") as file:
+            pop_neighbours_list = pickle.load(file)
+
+        print_with_timestamp(
+            f"Walk and neighbours populations for sample {sample_number}, walk {walk_ind_number} loaded from {sample_dir_path}."
+        )
+
+        return pop_walk, pop_neighbours_list
 
 
 def main():
