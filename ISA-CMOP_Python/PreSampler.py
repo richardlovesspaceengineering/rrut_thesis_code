@@ -61,7 +61,7 @@ class PreSampler:
         if not os.path.exists(self.global_samples_dir):
             os.makedirs(self.global_samples_dir)
 
-    def create_pops_dir(self, problem_name, reeval_pops=False):
+    def create_pops_dir(self, problem_name):
         pops_dir = "../evaluated_pops"
         dirs_to_create = ["global", "rw"]
 
@@ -69,9 +69,9 @@ class PreSampler:
             dir_path = os.path.join(pops_dir, problem_name, self.mode, dir_name)
 
             # Remove the directory if it exists and reeval_pops is True
-            if os.path.exists(dir_path) and reeval_pops:
-                shutil.rmtree(dir_path)
-                print(f"Cleaning directory at: {dir_path} since reval_pops=True.")
+            # if os.path.exists(dir_path) and reeval_pops:
+            #     shutil.rmtree(dir_path)
+            #     print(f"Cleaning directory at: {dir_path} since reval_pops=True.")
 
             # Create the directory if not exists or after removal
             os.makedirs(dir_path, exist_ok=True)
@@ -276,8 +276,6 @@ class PreSampler:
         with open(file_path, "wb") as file:
             pickle.dump(pop_global, file)
 
-        print(f"Global population for sample {sample_number} saved to {file_path}.")
-
     def load_global_population(self, sample_number):
         # Path for the file from which to load the global population
         file_path = os.path.join(self.global_pop_dir, f"pop_global_{sample_number}.pkl")
@@ -297,6 +295,52 @@ class PreSampler:
         )
 
         return pop_global
+
+    def check_pop_size(self, file_path, expected_length):
+        with open(file_path, "rb") as file:
+            pop = pickle.load(file)
+            if len(pop) != expected_length:
+                print(
+                    f"Population does not contain the expected number of rows ({expected_length}). Found {len(pop)}."
+                )
+                return False
+            else:
+                return True
+
+    def check_global_preeval_pops(self):
+
+        print(
+            "\nChecking if global populations have already been evaluated for this problem instance."
+        )
+
+        # Check 1: Folder exists
+        if not os.path.exists(self.global_pop_dir):
+            print("Global pre-eval pops folder does not exist.")
+            return False
+
+        # Check 2: Correct number of files
+        files = [
+            f
+            for f in os.listdir(self.global_pop_dir)
+            if os.path.isfile(os.path.join(self.global_pop_dir, f))
+        ]
+        if len(files) < self.num_samples:
+            print(
+                f"Folder does not contain enough sample files to generate all samples ({self.num_samples}). Found {len(files)} files."
+            )
+            return False
+
+        # Check 3: Each file has correct number of points
+        for i, file_name in enumerate(files):
+            file_path = os.path.join(self.global_pop_dir, file_name)
+            if not self.check_pop_size(file_path, self.num_points_glob):
+                print(
+                    f"Population {i + 1} does not contain the expected number of rows ({self.num_points_glob}). Found {len()}."
+                )
+                return False
+
+        print("All global checks passed successfully.")
+        return True
 
     def save_walk_neig_population(
         self, pop_walk, pop_neighbours_list, sample_number, walk_ind_number
@@ -324,10 +368,6 @@ class PreSampler:
         # Save the `pop_neighbours_list` object to its file
         with open(neighbours_file_path, "wb") as file:
             pickle.dump(pop_neighbours_list, file)
-
-        print(
-            f"Walk and neighbours populations for sample {sample_number}, walk {walk_ind_number} saved in {sample_dir_path}."
-        )
 
     def load_walk_neig_population(self, sample_number, walk_ind_number):
         # Path for the specific sample directory within the "rw" directory
@@ -362,6 +402,49 @@ class PreSampler:
         )
 
         return pop_walk, pop_neighbours_list
+
+    def check_rw_preeval_pops(self):
+
+        print(
+            "\nChecking if global populations have already been evaluated for this problem instance."
+        )
+
+        # Check 1: RW directory exists
+        if not os.path.exists(self.rw_pop_dir):
+            print("RW pre-eval pops folder does not exist.")
+            return False
+
+        for sample_number in range(1, self.num_samples + 1):
+            sample_dir_path = os.path.join(self.rw_pop_dir, f"sample{sample_number}")
+            # Check 2: Sample directory exists
+            if not os.path.exists(sample_dir_path):
+                print(f"Sample directory {sample_dir_path} does not exist.")
+                return False
+
+            # Loop through each of the walks (there are n of them per sample)
+            for walk_ind_number in range(1, self.dim + 1):
+                walk_file_path = os.path.join(
+                    sample_dir_path, f"pop_walk_{walk_ind_number}.pkl"
+                )
+                neighbours_file_path = os.path.join(
+                    sample_dir_path, f"pop_neighbours_list_{walk_ind_number}.pkl"
+                )
+
+                # Check 3: Walk and neighbours files exist
+                if not os.path.isfile(walk_file_path) or not os.path.isfile(
+                    neighbours_file_path
+                ):
+                    print(
+                        f"Missing files for sample {sample_number}, walk {walk_ind_number}."
+                    )
+                    return False
+
+                # Check 4: walk sizes are correct.
+                if not self.check_pop_size(walk_file_path, self.num_steps_rw):
+                    return False
+
+        print("All checks passed successfully for RW populations.")
+        return True
 
 
 def main():

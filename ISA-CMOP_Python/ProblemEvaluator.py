@@ -80,6 +80,8 @@ class ProblemEvaluator:
         self.mode = mode
         self.walk_normalisation_values = {}
         self.global_normalisation_values = {}
+
+        # flag for re-evaluating populations or using pre-saved values.
         self.results_dir = results_dir
         self.csv_filename = results_dir + "/features.csv"
         self.num_cores_user_input = num_cores
@@ -162,17 +164,33 @@ class ProblemEvaluator:
 
             # After everything is run, print the number of cores allocated for each process
 
+    def initialize_reevaluation_state(self, pre_sampler):
+        # Check to see if rw_populations have already been evaluated.
+        self.rw_reeval = not pre_sampler.check_rw_preeval_pops()
+        self.global_reeval = not pre_sampler.check_global_preeval_pops()
+
+    def send_initialisation_email(self):
+        # Summarize the core allocation
         cores_summary = textwrap.dedent(
             f"""
         Summary of cores allocation (have taken the minimum of num_samples and num_cores except for larger-dimension global cases):
         RW processes will use {self.num_processes_rw} cores.
         AW processes will use {self.num_processes_aw} cores.
-        Global processes will use {self.num_processes_global} cores."""
+        Global processes will use {self.num_processes_global} cores.
+        """
         )
-        print(cores_summary)
 
+        # Add the reevaluation state
+        reeval_summary = f"RW reevaluation state: {'Enabled' if self.rw_reeval else 'Disabled'}.\nGlobal reevaluation state: {'Enabled' if self.global_reeval else 'Disabled'}."
+
+        # Combine the summaries
+        full_summary = cores_summary + "\n" + reeval_summary
+
+        print(full_summary)
+
+        # Assuming send_update_email is a method defined elsewhere in your class that sends an email
         self.send_update_email(
-            f"STARTED RUN OF {self.instance_name}.", body=cores_summary
+            f"STARTED RUN OF {self.instance_name}.", body=full_summary
         )
 
     def create_pre_sampler(self, num_samples):
@@ -297,11 +315,15 @@ class ProblemEvaluator:
         # Load the pre-generated sample.
         global_sample = pre_sampler.read_global_sample(i + 1)
 
-        # Create population and evaluate. Then save for future use.
-        pop_global = self.generate_global_population(
-            problem, global_sample, eval_fronts=True
-        )
-        pre_sampler.save_global_population(pop_global, i + 1)
+        if not self.global_reeval:
+            # Using pre-evaluated populations.
+            pop_global = pre_sampler.load_global_population(i + 1)
+
+        else:
+            pop_global = self.generate_global_population(
+                problem, global_sample, eval_fronts=True
+            )
+            pre_sampler.save_global_population(pop_global, i + 1)
 
         # Loop over each variable.
         for which_variable in variables:
@@ -384,13 +406,21 @@ class ProblemEvaluator:
         min_values_array = max_values_array
 
         for j in range(pre_sampler.dim):
-            walk, neighbours = pre_sampler.read_walk_neighbours(i + 1, j + 1)
-            pop_walk, pop_neighbours_list = self.generate_walk_neig_populations(
-                problem, walk, neighbours, eval_fronts=True
-            )
-            pre_sampler.save_walk_neig_population(
-                pop_walk, pop_neighbours_list, i + 1, j + 1
-            )
+
+            if not self.rw_reeval:
+                # Using pre-generated samples.
+                pop_walk, pop_neighbours_list = pre_sampler.load_walk_neig_population(
+                    i + 1, j + 1
+                )
+            else:
+                walk, neighbours = pre_sampler.read_walk_neighbours(i + 1, j + 1)
+
+                pop_walk, pop_neighbours_list = self.generate_walk_neig_populations(
+                    problem, walk, neighbours, eval_fronts=True
+                )
+                pre_sampler.save_walk_neig_population(
+                    pop_walk, pop_neighbours_list, i + 1, j + 1
+                )
 
             for which_variable in variables:
                 combined_array = combine_arrays_for_pops(
@@ -490,7 +520,7 @@ class ProblemEvaluator:
         with multiprocessing.Pool(self.num_processes_rw, initializer=init_pool) as pool:
             # Use partial method here.
             print_with_timestamp(
-                "Running parallel computation for RW features with {} processes. \n".format(
+                "\nRunning parallel computation for RW features with {} processes. \n".format(
                     self.num_processes_rw
                 )
             )
@@ -551,7 +581,7 @@ class ProblemEvaluator:
             self.num_processes_global, initializer=init_pool
         ) as pool:
             print_with_timestamp(
-                "Running parallel computation for global features with {} processes. \n".format(
+                "\nRunning parallel computation for global features with {} processes. \n".format(
                     self.num_processes_global
                 )
             )
@@ -686,7 +716,7 @@ class ProblemEvaluator:
 
         with multiprocessing.Pool(self.num_processes_aw, initializer=init_pool) as pool:
             print_with_timestamp(
-                "Running parallel computation for AW features with {} processes. \n".format(
+                "\nRunning parallel computation for AW features with {} processes. \n".format(
                     self.num_processes_aw
                 )
             )
@@ -732,12 +762,21 @@ class ProblemEvaluator:
             + " ------------------------"
         )
 
-        # Load presampler and create temporary directories for populations.
+        # Load presampler and create directories for populations.
         pre_sampler = self.create_pre_sampler(num_samples)
         pre_sampler.create_pregen_sample_dir()
         pre_sampler.create_pops_dir(self.instance_name)
 
+        # Define number of cores for multiprocessing.
         self.initialize_number_of_cores(self.num_cores_user_input, num_samples)
+
+        # Define whether we will use pre-saved populations or not.
+        print(
+            "\n~~~~~~~~~~~~ Running checks for pre-evaluated populations. ~~~~~~~~~~~~ "
+        )
+        self.initialize_reevaluation_state(pre_sampler)
+
+        self.send_initialisation_email()
 
         # Initialise PF text file.
         self.initialise_pf(self.instance)
@@ -748,6 +787,7 @@ class ProblemEvaluator:
             + self.instance_name
             + " ~~~~~~~~~~~~ \n"
         )
+
         rw_features = self.do_random_walk_analysis(
             self.instance,
             pre_sampler,
@@ -761,6 +801,7 @@ class ProblemEvaluator:
             + self.instance_name
             + " ~~~~~~~~~~~~ \n"
         )
+
         global_features = self.do_global_analysis(
             self.instance, pre_sampler, num_samples
         )
