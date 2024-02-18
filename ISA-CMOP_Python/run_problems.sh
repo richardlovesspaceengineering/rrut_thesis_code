@@ -63,20 +63,25 @@ temp_dir=$(mktemp -d -t ci-XXXXXXXXXX --tmpdir="$SCRIPT_PATH")
 echo "New directory: $temp_dir" | tee -a "$log_file"
 
 # Copy framework to temporary directory
-echo "Writing ISA-CMOP_Python to temporary directory. This may take some time if pregenerated samples are being used." | tee -a "$log_file"
+echo "Writing ISA-CMOP_Python to temporary directory." | tee -a "$log_file"
 copy_dir="$SCRIPT_PATH"
 cd_dir="$SCRIPT_PATH"
 cd_dir+="ISA-CMOP_Python/"
 copy_dir+="ISA-CMOP_Python/*"
 cp -R $copy_dir "$temp_dir"
 
+# Assuming temp_populations is a directory inside temp_dir
+temp_pops_dir="${temp_dir}/temp_pops/" # Update this path as needed
+mkdir -p "$temp_pops_dir"
+echo "Created temp_pops_dir directory: $temp_pops_dir"
+
 # Handle CTRL+C event clean up
 trap ctrl_c INT
 function ctrl_c() {
     if [ -d "$temp_dir" ]; then
-        # Clean up temp dir
+        # Clean up temp dir and populations
         rm -rf "$temp_dir"
-        echo "Cleaning up $temp_dir" | tee -a "$log_file"
+        echo "Cleaning up $temp_dir." | tee -a "$log_file"
 
         exit 0
     fi

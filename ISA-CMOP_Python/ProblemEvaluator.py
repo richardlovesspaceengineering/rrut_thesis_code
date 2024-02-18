@@ -5,6 +5,8 @@ import seaborn as sns
 import time
 import os
 import socket
+import pickle
+import textwrap
 
 # User packages.
 from features.feature_helpers import *
@@ -80,6 +82,7 @@ class ProblemEvaluator:
         self.global_normalisation_values = {}
         self.results_dir = results_dir
         self.csv_filename = results_dir + "/features.csv"
+        self.pops_dir = "/evaluated_pops"
         self.num_cores_user_input = num_cores
         print("Initialising evaluator in {} mode.".format(self.mode))
 
@@ -158,13 +161,20 @@ class ProblemEvaluator:
         else:
             self.num_processes_global = min(num_cores, num_samples)
 
-        # After everything is run, print the number of cores allocated for each process
-        print(
-            f"\nSummary of cores allocation (have taken the minimum of num_samples and num_cores except for larger-dimension global cases):"
+            # After everything is run, print the number of cores allocated for each process
+
+        cores_summary = textwrap.dedent(
+            f"""
+        Summary of cores allocation (have taken the minimum of num_samples and num_cores except for larger-dimension global cases):
+        RW processes will use {self.num_processes_rw} cores.
+        AW processes will use {self.num_processes_aw} cores.
+        Global processes will use {self.num_processes_global} cores."""
         )
-        print(f"RW processes will use {self.num_processes_rw} cores.")
-        print(f"AW processes will use {self.num_processes_aw} cores.")
-        print(f"Global processes will use {self.num_processes_global} cores.")
+        print(cores_summary)
+
+        self.send_update_email(
+            f"STARTED RUN OF {self.instance_name}.", body=cores_summary
+        )
 
     def create_pre_sampler(self, num_samples):
         return PreSampler(self.instance.n_var, num_samples, self.mode)
@@ -224,7 +234,12 @@ class ProblemEvaluator:
         return normalisation_values
 
     def generate_walk_neig_populations(
-        self, problem, walk, neighbours, eval_fronts=True, adaptive_walk=False
+        self,
+        problem,
+        walk,
+        neighbours,
+        eval_fronts=True,
+        adaptive_walk=False,
     ):
         # Generate populations for walk and neighbours separately.
         pop_walk = Population(problem, n_individuals=walk.shape[0])
@@ -358,7 +373,9 @@ class ProblemEvaluator:
 
     @handle_ctrl_c
     def process_rw_sample_norm(self, args):
-        i, pre_sampler, problem, variables = args
+        variables = ["var", "obj", "cv"]
+
+        i, pre_sampler, problem = args
         max_values_array = {
             "var": np.empty((0, problem.n_var)),
             "obj": np.empty((0, problem.n_obj)),
@@ -405,8 +422,7 @@ class ProblemEvaluator:
 
         with multiprocessing.Pool(self.num_processes_rw, initializer=init_pool) as pool:
             args_list = [
-                (i, pre_sampler, problem, variables)
-                for i in range(pre_sampler.num_samples)
+                (i, pre_sampler, problem) for i in range(pre_sampler.num_samples)
             ]
 
             results = pool.map(self.process_rw_sample_norm, args_list)
@@ -716,7 +732,6 @@ class ProblemEvaluator:
             + self.instance_name
             + " ------------------------"
         )
-        self.send_update_email(f"STARTED RUN OF {self.instance_name}.")
 
         # Load presampler.
         pre_sampler = self.create_pre_sampler(num_samples)
