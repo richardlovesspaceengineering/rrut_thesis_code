@@ -309,7 +309,6 @@ class ProblemEvaluator:
         pop_global = self.generate_global_population(
             problem, global_sample, eval_fronts
         )
-        pre_sampler.save_global_population(pop_global, sample_number)
 
         return pop_global
 
@@ -404,9 +403,6 @@ class ProblemEvaluator:
         walk, neighbours = pre_sampler.read_walk_neighbours(sample_number, walk_number)
         pop_walk, pop_neighbours_list = self.generate_walk_neig_populations(
             problem, walk, neighbours, eval_fronts
-        )
-        pre_sampler.save_walk_neig_population(
-            pop_walk, pop_neighbours_list, sample_number, walk_number
         )
 
         return pop_walk, pop_neighbours_list
