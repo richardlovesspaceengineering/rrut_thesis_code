@@ -20,8 +20,8 @@ dimensions=(5 10 15 20 30)
 num_samples=30
 
 # Modes are debug or eval.
-mode="eval"
-# mode="debug"
+# mode="eval"
+mode="debug"
 
 # Use pre-generated samples?
 regenerate_samples=false #@JUAN set to true if you need to generate/can't see the pregen_samples folder as a sibling folder.
@@ -47,6 +47,8 @@ echo -e "Experimental setup:\n$desc_msg\n" | tee -a "$log_file"
 
 # Get hostname
 pc1="megatron"
+pc2="richards-air.staff.sydney.edu.au"
+pc3="Richards-MacBook-Air.local"
 host="$(hostname)"
 echo "Host is: $host" | tee -a "$log_file"
 
@@ -54,7 +56,12 @@ echo "Host is: $host" | tee -a "$log_file"
 if [[ "$host" == *"$pc1"* ]]; then # megatrons
   PYTHON_SCRIPT="/home/kj66/Documents/Richard/venv/bin/python3"
   SCRIPT_PATH="/home/kj66/Documents/Richard/rrut_thesis_code/"
-  num_cores=10 # @JUAN NEED TO SPECIFY.
+  num_cores=30 # will revert to lower values.
+elif [[ "$host" == *"$pc2"* ]] || [[ "$host" == *"$pc3"* ]]; then
+  # This checks if $host matches $pc2 or $pc3
+  PYTHON_SCRIPT="$HOME/anaconda3/envs/thesis_env_py3.8/bin/python"
+  SCRIPT_PATH="/Users/richardrutherford/Documents/Thesis Code/rrut_thesis_code/"
+  num_cores=3 # Specify the number of cores for pc2 or pc3
 else # richard's pc
   PYTHON_SCRIPT="C:/Users/richa/anaconda3/envs/thesis_env_windows/python.exe"
   SCRIPT_PATH="C:/Users/richa/Documents/Thesis/rrut_thesis_code/"
@@ -74,21 +81,33 @@ cd_dir+="ISA-CMOP_Python/"
 copy_dir+="ISA-CMOP_Python/*"
 cp -R $copy_dir "$temp_dir"
 
-# Assuming temp_populations is a directory inside temp_dir
-temp_pops_dir="${temp_dir}/temp_pops/" # Update this path as needed
+# Create sibling temp_pops directory and ensure it's cleaned up properly
+temp_pops_dir="${SCRIPT_PATH}temp_pops"
 mkdir -p "$temp_pops_dir"
-echo "Created temp_pops_dir directory: $temp_pops_dir"
+echo "Created sibling temp_pops directory: $temp_pops_dir"
+
+# Clean up temp_pops at the start (if needed)
+rm -rf "${temp_pops_dir:?}"/*
+echo "Cleaned existing temp_pops contents." | tee -a "$log_file"
 
 # Handle CTRL+C event clean up
 trap ctrl_c INT
 function ctrl_c() {
-    if [ -d "$temp_dir" ]; then
-        # Clean up temp dir and populations
-        rm -rf "$temp_dir"
-        echo "Cleaning up $temp_dir." | tee -a "$log_file"
+    echo "Terminating program..." | tee -a "$log_file"
 
-        exit 0
+    # Clean up temp dir
+    if [ -d "$temp_dir" ]; then
+        rm -rf "$temp_dir"
+        echo "Removed temporary directory: $temp_dir" | tee -a "$log_file"
     fi
+
+    # Clean up temp_pops dir
+    if [ -d "$temp_pops_dir" ]; then
+        rm -rf "$temp_pops_dir"
+        echo "Removed temp_pops directory: $temp_pops_dir" | tee -a "$log_file"
+    fi
+
+    exit 0
 }
 
 
@@ -136,6 +155,11 @@ for dim in "${dimensions[@]}"; do
       echo -e "\nRunning problem: $problem, dimension: $dim" | tee -a "$log_file"  # Print message to the terminal and log file
       # Run runner.py
       "$PYTHON_SCRIPT" -u "$run_dir" "$problem" "$dim" "$num_samples" "$mode" "$save_feature_arrays" "$results_dir" "$num_cores" "$run_populations_only" "$regenerate_pops" 2>&1 | tee -a "$log_file"
+
+      # Clean up temp_pops directory after each problem is run
+      echo "Cleaning temp_pops directory for next run..." | tee -a "$log_file"
+      rm -rf "${temp_pops_dir:?}"/*  # Use :? to prevent disastrous effects if variable is empty or unset
+      echo "temp_pops directory cleaned." | tee -a "$log_file"
     done
 done
 

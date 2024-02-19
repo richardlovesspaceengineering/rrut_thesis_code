@@ -153,8 +153,8 @@ class ProblemEvaluator:
         else:
             # Megatrons. Assumed available RAM of 128 GB.
             self.num_processes_dim_dict = {
-                "15d": 30,
-                "20d": 30,
+                "15d": 15,
+                "20d": 15,
                 "30d": 15,
             }
 
