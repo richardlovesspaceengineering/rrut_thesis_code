@@ -62,14 +62,25 @@ class PreSampler:
             os.makedirs(self.global_samples_dir)
 
     def create_pops_dir(self, problem_name):
-        pops_dir = "../evaluated_pops"
+        pops_dir = "../temp_pops"
+
         dirs_to_create = ["global", "rw"]
+        print(
+            f"Starting the creation process for population directories for problem: {problem_name} in mode: {self.mode}"
+        )
 
         for dir_name in dirs_to_create:
             dir_path = os.path.join(pops_dir, problem_name, self.mode, dir_name)
 
-            # Create the directory if not exists or after removal
-            os.makedirs(dir_path, exist_ok=True)
+            # Check if the directory already exists
+            if not os.path.exists(dir_path):
+                print(f"Directory does not exist and will be created: {dir_path}")
+                os.makedirs(dir_path)
+                print(f"Directory created: {dir_path}")
+            else:
+                print(
+                    f"Directory already exists and does not need to be created: {dir_path}"
+                )
 
             # Save the directory paths to instance variables for later use
             if dir_name == "global":
@@ -78,7 +89,7 @@ class PreSampler:
                 self.rw_pop_dir = dir_path
 
         print(
-            f"Directories created or refreshed:\nGlobal: {self.global_pop_dir}\nRW: {self.rw_pop_dir}"
+            f"Population directories setup complete.\nGlobal population directory: {self.global_pop_dir}\nRW population directory: {self.rw_pop_dir}"
         )
 
     def generate_binary_patterns(self):
