@@ -138,7 +138,6 @@ class ProblemEvaluator:
 
     def initialize_number_of_cores(self, num_cores, num_samples):
         # Number of cores to use for RW.
-        self.num_processes_rw = min(num_cores, num_samples)
         self.num_processes_aw = min(num_cores, num_samples)
 
         # Dictionary mapping dimensions to the number of processes. used only for global eval currently.
@@ -152,8 +151,14 @@ class ProblemEvaluator:
             }
         else:
             # Megatrons. Assumed available RAM of 128 GB.
-            self.num_processes_dim_dict = {
-                "15d": 15,
+            self.num_processes_rw_dict = {
+                "15d": 10,
+                "20d": 10,
+                "30d": 6,
+            }
+
+            self.num_processes_glob_dict = {
+                "15d": 30,
                 "20d": 15,
                 "30d": 15,
             }
@@ -164,11 +169,12 @@ class ProblemEvaluator:
         # Check if the current dimension has a specified number of processes
         if dim_key in self.num_processes_dim_dict:
             # Update num_processes based on the dictionary entry
-            self.num_processes_global = self.num_processes_dim_dict[dim_key]
+            self.num_processes_global = self.num_processes_glob_dict[dim_key]
+            self.num_processes_rw = self.num_processes_rw_dict[dim_key]
         else:
-            self.num_processes_global = min(num_cores, num_samples)
+            self.num_processes_rw = min(num_cores, num_samples)
 
-            # After everything is run, print the number of cores allocated for each process
+        self.num_processes_aw = self.num_processes_global
 
     def send_initialisation_email(self, header):
         # Summarize the core allocation
@@ -723,7 +729,7 @@ class ProblemEvaluator:
         if self.mode == "eval":
             # Experimental setup of Alsouly
             neighbourhood_size = 2 * n_var + 1
-            max_steps = 1000
+            max_steps = 500
             step_size = 0.01  # 1% of the range of the instance domain
 
         elif self.mode == "debug":
