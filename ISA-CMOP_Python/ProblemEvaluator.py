@@ -363,9 +363,6 @@ class ProblemEvaluator:
         return min_values_array, max_values_array
 
     def compute_global_normalisation_values(self, pre_sampler, problem):
-        print_with_timestamp(
-            "Initialising normalisation computations for global samples. This requires full evaluation of the entire sample set and may take some time while still being memory-efficient."
-        )
         norm_start = time.time()
         variables = ["var", "obj", "cv"]
 
@@ -376,6 +373,10 @@ class ProblemEvaluator:
             "cv": np.empty((0, 1)),
         }
         min_values_array = max_values_array
+
+        print_with_timestamp(
+            f"Initialising normalisation computations for global samples with {self.num_processes_global} processes. This requires full evaluation of the entire sample set and may take some time while still being memory-efficient."
+        )
 
         # Can use max amount of cores here since NDSorting does not happen here.
         with multiprocessing.Pool(
@@ -482,9 +483,7 @@ class ProblemEvaluator:
         return min_values_array, max_values_array
 
     def compute_rw_normalisation_values(self, pre_sampler, problem):
-        print_with_timestamp(
-            "Initialising normalisation computations for RW samples. This requires full evaluation of the entire sample set and may take some time while still being memory-efficient."
-        )
+
         norm_start = time.time()
         variables = ["var", "obj", "cv"]
 
@@ -494,6 +493,10 @@ class ProblemEvaluator:
             "cv": np.empty((0, 1)),
         }
         min_values_array = max_values_array
+
+        print_with_timestamp(
+            f"Initialising normalisation computations for RW samples using {self.num_processes_rw} cores. This requires full evaluation of the entire sample set and may take some time while still being memory-efficient."
+        )
 
         with multiprocessing.Pool(self.num_processes_rw, initializer=init_pool) as pool:
             args_list = [
@@ -894,54 +897,54 @@ class ProblemEvaluator:
 
         self.send_update_email(f"COMPLETED RUN OF {self.instance_name}.")
 
-    def run_populations(self, num_samples):
-        """
-        Evaluate populations for the problem first to cut down on CPU overhead later.
-        """
-        print(
-            "\n------------------------ Evaluating instance (POPULATIONS ONLY): "
-            + self.instance_name
-            + " ------------------------"
-        )
+    # def run_populations(self, num_samples):
+    #     """
+    #     Evaluate populations for the problem first to cut down on CPU overhead later.
+    #     """
+    #     print(
+    #         "\n------------------------ Evaluating instance (POPULATIONS ONLY): "
+    #         + self.instance_name
+    #         + " ------------------------"
+    #     )
 
-        pre_sampler = self.initialize_evaluator(num_samples)
+    #     pre_sampler = self.initialize_evaluator(num_samples)
 
-        self.send_initialisation_email(f"STARTED POPS RUN OF {self.instance_name}.")
+    #     self.send_initialisation_email(f"STARTED POPS RUN OF {self.instance_name}.")
 
-        # RW Analysis.
-        print(
-            " \n ~~~~~~~~~~~~ RW Populations for "
-            + self.instance_name
-            + " ~~~~~~~~~~~~ \n"
-        )
+    #     # RW Analysis.
+    #     print(
+    #         " \n ~~~~~~~~~~~~ RW Populations for "
+    #         + self.instance_name
+    #         + " ~~~~~~~~~~~~ \n"
+    #     )
 
-        with multiprocessing.Pool(self.num_processes_rw, initializer=init_pool) as pool:
-            args_list = [
-                (i, pre_sampler, self.instance) for i in range(pre_sampler.num_samples)
-            ]
+    #     with multiprocessing.Pool(self.num_processes_rw, initializer=init_pool) as pool:
+    #         args_list = [
+    #             (i, pre_sampler, self.instance) for i in range(pre_sampler.num_samples)
+    #         ]
 
-            results = pool.map(self.process_rw_sample_norm, args_list)
-            if any(map(lambda x: isinstance(x, KeyboardInterrupt), results)):
-                print("Ctrl-C was entered.")
+    #         results = pool.map(self.process_rw_sample_norm, args_list)
+    #         if any(map(lambda x: isinstance(x, KeyboardInterrupt), results)):
+    #             print("Ctrl-C was entered.")
 
-        # Global Analysis.
-        print(
-            " \n ~~~~~~~~~~~~ Global Populations for "
-            + self.instance_name
-            + " ~~~~~~~~~~~~ \n"
-        )
+    #     # Global Analysis.
+    #     print(
+    #         " \n ~~~~~~~~~~~~ Global Populations for "
+    #         + self.instance_name
+    #         + " ~~~~~~~~~~~~ \n"
+    #     )
 
-        # Can use max amount of cores here since NDSorting does not happen here.
-        with multiprocessing.Pool(self.num_processes_rw, initializer=init_pool) as pool:
-            args_list = [
-                (i, pre_sampler, self.instance) for i in range(pre_sampler.num_samples)
-            ]
+    #     # Can use max amount of cores here since NDSorting does not happen here.
+    #     with multiprocessing.Pool(self.num_processes_rw, initializer=init_pool) as pool:
+    #         args_list = [
+    #             (i, pre_sampler, self.instance) for i in range(pre_sampler.num_samples)
+    #         ]
 
-            results = pool.map(self.eval_single_sample_global_features_norm, args_list)
-            if any(map(lambda x: isinstance(x, KeyboardInterrupt), results)):
-                print("Ctrl-C was entered.")
+    #         results = pool.map(self.eval_single_sample_global_features_norm, args_list)
+    #         if any(map(lambda x: isinstance(x, KeyboardInterrupt), results)):
+    #             print("Ctrl-C was entered.")
 
-        self.send_update_email(f"COMPLETED POPS RUN OF {self.instance_name}.")
+    #     self.send_update_email(f"COMPLETED POPS RUN OF {self.instance_name}.")
 
     def append_dataframe_to_csv(
         self,
