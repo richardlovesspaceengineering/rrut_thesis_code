@@ -6,7 +6,7 @@ from features.Analysis import Analysis, MultipleAnalysis
 import numpy as np
 import pandas as pd
 from scipy.stats import kurtosis, skew, iqr
-from features.feature_helpers import *
+from features.ancillary_functions import *
 from scipy.spatial.distance import pdist, cdist
 from scipy.stats import iqr
 from optimisation.model.population import Population

@@ -9,7 +9,7 @@ import pickle
 import textwrap
 
 # User packages.
-from features.feature_helpers import *
+from features.ancillary_functions import *
 from features.GlobalAnalysis import *
 from features.RandomWalkAnalysis import *
 from features.AdaptiveWalkAnalysis import *
@@ -900,55 +900,6 @@ class ProblemEvaluator:
         )
 
         self.send_update_email(f"COMPLETED RUN OF {self.instance_name}.")
-
-    # def run_populations(self, num_samples):
-    #     """
-    #     Evaluate populations for the problem first to cut down on CPU overhead later.
-    #     """
-    #     print(
-    #         "\n------------------------ Evaluating instance (POPULATIONS ONLY): "
-    #         + self.instance_name
-    #         + " ------------------------"
-    #     )
-
-    #     pre_sampler = self.initialize_evaluator(num_samples)
-
-    #     self.send_initialisation_email(f"STARTED POPS RUN OF {self.instance_name}.")
-
-    #     # RW Analysis.
-    #     print(
-    #         " \n ~~~~~~~~~~~~ RW Populations for "
-    #         + self.instance_name
-    #         + " ~~~~~~~~~~~~ \n"
-    #     )
-
-    #     with multiprocessing.Pool(self.num_processes_rw, initializer=init_pool) as pool:
-    #         args_list = [
-    #             (i, pre_sampler, self.instance) for i in range(pre_sampler.num_samples)
-    #         ]
-
-    #         results = pool.map(self.process_rw_sample_norm, args_list)
-    #         if any(map(lambda x: isinstance(x, KeyboardInterrupt), results)):
-    #             print("Ctrl-C was entered.")
-
-    #     # Global Analysis.
-    #     print(
-    #         " \n ~~~~~~~~~~~~ Global Populations for "
-    #         + self.instance_name
-    #         + " ~~~~~~~~~~~~ \n"
-    #     )
-
-    #     # Can use max amount of cores here since NDSorting does not happen here.
-    #     with multiprocessing.Pool(self.num_processes_rw, initializer=init_pool) as pool:
-    #         args_list = [
-    #             (i, pre_sampler, self.instance) for i in range(pre_sampler.num_samples)
-    #         ]
-
-    #         results = pool.map(self.eval_single_sample_global_features_norm, args_list)
-    #         if any(map(lambda x: isinstance(x, KeyboardInterrupt), results)):
-    #             print("Ctrl-C was entered.")
-
-    #     self.send_update_email(f"COMPLETED POPS RUN OF {self.instance_name}.")
 
     def append_dataframe_to_csv(
         self,

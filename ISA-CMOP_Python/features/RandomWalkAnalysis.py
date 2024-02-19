@@ -4,10 +4,10 @@ from features.Analysis import Analysis
 from features.GlobalAnalysis import GlobalAnalysis
 import numpy as np
 from scipy.spatial.distance import cdist
-from features.feature_helpers import *
+from features.ancillary_functions import *
 from optimisation.util.calculate_hypervolume import calculate_hypervolume_pygmo
 from optimisation.model.population import Population
-from features.feature_helpers import *
+from features.ancillary_functions import *
 import copy
 import time
 
