@@ -170,8 +170,12 @@ class ProblemEvaluator:
         # Check if the current dimension has a specified number of processes
         if dim_key in self.num_processes_glob_dict:
             # Update num_processes based on the dictionary entry
-            self.num_processes_global = self.num_processes_glob_dict[dim_key]
-            self.num_processes_rw = self.num_processes_rw_dict[dim_key]
+            self.num_processes_global = min(
+                self.num_processes_glob_dict[dim_key], num_samples
+            )
+            self.num_processes_rw = min(
+                self.num_processes_rw_dict[dim_key], num_samples
+            )
         else:
             self.num_processes_rw = min(num_cores, num_samples)
 
