@@ -379,7 +379,7 @@ class ProblemEvaluator:
 
         # Can use max amount of cores here since NDSorting does not happen here.
         with multiprocessing.Pool(
-            self.num_cores_user_input, initializer=init_pool
+            self.num_processes_global, initializer=init_pool
         ) as pool:
             args_list = [
                 (i, pre_sampler, problem) for i in range(pre_sampler.num_samples)
@@ -833,12 +833,12 @@ class ProblemEvaluator:
             + " ~~~~~~~~~~~~ \n"
         )
 
-        # rw_features = self.do_random_walk_analysis(
-        #     self.instance,
-        #     pre_sampler,
-        #     num_samples,
-        # )
-        # rw_features.export_unaggregated_features(self.instance_name, "rw", save_arrays)
+        rw_features = self.do_random_walk_analysis(
+            self.instance,
+            pre_sampler,
+            num_samples,
+        )
+        rw_features.export_unaggregated_features(self.instance_name, "rw", save_arrays)
 
         # Global Analysis.
         print(
@@ -932,9 +932,7 @@ class ProblemEvaluator:
         )
 
         # Can use max amount of cores here since NDSorting does not happen here.
-        with multiprocessing.Pool(
-            self.num_cores_user_input, initializer=init_pool
-        ) as pool:
+        with multiprocessing.Pool(self.num_processes_rw, initializer=init_pool) as pool:
             args_list = [
                 (i, pre_sampler, self.instance) for i in range(pre_sampler.num_samples)
             ]
