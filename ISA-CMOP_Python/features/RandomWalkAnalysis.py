@@ -496,9 +496,6 @@ class RandomWalkAnalysis(Analysis):
     def compute_neighbourhood_dominance_features(self):
         # Extract evaluated population values.
         var = self.pop_walk.extract_var()
-        obj = self.pop_walk.extract_obj()
-        cv = self.pop_walk.extract_cv()
-        PF = self.pop_walk.extract_pf()
 
         # Initialise arrays.
         sup_array = np.zeros(var.shape[0])

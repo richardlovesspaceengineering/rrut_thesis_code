@@ -289,7 +289,6 @@ class GlobalAnalysis(Analysis):
         # Extracting matrices.
         obj = self.pop.extract_obj()
         var = self.pop.extract_var()
-        cons = self.pop.extract_cons()
         cv = self.pop.extract_cv()
 
         # Remove imaginary rows. Deep copies are created here.
