@@ -426,7 +426,7 @@ class ProblemEvaluator:
                 continue_generation = False
             except FileNotFoundError:
                 print(
-                    f"Generating RW pop no. {sample_number} / walk no. {walk_number} as it was not found."
+                    f"Generating RW population for sample {sample_number}, walk {walk_number} as it was not found."
                 )
 
         if continue_generation:
@@ -825,12 +825,12 @@ class ProblemEvaluator:
             + " ~~~~~~~~~~~~ \n"
         )
 
-        rw_features = self.do_random_walk_analysis(
-            self.instance,
-            pre_sampler,
-            num_samples,
-        )
-        rw_features.export_unaggregated_features(self.instance_name, "rw", save_arrays)
+        # rw_features = self.do_random_walk_analysis(
+        #     self.instance,
+        #     pre_sampler,
+        #     num_samples,
+        # )
+        # rw_features.export_unaggregated_features(self.instance_name, "rw", save_arrays)
 
         # Global Analysis.
         print(

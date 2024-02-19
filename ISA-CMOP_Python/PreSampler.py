@@ -390,6 +390,10 @@ class PreSampler:
         with open(neighbours_file_path, "wb") as file:
             pickle.dump(pop_neighbours_list, file)
 
+        print_with_timestamp(
+            f"Saved walk and neighbours populations for sample {sample_number}, walk {walk_ind_number} from {sample_dir_path}."
+        )
+
     def load_walk_neig_population(self, sample_number, walk_ind_number):
         # Path for the specific sample directory within the "rw" directory
         sample_dir_path = os.path.join(self.rw_pop_dir, f"sample{sample_number}")
