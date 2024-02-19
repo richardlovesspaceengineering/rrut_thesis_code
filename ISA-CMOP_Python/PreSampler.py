@@ -3,7 +3,7 @@ from optimisation.operators.sampling.latin_hypercube_sampling import (
     LatinHypercubeSampling,
 )
 from optimisation.operators.sampling.random_sampling import RandomSampling
-from features.feature_helpers import print_with_timestamp
+from features.ancillary_functions import print_with_timestamp
 import time
 import math
 import numpy as np
