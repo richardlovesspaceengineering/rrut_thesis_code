@@ -132,8 +132,8 @@ class ProblemEvaluator:
     def send_analysis_completion_email(self, problem_name, analysis_type, elapsed_time):
 
         self.send_update_email(
-            f"{problem_name} finished {analysis_type} analysis in {round(elapsed_time,2)} seconds",
-            f"The analysis of {problem_name} with type {analysis_type} has completed in {round(elapsed_time,2)} seconds.",
+            f"{problem_name} finished {analysis_type} in {round(elapsed_time,2)} seconds",
+            f"The analysis of {problem_name} ({analysis_type}) has completed in {round(elapsed_time,2)} seconds.",
         )
 
     def initialize_number_of_cores(self, num_cores, num_samples):
@@ -161,7 +161,7 @@ class ProblemEvaluator:
             self.num_processes_glob_dict = {
                 "15d": 30,
                 "20d": 15,
-                "30d": 15,
+                "30d": 10,
             }
 
         # Now we will allocate num_cores_global. This value will need to be smaller to deal with memory issues related to large matrices.
@@ -409,6 +409,10 @@ class ProblemEvaluator:
                     elapsed_time
                 )
             )
+
+        self.send_analysis_completion_email(
+            self.instance_name, "Global norm.", elapsed_time
+        )
         return normalisation_values
 
     def get_rw_pop(self, pre_sampler, problem, sample_number, walk_number):
@@ -521,6 +525,10 @@ class ProblemEvaluator:
                 )
             )
 
+        self.send_analysis_completion_email(
+            self.instance_name, "RW norm.", elapsed_time
+        )
+
         return normalisation_values
 
     @handle_ctrl_c
@@ -587,7 +595,7 @@ class ProblemEvaluator:
             "Evaluated RW features in {:.2f} seconds.\n".format(end_time - start_time)
         )
         self.send_analysis_completion_email(
-            self.instance_name, "RW", end_time - start_time
+            self.instance_name, "RW features", end_time - start_time
         )
 
         return rw_analysis_all_samples
@@ -649,7 +657,7 @@ class ProblemEvaluator:
             )
         )
         self.send_analysis_completion_email(
-            self.instance_name, "Global", end_time - start_time
+            self.instance_name, "Global features", end_time - start_time
         )
 
         return global_multiple_analysis
@@ -788,7 +796,7 @@ class ProblemEvaluator:
             "Evaluated AW features in {:.2f} seconds.\n".format(end_time - start_time)
         )
         self.send_analysis_completion_email(
-            self.instance_name, "AW", end_time - start_time
+            self.instance_name, "AW features", end_time - start_time
         )
 
         return aw_analysis_all_samples
