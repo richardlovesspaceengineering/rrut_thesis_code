@@ -46,6 +46,7 @@ echo -e "Experimental setup:\n$desc_msg\n" | tee -a "$log_file"
 pc1="megatron"
 pc2="richards-air.staff.sydney.edu.au"
 pc3="Richards-MacBook-Air.local"
+pc4="RUTHERFORD"
 host="$(hostname)"
 echo "Host is: $host" | tee -a "$log_file"
 
@@ -54,6 +55,10 @@ if [[ "$host" == *"$pc1"* ]]; then # megatrons
   PYTHON_SCRIPT="/home/kj66/Documents/Richard/venv/bin/python3"
   SCRIPT_PATH="/home/kj66/Documents/Richard/rrut_thesis_code/"
   num_cores=30 # will revert to lower values for higher dims.
+elif [[ "$host" == *"$pc4"* ]]; then
+    PYTHON_SCRIPT="D:/richa/anaconda3/envs/thesis_env_windows/python.exe"
+    SCRIPT_PATH="d:/richa/Documents/Thesis/rrut_thesis_code/"
+    num_cores=6
 elif [[ "$host" == *"$pc2"* ]] || [[ "$host" == *"$pc3"* ]]; then
   # This checks if $host matches $pc2 or $pc3
   PYTHON_SCRIPT="$HOME/anaconda3/envs/thesis_env_py3.8/bin/python"
