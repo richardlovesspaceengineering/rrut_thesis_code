@@ -15,7 +15,7 @@ problemsICAS=("ICAS2024Test")
 # problemsMODACT=("MODACT") # requires extra package
 
 # Dimensions to consider
-dimensions=(30)
+dimensions=(20 30)
 
 # Number of samples to run.
 num_samples=30
@@ -57,7 +57,7 @@ echo "Host is: $host" | tee -a "$log_file"
 if [[ "$host" == *"$pc1"* ]]; then # megatrons
   PYTHON_SCRIPT="/home/kj66/Documents/Richard/venv/bin/python3"
   SCRIPT_PATH="/home/kj66/Documents/Richard/rrut_thesis_code/"
-  num_cores=30 # will revert to lower values.
+  num_cores=30 # will revert to lower values for higher dims.
 elif [[ "$host" == *"$pc2"* ]] || [[ "$host" == *"$pc3"* ]]; then
   # This checks if $host matches $pc2 or $pc3
   PYTHON_SCRIPT="$HOME/anaconda3/envs/thesis_env_py3.8/bin/python"
