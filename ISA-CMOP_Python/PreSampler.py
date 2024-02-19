@@ -3,11 +3,14 @@ from optimisation.operators.sampling.latin_hypercube_sampling import (
     LatinHypercubeSampling,
 )
 from optimisation.operators.sampling.random_sampling import RandomSampling
+from features.feature_helpers import print_with_timestamp
 import time
 import math
 import numpy as np
 import os
 import sys
+import shutil
+import pickle
 
 
 class PreSampler:
@@ -15,7 +18,6 @@ class PreSampler:
         self.dim = dim
         self.num_samples = num_samples
         self.mode = mode
-        self.create_pregen_sample_dir()
         self.save_experimental_setup()
 
     def save_experimental_setup(self):
@@ -50,14 +52,34 @@ class PreSampler:
                 os.makedirs(directory)
 
         # Create subdirectory for the specific dimension inside the "rw" directory
-        self.rw_dim_subdirectory = os.path.join(rw_dir, f"{self.dim}d")
-        if not os.path.exists(self.rw_dim_subdirectory):
-            os.makedirs(self.rw_dim_subdirectory)
+        self.rw_samples_dir = os.path.join(rw_dir, f"{self.dim}d")
+        if not os.path.exists(self.rw_samples_dir):
+            os.makedirs(self.rw_samples_dir)
 
         # Create subdirectory for the specific dimension inside the "global" directory
-        self.global_dim_subdirectory = os.path.join(global_dir, f"{self.dim}d")
-        if not os.path.exists(self.global_dim_subdirectory):
-            os.makedirs(self.global_dim_subdirectory)
+        self.global_samples_dir = os.path.join(global_dir, f"{self.dim}d")
+        if not os.path.exists(self.global_samples_dir):
+            os.makedirs(self.global_samples_dir)
+
+    def create_pops_dir(self, problem_name):
+        pops_dir = "../evaluated_pops"
+        dirs_to_create = ["global", "rw"]
+
+        for dir_name in dirs_to_create:
+            dir_path = os.path.join(pops_dir, problem_name, self.mode, dir_name)
+
+            # Create the directory if not exists or after removal
+            os.makedirs(dir_path, exist_ok=True)
+
+            # Save the directory paths to instance variables for later use
+            if dir_name == "global":
+                self.global_pop_dir = dir_path
+            elif dir_name == "rw":
+                self.rw_pop_dir = dir_path
+
+        print(
+            f"Directories created or refreshed:\nGlobal: {self.global_pop_dir}\nRW: {self.rw_pop_dir}"
+        )
 
     def generate_binary_patterns(self):
         """
@@ -73,6 +95,64 @@ class PreSampler:
             patterns.append([int(bit) for bit in binary_pattern])
         return patterns
 
+    def generate_single_rw_walk(self, sample_number, ind_walk_number):
+        """
+        Generate a single walk within a sample (collection of walks)
+        """
+
+        # Make RW generator object.
+        rwGenerator = RandomWalk(
+            self.dim, self.num_steps_rw, self.step_size_rw, self.neighbourhood_size_rw
+        )
+
+        starting_zones = self.generate_binary_patterns()
+        starting_zone = starting_zones[ind_walk_number - 1]  # indices start at 1
+
+        # Generate random walk starting at this iteration's starting zone.
+        walk = rwGenerator.do_progressive_walk(seed=None, starting_zone=starting_zone)
+
+        # Generate neighbors for each step on the walk. Currently, we just randomly sample points in the [-stepsize, stepsize] hypercube
+        neighbours = rwGenerator.generate_neighbours_for_walk(walk)
+
+        # Save walk and neighbours arrays in the sample folder
+        # Create a folder for each sample
+        sample_folder = os.path.join(self.rw_samples_dir, f"sample{sample_number}")
+
+        if not os.path.exists(sample_folder):
+            os.makedirs(sample_folder, exist_ok=True)
+
+        save_path = os.path.join(
+            sample_folder, f"walk_neighbours_{ind_walk_number}.npz"
+        )
+        np.savez(save_path, walk=walk, neighbours=neighbours)
+
+        print(
+            "Generated RW {} of {} (for this sample).".format(
+                ind_walk_number,
+                len(starting_zones),
+            )
+        )
+
+        return walk, neighbours
+
+    def generate_single_rw_sample(self, sample_number):
+
+        starting_zones = self.generate_binary_patterns()
+
+        start_time = time.time()  # Record the start time for this sample
+
+        for ctr, starting_zone in enumerate(starting_zones):
+            self.generate_single_rw_walk(sample_number, ctr + 1)
+
+        # Record elapsed time and print.
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        print(
+            "Generated set of RWs {} of {} in {:.2f} seconds.\n".format(
+                sample_number, self.num_samples, elapsed_time
+            )
+        )
+
     def generate_rw_samples(self):
         """
         Generate a RW sample on the unit hypercube.
@@ -80,112 +160,63 @@ class PreSampler:
         Note that a RW sample refers to a set of independent RWs.
         """
 
-        # Make RW generator object.
-        rwGenerator = RandomWalk(
-            self.dim, self.num_steps_rw, self.step_size_rw, self.neighbourhood_size_rw
-        )
-        starting_zones = self.generate_binary_patterns()
-
         print("")
         print(
             "Generating {} samples (walks + neighbours) for RW features with the following properties:".format(
                 self.num_samples
             )
         )
-        print("- Number of walks: {}".format(len(starting_zones)))
+        print("- Number of walks: {}".format(self.dim))
         print("- Number of steps per walk: {}".format(self.num_steps_rw))
         print("- Step size (% of instance domain): {}".format(self.step_size_rw * 100))
         print("- Neighbourhood size: {}".format(self.neighbourhood_size_rw))
         print("")
 
         for i in range(self.num_samples):
-            start_time = time.time()  # Record the start time for this sample
+            self.generate_single_rw_sample(i + 1)
 
-            # Create a folder for each sample
-            sample_folder = os.path.join(self.rw_dim_subdirectory, f"sample{i + 1}")
-            os.makedirs(sample_folder, exist_ok=True)
+    def generate_single_global_sample(self, sample_number):
+        start_time = time.time()  # Record the start time
+        sampler = LatinHypercubeSampling(
+            criterion="maximin",
+            iterations=self.iterations_glob,
+            method="scipy",
+        )
 
-            for ctr, starting_zone in enumerate(starting_zones):
-                # Generate random walk starting at this iteration's starting zone.
-                walk = rwGenerator.do_progressive_walk(
-                    seed=None, starting_zone=starting_zone
-                )
+        sampler.do(
+            n_samples=self.num_points_glob,
+            x_lower=np.zeros(self.dim),
+            x_upper=np.ones(self.dim),
+        )
 
-                # Generate neighbors for each step on the walk. Currently, we just randomly sample points in the [-stepsize, stepsize] hypercube
-                neighbours = rwGenerator.generate_neighbours_for_walk(walk)
+        # Save to numpy binary.
+        save_path = os.path.join(
+            self.global_samples_dir, f"lhs_sample_{sample_number}.npz"
+        )
+        np.savez(save_path, global_sample=sampler.x)
+        end_time = time.time()  # Record the end time
+        elapsed_time = end_time - start_time
 
-                # Save walk and neighbours arrays in the sample folder
-                save_path = os.path.join(
-                    sample_folder, f"walk_neighbours_{ctr + 1}.npz"
-                )
-                np.savez(save_path, walk=walk, neighbours=neighbours)
-
-                print(
-                    "Generated RW {} of {} (for this sample).".format(
-                        ctr + 1,
-                        len(starting_zones),
-                    )
-                )
-
-            # Record elapsed time and print.
-            end_time = time.time()
-            elapsed_time = end_time - start_time
-            print(
-                "Generated set of RWs {} of {} in {:.2f} seconds.\n".format(
-                    i + 1, self.num_samples, elapsed_time
-                )
+        print(
+            "Generated Global sample {} of {} in {:.2f} seconds.".format(
+                sample_number, self.num_samples, elapsed_time
             )
+        )
 
-    def generate_global_samples(self, method="lhs.scipy"):
+    def generate_all_global_samples(self):
         """
         Generate a LHS sample on the unit hypercube.
         """
-
-        # Split the method string to extract the method name
-        method_parts = method.split(".")
-        if len(method_parts) == 2:
-            method_name = method_parts[0]
-            lhs_method_name = method_parts[1]
-        else:
-            method_name = method  # Use the full method string as the method name
 
         print(
             "Generating distributed samples for Global features with the following properties:"
         )
         print("- Num. points: {}".format(self.num_points_glob))
-        print("- Method: {}".format(method))
+        print("- Method: {}".format("lhs.scipy"))
         print("")
 
         for i in range(self.num_samples):
-            start_time = time.time()  # Record the start time
-            if method_name == "lhs":
-                sampler = LatinHypercubeSampling(
-                    criterion="maximin",
-                    iterations=self.iterations_glob,
-                    method=lhs_method_name,
-                )
-            elif method_name == "uniform":
-                sampler = RandomSampling()
-
-            sampler.do(
-                n_samples=self.num_points_glob,
-                x_lower=np.zeros(self.dim),
-                x_upper=np.ones(self.dim),
-            )
-
-            # Save to numpy binary.
-            save_path = os.path.join(
-                self.global_dim_subdirectory, f"lhs_sample_{i + 1}.npz"
-            )
-            np.savez(save_path, global_sample=sampler.x)
-            end_time = time.time()  # Record the end time
-            elapsed_time = end_time - start_time
-
-            print(
-                "Generated Global sample {} of {} in {:.2f} seconds.".format(
-                    i + 1, self.num_samples, elapsed_time
-                )
-            )
+            self.generate_single_global_sample(i + 1)
 
     def read_walk_neighbours(self, sample_number, ind_walk_number):
         """
@@ -198,16 +229,16 @@ class PreSampler:
         - Tuple containing the walk array and neighbours array.
         """
         sample_folder = f"sample{sample_number}"
-        sample_path = os.path.join(self.rw_dim_subdirectory, sample_folder)
-
-        if not os.path.exists(sample_path):
-            raise FileNotFoundError(f"Sample folder not found: {sample_path}")
+        sample_path = os.path.join(self.rw_samples_dir, sample_folder)
 
         walk_neighbours_file = f"walk_neighbours_{ind_walk_number}.npz"
         file_path = os.path.join(sample_path, walk_neighbours_file)
 
         if not os.path.exists(file_path):
-            raise FileNotFoundError(f"Walk and neighbours file not found: {file_path}")
+            print(
+                f"RW sample no. {sample_number} / walk no. {ind_walk_number} does not exist. Generating..."
+            )
+            return self.generate_single_rw_walk(sample_number, ind_walk_number)
 
         # Load data from the npz file
         data = np.load(file_path)
@@ -227,16 +258,203 @@ class PreSampler:
         - Array containing the global sample.
         """
         file_name = f"lhs_sample_{sample_number}.npz"
-        file_path = os.path.join(self.global_dim_subdirectory, file_name)
+        file_path = os.path.join(self.global_samples_dir, file_name)
 
         if not os.path.exists(file_path):
-            raise FileNotFoundError(f"Global sample file not found: {file_path}")
+            print(f"Global sample no. {sample_number} does not exist. Generating...")
+            self.generate_single_global_sample(sample_number)
 
         # Load data from the npz file
         data = np.load(file_path)
         global_sample = data["global_sample"]
+        print(
+            f"Global sample size for {self.dim}d, no. {sample_number}: {global_sample.shape[0]}"
+        )
 
         return global_sample
+
+    def save_global_population(self, pop_global, sample_number):
+
+        # Ensure the "global" directory exists
+        if not os.path.exists(self.global_pop_dir):
+            os.makedirs(self.global_pop_dir, exist_ok=True)
+
+        # Define the path for the file to save the global population
+        file_path = os.path.join(self.global_pop_dir, f"pop_global_{sample_number}.pkl")
+
+        # Save the `pop_global` object to the file
+        with open(file_path, "wb") as file:
+            pickle.dump(pop_global, file)
+
+    def load_global_population(self, sample_number):
+        # Path for the file from which to load the global population
+        file_path = os.path.join(self.global_pop_dir, f"pop_global_{sample_number}.pkl")
+
+        # Check if the file exists
+        if not os.path.exists(file_path):
+            raise FileNotFoundError(
+                f"No saved global population found for sample {sample_number} at {file_path}"
+            )
+
+        # Load and return the `pop_global` object from the file
+        with open(file_path, "rb") as file:
+            pop_global = pickle.load(file)
+
+        print_with_timestamp(
+            f"Global population for sample {sample_number} loaded from {file_path}. Length: {len(pop_global)}"
+        )
+
+        return pop_global
+
+    def check_pop_size(self, file_path, expected_length):
+        with open(file_path, "rb") as file:
+            pop = pickle.load(file)
+            if len(pop) != expected_length:
+                print(
+                    f"Population does not contain the expected number of rows ({expected_length}). Found {len(pop)}."
+                )
+                return False
+            else:
+                return True
+
+    def check_global_preeval_pops(self):
+
+        print(
+            "\nChecking if global populations have already been evaluated for this problem instance."
+        )
+
+        # Check 1: Folder exists
+        if not os.path.exists(self.global_pop_dir):
+            print("Global pre-eval pops folder does not exist.")
+            return False
+
+        # Check 2: Correct number of files
+        files = [
+            f
+            for f in os.listdir(self.global_pop_dir)
+            if os.path.isfile(os.path.join(self.global_pop_dir, f))
+        ]
+        if len(files) < self.num_samples:
+            print(
+                f"Folder does not contain enough sample files to generate all samples ({self.num_samples}). Found {len(files)} files."
+            )
+            return False
+
+        # Check 3: Each file has correct number of points
+        for i, file_name in enumerate(files):
+            file_path = os.path.join(self.global_pop_dir, file_name)
+            if not self.check_pop_size(file_path, self.num_points_glob):
+                print(
+                    f"Population {i + 1} does not contain the expected number of rows ({self.num_points_glob}). Found {len()}."
+                )
+                return False
+
+        print("All global checks passed successfully.")
+        return True
+
+    def save_walk_neig_population(
+        self, pop_walk, pop_neighbours_list, sample_number, walk_ind_number
+    ):
+
+        # Path for the specific sample directory within the "rw" directory
+        sample_dir_path = os.path.join(self.rw_pop_dir, f"sample{sample_number}")
+
+        # Ensure the sample directory exists
+        if not os.path.exists(sample_dir_path):
+            os.makedirs(sample_dir_path, exist_ok=True)
+
+        # Define the file paths for the walk and neighbors populations within the sample directory
+        walk_file_path = os.path.join(
+            sample_dir_path, f"pop_walk_{walk_ind_number}.pkl"
+        )
+        neighbours_file_path = os.path.join(
+            sample_dir_path, f"pop_neighbours_list_{walk_ind_number}.pkl"
+        )
+
+        # Save the `pop_walk` object to its file
+        with open(walk_file_path, "wb") as file:
+            pickle.dump(pop_walk, file)
+
+        # Save the `pop_neighbours_list` object to its file
+        with open(neighbours_file_path, "wb") as file:
+            pickle.dump(pop_neighbours_list, file)
+
+    def load_walk_neig_population(self, sample_number, walk_ind_number):
+        # Path for the specific sample directory within the "rw" directory
+        sample_dir_path = os.path.join(self.rw_pop_dir, f"sample{sample_number}")
+
+        # Define the file paths for the walk and neighbors populations within the sample directory
+        walk_file_path = os.path.join(
+            sample_dir_path, f"pop_walk_{walk_ind_number}.pkl"
+        )
+        neighbours_file_path = os.path.join(
+            sample_dir_path, f"pop_neighbours_list_{walk_ind_number}.pkl"
+        )
+
+        # Check if the files exist and raise an error if not
+        if not os.path.exists(walk_file_path) or not os.path.exists(
+            neighbours_file_path
+        ):
+            raise FileNotFoundError(
+                f"Files for sample {sample_number}, walk {walk_ind_number} not found in {sample_dir_path}"
+            )
+
+        # Load the `pop_walk` object from its file
+        with open(walk_file_path, "rb") as file:
+            pop_walk = pickle.load(file)
+
+        # Load the `pop_neighbours_list` object from its file
+        with open(neighbours_file_path, "rb") as file:
+            pop_neighbours_list = pickle.load(file)
+
+        print_with_timestamp(
+            f"Loaded walk and neighbours populations for sample {sample_number}, walk {walk_ind_number} from {sample_dir_path}."
+        )
+
+        return pop_walk, pop_neighbours_list
+
+    def check_rw_preeval_pops(self):
+
+        print(
+            "\nChecking if global populations have already been evaluated for this problem instance."
+        )
+
+        # Check 1: RW directory exists
+        if not os.path.exists(self.rw_pop_dir):
+            print("RW pre-eval pops folder does not exist.")
+            return False
+
+        for sample_number in range(1, self.num_samples + 1):
+            sample_dir_path = os.path.join(self.rw_pop_dir, f"sample{sample_number}")
+            # Check 2: Sample directory exists
+            if not os.path.exists(sample_dir_path):
+                print(f"Sample directory {sample_dir_path} does not exist.")
+                return False
+
+            # Loop through each of the walks (there are n of them per sample)
+            for walk_ind_number in range(1, self.dim + 1):
+                walk_file_path = os.path.join(
+                    sample_dir_path, f"pop_walk_{walk_ind_number}.pkl"
+                )
+                neighbours_file_path = os.path.join(
+                    sample_dir_path, f"pop_neighbours_list_{walk_ind_number}.pkl"
+                )
+
+                # Check 3: Walk and neighbours files exist
+                if not os.path.isfile(walk_file_path) or not os.path.isfile(
+                    neighbours_file_path
+                ):
+                    print(
+                        f"Missing files for sample {sample_number}, walk {walk_ind_number}."
+                    )
+                    return False
+
+                # Check 4: walk sizes are correct.
+                if not self.check_pop_size(walk_file_path, self.num_steps_rw):
+                    return False
+
+        print("All checks passed successfully for RW populations.")
+        return True
 
 
 def main():

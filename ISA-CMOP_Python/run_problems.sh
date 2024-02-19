@@ -9,6 +9,7 @@ problemsMW=("MW1", "MW2", "MW3", "MW4", "MW5", "MW6", "MW7", "MW8", "MW9", "MW10
 problemsDASCMOP=("DASCMOP1", "DASCMOP2", "DASCMOP3", "DASCMOP4", "DASCMOP5", "DASCMOP6", "DASCMOP7", "DASCMOP8", "DASCMOP9")
 problemsDCDTLZ=("DC1DTLZ1" "DC1DTLZ3" "DC2DTLZ1" "DC2DTLZ3" "DC3DTLZ1" "DC3DTLZ3")
 problemsCDTLZ=("C1DTLZ1" "C1DTLZ3" "C2DTLZ2" "C3DTLZ1" "C3DTLZ4")
+problemsICAS=("ICAS2024Test")
 # problemsRW=("Truss2D", "WeldedBeam") # not scalable in Pymoo
 # problemsMODACT=("MODACT") # requires extra package
 
@@ -24,6 +25,10 @@ mode="eval"
 
 # Use pre-generated samples?
 regenerate_samples=false #@JUAN set to true if you need to generate/can't see the pregen_samples folder as a sibling folder.
+
+regenerate_pops=false # only set to true when the samples have been regenerated.
+
+run_populations_only=false
 
 # Save full feature arrays. Aggregated feature arrays are always saved.
 save_feature_arrays=true
@@ -62,20 +67,25 @@ temp_dir=$(mktemp -d -t ci-XXXXXXXXXX --tmpdir="$SCRIPT_PATH")
 echo "New directory: $temp_dir" | tee -a "$log_file"
 
 # Copy framework to temporary directory
-echo "Writing ISA-CMOP_Python to temporary directory. This may take some time if pregenerated samples are being used." | tee -a "$log_file"
+echo "Writing ISA-CMOP_Python to temporary directory." | tee -a "$log_file"
 copy_dir="$SCRIPT_PATH"
 cd_dir="$SCRIPT_PATH"
 cd_dir+="ISA-CMOP_Python/"
 copy_dir+="ISA-CMOP_Python/*"
 cp -R $copy_dir "$temp_dir"
 
+# Assuming temp_populations is a directory inside temp_dir
+temp_pops_dir="${temp_dir}/temp_pops/" # Update this path as needed
+mkdir -p "$temp_pops_dir"
+echo "Created temp_pops_dir directory: $temp_pops_dir"
+
 # Handle CTRL+C event clean up
 trap ctrl_c INT
 function ctrl_c() {
     if [ -d "$temp_dir" ]; then
-        # Clean up temp dir
+        # Clean up temp dir and populations
         rm -rf "$temp_dir"
-        echo "Cleaning up $temp_dir" | tee -a "$log_file"
+        echo "Cleaning up $temp_dir." | tee -a "$log_file"
 
         exit 0
     fi
@@ -125,7 +135,7 @@ for dim in "${dimensions[@]}"; do
       problem=$(echo "$problem" | sed 's/,$//')  # Remove trailing comma if it exists
       echo -e "\nRunning problem: $problem, dimension: $dim" | tee -a "$log_file"  # Print message to the terminal and log file
       # Run runner.py
-      "$PYTHON_SCRIPT" -u "$run_dir" "$problem" "$dim" "$num_samples" "$mode" "$save_feature_arrays" "$results_dir" "$num_cores" 2>&1 | tee -a "$log_file"
+      "$PYTHON_SCRIPT" -u "$run_dir" "$problem" "$dim" "$num_samples" "$mode" "$save_feature_arrays" "$results_dir" "$num_cores" "$run_populations_only" "$regenerate_pops" 2>&1 | tee -a "$log_file"
     done
 done
 

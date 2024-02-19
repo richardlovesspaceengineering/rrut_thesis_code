@@ -6,6 +6,15 @@ from PreSampler import PreSampler
 
 # Import the get_problem method from pymoo.problems
 from pymoo.problems import get_problem
+from pathlib import Path
+import numpy as np
+
+
+def append_airfoilsuite_path():
+    sys_path = str(
+        Path("C:/Users/richa/Documents/Thesis/AirfoilBenchmarkSuite/").expanduser()
+    )
+    sys.path.append(sys_path)
 
 
 # Load the JSON configuration from the file
@@ -61,6 +70,11 @@ def generate_instance(problem_name, n_var):
     # Check if problem_name contains 'DASCMOP'
     if "dascmop" in problem_name.lower():
         problem = get_problem(problem_name, n_var=n_var, difficulty=8)
+    elif problem_name.lower() == "icas2024test":
+        append_airfoilsuite_path()
+        from test_problems.icas2024 import ICAS2024Test
+
+        problem = ICAS2024Test(n_dim=n_var, solver="xfoil", impute_values=True)
     else:
         problem = get_problem(problem_name, n_var=n_var)
 
@@ -69,9 +83,9 @@ def generate_instance(problem_name, n_var):
 
 
 def main():
-    if len(sys.argv) != 8:
+    if len(sys.argv) != 10:
         print(
-            "Usage: python runner.py problem_name n_dimensions num_samples mode save_features_array results_dir num_cores"
+            "Usage: python runner.py problem_name n_dimensions num_samples mode save_features_array results_dir num_cores run_populations_only regen_pops"
         )
         return
 
@@ -87,9 +101,29 @@ def main():
     else:
         save_arrays = False
 
+    if sys.argv[8].lower() == "true":
+        run_populations_only = True
+    else:
+        run_populations_only = False
+
+    if sys.argv[9].lower() == "true":
+        reeval_pops = True
+    else:
+        reeval_pops = False
+
     problem, instance_string = generate_instance(problem_name, n_var)
-    evaluator = ProblemEvaluator(problem, instance_string, mode, results_dir, num_cores)
-    evaluator.do(num_samples, save_arrays)
+    evaluator = ProblemEvaluator(
+        problem, instance_string, mode, results_dir, num_cores, reeval_pops
+    )
+
+    if run_populations_only:
+
+        # Just run populations calculations to reduce computational time.
+        evaluator.run_populations(num_samples)
+    else:
+
+        # Full evaluation.
+        evaluator.do(num_samples, save_arrays)
 
 
 if __name__ == "__main__":

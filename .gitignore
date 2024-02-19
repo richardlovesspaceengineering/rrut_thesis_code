@@ -4,3 +4,4 @@ __pycache__
 *.pkl
 ci*
 pregen_samples
+evaluated_pops

@@ -11,6 +11,7 @@
       "editor.defaultFormatter": "ms-python.black-formatter",
       "editor.formatOnSave": true,
     },
+    "python.analysis.extraPaths": ["C:/Users/richa/Documents/Thesis/AirfoilBenchmarkSuite/"],
     "black-formatter.interpreter": []
   }
 }

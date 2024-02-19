@@ -14,10 +14,16 @@ class Individual(object):
         self.problem = problem
         self.n_var = problem.n_var
         self.n_obj = problem.n_obj
-        self.n_cons = problem.n_ieq_constr
 
-        self.var_lower = problem.xl
-        self.var_upper = problem.xu
+        if "pymoo" in getattr(self.problem, "__module__"):
+            self.n_cons = problem.n_constr
+            self.var_lower = problem.xl
+            self.var_upper = problem.xu
+        else:
+            # Aerofoils
+            self.n_cons = problem.n_con
+            self.var_lower = problem.lb
+            self.var_upper = problem.ub
 
         self.bounds = np.vstack((self.var_lower, self.var_upper))
 
@@ -28,6 +34,7 @@ class Individual(object):
         self.cv = np.zeros((1, 1))
 
         # Exact/approximated pareto front
+        # TODO: figure out how this will work with aerofoil problems.
         self.pareto_front = problem._calc_pareto_front()
 
         # Rank, crowding distance & hypervolume
