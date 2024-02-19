@@ -31,6 +31,10 @@ class Analysis:
         Used when generating a single sample feature set for random/adaptive walks, where a sample contains multiple independent walks.
         """
 
+        # Check if single_analyses is not a list (i.e., a single element), and wrap it in a list
+        if not isinstance(single_analyses, list):
+            single_analyses = [single_analyses]
+
         # Determine the class type of the first element in single_analyses
         analysis_type = type(single_analyses[0])
 

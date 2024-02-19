@@ -6,7 +6,7 @@ desc_msg="Increased dimensionality, now running full benchmark suites (other tha
 # Problem suites
 problemsCTP=("CTP1", "CTP2", "CTP3", "CTP4", "CTP5", "CTP6", "CTP7", "CTP8")
 # problemsMW=("MW1", "MW2", "MW3", "MW4", "MW5", "MW6", "MW7", "MW8", "MW9", "MW10", "MW11", "MW12", "MW13", "MW14")
-problemsMW=("MW14")
+problemsMW=("MW1", "MW2")
 problemsDASCMOP=("DASCMOP1", "DASCMOP2", "DASCMOP3", "DASCMOP4", "DASCMOP5", "DASCMOP6", "DASCMOP7", "DASCMOP8", "DASCMOP9")
 problemsDCDTLZ=("DC1DTLZ1" "DC1DTLZ3" "DC2DTLZ1" "DC2DTLZ3" "DC3DTLZ1" "DC3DTLZ3")
 problemsCDTLZ=("C1DTLZ1" "C1DTLZ3" "C2DTLZ2" "C3DTLZ1" "C3DTLZ4")
@@ -15,21 +15,17 @@ problemsICAS=("ICAS2024Test")
 # problemsMODACT=("MODACT") # requires extra package
 
 # Dimensions to consider
-dimensions=(20)
+dimensions=(3)
 
 # Number of samples to run.
-num_samples=1
+num_samples=2
 
 # Modes are debug or eval.
-mode="eval"
-#mode="debug"
+# mode="eval"
+mode="debug"
 
 # Use pre-generated samples?
 regenerate_samples=false #@JUAN set to true if you need to generate/can't see the pregen_samples folder as a sibling folder.
-
-regenerate_pops=false # only set to true when the samples have been regenerated.
-
-run_populations_only=false
 
 # Save full feature arrays. Aggregated feature arrays are always saved.
 save_feature_arrays=true
@@ -83,13 +79,9 @@ copy_dir+="ISA-CMOP_Python/*"
 cp -R $copy_dir "$temp_dir"
 
 # Create sibling temp_pops directory and ensure it's cleaned up properly
-temp_pops_dir="${SCRIPT_PATH}temp_pops"
+temp_pops_dir="${temp_dir}/temp_pops" # Adjusted to use temp_dir as the base
 mkdir -p "$temp_pops_dir"
-echo "Created sibling temp_pops directory: $temp_pops_dir"
-
-# Clean up temp_pops at the start (if needed)
-rm -rf "${temp_pops_dir:?}"/*
-echo "Cleaned existing temp_pops contents." | tee -a "$log_file"
+echo "Created temp_pops directory inside temp_dir: $temp_pops_dir"
 
 # Handle CTRL+C event clean up
 trap ctrl_c INT
@@ -155,7 +147,7 @@ for dim in "${dimensions[@]}"; do
       problem=$(echo "$problem" | sed 's/,$//')  # Remove trailing comma if it exists
       echo -e "\nRunning problem: $problem, dimension: $dim" | tee -a "$log_file"  # Print message to the terminal and log file
       # Run runner.py
-      "$PYTHON_SCRIPT" -u "$run_dir" "$problem" "$dim" "$num_samples" "$mode" "$save_feature_arrays" "$results_dir" "$num_cores" "$run_populations_only" "$regenerate_pops" 2>&1 | tee -a "$log_file"
+      "$PYTHON_SCRIPT" -u "$run_dir" "$problem" "$dim" "$num_samples" "$mode" "$save_feature_arrays" "$results_dir" "$temp_pops_dir" "$num_cores" 2>&1 | tee -a "$log_file"
 
       # Clean up temp_pops directory after each problem is run
       echo "Cleaning temp_pops directory for next run..." | tee -a "$log_file"
@@ -165,6 +157,7 @@ for dim in "${dimensions[@]}"; do
 done
 
 # Clean up temp dir
+echo "Runs finished. Cleaning up temp directory."
 rm -rf "$temp_dir"
 
 # Exit

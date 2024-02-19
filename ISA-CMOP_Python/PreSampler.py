@@ -61,8 +61,12 @@ class PreSampler:
         if not os.path.exists(self.global_samples_dir):
             os.makedirs(self.global_samples_dir)
 
-    def create_pops_dir(self, problem_name):
-        pops_dir = "../temp_pops"
+    def create_pops_dir(self, problem_name, temp_pops_dir):
+
+        if temp_pops_dir:
+            pops_dir = temp_pops_dir
+        else:
+            pops_dir = "../temp_pops"
 
         dirs_to_create = ["global", "rw"]
         print(

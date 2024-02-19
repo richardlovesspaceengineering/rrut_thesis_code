@@ -19,15 +19,14 @@
         "program": "C:/Users/richa/Documents/Thesis/rrut_thesis_code/ISA-CMOP_Python/runner.py",
         "args": [
             // "ICAS2024Test", //problem
-            "MW6",
-            "10", // dimension
+            "MW1",
+            "3", // dimension
             "1", // num samples
             "debug", // mode
             "true", // save results
-            "instance_results", 
+            "instance_results",
+            "temp_pops", 
             "1", // num cores
-            "false",
-            "false"
         ],
         "console": "integratedTerminal",
         "cwd": "C:/Users/richa/Documents/Thesis/rrut_thesis_code/ISA-CMOP_Python",

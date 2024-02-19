@@ -70,9 +70,7 @@ def init_pool():
 
 
 class ProblemEvaluator:
-    def __init__(
-        self, instance, instance_name, mode, results_dir, num_cores, regen_problems
-    ):
+    def __init__(self, instance, instance_name, mode, results_dir, num_cores):
         """
         Possible modes are eval and debug.
         """
@@ -92,10 +90,6 @@ class ProblemEvaluator:
         # Gmail account credentials for email updates.
         self.gmail_user = "rrutthesisupdates@gmail.com"  # Your full Gmail address
         self.gmail_app_password = "binsjoipgwzyszxe "  # Your generated App Password
-
-        # Should we re-evaluate pops again?
-        self.rw_reeval = regen_problems
-        self.global_reeval = regen_problems
 
     def send_update_email(self, subject, body=""):
         # Only send in eval mode.
@@ -177,6 +171,7 @@ class ProblemEvaluator:
                 self.num_processes_rw_dict[dim_key], num_samples
             )
         else:
+            self.num_processes_global = min(num_cores, num_samples)
             self.num_processes_rw = min(num_cores, num_samples)
 
         self.num_processes_aw = self.num_processes_global
@@ -192,11 +187,8 @@ class ProblemEvaluator:
         """
         )
 
-        # Add the reevaluation state
-        reeval_summary = f"RW reevaluation state: {'Enabled' if self.rw_reeval else 'Disabled'}.\nGlobal reevaluation state: {'Enabled' if self.global_reeval else 'Disabled'}."
-
         # Combine the summaries
-        full_summary = cores_summary + "\n" + reeval_summary
+        full_summary = cores_summary
 
         print(full_summary)
 
@@ -316,16 +308,15 @@ class ProblemEvaluator:
         # Flag for whether we should manually generate new populations.
         continue_generation = True
 
-        if not self.global_reeval:
-            try:
-                # Attempting to use pre-evaluated populations.
-                pop_global = pre_sampler.load_global_population(sample_number)
-                # If loading is successful, no need to generate a new population.
-                continue_generation = False
-            except FileNotFoundError:
-                print(
-                    f"Global population for sample {sample_number} not found. Generating new population."
-                )
+        try:
+            # Attempting to use pre-evaluated populations.
+            pop_global = pre_sampler.load_global_population(sample_number)
+            # If loading is successful, no need to generate a new population.
+            continue_generation = False
+        except FileNotFoundError:
+            print(
+                f"Global population for sample {sample_number} not found. Generating new population."
+            )
 
         if continue_generation:
             global_sample = pre_sampler.read_global_sample(sample_number)
@@ -425,18 +416,17 @@ class ProblemEvaluator:
         # Flag for whether we should manually generate new populations.
         continue_generation = True
 
-        if not self.rw_reeval:
-            try:
-                # Attempt to use pre-generated samples.
-                pop_walk, pop_neighbours_list = pre_sampler.load_walk_neig_population(
-                    sample_number, walk_number
-                )
-                # If loading is successful, skip the generation and saving process.
-                continue_generation = False
-            except FileNotFoundError:
-                print(
-                    f"Generating RW population for sample {sample_number}, walk {walk_number} as it was not found."
-                )
+        try:
+            # Attempt to use pre-generated samples.
+            pop_walk, pop_neighbours_list = pre_sampler.load_walk_neig_population(
+                sample_number, walk_number
+            )
+            # If loading is successful, skip the generation and saving process.
+            continue_generation = False
+        except FileNotFoundError:
+            print(
+                f"Generating RW population for sample {sample_number}, walk {walk_number} as it was not found."
+            )
 
         if continue_generation:
             walk, neighbours = pre_sampler.read_walk_neighbours(
@@ -551,8 +541,8 @@ class ProblemEvaluator:
             )
 
             # We already evaluated the populations when we computed the norms.
-            pop_walk, pop_neighbours_list = pre_sampler.load_walk_neig_population(
-                i + 1, j + 1
+            pop_walk, pop_neighbours_list = self.get_rw_pop(
+                pre_sampler, problem, i + 1, j + 1
             )
             rw_analysis.eval_features(pop_walk, pop_neighbours_list)
 
@@ -614,7 +604,7 @@ class ProblemEvaluator:
         )
 
         # We already evaluated the populations when we computed the norms.
-        pop_global = pre_sampler.load_global_population(i + 1)
+        pop_global = self.get_global_pop(pre_sampler, problem, i + 1)
 
         # Pass to Analysis class for evaluation.
         global_analysis.eval_features(pop_global)
@@ -687,7 +677,7 @@ class ProblemEvaluator:
         )
 
         # Each sample contains 10n walks.
-        num_walks = int(distributed_sample.shape[0] / 100)
+        num_walks = int(distributed_sample.shape[0] / 100) if self.mode == "eval" else 2
 
         for j in range(num_walks):
             # Initialise AdaptiveWalkAnalysis evaluator. Do at every iteration or existing list entries get overwritten.
@@ -808,11 +798,11 @@ class ProblemEvaluator:
 
         return aw_analysis_all_samples
 
-    def initialize_evaluator(self, num_samples):
+    def initialize_evaluator(self, num_samples, temp_pops_dir):
         # Load presampler and create directories for populations.
         pre_sampler = self.create_pre_sampler(num_samples)
         pre_sampler.create_pregen_sample_dir()
-        pre_sampler.create_pops_dir(self.instance_name)
+        pre_sampler.create_pops_dir(self.instance_name, temp_pops_dir)
 
         # Define number of cores for multiprocessing.
         self.initialize_number_of_cores(self.num_cores_user_input, num_samples)
@@ -822,14 +812,14 @@ class ProblemEvaluator:
 
         return pre_sampler
 
-    def do(self, num_samples, save_arrays):
+    def do(self, num_samples, save_arrays, temp_pops_dir=None):
         print(
             "\n------------------------ Evaluating instance: "
             + self.instance_name
             + " ------------------------"
         )
 
-        pre_sampler = self.initialize_evaluator(num_samples)
+        pre_sampler = self.initialize_evaluator(num_samples, temp_pops_dir)
 
         self.send_initialisation_email(f"STARTED RUN OF {self.instance_name}.")
 
