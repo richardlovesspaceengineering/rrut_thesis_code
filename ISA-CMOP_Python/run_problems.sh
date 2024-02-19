@@ -6,7 +6,7 @@ desc_msg="Increased dimensionality, now running full benchmark suites (other tha
 # Problem suites
 problemsCTP=("CTP1", "CTP2", "CTP3", "CTP4", "CTP5", "CTP6", "CTP7", "CTP8")
 # problemsMW=("MW1", "MW2", "MW3", "MW4", "MW5", "MW6", "MW7", "MW8", "MW9", "MW10", "MW11", "MW12", "MW13", "MW14")
-problemsMW=("MW1", "MW2")
+problemsMW=("MW12")
 problemsDASCMOP=("DASCMOP1", "DASCMOP2", "DASCMOP3", "DASCMOP4", "DASCMOP5", "DASCMOP6", "DASCMOP7", "DASCMOP8", "DASCMOP9")
 problemsDCDTLZ=("DC1DTLZ1" "DC1DTLZ3" "DC2DTLZ1" "DC2DTLZ3" "DC3DTLZ1" "DC3DTLZ3")
 problemsCDTLZ=("C1DTLZ1" "C1DTLZ3" "C2DTLZ2" "C3DTLZ1" "C3DTLZ4")
@@ -15,14 +15,14 @@ problemsICAS=("ICAS2024Test")
 # problemsMODACT=("MODACT") # requires extra package
 
 # Dimensions to consider
-dimensions=(3)
+dimensions=(10)
 
 # Number of samples to run.
 num_samples=2
 
 # Modes are debug or eval.
-# mode="eval"
-mode="debug"
+mode="eval"
+# mode="debug"
 
 # Use pre-generated samples?
 regenerate_samples=false #@JUAN set to true if you need to generate/can't see the pregen_samples folder as a sibling folder.
