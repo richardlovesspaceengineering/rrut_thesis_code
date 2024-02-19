@@ -161,7 +161,7 @@ class ProblemEvaluator:
             self.num_processes_glob_dict = {
                 "15d": 30,
                 "20d": 15,
-                "30d": 10,
+                "30d": 15,
             }
 
         # Now we will allocate num_cores_global. This value will need to be smaller to deal with memory issues related to large matrices.
@@ -836,12 +836,12 @@ class ProblemEvaluator:
             + " ~~~~~~~~~~~~ \n"
         )
 
-        rw_features = self.do_random_walk_analysis(
-            self.instance,
-            pre_sampler,
-            num_samples,
-        )
-        rw_features.export_unaggregated_features(self.instance_name, "rw", save_arrays)
+        # rw_features = self.do_random_walk_analysis(
+        #     self.instance,
+        #     pre_sampler,
+        #     num_samples,
+        # )
+        # rw_features.export_unaggregated_features(self.instance_name, "rw", save_arrays)
 
         # Global Analysis.
         print(
