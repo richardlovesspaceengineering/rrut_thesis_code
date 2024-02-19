@@ -305,10 +305,25 @@ class ProblemEvaluator:
 
     def get_global_pop(self, pre_sampler, problem, sample_number, eval_fronts=True):
 
-        global_sample = pre_sampler.read_global_sample(sample_number)
-        pop_global = self.generate_global_population(
-            problem, global_sample, eval_fronts
-        )
+        # Flag for whether we should manually generate new populations.
+        continue_generation = True
+
+        try:
+            # Attempting to use pre-evaluated populations.
+            pop_global = pre_sampler.load_global_population(sample_number)
+            # If loading is successful, no need to generate a new population.
+            continue_generation = False
+        except FileNotFoundError:
+            print(
+                f"Global population for sample {sample_number} not found. Generating new population."
+            )
+
+        if continue_generation:
+            global_sample = pre_sampler.read_global_sample(sample_number)
+            pop_global = self.generate_global_population(
+                problem, global_sample, eval_fronts
+            )
+            pre_sampler.save_global_population(pop_global, sample_number)
 
         return pop_global
 
@@ -323,7 +338,7 @@ class ProblemEvaluator:
         }
         min_values_array = max_values_array
 
-        pop_global = self.get_global_pop(pre_sampler, problem, i + 1, eval_fronts=False)
+        pop_global = self.get_global_pop(pre_sampler, problem, i + 1)
 
         # Loop over each variable.
         for which_variable in variables:
@@ -400,10 +415,31 @@ class ProblemEvaluator:
         self, pre_sampler, problem, sample_number, walk_number, eval_fronts=True
     ):
 
-        walk, neighbours = pre_sampler.read_walk_neighbours(sample_number, walk_number)
-        pop_walk, pop_neighbours_list = self.generate_walk_neig_populations(
-            problem, walk, neighbours, eval_fronts
-        )
+        # Flag for whether we should manually generate new populations.
+        continue_generation = True
+
+        try:
+            # Attempt to use pre-generated samples.
+            pop_walk, pop_neighbours_list = pre_sampler.load_walk_neig_population(
+                sample_number, walk_number
+            )
+            # If loading is successful, skip the generation and saving process.
+            continue_generation = False
+        except FileNotFoundError:
+            print(
+                f"Generating RW population for sample {sample_number}, walk {walk_number} as it was not found."
+            )
+
+        if continue_generation:
+            walk, neighbours = pre_sampler.read_walk_neighbours(
+                sample_number, walk_number
+            )
+            pop_walk, pop_neighbours_list = self.generate_walk_neig_populations(
+                problem, walk, neighbours, eval_fronts
+            )
+            pre_sampler.save_walk_neig_population(
+                pop_walk, pop_neighbours_list, sample_number, walk_number
+            )
 
         return pop_walk, pop_neighbours_list
 
@@ -422,7 +458,7 @@ class ProblemEvaluator:
         for j in range(pre_sampler.dim):
 
             pop_walk, pop_neighbours_list = self.get_rw_pop(
-                pre_sampler, problem, i + 1, j + 1, eval_fronts=False
+                pre_sampler, problem, i + 1, j + 1
             )
 
             for which_variable in variables:
