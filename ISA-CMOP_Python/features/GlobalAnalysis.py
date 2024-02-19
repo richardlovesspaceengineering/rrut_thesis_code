@@ -22,7 +22,10 @@ class GlobalAnalysis(Analysis):
     Calculate all features generated from a random sample.
     """
 
-    def cv_distr(self, pop, norm_method):
+    def create_empty_analysis_obj(self):
+        return GlobalAnalysis(None, self.normalisation_values, self.results_dir)
+
+    def cv_distr(self, norm_method):
         """
         Distribution of constraints violations.
         """
@@ -33,7 +36,7 @@ class GlobalAnalysis(Analysis):
         )
 
         # Remove any rows with imaginary values.
-        cv = Analysis.apply_normalisation(pop.extract_cv(), cv_lb, cv_ub)
+        cv = Analysis.apply_normalisation(self.pop.extract_cv(), cv_lb, cv_ub)
 
         # Setting axis = 0 ensures computation columnwise. Output is a row vector.
         mean_cv = np.mean(cv)
@@ -51,15 +54,14 @@ class GlobalAnalysis(Analysis):
 
         return mean_cv, std_cv, min_cv, max_cv, skew_cv, kurt_cv
 
-    @staticmethod
-    def uc_rk_distr(pop):
+    def uc_rk_distr(self):
         """
         Distribution of unconstrained ranks.
         """
 
         # Remove any rows with imaginary values.
         # TODO: need to check this is working properly
-        rank_uncons = pop.extract_uncons_rank()
+        rank_uncons = self.pop.extract_uncons_rank()
 
         # Setting axis = 0 ensures computation columnwise. Output is a row vector.
         mean_uc_rk = np.mean(rank_uncons)
@@ -79,20 +81,18 @@ class GlobalAnalysis(Analysis):
 
         return mean_uc_rk, std_uc_rk, min_uc_rk, max_uc_rk, skew_uc_rk, kurt_uc_rk
 
-    @staticmethod
-    def cv_var_mdl(pop):
+    def cv_var_mdl(self):
         """
         Fit a linear model to decision variables-constraint violation, then take the R2 and difference between the max and min of the absolute values of the linear model coefficients.
         """
-        var = pop.extract_var()
-        cv = pop.extract_cv()
+        var = self.pop.extract_var()
+        cv = self.pop.extract_cv()
 
         cv_mdl_r2, cv_range_coeff = Analysis.fit_linear_mdl(var, cv)
 
         return cv_mdl_r2, cv_range_coeff
 
-    @staticmethod
-    def dist_corr(pop, NonDominated):
+    def dist_corr(self):
         """
         Distance correlation.
 
@@ -100,11 +100,11 @@ class GlobalAnalysis(Analysis):
 
         """
 
-        var = pop.extract_var()
-        cv = pop.extract_cv()
+        var = self.pop.extract_var()
+        cv = self.pop.extract_cv()
 
         # Reshape nondominated variables array to be 2D if needed.
-        nondominated_var = NonDominated.extract_var()
+        nondominated_var = self.pop.extract_nondominated().extract_var()
         if nondominated_var.ndim == 1:
             nondominated_var = np.reshape(nondominated_var, (1, -1))
 
@@ -117,8 +117,7 @@ class GlobalAnalysis(Analysis):
 
         return dist_c_corr
 
-    @staticmethod
-    def corr_obj(pop):
+    def corr_obj(self):
         """
         Significant correlation between objective values.
 
@@ -128,7 +127,7 @@ class GlobalAnalysis(Analysis):
         """
 
         # Determine the symmetric correlation matrix.
-        obj = pop.extract_obj()
+        obj = self.pop.extract_obj()
         corr_obj, _ = Analysis.compute_correlation_matrix(
             obj, correlation_type="spearman", alpha=0.05
         )
@@ -145,20 +144,22 @@ class GlobalAnalysis(Analysis):
 
         return corr_obj_min, corr_obj_max, corr_obj_rnge
 
-    def compute_ps_pf_distances(self, pop, norm_method):
+    def compute_ps_pf_distances(self, norm_method):
         """
         Properties of the estimated (and normalised) Pareto-Set (PS) and Pareto-Front (PF). Includes global maximum, global mean and mean IQR of distances across the PS/PF.
         """
         # Extract normalisation values.
         var_lb, var_ub, obj_lb, obj_ub, cv_lb, cv_ub = super().extract_norm_values(
-            self.normalisation_values, norm_method
+            norm_method
         )
-        obj = Analysis.apply_normalisation(pop.extract_obj(), obj_lb, obj_ub)
-        var = Analysis.apply_normalisation(pop.extract_var(), var_lb, var_ub)
-        cv = Analysis.apply_normalisation(pop.extract_cv(), cv_lb, cv_ub)
+        obj = Analysis.apply_normalisation(self.pop.extract_obj(), obj_lb, obj_ub)
+        var = Analysis.apply_normalisation(self.pop.extract_var(), var_lb, var_ub)
+        cv = Analysis.apply_normalisation(self.pop.extract_cv(), cv_lb, cv_ub)
 
         # Compute IGD between normalised PF and cloud of points formed by this sample.
-        IGDind = IGD(Analysis.apply_normalisation(pop.extract_pf(), obj_lb, obj_ub))
+        IGDind = IGD(
+            Analysis.apply_normalisation(self.pop.extract_pf(), obj_lb, obj_ub)
+        )
         PFd = IGDind(obj)
 
         # Initialise binary tree for nearest neighbour lookup on normalised PF.
@@ -166,7 +167,7 @@ class GlobalAnalysis(Analysis):
 
         # Query the tree to find the nearest neighbours in obj for each point on the PF.
         distances, indices = tree.query(
-            Analysis.apply_normalisation(pop.extract_pf(), obj_lb, obj_ub),
+            Analysis.apply_normalisation(self.pop.extract_pf(), obj_lb, obj_ub),
             k=20,
             workers=-1,
         )  # use parallel processing
@@ -189,7 +190,7 @@ class GlobalAnalysis(Analysis):
 
         if obj.size > 1:
             # Constrained ranks.
-            ranks = pop.extract_rank()
+            ranks = self.pop.extract_rank()
 
             # Distance across and between n1 and n2 rank fronts in decision space. Each argument of cdist should be arrays corresponding to the DVs on front n1 and front n2.
             var_dist_matrix = pdist(var[ranks == 1, :], "euclidean")
@@ -217,40 +218,37 @@ class GlobalAnalysis(Analysis):
             PF_dist_iqr,
         )
 
-    @staticmethod
-    def obj_skew(pop):
+    def obj_skew(self):
         """
         Checks the skewness of the objective values for this population - only univariate avg/max/min/range.
         """
-        obj = pop.extract_obj()
+        obj = self.pop.extract_obj()
         skew_avg = np.mean(skew(obj, axis=0))
         skew_max = np.max(skew(obj, axis=0))
         skew_min = np.min(skew(obj, axis=0))
         skew_rnge = skew_max - skew_min
         return skew_avg, skew_min, skew_max, skew_rnge
 
-    @staticmethod
-    def obj_kurt(pop):
+    def obj_kurt(self):
         """
         Checks the kurtosis of the objective values for this population - only univariate avg/max/min/range.
         """
-        obj = pop.extract_obj()
+        obj = self.pop.extract_obj()
         kurt_avg = np.mean(kurtosis(obj, axis=0))
         kurt_max = np.max(kurtosis(obj, axis=0))
         kurt_min = np.min(kurtosis(obj, axis=0))
         kurt_rnge = kurt_max - kurt_min
         return kurt_avg, kurt_min, kurt_max, kurt_rnge
 
-    @staticmethod
-    def compute_ranks_cv_corr(pop):
+    def compute_ranks_cv_corr(self):
         """
         Compute correlation between objective values and norm violation values using Spearman's rank correlation coefficient.
         """
 
-        obj = pop.extract_obj()
-        cv = pop.extract_cv()
-        ranks_cons = pop.extract_rank()
-        ranks_uncons = pop.extract_uncons_rank()
+        obj = self.pop.extract_obj()
+        cv = self.pop.extract_cv()
+        ranks_cons = self.pop.extract_rank()
+        ranks_uncons = self.pop.extract_uncons_rank()
 
         # Initialise correlation between objectives.
         corr_obj_cv = np.zeros(obj.shape[0])
@@ -281,8 +279,7 @@ class GlobalAnalysis(Analysis):
             corr_cv_ranks,
         )
 
-    @staticmethod
-    def PiIZ(pop):
+    def PiIZ(self):
         """
         Compute proportion of solutions in the ideal zone (the lower left quadrant of the fitness-violation scatterplot) for each objective and for unconstrained fronts-violation scatterplot.
 
@@ -290,10 +287,10 @@ class GlobalAnalysis(Analysis):
         """
 
         # Extracting matrices.
-        obj = pop.extract_obj()
-        var = pop.extract_var()
-        cons = pop.extract_cons()
-        cv = pop.extract_cv()
+        obj = self.pop.extract_obj()
+        var = self.pop.extract_var()
+        cons = self.pop.extract_cons()
+        cv = self.pop.extract_cv()
 
         # Remove imaginary rows. Deep copies are created here.
         obj = Analysis.remove_imag_rows(obj)
@@ -314,19 +311,19 @@ class GlobalAnalysis(Analysis):
             objx = obj[:, i]
             iz = np.asarray(objx[conZone] <= objIdealPoint)
 
-            piz_ob[i] = np.count_nonzero(iz) / pop.extract_obj().shape[0]
+            piz_ob[i] = np.count_nonzero(iz) / self.pop.extract_obj().shape[0]
 
         # Find PiZ for each frontsXcon
 
         # May need to transpose.
-        uncons_ranks = pop.extract_uncons_rank()
+        uncons_ranks = self.pop.extract_uncons_rank()
 
         # Axes may need to change depending on the structure of ranks. Right now we are taking the min of a column vector.
         minrank = np.min(uncons_ranks)
         maxrank = np.max(uncons_ranks)
         rankIdealPoint = minrank + (0.25 * (maxrank - minrank))
         iz = np.asarray(uncons_ranks[conZone] <= rankIdealPoint)
-        piz_f = np.count_nonzero(iz) / pop.extract_obj().size
+        piz_f = np.count_nonzero(iz) / self.pop.extract_obj().size
 
         # Return summary statistics.
         piz_ob_min = np.min(piz_ob)
@@ -334,16 +331,15 @@ class GlobalAnalysis(Analysis):
 
         return piz_ob_min, piz_ob_max, piz_f
 
-    @staticmethod
-    def rk_uc_var_mdl(pop):
+    def rk_uc_var_mdl(self):
         """
         Fit a linear model to decision variables-front location, then take the R2 and difference between the max and min of the absolute values of the linear model coefficients.
 
         Very similar to the cv_mdl function, except the model is fit to different parameters.
         """
 
-        var = pop.extract_var()
-        uncons_ranks = pop.extract_uncons_rank()
+        var = self.pop.extract_var()
+        uncons_ranks = self.pop.extract_uncons_rank()
 
         # Reshape data for compatibility. Assumes that y = mx + b where x is a matrix, y is a column vector
         uncons_ranks = uncons_ranks.reshape((-1, 1))
@@ -353,23 +349,22 @@ class GlobalAnalysis(Analysis):
 
         return rk_uc_mdl_r2, rk_uc_range_coeff
 
-    @staticmethod
-    def compute_fsr(pop):
-        feasible = pop.extract_feasible()
-        return len(feasible) / len(pop)
+    def compute_fsr(self):
+        feasible = self.pop.extract_feasible()
+        return len(feasible) / len(self.pop)
 
-    def compute_PF_UPF_features(self, pop, norm_method):
+    def compute_PF_UPF_features(self, norm_method):
         # Extract normalisation values.
         var_lb, var_ub, obj_lb, obj_ub, cv_lb, cv_ub = super().extract_norm_values(
-            self.normalisation_values, norm_method
+            norm_method
         )
 
         # Define the nadir for HV calculations.
         nadir = 1.1 * np.ones(obj_lb.size)
 
         # Extract constrained and unconstrained non-dominated individuals.
-        nondominated_cons = pop.extract_nondominated(constrained=True)
-        nondominated_uncons = pop.extract_nondominated(constrained=False)
+        nondominated_cons = self.pop.extract_nondominated(constrained=True)
+        nondominated_uncons = self.pop.extract_nondominated(constrained=False)
 
         # Normalise.
         obj_cons, _ = Analysis.trim_obj_using_nadir(
@@ -406,8 +401,8 @@ class GlobalAnalysis(Analysis):
         cpo_upo_n = len(nondominated_cons) / len(nondominated_uncons)
 
         # Proportion of PO solutions.
-        upo_n = len(nondominated_uncons) / len(pop)
-        po_n = len(nondominated_cons) / len(pop)
+        upo_n = len(nondominated_uncons) / len(self.pop)
+        po_n = len(nondominated_cons) / len(self.pop)
 
         # Proportion of UPF covered by PF.
 
@@ -416,7 +411,7 @@ class GlobalAnalysis(Analysis):
         merged_dec = np.vstack(
             (nondominated_cons.extract_var(), nondominated_uncons.extract_var())
         )
-        new_pop = Population(pop[0].problem, n_individuals=merged_dec.shape[0])
+        new_pop = Population(self.pop[0].problem, n_individuals=merged_dec.shape[0])
         new_pop.evaluate(merged_dec, eval_fronts=True)
 
         cons_combined_ranks = new_pop.extract_rank()[: len(nondominated_cons)]
@@ -572,25 +567,25 @@ class GlobalAnalysis(Analysis):
         eps05 = np.log(epsilon[eps05].max()) / np.log(10) if len(eps05) > 0 else np.nan
         return (H.max(), eps_s, m0, eps05)
 
-    def eval_features(self, pop_global):
+    def eval_features(self):
         # Remove any samples if they contain infs or nans.
-        new_pop, _ = pop_global.remove_nan_inf_rows("global", re_evaluate=True)
+        new_pop, _ = self.pop.remove_nan_inf_rows("global", re_evaluate=True)
 
         # Global scr. "glob" will be appended to the name in the results file.
-        self.features["scr"] = Analysis.compute_solver_crash_ratio(pop_global, new_pop)
+        self.features["scr"] = Analysis.compute_solver_crash_ratio(self.pop, new_pop)
 
         # Now work with the trimmed population from now on.
-        pop_global = new_pop
+        self.pop = new_pop
 
         # Feasibility
-        self.features["fsr"] = GlobalAnalysis.compute_fsr(pop_global)
+        self.features["fsr"] = self.compute_fsr()
 
         # Correlation of objectives.
         (
             self.features["corr_obj_min"],
             self.features["corr_obj_max"],
             self.features["corr_obj_range"],
-        ) = GlobalAnalysis.corr_obj(pop_global)
+        ) = self.corr_obj()
 
         # Skewness of objective values.
         (
@@ -598,7 +593,7 @@ class GlobalAnalysis(Analysis):
             self.features["skew_min"],
             self.features["skew_max"],
             self.features["skew_rnge"],
-        ) = GlobalAnalysis.obj_skew(pop_global)
+        ) = self.obj_skew()
 
         # Kurtosis of objective values.
         (
@@ -606,7 +601,7 @@ class GlobalAnalysis(Analysis):
             self.features["kurt_min"],
             self.features["kurt_max"],
             self.features["kurt_rnge"],
-        ) = GlobalAnalysis.obj_kurt(pop_global)
+        ) = self.obj_kurt()
 
         # Distribution of unconstrained ranks.
         (
@@ -616,7 +611,7 @@ class GlobalAnalysis(Analysis):
             self.features["max_uc_rk"],
             self.features["skew_uc_rk"],
             self.features["kurt_uc_rk"],
-        ) = GlobalAnalysis.uc_rk_distr(pop_global)
+        ) = self.uc_rk_distr()
 
         # Distribution of CV (normalised).
         (
@@ -626,14 +621,14 @@ class GlobalAnalysis(Analysis):
             self.features["max_cv"],
             self.features["skew_cv"],
             self.features["kurt_cv"],
-        ) = self.cv_distr(pop_global, norm_method="95th")
+        ) = self.cv_distr(norm_method="95th")
 
         # Proportion of solutions in ideal zone per objectives and overall proportion of solutions in ideal zone.
         (
             self.features["piz_ob_min"],
             self.features["piz_ob_max"],
             self.features["piz_ob_f"],
-        ) = GlobalAnalysis.PiIZ(pop_global)
+        ) = self.PiIZ()
 
         # Pareto set and front properties (normalised).
         (
@@ -645,9 +640,7 @@ class GlobalAnalysis(Analysis):
             self.features["PF_dist_max"],
             self.features["PF_dist_mean"],
             self.features["PF_dist_iqr"],
-        ) = GlobalAnalysis.compute_ps_pf_distances(
-            pop_global, self.normalisation_values, norm_method="95th"
-        )
+        ) = self.compute_ps_pf_distances(norm_method="95th")
 
         # Get PF-UPF relationship features.
         (
@@ -659,14 +652,10 @@ class GlobalAnalysis(Analysis):
             self.features["po_n"],
             self.features["cpo_upo_n"],
             self.features["cover_cpo_upo_n"],
-        ) = GlobalAnalysis.compute_PF_UPF_features(
-            pop_global, self.normalisation_values, norm_method="95th"
-        )
+        ) = self.compute_PF_UPF_features(norm_method="95th")
 
         # Extract violation-distance correlation.
-        self.features["dist_c_corr"] = GlobalAnalysis.dist_corr(
-            pop_global, pop_global.extract_nondominated()
-        )
+        self.features["dist_c_corr"] = self.dist_corr()
 
         # Correlations of objectives with cv, unconstrained ranks and then cv with ranks.
         (
@@ -675,19 +664,19 @@ class GlobalAnalysis(Analysis):
             self.features["corr_obj_uc_rk_min"],
             self.features["corr_obj_uc_rk_max"],
             self.features["corr_cv_ranks"],
-        ) = GlobalAnalysis.compute_ranks_cv_corr(pop_global)
+        ) = self.compute_ranks_cv_corr()
 
         # Decision variables-unconstrained ranks model properties.
         (
             self.features["rk_uc_mdl_r2"],
             self.features["rk_uc_range_coeff"],
-        ) = GlobalAnalysis.rk_uc_var_mdl(pop_global)
+        ) = self.rk_uc_var_mdl()
 
         # Decision variables-CV model properties.
         (
             self.features["cv_mdl_r2"],
             self.features["cv_range_coeff"],
-        ) = GlobalAnalysis.rk_uc_var_mdl(pop_global)
+        ) = self.rk_uc_var_mdl()
 
         # Information content features.
         (
@@ -695,4 +684,4 @@ class GlobalAnalysis(Analysis):
             self.features["eps_s"],
             self.features["m0"],
             self.features["eps05"],
-        ) = GlobalAnalysis.compute_ic_features(pop_global, sample_type="global")
+        ) = GlobalAnalysis.compute_ic_features(self.pop, sample_type="global")

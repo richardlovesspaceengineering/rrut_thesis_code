@@ -3,15 +3,15 @@ from features.RandomWalkAnalysis import RandomWalkAnalysis
 
 
 class AdaptiveWalkAnalysis(RandomWalkAnalysis):
-    def eval_features(self, pop_walk, pop_neighbours_list):
+    def eval_features(self):
         # Preprocess nans and infinities, compute solver crash ratio and update attributes.
         pop_new, pop_neighbours_new, pop_neighbours_checked = (
-            RandomWalkAnalysis.preprocess_nans_on_walks(pop_walk, pop_neighbours_list)
+            self.preprocess_nans_on_walks()
         )
 
         # Update populations
-        pop_walk = pop_new
-        pop_neighbours_list = pop_neighbours_checked
+        self.pop_walk = pop_new
+        self.pop_neighbours_list = pop_neighbours_checked
 
         # Evaluate neighbourhood domination features. Note that no normalisation is needed for these.
         (
@@ -25,9 +25,7 @@ class AdaptiveWalkAnalysis(RandomWalkAnalysis):
             _,
             _,
             _,
-        ) = super().compute_neighbourhood_dominance_features(
-            pop_walk, pop_neighbours_list
-        )
+        ) = super().compute_neighbourhood_dominance_features()
 
         # Evaluate unconstrained neighbourhood HV features
         (
@@ -39,19 +37,14 @@ class AdaptiveWalkAnalysis(RandomWalkAnalysis):
             _,
             _,
             _,
-        ) = super().compute_neighbourhood_hv_features(
-            pop_walk,
-            pop_neighbours_list,
-            norm_method="95th",
-        )
+        ) = super().compute_uncons_neighbourhood_hv_features(norm_method="95th")
 
         # Evaluate constrained neighbourhood HV features
-
         (
             pop_walk_feas,
             _,
             pop_neighbours_feas,
-        ) = super().extract_feasible_steps_neighbours(pop_walk, pop_neighbours_list)
+        ) = super().extract_feasible_steps_neighbours()
         (
             self.features["hv_ss_avg"],
             _,
@@ -61,14 +54,9 @@ class AdaptiveWalkAnalysis(RandomWalkAnalysis):
             _,
             self.features["bhv_avg"],
             _,
-        ) = compute_neighbourhood_hv_features(
-            pop_walk_feas,
-            pop_neighbours_feas,
-            self.normalisation_values,
-            norm_method="95th",
-        )
+        ) = self.compute_cons_neighbourhood_hv_features(norm_method="95th")
 
         # Compute average length of adaptive walks.
         self.features["length_avg"] = len(
-            pop_walk
+            self.pop_walk
         )  # TODO: decide if we need to normalise this.

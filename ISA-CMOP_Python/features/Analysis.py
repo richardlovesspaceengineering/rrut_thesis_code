@@ -53,10 +53,11 @@ class Analysis:
     Calculate all features generated from samples.
     """
 
-    def __init__(self, normalisation_values, results_dir):
+    def __init__(self, pop, normalisation_values, results_dir):
         """
         Populations must already be evaluated.
         """
+        self.pop = pop
         self.normalisation_values = normalisation_values
         self.features = {}
         self.results_dir = results_dir
@@ -324,6 +325,9 @@ class Analysis:
 
         return combined_array
 
+    def create_empty_analysis_obj(self):
+        pass
+
     @staticmethod
     def concatenate_single_analyses(single_analyses):
         """
@@ -340,11 +344,7 @@ class Analysis:
         analysis_type = type(single_analyses[0])
 
         # Create a new MultipleAnalysis object with the combined populations based on the inferred class type
-        combined_analysis = analysis_type(
-            None,
-            single_analyses[0].normalisation_values,
-            single_analyses[0].results_dir,
-        )
+        combined_analysis = single_analyses[0].create_empty_analysis_obj()
 
         # Extract the feature names
         feature_names = single_analyses[0].features.keys()

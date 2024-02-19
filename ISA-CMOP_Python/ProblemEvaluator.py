@@ -540,15 +540,15 @@ class ProblemEvaluator:
 
         # Loop over each of the walks within this sample.
         for j in range(pre_sampler.dim):
+
+            # Directly wrap the call to get_rw_pop inside the instantiation of RandomWalkAnalysis.
             rw_analysis = RandomWalkAnalysis(
-                self.walk_normalisation_values, self.results_dir
+                *self.get_rw_pop(pre_sampler, problem, i + 1, j + 1),
+                self.walk_normalisation_values,
+                self.results_dir,
             )
 
-            # We already evaluated the populations when we computed the norms.
-            pop_walk, pop_neighbours_list = self.get_rw_pop(
-                pre_sampler, problem, i + 1, j + 1
-            )
-            rw_analysis.eval_features(pop_walk, pop_neighbours_list)
+            rw_analysis.eval_features()
 
             rw_single_sample_analyses_list.append(rw_analysis)
 
@@ -603,15 +603,17 @@ class ProblemEvaluator:
 
     @handle_ctrl_c
     def eval_single_sample_global_features(self, i, pre_sampler, problem):
-        global_analysis = GlobalAnalysis(
-            self.global_normalisation_values, self.results_dir
-        )
 
         # We already evaluated the populations when we computed the norms.
-        pop_global = self.get_global_pop(pre_sampler, problem, i + 1)
+
+        global_analysis = GlobalAnalysis(
+            self.get_global_pop(pre_sampler, problem, i + 1),
+            self.global_normalisation_values,
+            self.results_dir,
+        )
 
         # Pass to Analysis class for evaluation.
-        global_analysis.eval_features(pop_global)
+        global_analysis.eval_features()
 
         return global_analysis
 
@@ -685,9 +687,6 @@ class ProblemEvaluator:
 
         for j in range(num_walks):
             # Initialise AdaptiveWalkAnalysis evaluator. Do at every iteration or existing list entries get overwritten.
-            aw_analysis = AdaptiveWalkAnalysis(
-                self.global_normalisation_values, self.results_dir
-            )
 
             # Generate the adaptive walk sample.
             walk = awGenerator.do_adaptive_phc_walk_for_starting_point(
@@ -708,6 +707,13 @@ class ProblemEvaluator:
             pop_walk, pop_neighbours_list = self.generate_walk_neig_populations(
                 problem, walk, neighbours, adaptive_walk=True
             )
+
+            aw_analysis = AdaptiveWalkAnalysis(
+                pop_walk,
+                pop_neighbours_list,
+                self.global_normalisation_values,
+                self.results_dir,
+            )
             end_time = time.time()
             elapsed_time = end_time - start_time
             print(
@@ -718,7 +724,7 @@ class ProblemEvaluator:
 
             # Pass to Analysis class for evaluation.
             start_time = time.time()
-            aw_analysis.eval_features(pop_walk, pop_neighbours_list)
+            aw_analysis.eval_features()
             end_time = time.time()  # Record the end time
             elapsed_time = end_time - start_time
 

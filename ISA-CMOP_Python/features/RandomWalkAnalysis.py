@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.stats import yeojohnson
 from features.Analysis import Analysis
 from features.GlobalAnalysis import GlobalAnalysis
 import numpy as np
@@ -18,24 +19,32 @@ class RandomWalkAnalysis(Analysis):
     Populations is a list of populations that represents a walk, each entry is a solution and its neighbours.
     """
 
-    def __init__(self, normalisation_values, results_dir):
+    def __init__(
+        self, pop_walk, pop_neighbours_list, normalisation_values, results_dir
+    ):
         """
         Populations must already be evaluated.
         """
 
+        self.pop_walk = pop_walk
+        self.pop_neighbours_list = pop_neighbours_list
         self.normalisation_values = normalisation_values
         self.features = {}
         self.results_dir = results_dir
 
-    @staticmethod
-    def preprocess_nans_on_walks(pop_walk, pop_neighbours_list):
+    def create_empty_analysis_obj(self):
+        return RandomWalkAnalysis(
+            None, None, self.normalisation_values, self.results_dir
+        )
+
+    def preprocess_nans_on_walks(self):
         # Remove any steps and corresponding neighbours if they contain infs or nans.
-        pop_walk_new, num_rows_removed = pop_walk.remove_nan_inf_rows(
+        pop_walk_new, num_rows_removed = self.pop_walk.remove_nan_inf_rows(
             "walk", re_evaluate=True
         )
-        removal_idx = pop_walk.get_nan_inf_idx()
+        removal_idx = self.pop_walk.get_nan_inf_idx()
         pop_neighbours_new = [
-            n for i, n in enumerate(pop_neighbours_list) if i not in removal_idx
+            n for i, n in enumerate(self.pop_neighbours_list) if i not in removal_idx
         ]
 
         # Remove any neighbours if they contain infs or nans.
@@ -57,13 +66,12 @@ class RandomWalkAnalysis(Analysis):
 
         return pop_walk_new, pop_neighbours_new, pop_neighbours_checked
 
-    @staticmethod
-    def extract_feasible_steps_neighbours(pop_walk, pop_neighbours_list):
+    def extract_feasible_steps_neighbours(self):
         # Remove any steps and corresponding neighbours if they are infeasible
-        pop_walk_feas = pop_walk.extract_feasible()
-        removal_idx = pop_walk.get_infeas_idx()
+        pop_walk_feas = self.pop_walk.extract_feasible()
+        removal_idx = self.pop_walk.get_infeas_idx()
         pop_neighbours_new = [
-            n for i, n in enumerate(pop_neighbours_list) if i not in removal_idx
+            n for i, n in enumerate(self.pop_neighbours_list) if i not in removal_idx
         ]
 
         # Make new list of populations for neighbours.
@@ -110,9 +118,7 @@ class RandomWalkAnalysis(Analysis):
 
         return ncr_avg, ncr_r1
 
-    def compute_neighbourhood_distance_features(
-        self, pop_walk, pop_neighbours_list, norm_method
-    ):
+    def compute_neighbourhood_distance_features(self, norm_method):
         """
         Calculate neighbourhood_features.
 
@@ -129,28 +135,32 @@ class RandomWalkAnalysis(Analysis):
         )
 
         # Extract walk arrays.
-        walk_var = Analysis.apply_normalisation(pop_walk.extract_var(), var_lb, var_ub)
-        walk_obj = Analysis.apply_normalisation(pop_walk.extract_obj(), obj_lb, obj_ub)
-        walk_cv = Analysis.apply_normalisation(pop_walk.extract_cv(), cv_lb, cv_ub)
+        walk_var = Analysis.apply_normalisation(
+            self.pop_walk.extract_var(), var_lb, var_ub
+        )
+        walk_obj = Analysis.apply_normalisation(
+            self.pop_walk.extract_obj(), obj_lb, obj_ub
+        )
+        walk_cv = Analysis.apply_normalisation(self.pop_walk.extract_cv(), cv_lb, cv_ub)
 
         # Initialise arrays.
-        dist_x_array = np.zeros(len(pop_walk))
-        dist_f_array = np.zeros(len(pop_walk))
-        dist_c_array = np.zeros(len(pop_walk))
-        dist_f_c_array = np.zeros(len(pop_walk))
-        dist_f_dist_x_array = np.zeros(len(pop_walk))
-        dist_c_dist_x_array = np.zeros(len(pop_walk))
-        dist_f_c_dist_x_array = np.zeros(len(pop_walk))
+        dist_x_array = np.zeros(len(self.pop_walk))
+        dist_f_array = np.zeros(len(self.pop_walk))
+        dist_c_array = np.zeros(len(self.pop_walk))
+        dist_f_c_array = np.zeros(len(self.pop_walk))
+        dist_f_dist_x_array = np.zeros(len(self.pop_walk))
+        dist_c_dist_x_array = np.zeros(len(self.pop_walk))
+        dist_f_c_dist_x_array = np.zeros(len(self.pop_walk))
 
         # Loop over each solution in the walk.
-        for i in range(len(pop_walk)):
+        for i in range(len(self.pop_walk)):
             # Extract step values.
             step_var = np.atleast_2d(walk_var[i, :])
             step_obj = np.atleast_2d(walk_obj[i, :])
             step_cv = np.atleast_2d(walk_cv[i])
 
             # Extract neighbours for this point and append.
-            pop_neighbourhood = copy.deepcopy(pop_neighbours_list[i])
+            pop_neighbourhood = copy.deepcopy(self.pop_neighbours_list[i])
 
             # Extract evaluated values for this neighbourhood and apply normalisation.
             neig_var = Analysis.apply_normalisation(
@@ -225,9 +235,28 @@ class RandomWalkAnalysis(Analysis):
             dist_f_c_dist_x_r1,
         )
 
+    def compute_cons_neighbourhood_hv_features(self, norm_method):
+        (
+            pop_walk_feas,
+            _,
+            pop_neighbours_feas,
+        ) = self.extract_feasible_steps_neighbours()
+
+        return self.compute_neighbourhood_hv_features(
+            pop_walk_feas, pop_neighbours_feas, norm_method
+        )
+
+    def compute_uncons_neighbourhood_hv_features(self, norm_method):
+        return self.compute_neighbourhood_hv_features(
+            self.pop_walk, self.pop_neighbours_list, norm_method
+        )
+
     def compute_neighbourhood_hv_features(
         self, pop_walk, pop_neighbours_list, norm_method
     ):
+        """
+        This function is used for feasible and unconstrained spaces.
+        """
         # Extract normalisation values.
         var_lb, var_ub, obj_lb, obj_ub, cv_lb, cv_ub = super().extract_norm_values(
             norm_method
@@ -244,7 +273,8 @@ class RandomWalkAnalysis(Analysis):
         obj = pop_walk.extract_obj()
 
         obj, mask = Analysis.trim_obj_using_nadir(
-            Analysis.apply_normalisation(pop_walk.extract_obj(), obj_lb, obj_ub), nadir
+            Analysis.apply_normalisation(pop_walk.extract_obj(), obj_lb, obj_ub),
+            nadir,
         )
 
         num_rows_trimmed = len(pop_walk) - np.count_nonzero(mask)
@@ -366,20 +396,18 @@ class RandomWalkAnalysis(Analysis):
             bhv_r1,
         )
 
-    def compute_neighbourhood_violation_features(
-        self, pop_walk, pop_neighbours_list, norm_method
-    ):
+    def compute_neighbourhood_violation_features(self, norm_method):
         # Extract normalisation values.
         var_lb, var_ub, obj_lb, obj_ub, cv_lb, cv_ub = super().extract_norm_values(
             norm_method
         )
 
         # Extract evaluated population values.
-        var = pop_walk.extract_var()
-        obj = pop_walk.extract_obj()
+        var = self.pop_walk.extract_var()
+        obj = self.pop_walk.extract_obj()
 
         # Should only need to normalsie CV here.
-        cv = Analysis.apply_normalisation(pop_walk.extract_cv(), cv_lb, cv_ub)
+        cv = Analysis.apply_normalisation(self.pop_walk.extract_cv(), cv_lb, cv_ub)
 
         # Initialise arrays.
         cross_array = np.zeros(var.shape[0] - 1)
@@ -389,7 +417,7 @@ class RandomWalkAnalysis(Analysis):
 
         # Maximum ratio of feasible boundary crossing.
         num_steps = obj.shape[0]
-        num_feasible_steps = pop_walk.extract_feasible().extract_obj().shape[0]
+        num_feasible_steps = self.pop_walk.extract_feasible().extract_obj().shape[0]
         rfb_max = (
             2
             / (num_steps - 1)
@@ -410,7 +438,7 @@ class RandomWalkAnalysis(Analysis):
         # Loop over each solution in the walk.
         for i in range(var.shape[0]):
             # Extract neighbours for this point and normalise.
-            pop_neighbourhood = pop_neighbours_list[i]
+            pop_neighbourhood = self.pop_neighbours_list[i]
             neig_cv = Analysis.apply_normalisation(
                 pop_neighbourhood.extract_cv(), cv_lb, cv_ub
             )
@@ -465,13 +493,12 @@ class RandomWalkAnalysis(Analysis):
 
         return nrfbx, nncv_avg, nncv_r1, ncv_avg, ncv_r1, bncv_avg, bncv_r1
 
-    @staticmethod
-    def compute_neighbourhood_dominance_features(pop_walk, pop_neighbours_list):
+    def compute_neighbourhood_dominance_features(self):
         # Extract evaluated population values.
-        var = pop_walk.extract_var()
-        obj = pop_walk.extract_obj()
-        cv = pop_walk.extract_cv()
-        PF = pop_walk.extract_pf()
+        var = self.pop_walk.extract_var()
+        obj = self.pop_walk.extract_obj()
+        cv = self.pop_walk.extract_cv()
+        PF = self.pop_walk.extract_pf()
 
         # Initialise arrays.
         sup_array = np.zeros(var.shape[0])
@@ -482,7 +509,7 @@ class RandomWalkAnalysis(Analysis):
 
         for i in range(var.shape[0]):
             # Extract neighbours for this point and append.
-            pop_neighbourhood = pop_neighbours_list[i]
+            pop_neighbourhood = self.pop_neighbours_list[i]
 
             # Compute proportion of locally non-dominated solutions.
             lnd_array[i] = np.atleast_2d(
@@ -494,7 +521,7 @@ class RandomWalkAnalysis(Analysis):
 
             # Create a new population, find rank of step relative to neighbours.
             merged_pop = Population(
-                pop_walk[0].problem, n_individuals=merged_var.shape[0]
+                self.pop_walk[0].problem, n_individuals=merged_var.shape[0]
             )
             merged_pop.evaluate(merged_var, eval_fronts=True)
 
@@ -543,16 +570,14 @@ class RandomWalkAnalysis(Analysis):
             nfronts_r1,
         )
 
-    def eval_features(self, pop_walk, pop_neighbours_list):
-        """
-        Evaluate features along the random walk and save to class.
-        """
-
+    def compute_solver_related_features(self):
         # Preprocess nans and infinities, compute solver crash ratio and update attributes.
         pop_new, pop_neighbours_new, pop_neighbours_checked = (
-            RandomWalkAnalysis.preprocess_nans_on_walks(pop_walk, pop_neighbours_list)
+            self.preprocess_nans_on_walks()
         )
-        self.features["scr"] = Analysis.compute_solver_crash_ratio(pop_walk, pop_new)
+        self.features["scr"] = Analysis.compute_solver_crash_ratio(
+            self.pop_walk, pop_new
+        )
         (
             self.features["ncr_avg"],
             self.features["ncr_r1"],
@@ -561,8 +586,15 @@ class RandomWalkAnalysis(Analysis):
         )
 
         # Update populations
-        pop_walk = pop_new
-        pop_neighbours_list = pop_neighbours_checked
+        self.pop_walk = pop_new
+        self.pop_neighbours_list = pop_neighbours_checked
+
+    def eval_features(self):
+        """
+        Evaluate features along the random walk and save to class.
+        """
+
+        self.compute_solver_related_features()
 
         # Evaluate neighbourhood distance features
         (
@@ -580,11 +612,7 @@ class RandomWalkAnalysis(Analysis):
             self.features["dist_c_dist_x_r1"],
             self.features["dist_f_c_dist_x_avg"],
             self.features["dist_f_c_dist_x_r1"],
-        ) = self.compute_neighbourhood_distance_features(
-            pop_walk,
-            pop_neighbours_list,
-            norm_method="95th",
-        )
+        ) = self.compute_neighbourhood_distance_features(norm_method="95th")
 
         # Evaluate unconstrained neighbourhood HV features
         (
@@ -596,18 +624,8 @@ class RandomWalkAnalysis(Analysis):
             self.features["uhvd_r1"],
             _,
             _,
-        ) = self.compute_neighbourhood_hv_features(
-            pop_walk,
-            pop_neighbours_list,
-            norm_method="95th",
-        )
+        ) = self.compute_uncons_neighbourhood_hv_features(norm_method="95th")
 
-        # Evaluate constrained neighbourhood HV features.
-        (
-            pop_walk_feas,
-            _,
-            pop_neighbours_feas,
-        ) = self.extract_feasible_steps_neighbours(pop_walk, pop_neighbours_list)
         (
             self.features["hv_ss_avg"],
             self.features["hv_ss_r1"],
@@ -617,11 +635,7 @@ class RandomWalkAnalysis(Analysis):
             self.features["hvd_r1"],
             self.features["bhv_avg"],
             self.features["bhv_r1"],
-        ) = self.compute_neighbourhood_hv_features(
-            pop_walk_feas,
-            pop_neighbours_feas,
-            norm_method="95th",
-        )
+        ) = self.compute_cons_neighbourhood_hv_features(norm_method="95th")
 
         # Evaluate neighbourhood violation features
         (
@@ -632,11 +646,7 @@ class RandomWalkAnalysis(Analysis):
             self.features["ncv_r1"],
             self.features["bncv_avg"],
             self.features["bncv_r1"],
-        ) = self.compute_neighbourhood_violation_features(
-            pop_walk,
-            pop_neighbours_list,
-            norm_method="95th",
-        )
+        ) = self.compute_neighbourhood_violation_features(norm_method="95th")
 
         # Evaluate neighbourhood domination features. Note that no normalisation is needed for these.
         (
@@ -650,9 +660,7 @@ class RandomWalkAnalysis(Analysis):
             self.features["lnd_r1"],
             self.features["nfronts_avg"],
             self.features["nfronts_r1"],
-        ) = RandomWalkAnalysis.compute_neighbourhood_dominance_features(
-            pop_walk, pop_neighbours_list
-        )
+        ) = self.compute_neighbourhood_dominance_features()
 
         # Information content features.
         (
@@ -660,4 +668,4 @@ class RandomWalkAnalysis(Analysis):
             self.features["eps_s"],
             self.features["m0"],
             self.features["eps05"],
-        ) = GlobalAnalysis.compute_ic_features(pop_walk, sample_type="rw")
+        ) = GlobalAnalysis.compute_ic_features(self.pop_walk, sample_type="rw")
