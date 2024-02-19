@@ -1,13 +1,12 @@
 import numpy as np
 from features.RandomWalkAnalysis import RandomWalkAnalysis
-from features.randomwalkfeatures import *
 
 
 class AdaptiveWalkAnalysis(RandomWalkAnalysis):
     def eval_features(self, pop_walk, pop_neighbours_list):
         # Preprocess nans and infinities, compute solver crash ratio and update attributes.
-        pop_new, pop_neighbours_new, pop_neighbours_checked = preprocess_nans_on_walks(
-            pop_walk, pop_neighbours_list
+        pop_new, pop_neighbours_new, pop_neighbours_checked = (
+            RandomWalkAnalysis.preprocess_nans_on_walks(pop_walk, pop_neighbours_list)
         )
 
         # Update populations
@@ -26,7 +25,9 @@ class AdaptiveWalkAnalysis(RandomWalkAnalysis):
             _,
             _,
             _,
-        ) = compute_neighbourhood_dominance_features(pop_walk, pop_neighbours_list)
+        ) = super().compute_neighbourhood_dominance_features(
+            pop_walk, pop_neighbours_list
+        )
 
         # Evaluate unconstrained neighbourhood HV features
         (
@@ -38,10 +39,9 @@ class AdaptiveWalkAnalysis(RandomWalkAnalysis):
             _,
             _,
             _,
-        ) = compute_neighbourhood_hv_features(
+        ) = super().compute_neighbourhood_hv_features(
             pop_walk,
             pop_neighbours_list,
-            self.normalisation_values,
             norm_method="95th",
         )
 
@@ -51,7 +51,7 @@ class AdaptiveWalkAnalysis(RandomWalkAnalysis):
             pop_walk_feas,
             _,
             pop_neighbours_feas,
-        ) = extract_feasible_steps_neighbours(pop_walk, pop_neighbours_list)
+        ) = super().extract_feasible_steps_neighbours(pop_walk, pop_neighbours_list)
         (
             self.features["hv_ss_avg"],
             _,

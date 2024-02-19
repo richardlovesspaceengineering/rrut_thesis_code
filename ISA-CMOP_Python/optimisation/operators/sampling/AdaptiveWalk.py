@@ -2,9 +2,7 @@ import numpy as np
 from optimisation.operators.sampling.RandomWalk import RandomWalk
 import matplotlib.pyplot as plt
 from optimisation.model.population import Population
-from features.feature_helpers import generate_bounds_from_problem
 from pymoo.problems import get_problem
-import pygmo
 from features.Analysis import Analysis, MultipleAnalysis
 
 
@@ -13,7 +11,7 @@ class AdaptiveWalk(RandomWalk):
         self.dim = dim
 
         # Use actual problem bounds as opposed to unit hypercube.
-        self.bounds = generate_bounds_from_problem(problem)
+        self.bounds = Analysis.generate_bounds_from_problem(problem)
         self.num_steps = max_steps
         self.step_size_pct = step_size_pct
         self.neighbourhood_size = neighbourhood_size

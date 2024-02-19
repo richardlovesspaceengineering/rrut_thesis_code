@@ -342,7 +342,9 @@ class ProblemEvaluator:
 
         # Loop over each variable.
         for which_variable in variables:
-            combined_array = combine_arrays_for_pops([pop_global], which_variable)
+            combined_array = Analysis.combine_arrays_for_pops(
+                [pop_global], which_variable
+            )
 
             fmin, fmax = self.compute_maxmin_for_sample(
                 combined_array, pop_global.extract_pf(), which_variable
@@ -462,7 +464,7 @@ class ProblemEvaluator:
             )
 
             for which_variable in variables:
-                combined_array = combine_arrays_for_pops(
+                combined_array = Analysis.combine_arrays_for_pops(
                     [pop_walk] + pop_neighbours_list, which_variable
                 )
                 fmin, fmax = self.compute_maxmin_for_sample(
