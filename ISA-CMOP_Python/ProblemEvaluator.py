@@ -144,11 +144,12 @@ class ProblemEvaluator:
         # 15,000 points uses about 4 GB memory per process.
         hostname = socket.gethostname()
         if hostname == "RichardPC":
-            self.num_processes_dim_dict = {
+            self.num_processes_rw_dict = {
                 "15d": 5,
                 "20d": 5,
                 "30d": 5,
             }
+            self.num_processes_glob_dict = self.num_processes_rw_dict
         else:
             # Megatrons. Assumed available RAM of 128 GB.
             self.num_processes_rw_dict = {
@@ -167,7 +168,7 @@ class ProblemEvaluator:
         dim_key = f"{self.instance.n_var}d"  # Assuming self.dim is an integer or string that matches the keys in the dictionary
 
         # Check if the current dimension has a specified number of processes
-        if dim_key in self.num_processes_dim_dict:
+        if dim_key in self.num_processes_glob_dict:
             # Update num_processes based on the dictionary entry
             self.num_processes_global = self.num_processes_glob_dict[dim_key]
             self.num_processes_rw = self.num_processes_rw_dict[dim_key]
