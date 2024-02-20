@@ -421,19 +421,25 @@ class PreSampler:
         # Initialize an empty list to hold the neighbours
         pop_neighbours_list = []
 
-        # Load each neighbour from its file
+        # List all neighbour files for the given walk in the directory
         neighbours_files = [
             f
             for f in os.listdir(sample_dir_path)
             if f.startswith(f"neighbour_{walk_ind_number}_")
         ]
-        for neighbour_file in sorted(
-            neighbours_files, key=lambda x: int(x.split("_")[-1].split(".")[0])
-        ):
-            neighbour_file_path = os.path.join(sample_dir_path, neighbour_file)
-            with open(neighbour_file_path, "rb") as file:
-                neighbour = pickle.load(file)
-                pop_neighbours_list.append(neighbour)
+
+        # Compute the number of neighbour files dynamically
+        number_of_neighbours_files = len(neighbours_files)
+
+        # Assuming file names are in the format "neighbour_{walk_ind_number}_{index}.pkl", sort and load in numeric order so that steps and neighbours agree.
+
+        for i in range(number_of_neighbours_files):
+            neighbour_file_str = f"neighbour_{walk_ind_number}_{i}.pkl"
+            neighbour_file_path = os.path.join(sample_dir_path, neighbour_file_str)
+            if os.path.exists(neighbour_file_path):
+                with open(neighbour_file_path, "rb") as file:
+                    neighbour = pickle.load(file)
+                    pop_neighbours_list.append(neighbour)
 
         print_with_timestamp(
             f"Loaded walk and individual neighbours for sample {sample_number}, walk {walk_ind_number} from {sample_dir_path}."
