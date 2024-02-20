@@ -367,7 +367,7 @@ class PreSampler:
         print("All global checks passed successfully.")
         return True
 
-    def save_walk_neig_population(
+    def save_walk_neig_population_old(
         self, pop_walk, pop_neighbours_list, sample_number, walk_ind_number
     ):
 
@@ -398,7 +398,39 @@ class PreSampler:
             f"Saved walk and neighbours populations for sample {sample_number}, walk {walk_ind_number} from {sample_dir_path}."
         )
 
-    def load_walk_neig_population(self, sample_number, walk_ind_number):
+    def save_walk_neig_population(
+        self, pop_walk, pop_neighbours_list, sample_number, walk_ind_number
+    ):
+
+        # Path for the specific sample directory within the "rw" directory
+        sample_dir_path = os.path.join(self.rw_pop_dir, f"sample{sample_number}")
+
+        # Ensure the sample directory exists
+        if not os.path.exists(sample_dir_path):
+            os.makedirs(sample_dir_path, exist_ok=True)
+
+        # Define the file path for the walk population within the sample directory
+        walk_file_path = os.path.join(
+            sample_dir_path, f"pop_walk_{walk_ind_number}.pkl"
+        )
+
+        # Save the `pop_walk` object to its file
+        with open(walk_file_path, "wb") as file:
+            pickle.dump(pop_walk, file)
+
+        # Save each item in the `pop_neighbours_list` to its own file
+        for i, neighbour in enumerate(pop_neighbours_list):
+            neighbour_file_path = os.path.join(
+                sample_dir_path, f"neighbour_{walk_ind_number}_{i}.pkl"
+            )
+            with open(neighbour_file_path, "wb") as file:
+                pickle.dump(neighbour, file)
+
+        print_with_timestamp(
+            f"Saved walk population and individual neighbours for sample {sample_number}, walk {walk_ind_number} in {sample_dir_path}."
+        )
+
+    def load_walk_neig_population_old(self, sample_number, walk_ind_number):
         # Path for the specific sample directory within the "rw" directory
         sample_dir_path = os.path.join(self.rw_pop_dir, f"sample{sample_number}")
 
@@ -428,6 +460,48 @@ class PreSampler:
 
         print_with_timestamp(
             f"Loaded walk and neighbours populations for sample {sample_number}, walk {walk_ind_number} from {sample_dir_path}."
+        )
+
+        return pop_walk, pop_neighbours_list
+
+    def load_walk_neig_population(self, sample_number, walk_ind_number):
+        # Path for the specific sample directory within the "rw" directory
+        sample_dir_path = os.path.join(self.rw_pop_dir, f"sample{sample_number}")
+
+        # Define the file path for the walk population within the sample directory
+        walk_file_path = os.path.join(
+            sample_dir_path, f"pop_walk_{walk_ind_number}.pkl"
+        )
+
+        # Check if the walk file exists and raise an error if not
+        if not os.path.exists(walk_file_path):
+            raise FileNotFoundError(
+                f"Walk file for sample {sample_number}, walk {walk_ind_number} not found in {sample_dir_path}"
+            )
+
+        # Load the `pop_walk` object from its file
+        with open(walk_file_path, "rb") as file:
+            pop_walk = pickle.load(file)
+
+        # Initialize an empty list to hold the neighbours
+        pop_neighbours_list = []
+
+        # Load each neighbour from its file
+        neighbours_files = [
+            f
+            for f in os.listdir(sample_dir_path)
+            if f.startswith(f"neighbour_{walk_ind_number}_")
+        ]
+        for neighbour_file in sorted(
+            neighbours_files, key=lambda x: int(x.split("_")[-1].split(".")[0])
+        ):
+            neighbour_file_path = os.path.join(sample_dir_path, neighbour_file)
+            with open(neighbour_file_path, "rb") as file:
+                neighbour = pickle.load(file)
+                pop_neighbours_list.append(neighbour)
+
+        print_with_timestamp(
+            f"Loaded walk and individual neighbours for sample {sample_number}, walk {walk_ind_number} from {sample_dir_path}."
         )
 
         return pop_walk, pop_neighbours_list
