@@ -65,6 +65,10 @@ class Analysis:
     def eval_features(self):
         pass
 
+    def clear_for_storage(self):
+        # Remove the population stored in this object.
+        self.pop = None
+
     @staticmethod
     def compute_solver_crash_ratio(full_pop, trimmed_pop):
         obj_full = full_pop.extract_obj()

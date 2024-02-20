@@ -15,7 +15,7 @@ problemsICAS=("ICAS2024Test")
 # problemsMODACT=("MODACT") # requires extra package
 
 # Dimensions to consider
-dimensions=(5 10 15 20 30)
+dimensions=(15 20 30)
 
 # Number of samples to run.
 num_samples=30

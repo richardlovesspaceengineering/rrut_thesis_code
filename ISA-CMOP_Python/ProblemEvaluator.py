@@ -550,6 +550,8 @@ class ProblemEvaluator:
 
             rw_analysis.eval_features()
 
+            rw_analysis.clear_for_storage()
+
             rw_single_sample_analyses_list.append(rw_analysis)
 
         return rw_single_sample_analyses_list
@@ -614,6 +616,8 @@ class ProblemEvaluator:
 
         # Pass to Analysis class for evaluation.
         global_analysis.eval_features()
+
+        global_analysis.clear_for_storage()
 
         return global_analysis
 
@@ -734,6 +738,7 @@ class ProblemEvaluator:
                     j + 1, num_walks, elapsed_time
                 )
             )
+            aw_analysis.clear_for_storage()
             aw_single_sample_analyses_list.append(aw_analysis)
 
         return aw_single_sample_analyses_list

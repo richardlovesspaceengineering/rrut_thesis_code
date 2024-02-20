@@ -32,6 +32,10 @@ class RandomWalkAnalysis(Analysis):
         self.features = {}
         self.results_dir = results_dir
 
+    def clear_for_storage(self):
+        self.pop_walk = None
+        self.pop_neighbours_list = None
+
     def create_empty_analysis_obj(self):
         return RandomWalkAnalysis(
             None, None, self.normalisation_values, self.results_dir
