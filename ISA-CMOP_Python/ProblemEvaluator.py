@@ -130,9 +130,9 @@ class ProblemEvaluator:
             f"The analysis of {problem_name} ({analysis_type}) has completed in {round(elapsed_time,2)} seconds.",
         )
 
-    def initialize_number_of_cores(self, num_cores, num_samples):
+    def initialize_number_of_cores(self, num_samples):
         # Number of cores to use for RW.
-        self.num_processes_aw = min(num_cores, num_samples)
+        self.num_processes_aw = min(self.num_cores_user_input, num_samples)
 
         # Dictionary mapping dimensions to the number of processes. used only for global eval currently.
         # 15,000 points uses about 4 GB memory per process.
@@ -171,8 +171,8 @@ class ProblemEvaluator:
                 self.num_processes_rw_dict[dim_key], num_samples
             )
         else:
-            self.num_processes_global = min(num_cores, num_samples)
-            self.num_processes_rw = min(num_cores, num_samples)
+            self.num_processes_global = min(self.num_cores_user_input, num_samples)
+            self.num_processes_rw = min(self.num_cores_user_input, num_samples)
 
         self.num_processes_aw = self.num_processes_global
 
@@ -820,7 +820,7 @@ class ProblemEvaluator:
         pre_sampler.create_pops_dir(self.instance_name, temp_pops_dir)
 
         # Define number of cores for multiprocessing.
-        self.initialize_number_of_cores(self.num_cores_user_input, num_samples)
+        self.initialize_number_of_cores(num_samples)
 
         # Initialise PF text file.
         self.initialise_pf(self.instance)
