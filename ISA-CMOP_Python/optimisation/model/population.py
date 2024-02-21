@@ -134,13 +134,6 @@ class Population(np.ndarray):
         # Use boolean indexing to directly select non-dominated solutions from the population
         nondominated_population = self[best_indices].view(Population)
 
-        num_best = np.count_nonzero(rank_array == best_rank)
-
-        # Initialize new population.
-        nondominated_population = self.__new__(
-            Population, self[0].problem, n_individuals=num_best
-        )
-
         return nondominated_population
 
     def extract_feasible(self):
@@ -154,7 +147,6 @@ class Population(np.ndarray):
         feasible_indices = np.where(cv_values <= 0)[0]
 
         # Directly use feasible_indices to select feasible solutions from the population
-        # Thanks to Population class inheriting from np.ndarray, this is straightforward
         feasible_population = self[feasible_indices].view(Population)
 
         return feasible_population
