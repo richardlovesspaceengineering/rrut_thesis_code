@@ -104,7 +104,7 @@ def main():
 
     problem, instance_string = generate_instance(problem_name, n_var)
     evaluator = ProblemEvaluator(
-        problem, instance_string, mode, results_dir, num_cores, num_samples
+        problem, instance_string, mode, results_dir, num_samples, num_cores
     )
     evaluator.do(save_arrays, temp_pops_dir)
 

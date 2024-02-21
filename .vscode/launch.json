@@ -22,7 +22,7 @@
             // "ICAS2024Test", //problem
             "CTP1",
             "5", // dimension
-            "3", // num samples
+            "30", // num samples
             "debug", // mode
             "true", // save results
             "instance_results",
