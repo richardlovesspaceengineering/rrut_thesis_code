@@ -152,8 +152,8 @@ jq -r 'to_entries|map("\(.key) \(.value)")|.[]' $config_file | while read line; 
         echo "temp_pops directory cleaned." | tee -a "$log_file"
         
         # Update the JSON to mark this problem-dimension as false, indicating it's been run
-        # jq ".[\"$problem_dim\"] = \"false\"" $config_file > temp.json && mv temp.json $config_file
-        # echo "Updated $problem_dim in JSON file to false."
+        jq ".[\"$problem_dim\"] = \"false\"" $config_file > temp.json && mv temp.json $config_file
+        echo "Updated $problem_dim in JSON file to false."
 
     else
         echo "Skipping problem: $problem, dimension: $dim as per config."
