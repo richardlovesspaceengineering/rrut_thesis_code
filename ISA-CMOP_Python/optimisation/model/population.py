@@ -161,25 +161,19 @@ class Population(np.ndarray):
 
     def extract_feasible(self):
         """
-        Extract feasible solutions from the population.
-
-        Can only run once all objectives, constraints have been evaluated i.e after a call to self.evaluate(x).
-
-        Creates a new population which is a subset of the original.
+        Extract feasible solutions from the population using a vectorized approach.
         """
-        # Number of feasible
-        num_feas = np.count_nonzero(self.extract_cv() <= 0)
+        # Assuming `extract_cv()` is a method that returns a numpy array of cv values for the entire population
+        cv_values = self.extract_cv()
 
-        # Initialize new population.
-        obj = self.__new__(Population, self[0].problem, n_individuals=num_feas)
+        # Find indices of feasible solutions (where cv <= 0)
+        feasible_indices = np.where(cv_values <= 0)[0]
 
-        # Loop through and save.
-        feas_ctr = 0
-        for i in range(len(self)):
-            if self[i].cv <= 0:
-                obj[feas_ctr] = self[i]
-                feas_ctr += 1
-        return obj
+        # Directly use feasible_indices to select feasible solutions from the population
+        # Thanks to Population class inheriting from np.ndarray, this is straightforward
+        feasible_population = self[feasible_indices].view(Population)
+
+        return feasible_population
 
     def eval_fronts(self, constrained):
         """

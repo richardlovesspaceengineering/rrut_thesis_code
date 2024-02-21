@@ -675,7 +675,7 @@ class GlobalAnalysis(Analysis):
         (
             self.features["cv_mdl_r2"],
             self.features["cv_range_coeff"],
-        ) = self.rk_uc_var_mdl()
+        ) = self.cv_var_mdl()
 
         # Information content features.
         (
