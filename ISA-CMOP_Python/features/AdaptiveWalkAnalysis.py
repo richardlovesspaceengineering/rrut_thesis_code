@@ -41,11 +41,6 @@ class AdaptiveWalkAnalysis(RandomWalkAnalysis):
 
         # Evaluate constrained neighbourhood HV features
         (
-            pop_walk_feas,
-            _,
-            pop_neighbours_feas,
-        ) = super().extract_feasible_steps_neighbours()
-        (
             self.features["hv_ss_avg"],
             _,
             self.features["nhv_avg"],

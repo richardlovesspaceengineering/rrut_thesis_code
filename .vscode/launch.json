@@ -20,9 +20,9 @@
         "program": "/Users/richardrutherford/Documents/Thesis Code/rrut_thesis_code/ISA-CMOP_Python/runner.py",
         "args": [
             // "ICAS2024Test", //problem
-            "CTP1",
+            "DASCMOP1",
             "5", // dimension
-            "30", // num samples
+            "3", // num samples
             "debug", // mode
             "true", // save results
             "instance_results",
