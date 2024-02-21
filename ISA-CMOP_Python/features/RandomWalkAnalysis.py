@@ -509,9 +509,9 @@ class RandomWalkAnalysis(Analysis):
         nfronts_array = np.zeros(var.shape[0])
 
         for i in range(var.shape[0]):
-            # Extract neighbours for this point and append.
+            # Extract neighbours and step populations.
             pop_neighbourhood = self.pop_neighbours_list[i]
-            pop_step = self.pop_walk.slice_population(0, 1)  # gets element at i
+            pop_step = self.pop_walk.slice_population(i, i + 1)  # get the current step.
 
             # Compute proportion of locally non-dominated solutions.
             lnd_array[i] = np.atleast_2d(
@@ -519,9 +519,11 @@ class RandomWalkAnalysis(Analysis):
             ).shape[0] / len(pop_neighbourhood)
 
             # Create merged population and re-evaluate ranks.
-            merged_pop = Population.merge(pop_neighbourhood, pop_step)
-            merged_pop.eval_fronts()
-            print(merged_pop.ranks)
+            merged_pop = Population.merge(pop_step, pop_neighbourhood)
+            merged_pop.evaluate_fronts()
+            # print(pop_step.extract_var())
+            # print(pop_neighbourhood.extract_var())
+            # print(merged_pop.extract_var())
 
             ranks = merged_pop.extract_rank()
             step_rank = ranks[0]
