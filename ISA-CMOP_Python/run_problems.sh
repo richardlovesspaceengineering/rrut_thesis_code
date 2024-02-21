@@ -22,8 +22,8 @@ dimensions=(5 10)
 num_samples=30
 
 # Modes are debug or eval.
-mode="eval"
-# mode="debug"
+# mode="eval"
+mode="debug"
 
 # Use pre-generated samples?
 regenerate_samples=false #@JUAN set to true if you need to generate/can't see the pregen_samples folder as a sibling folder.
