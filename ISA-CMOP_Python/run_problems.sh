@@ -19,7 +19,7 @@ problemsICAS=("ICAS2024Test")
 dimensions=(5 10)
 
 # Number of samples to run.
-num_samples=30
+num_samples=3
 
 # Modes are debug or eval.
 # mode="eval"
@@ -129,38 +129,38 @@ if [ "$regenerate_samples" = true ]; then
   done
 fi
 
-# Check command line argument for problem set selection
-if [ "$1" = "MW" ]; then
-    selected_problems=("${problemsMW[@]}")
-elif [ "$1" = "CTP" ]; then
-    selected_problems=("${problemsCTP[@]}")
-elif [ "$1" = "DASCMOP" ]; then
-    selected_problems=("${problemsDASCMOP[@]}")
-elif [ "$1" = "DCDTLZ" ]; then
-    selected_problems=("${problemsDCDTLZ[@]}")
-elif [ "$1" = "CDTLZ" ]; then
-    selected_problems=("${problemsCDTLZ[@]}")
-elif [ "$1" = "RW" ]; then
-    selected_problems=("${problemsRW[@]}")
-else
-    echo "Invalid argument. Please specify 'MW', 'CTP', 'DASCMOP', 'DCDTLZ', 'CDTLZ', or 'RW'."
-    exit 1
-fi
+config_file="problems_to_run.json"
 
-# Run runner.py for each dimension, then for each problem within that dimension
-for dim in "${dimensions[@]}"; do
-    for problem in "${selected_problems[@]}"; do
-      problem=$(echo "$problem" | sed 's/,$//')  # Remove trailing comma if it exists
-      echo -e "\nRunning problem: $problem, dimension: $dim" | tee -a "$log_file"  # Print message to the terminal and log file
-      # Run runner.py
-      "$PYTHON_SCRIPT" -u "$run_dir" "$problem" "$dim" "$num_samples" "$mode" "$save_feature_arrays" "$results_dir" "$temp_pops_dir" "$num_cores" 2>&1 | tee -a "$log_file"
+# Read and execute based on the JSON file
+jq -r 'to_entries|map("\(.key) \(.value)")|.[]' $config_file | while read line; do
+    problem_dim=$(echo $line | cut -d ' ' -f 1)
+    should_run=$(echo $line | cut -d ' ' -f 2)
+    
+    # Extract problem name and dimension
+    problem=$(echo $problem_dim | sed -E 's/_d[0-9]+//')
+    dim=$(echo $problem_dim | grep -oE '_d[0-9]+' | sed 's/_d//')
+    
+    if [[ "$should_run" == "true" ]]; then
+        echo -e "\nRunning problem: $problem, dimension: $dim" | tee -a "$log_file"
+        
+        # Your existing code to run the problem
+        "$PYTHON_SCRIPT" -u "$run_dir" "$problem" "$dim" "$num_samples" "$mode" "$save_feature_arrays" "$results_dir" "$temp_pops_dir" "$num_cores" 2>&1 | tee -a "$log_file"
 
-      # Clean up temp_pops directory after each problem is run
-      echo "Cleaning temp_pops directory for next run..." | tee -a "$log_file"
-      rm -rf "${temp_pops_dir:?}"/*  # Use :? to prevent disastrous effects if variable is empty or unset
-      echo "temp_pops directory cleaned." | tee -a "$log_file"
-    done
+        # Clean up, etc.
+        echo "Cleaning temp_pops directory for next run..." | tee -a "$log_file"
+        rm -rf "${temp_pops_dir:?}"/*  # Ensure safety with :?
+        echo "temp_pops directory cleaned." | tee -a "$log_file"
+        
+        # Update the JSON to mark this problem-dimension as false, indicating it's been run
+        jq ".[\"$problem_dim\"] = \"false\"" $config_file > temp.json && mv temp.json $config_file
+        echo "Updated $problem_dim in JSON file to false."
+
+    else
+        echo "Skipping problem: $problem, dimension: $dim as per config."
+    fi
 done
+
+
 
 # Clean up temp dir
 echo "Runs finished. Cleaning up temp directory."
