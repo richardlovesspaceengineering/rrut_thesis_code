@@ -359,8 +359,8 @@ class RandomWalkAnalysis(Analysis):
                     hvd_array[i] = nhv_array[i] - hv_ss_array[i]
 
                     # Compute HV of non-dominated neighbours (trimmed).
-                    print(f"Neig rank: {pop_neighbourhood.extract_rank()}")
-                    print(len(pop_neighbourhood.extract_nondominated()))
+                    # print(f"Neig rank: {pop_neighbourhood.extract_rank()}")
+                    # print(len(pop_neighbourhood.extract_nondominated()))
                     bestrankobjs, _ = Analysis.trim_obj_using_nadir(
                         Analysis.apply_normalisation(
                             pop_neighbourhood.extract_nondominated().extract_obj(),

@@ -146,7 +146,11 @@ class Population(np.ndarray):
             rank_array = self.extract_uncons_rank()
             rank_name = "rank_uncons"
 
-        num_best = np.count_nonzero(rank_array == 1)
+        best_rank = np.min(
+            rank_array
+        )  # usually 1; could be other than 1 if we have trimmed some points.
+
+        num_best = np.count_nonzero(rank_array == best_rank)
 
         # Initialize new population.
         obj = self.__new__(Population, self[0].problem, n_individuals=num_best)
