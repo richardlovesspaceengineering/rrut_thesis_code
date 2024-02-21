@@ -150,18 +150,20 @@ class Population(np.ndarray):
             rank_array
         )  # usually 1; could be other than 1 if we have trimmed some points.
 
+        # Find indices of individuals with the best rank (non-dominated)
+        best_indices = np.where(rank_array == best_rank)[0]
+
+        # Use boolean indexing to directly select non-dominated solutions from the population
+        nondominated_population = self[best_indices].view(Population)
+
         num_best = np.count_nonzero(rank_array == best_rank)
 
         # Initialize new population.
-        obj = self.__new__(Population, self[0].problem, n_individuals=num_best)
+        nondominated_population = self.__new__(
+            Population, self[0].problem, n_individuals=num_best
+        )
 
-        # Loop through and save.
-        best_ctr = 0
-        for i in range(len(self)):
-            if getattr(self[i], (f"{rank_name}")) == 1:
-                obj[best_ctr] = self[i]
-                best_ctr += 1
-        return obj
+        return nondominated_population
 
     def extract_feasible(self):
         """
