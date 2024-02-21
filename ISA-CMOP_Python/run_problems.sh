@@ -21,8 +21,8 @@ problemsICAS=("ICAS2024Test")
 num_samples=30
 
 # Modes are debug or eval.
-# mode="eval"
-mode="debug"
+mode="eval"
+# mode="debug"
 
 # Use pre-generated samples?
 regenerate_samples=false #@JUAN set to true if you need to generate/can't see the pregen_samples folder as a sibling folder.
@@ -150,7 +150,6 @@ jq -r 'to_entries|map("\(.key) \(.value)")|.[]' $config_file | while read line; 
         rm -rf "${temp_pops_dir:?}"/*  # Ensure safety with :?
         echo "temp_pops directory cleaned." | tee -a "$log_file"
         
-        # Update the JSON to mark this problem-dimension as false, indicating it's been run
         # Update the JSON to mark this problem-dimension as false, indicating it's been run, only if mode is "eval"
         if [[ "$mode" == "eval" ]]; then
             jq ".[\"$problem_dim\"] = \"false\"" $config_file > temp.json && mv temp.json $config_file
