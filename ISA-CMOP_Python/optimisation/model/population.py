@@ -119,10 +119,8 @@ class Population(np.ndarray):
         # Number of best-ranked solutions.
         if constrained:
             rank_array = self.extract_rank()
-            rank_name = "rank"
         else:
             rank_array = self.extract_uncons_rank()
-            rank_name = "rank_uncons"
 
         best_rank = np.min(
             rank_array
@@ -213,7 +211,7 @@ class Population(np.ndarray):
                 self[i].var = var_array[i, :]
                 self[i].obj = obj[i, :]
                 self[i].cons = cons[i, :]
-                self[i].cv = self[i].eval_cv()  # TODO: update to vectorized version.
+                self[i].cv = self[i].eval_cv()
         else:
             for i in range(len(self)):
                 # Assign decision variables.
