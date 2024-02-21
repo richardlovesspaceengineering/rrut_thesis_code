@@ -70,7 +70,9 @@ def init_pool():
 
 
 class ProblemEvaluator:
-    def __init__(self, instance, instance_name, mode, results_dir, num_cores):
+    def __init__(
+        self, instance, instance_name, mode, results_dir, num_samples, num_cores
+    ):
         """
         Possible modes are eval and debug.
         """
@@ -84,6 +86,7 @@ class ProblemEvaluator:
         # flag for re-evaluating populations or using pre-saved values.
         self.results_dir = results_dir
         self.csv_filename = results_dir + "/features.csv"
+        self.num_samples = num_samples
         self.num_cores_user_input = num_cores
         print("Initialising evaluator in {} mode.".format(self.mode))
 
@@ -130,9 +133,9 @@ class ProblemEvaluator:
             f"The analysis of {problem_name} ({analysis_type}) has completed in {round(elapsed_time,2)} seconds.",
         )
 
-    def initialize_number_of_cores(self, num_samples):
+    def initialize_number_of_cores(self):
         # Number of cores to use for RW.
-        self.num_processes_aw = min(self.num_cores_user_input, num_samples)
+        self.num_processes_aw = min(self.num_cores_user_input, self.num_samples)
 
         # Dictionary mapping dimensions to the number of processes. used only for global eval currently.
         # 15,000 points uses about 4 GB memory per process.
@@ -165,14 +168,14 @@ class ProblemEvaluator:
         if dim_key in self.num_processes_glob_dict:
             # Update num_processes based on the dictionary entry
             self.num_processes_global = min(
-                self.num_processes_glob_dict[dim_key], num_samples
+                self.num_processes_glob_dict[dim_key], self.num_samples
             )
             self.num_processes_rw = min(
-                self.num_processes_rw_dict[dim_key], num_samples
+                self.num_processes_rw_dict[dim_key], self.num_samples
             )
         else:
-            self.num_processes_global = min(self.num_cores_user_input, num_samples)
-            self.num_processes_rw = min(self.num_cores_user_input, num_samples)
+            self.num_processes_global = min(self.num_cores_user_input, self.num_samples)
+            self.num_processes_rw = min(self.num_cores_user_input, self.num_samples)
 
         self.num_processes_aw = self.num_processes_global
 
@@ -180,7 +183,7 @@ class ProblemEvaluator:
         # Summarize the core allocation
         cores_summary = textwrap.dedent(
             f"""
-        Summary of cores allocation (have taken the minimum of num_samples and num_cores except for larger-dimension global cases):
+        Summary of cores allocation (have taken the minimum of self.num_samples and num_cores except for larger-dimension global cases):
         RW processes will use {self.num_processes_rw} cores.
         AW processes will use {self.num_processes_aw} cores.
         Global processes will use {self.num_processes_global} cores.
@@ -194,8 +197,8 @@ class ProblemEvaluator:
 
         self.send_update_email(header, body=full_summary)
 
-    def create_pre_sampler(self, num_samples):
-        return PreSampler(self.instance.n_var, num_samples, self.mode)
+    def create_pre_sampler(self):
+        return PreSampler(self.instance.n_var, self.num_samples, self.mode)
 
     def initialise_pf(self, problem):
         # Pymoo requires creation of a population to initialise PF.
@@ -379,9 +382,7 @@ class ProblemEvaluator:
         with multiprocessing.Pool(
             self.num_processes_global, initializer=init_pool
         ) as pool:
-            args_list = [
-                (i, pre_sampler, problem) for i in range(pre_sampler.num_samples)
-            ]
+            args_list = [(i, pre_sampler, problem) for i in range(self.num_samples)]
 
             results = pool.map(self.eval_single_sample_global_features_norm, args_list)
             if any(map(lambda x: isinstance(x, KeyboardInterrupt), results)):
@@ -497,9 +498,7 @@ class ProblemEvaluator:
         )
 
         with multiprocessing.Pool(self.num_processes_rw, initializer=init_pool) as pool:
-            args_list = [
-                (i, pre_sampler, problem) for i in range(pre_sampler.num_samples)
-            ]
+            args_list = [(i, pre_sampler, problem) for i in range(self.num_samples)]
 
             results = pool.map(self.process_rw_sample_norm, args_list)
             if any(map(lambda x: isinstance(x, KeyboardInterrupt), results)):
@@ -556,7 +555,7 @@ class ProblemEvaluator:
 
         return rw_single_sample_analyses_list
 
-    def do_random_walk_analysis(self, problem, pre_sampler, num_samples):
+    def do_random_walk_analysis(self, problem, pre_sampler):
         self.walk_normalisation_values = self.compute_rw_normalisation_values(
             pre_sampler,
             problem,
@@ -575,7 +574,7 @@ class ProblemEvaluator:
             )
             results = pool.starmap(
                 self.eval_single_sample_rw_features,
-                zip(range(num_samples), repeat(pre_sampler), repeat(problem)),
+                zip(range(self.num_samples), repeat(pre_sampler), repeat(problem)),
             )
 
             if any(map(lambda x: isinstance(x, KeyboardInterrupt), results)):
@@ -621,7 +620,7 @@ class ProblemEvaluator:
 
         return global_analysis
 
-    def do_global_analysis(self, problem, pre_sampler, num_samples):
+    def do_global_analysis(self, problem, pre_sampler):
         self.global_normalisation_values = self.compute_global_normalisation_values(
             pre_sampler, problem
         )
@@ -642,7 +641,7 @@ class ProblemEvaluator:
             # Use starmap with zip and repeat to pass the same pre_sampler and problem to each call
             results = pool.starmap(
                 self.eval_single_sample_global_features,
-                zip(range(num_samples), repeat(pre_sampler), repeat(problem)),
+                zip(range(self.num_samples), repeat(pre_sampler), repeat(problem)),
             )
 
             if any(map(lambda x: isinstance(x, KeyboardInterrupt), results)):
@@ -677,7 +676,7 @@ class ProblemEvaluator:
         sample_start_time = time.time()
         print(
             "\nEvaluating features for AW sample {} out of {}...".format(
-                i + 1, pre_sampler.num_samples
+                i + 1, self.num_samples
             )
         )
 
@@ -743,7 +742,7 @@ class ProblemEvaluator:
 
         return aw_single_sample_analyses_list
 
-    def do_adaptive_walk_analysis(self, problem, pre_sampler, num_samples):
+    def do_adaptive_walk_analysis(self, problem, pre_sampler):
         # Initialise AW generator object before any loops.
         n_var = pre_sampler.dim
 
@@ -781,7 +780,7 @@ class ProblemEvaluator:
             results = pool.starmap(
                 self.eval_single_sample_aw_features,
                 zip(
-                    range(num_samples),
+                    range(self.num_samples),
                     repeat(pre_sampler),
                     repeat(problem),
                     repeat(awGenerator),
@@ -813,28 +812,28 @@ class ProblemEvaluator:
 
         return aw_analysis_all_samples
 
-    def initialize_evaluator(self, num_samples, temp_pops_dir):
+    def initialize_evaluator(self, temp_pops_dir):
         # Load presampler and create directories for populations.
-        pre_sampler = self.create_pre_sampler(num_samples)
+        pre_sampler = self.create_pre_sampler()
         pre_sampler.create_pregen_sample_dir()
         pre_sampler.create_pops_dir(self.instance_name, temp_pops_dir)
 
         # Define number of cores for multiprocessing.
-        self.initialize_number_of_cores(num_samples)
+        self.initialize_number_of_cores()
 
         # Initialise PF text file.
         self.initialise_pf(self.instance)
 
         return pre_sampler
 
-    def do(self, num_samples, save_arrays, temp_pops_dir=None):
+    def do(self, save_arrays, temp_pops_dir=None):
         print(
             "\n------------------------ Evaluating instance: "
             + self.instance_name
             + " ------------------------"
         )
 
-        pre_sampler = self.initialize_evaluator(num_samples, temp_pops_dir)
+        pre_sampler = self.initialize_evaluator(temp_pops_dir)
 
         self.send_initialisation_email(f"STARTED RUN OF {self.instance_name}.")
 
@@ -848,7 +847,6 @@ class ProblemEvaluator:
         rw_features = self.do_random_walk_analysis(
             self.instance,
             pre_sampler,
-            num_samples,
         )
         rw_features.export_unaggregated_features(self.instance_name, "rw", save_arrays)
 
@@ -859,9 +857,7 @@ class ProblemEvaluator:
             + " ~~~~~~~~~~~~ \n"
         )
 
-        global_features = self.do_global_analysis(
-            self.instance, pre_sampler, num_samples
-        )
+        global_features = self.do_global_analysis(self.instance, pre_sampler)
         global_features.export_unaggregated_features(
             self.instance_name, "glob", save_arrays
         )
@@ -875,7 +871,6 @@ class ProblemEvaluator:
         aw_features = self.do_adaptive_walk_analysis(
             self.instance,
             pre_sampler,
-            num_samples,
         )
         aw_features.export_unaggregated_features(self.instance_name, "aw", save_arrays)
 
