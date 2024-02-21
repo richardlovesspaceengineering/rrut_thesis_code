@@ -213,11 +213,11 @@ class Population(np.ndarray):
                 self[i].var = var_array[i, :]
                 self[i].obj = obj[i, :]
                 self[i].cons = cons[i, :]
-                self[i].cv = self[i].eval_cv()
+                self[i].cv = self[i].eval_cv()  # TODO: update to vectorized version.
         else:
             for i in range(len(self)):
                 # Assign decision variables.
-                self[i].set_var(var_array[i, :])
+                self[i].var = var_array[i, :]
 
                 # Run evaluation of objectives, constraints and CV.
                 self[i].eval_instance()
