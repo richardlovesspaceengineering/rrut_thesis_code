@@ -406,12 +406,8 @@ class GlobalAnalysis(Analysis):
         # Proportion of UPF covered by PF.
 
         # Make a merged population and evaluate.
-        # TODO: time consuming step - could just use parallel NDSort here.
-        merged_dec = np.vstack(
-            (nondominated_cons.extract_var(), nondominated_uncons.extract_var())
-        )
-        new_pop = Population(self.pop[0].problem, n_individuals=merged_dec.shape[0])
-        new_pop.evaluate(merged_dec, eval_fronts=True)
+        new_pop = Population.merge(nondominated_cons, nondominated_uncons)
+        new_pop.evaluate_fronts()
 
         cons_combined_ranks = new_pop.extract_rank()[: len(nondominated_cons)]
         uncons_combined_ranks = new_pop.extract_rank()[len(nondominated_cons) :]
