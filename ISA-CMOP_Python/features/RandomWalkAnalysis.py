@@ -511,20 +511,17 @@ class RandomWalkAnalysis(Analysis):
         for i in range(var.shape[0]):
             # Extract neighbours for this point and append.
             pop_neighbourhood = self.pop_neighbours_list[i]
+            pop_step = self.pop_walk.slice_population(0, 1)  # gets element at i
 
             # Compute proportion of locally non-dominated solutions.
             lnd_array[i] = np.atleast_2d(
                 pop_neighbourhood.extract_nondominated()
             ).shape[0] / len(pop_neighbourhood)
 
-            # Create merged matrix of solution and neighbours.
-            merged_var = np.vstack((var[i, :], pop_neighbourhood.extract_var()))
-
-            # Create a new population, find rank of step relative to neighbours.
-            merged_pop = Population(
-                self.pop_walk[0].problem, n_individuals=merged_var.shape[0]
-            )
-            merged_pop.evaluate(merged_var, eval_fronts=True)
+            # Create merged population and re-evaluate ranks.
+            merged_pop = Population.merge(pop_neighbourhood, pop_step)
+            merged_pop.eval_fronts()
+            print(merged_pop.ranks)
 
             ranks = merged_pop.extract_rank()
             step_rank = ranks[0]

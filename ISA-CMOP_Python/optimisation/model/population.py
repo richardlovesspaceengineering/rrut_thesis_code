@@ -45,6 +45,19 @@ class Population(np.ndarray):
 
         return base
 
+    def slice_population(self, start, end):
+        # Ensuring start and end are within bounds and logical
+        start = max(start, 0)
+        end = min(end, len(self))
+
+        # Slicing the numpy array (self) directly to get a slice of individuals
+        sliced_array = super(Population, self).__getitem__(slice(start, end))
+
+        # Ensuring the sliced array is viewed as a Population instance
+        sliced = sliced_array.view(Population)
+
+        return sliced
+
     ### GETTERS
     def extract_var(self):
         # Extract decision variables from each individual. Should return an n x m array where n is the number of individuals, m is the number of objectives.
