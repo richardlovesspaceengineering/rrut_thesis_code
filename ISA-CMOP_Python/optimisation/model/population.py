@@ -67,8 +67,12 @@ class Population(np.ndarray):
         - attr_name (str): The name of the attribute to extract.
 
         Returns:
-        - np.ndarray: An array of the extracted attribute values.
+        - np.ndarray: An array of the extracted attribute values. Returns an empty numpy array if the population is empty.
         """
+        # Check if the population is empty before proceeding
+        if len(self) == 0:
+            return np.array([])  # Return an empty numpy array
+
         # Use list comprehension to extract the attribute from each individual
         attr_list = [getattr(ind, attr_name) for ind in self]
 
