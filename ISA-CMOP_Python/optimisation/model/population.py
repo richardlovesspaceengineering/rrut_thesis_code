@@ -59,70 +59,48 @@ class Population(np.ndarray):
         return sliced
 
     ### GETTERS
-    def extract_var(self):
-        # Extract decision variables from each individual. Should return an n x m array where n is the number of individuals, m is the number of objectives.
-        var_array = []
-        for i in range(len(self)):
-            if i == 0:
-                var_array = self[i].var
-            else:
-                var_array = np.vstack((var_array, self[i].var))
+    def extract_attribute(self, attr_name):
+        """
+        General-use function to extract a specified attribute from each individual in the population.
 
-        return np.atleast_2d(var_array)
+        Parameters:
+        - attr_name (str): The name of the attribute to extract.
+
+        Returns:
+        - np.ndarray: An array of the extracted attribute values.
+        """
+        # Use list comprehension to extract the attribute from each individual
+        attr_list = [getattr(ind, attr_name) for ind in self]
+
+        # If the first attribute is single-valued (e.g., a float or int), we assume all are, and use np.array directly
+        if np.ndim(attr_list[0]) == 0:
+            return np.atleast_2d(np.array(attr_list))
+        # Otherwise, we handle multi-valued attributes (e.g., arrays) differently
+        else:
+            return np.atleast_2d(np.vstack(attr_list))
+
+    def extract_var(self):
+        return self.extract_attribute("var")
 
     def extract_obj(self):
-        # Extract objectives from each individual. Should return an n x m array where n is the number of individuals, m is the number of objectives.
-        obj_array = []
-        for i in range(len(self)):
-            if i == 0:
-                obj_array = self[i].obj
-            else:
-                obj_array = np.vstack((obj_array, self[i].obj))
-
-        return np.atleast_2d(obj_array)
+        return self.extract_attribute("obj")
 
     def extract_cons(self):
-        # Extract constraints from each individual. Should return an n x m array where n is the number of individuals, m is the number of constraints.
-        cons_array = []
-        for i in range(len(self)):
-            if i == 0:
-                cons_array = self[i].cons
-            else:
-                cons_array = np.vstack((cons_array, self[i].cons))
-
-        return np.asarray(cons_array)
+        return self.extract_attribute("cons")
 
     def extract_cv(self):
-        # Extract CV from each individual. Should return an n x 1 array where n is the number of individuals.
-        cv_array = []
-        for i in range(len(self)):
-            if i == 0:
-                cv_array = self[i].cv
-            else:
-                cv_array = np.vstack((cv_array, self[i].cv))
-
-        return np.asarray(cv_array)
+        return self.extract_attribute("cv").reshape(
+            -1, 1
+        )  # Ensure n x 1 shape for consistency
 
     def extract_rank(self):
-        rank_array = []
-        for i in range(len(self)):
-            rank_array.append(self[i].rank)
-
-        return np.asarray(rank_array)
+        return self.extract_attribute("rank").flatten()
 
     def extract_uncons_rank(self):
-        rank_uncons_array = []
-        for i in range(len(self)):
-            rank_uncons_array.append(self[i].rank_uncons)
-
-        return np.asarray(rank_uncons_array)
+        return self.extract_attribute("rank_uncons").flatten()
 
     def extract_crowding(self):
-        crowding_array = []
-        for i in range(len(self)):
-            crowding_array.append(self[i].crowding_distance)
-
-        return np.asarray(crowding_array)
+        return self.extract_attribute("crowding_distance")
 
     def extract_pf(self):
         return self[0].pareto_front
