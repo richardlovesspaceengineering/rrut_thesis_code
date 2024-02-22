@@ -1,0 +1,486 @@
+Run folder: instance_results/Feb21_1626
+Experimental setup:
+Running all 5D, then 10D and so on from JSON file.
+
+Host is: megatron2
+Using interpreter: /home/kj66/Documents/Richard/venv/bin/python3
+New directory: /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A
+Writing ISA-CMOP_Python to temporary directory.
+File running inside: /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/runner.py
+
+Running problem: DASCMOP1, dimension: 5
+Initialising evaluator in eval mode.
+
+------------------------ Evaluating instance: DASCMOP1_d5 ------------------------
+Starting the creation process for population directories for problem: DASCMOP1_d5 in mode: eval
+Directory does not exist and will be created: /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/global
+Directory created: /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/global
+Directory does not exist and will be created: /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw
+Directory created: /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw
+Population directories setup complete.
+Global population directory: /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/global
+RW population directory: /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw
+
+[2024-02-21 16:26:10] Creating a single population to initialise PF.
+
+Summary of cores allocation (have taken the minimum of self.num_samples and num_cores except for larger-dimension global cases):
+RW processes will use 30 cores.
+AW processes will use 30 cores.
+Global processes will use 30 cores.
+
+ 
+ ~~~~~~~~~~~~ RW Analysis for DASCMOP1_d5 ~~~~~~~~~~~~ 
+
+[2024-02-21 16:26:13] Initialising normalisation computations for RW samples using 30 cores. This requires full evaluation of the entire sample set and may take some time while still being memory-efficient.
+Generating RW population for sample 1, walk 1 as it was not found.
+RW sample no. 1 / walk no. 1 does not exist. Generating...
+Generating RW population for sample 2, walk 1 as it was not found.Generating RW population for sample 3, walk 1 as it was not found.
+
+Generating RW population for sample 4, walk 1 as it was not found.RW sample no. 2 / walk no. 1 does not exist. Generating...
+RW sample no. 3 / walk no. 1 does not exist. Generating...
+
+RW sample no. 4 / walk no. 1 does not exist. Generating...
+Generating RW population for sample 5, walk 1 as it was not found.
+RW sample no. 5 / walk no. 1 does not exist. Generating...
+Generating RW population for sample 6, walk 1 as it was not found.
+RW sample no. 6 / walk no. 1 does not exist. Generating...
+Generating RW population for sample 7, walk 1 as it was not found.
+RW sample no. 7 / walk no. 1 does not exist. Generating...
+Generating RW population for sample 8, walk 1 as it was not found.
+RW sample no. 8 / walk no. 1 does not exist. Generating...
+Generating RW population for sample 9, walk 1 as it was not found.
+RW sample no. 9 / walk no. 1 does not exist. Generating...
+Generating RW population for sample 10, walk 1 as it was not found.
+RW sample no. 10 / walk no. 1 does not exist. Generating...
+Generating RW population for sample 11, walk 1 as it was not found.
+RW sample no. 11 / walk no. 1 does not exist. Generating...
+Generating RW population for sample 14, walk 1 as it was not found.Generating RW population for sample 12, walk 1 as it was not found.Generating RW population for sample 15, walk 1 as it was not found.
+
+
+RW sample no. 14 / walk no. 1 does not exist. Generating...
+RW sample no. 15 / walk no. 1 does not exist. Generating...RW sample no. 12 / walk no. 1 does not exist. Generating...
+
+Generating RW population for sample 13, walk 1 as it was not found.
+RW sample no. 13 / walk no. 1 does not exist. Generating...
+Generating RW population for sample 17, walk 1 as it was not found.Generating RW population for sample 16, walk 1 as it was not found.
+
+RW sample no. 16 / walk no. 1 does not exist. Generating...
+RW sample no. 17 / walk no. 1 does not exist. Generating...
+Generating RW population for sample 18, walk 1 as it was not found.
+RW sample no. 18 / walk no. 1 does not exist. Generating...
+Generating RW population for sample 19, walk 1 as it was not found.
+RW sample no. 19 / walk no. 1 does not exist. Generating...
+Generating RW population for sample 20, walk 1 as it was not found.
+RW sample no. 20 / walk no. 1 does not exist. Generating...
+Generating RW population for sample 21, walk 1 as it was not found.
+RW sample no. 21 / walk no. 1 does not exist. Generating...
+Generating RW population for sample 23, walk 1 as it was not found.
+RW sample no. 23 / walk no. 1 does not exist. Generating...
+Generating RW population for sample 24, walk 1 as it was not found.
+RW sample no. 24 / walk no. 1 does not exist. Generating...
+Generating RW population for sample 26, walk 1 as it was not found.
+RW sample no. 26 / walk no. 1 does not exist. Generating...
+Generating RW population for sample 25, walk 1 as it was not found.Generating RW population for sample 22, walk 1 as it was not found.
+
+RW sample no. 25 / walk no. 1 does not exist. Generating...RW sample no. 22 / walk no. 1 does not exist. Generating...
+
+Generating RW population for sample 27, walk 1 as it was not found.
+RW sample no. 27 / walk no. 1 does not exist. Generating...
+Generating RW population for sample 29, walk 1 as it was not found.
+RW sample no. 29 / walk no. 1 does not exist. Generating...
+Generating RW population for sample 28, walk 1 as it was not found.
+RW sample no. 28 / walk no. 1 does not exist. Generating...
+Generating RW population for sample 30, walk 1 as it was not found.
+RW sample no. 30 / walk no. 1 does not exist. Generating...
+Generated RW 1 of 5 (for this sample).
+Generated RW 1 of 5 (for this sample).
+Generated RW 1 of 5 (for this sample).
+Generated RW 1 of 5 (for this sample).
+Generated RW 1 of 5 (for this sample).
+Generated RW 1 of 5 (for this sample).
+Generated RW 1 of 5 (for this sample).
+Generated RW 1 of 5 (for this sample).
+Generated RW 1 of 5 (for this sample).
+Generated RW 1 of 5 (for this sample).
+Generated RW 1 of 5 (for this sample).
+Generated RW 1 of 5 (for this sample).
+Generated RW 1 of 5 (for this sample).
+Generated RW 1 of 5 (for this sample).
+Generated RW 1 of 5 (for this sample).
+Generated RW 1 of 5 (for this sample).
+Generated RW 1 of 5 (for this sample).
+Generated RW 1 of 5 (for this sample).
+Generated RW 1 of 5 (for this sample).
+Generated RW 1 of 5 (for this sample).
+Generated RW 1 of 5 (for this sample).
+Generated RW 1 of 5 (for this sample).
+Generated RW 1 of 5 (for this sample).
+Generated RW 1 of 5 (for this sample).
+Generated RW 1 of 5 (for this sample).
+Generated RW 1 of 5 (for this sample).Generated RW 1 of 5 (for this sample).
+
+Generated RW 1 of 5 (for this sample).
+Generated RW 1 of 5 (for this sample).
+Generated RW 1 of 5 (for this sample).
+[2024-02-21 16:26:25] Saved walk population and individual neighbours for sample 26, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample26.
+[2024-02-21 16:26:25] Saved walk population and individual neighbours for sample 30, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample30.
+[2024-02-21 16:26:25] Saved walk population and individual neighbours for sample 10, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample10.
+[2024-02-21 16:26:25] Saved walk population and individual neighbours for sample 28, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample28.
+[2024-02-21 16:26:25] Saved walk population and individual neighbours for sample 24, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample24.
+[2024-02-21 16:26:25] Saved walk population and individual neighbours for sample 13, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample13.
+Generating RW population for sample 26, walk 2 as it was not found.
+RW sample no. 26 / walk no. 2 does not exist. Generating...
+[2024-02-21 16:26:25] Saved walk population and individual neighbours for sample 25, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample25.
+[2024-02-21 16:26:25] Saved walk population and individual neighbours for sample 11, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample11.
+[2024-02-21 16:26:25] Saved walk population and individual neighbours for sample 14, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample14.
+Generating RW population for sample 30, walk 2 as it was not found.
+RW sample no. 30 / walk no. 2 does not exist. Generating...
+[2024-02-21 16:26:25] Saved walk population and individual neighbours for sample 9, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample9.
+[2024-02-21 16:26:25] Saved walk population and individual neighbours for sample 16, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample16.
+[2024-02-21 16:26:25] Saved walk population and individual neighbours for sample 23, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample23.
+Generating RW population for sample 10, walk 2 as it was not found.
+RW sample no. 10 / walk no. 2 does not exist. Generating...
+Generating RW population for sample 28, walk 2 as it was not found.
+RW sample no. 28 / walk no. 2 does not exist. Generating...
+[2024-02-21 16:26:25] Saved walk population and individual neighbours for sample 2, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample2.
+[2024-02-21 16:26:25] Saved walk population and individual neighbours for sample 1, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample1.
+[2024-02-21 16:26:25] Saved walk population and individual neighbours for sample 27, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample27.
+[2024-02-21 16:26:25] Saved walk population and individual neighbours for sample 15, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample15.
+[2024-02-21 16:26:25] Saved walk population and individual neighbours for sample 21, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample21.
+[2024-02-21 16:26:25] Saved walk population and individual neighbours for sample 20, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample20.
+Generating RW population for sample 24, walk 2 as it was not found.
+RW sample no. 24 / walk no. 2 does not exist. Generating...
+[2024-02-21 16:26:25] Saved walk population and individual neighbours for sample 22, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample22.
+[2024-02-21 16:26:25] Saved walk population and individual neighbours for sample 3, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample3.
+Generating RW population for sample 13, walk 2 as it was not found.
+RW sample no. 13 / walk no. 2 does not exist. Generating...
+Generating RW population for sample 25, walk 2 as it was not found.
+RW sample no. 25 / walk no. 2 does not exist. Generating...
+Generating RW population for sample 11, walk 2 as it was not found.
+RW sample no. 11 / walk no. 2 does not exist. Generating...
+Generated RW 2 of 5 (for this sample).
+Generating RW population for sample 9, walk 2 as it was not found.
+RW sample no. 9 / walk no. 2 does not exist. Generating...
+[2024-02-21 16:26:25] Saved walk population and individual neighbours for sample 8, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample8.
+Generating RW population for sample 14, walk 2 as it was not found.
+RW sample no. 14 / walk no. 2 does not exist. Generating...
+[2024-02-21 16:26:25] Saved walk population and individual neighbours for sample 29, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample29.
+Generated RW 2 of 5 (for this sample).
+[2024-02-21 16:26:25] Saved walk population and individual neighbours for sample 19, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample19.
+Generating RW population for sample 23, walk 2 as it was not found.
+RW sample no. 23 / walk no. 2 does not exist. Generating...
+Generating RW population for sample 15, walk 2 as it was not found.
+RW sample no. 15 / walk no. 2 does not exist. Generating...
+Generating RW population for sample 27, walk 2 as it was not found.
+RW sample no. 27 / walk no. 2 does not exist. Generating...
+[2024-02-21 16:26:25] Saved walk population and individual neighbours for sample 12, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample12.
+Generating RW population for sample 1, walk 2 as it was not found.
+RW sample no. 1 / walk no. 2 does not exist. Generating...
+Generated RW 2 of 5 (for this sample).
+Generated RW 2 of 5 (for this sample).
+Generating RW population for sample 21, walk 2 as it was not found.
+RW sample no. 21 / walk no. 2 does not exist. Generating...
+Generating RW population for sample 20, walk 2 as it was not found.
+RW sample no. 20 / walk no. 2 does not exist. Generating...
+Generating RW population for sample 2, walk 2 as it was not found.
+RW sample no. 2 / walk no. 2 does not exist. Generating...
+Generating RW population for sample 22, walk 2 as it was not found.
+RW sample no. 22 / walk no. 2 does not exist. Generating...
+Generating RW population for sample 16, walk 2 as it was not found.
+RW sample no. 16 / walk no. 2 does not exist. Generating...
+[2024-02-21 16:26:25] Saved walk population and individual neighbours for sample 4, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample4.
+[2024-02-21 16:26:25] Saved walk population and individual neighbours for sample 6, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample6.
+Generating RW population for sample 3, walk 2 as it was not found.
+RW sample no. 3 / walk no. 2 does not exist. Generating...
+Generated RW 2 of 5 (for this sample).
+Generated RW 2 of 5 (for this sample).
+Generating RW population for sample 8, walk 2 as it was not found.
+RW sample no. 8 / walk no. 2 does not exist. Generating...
+Generating RW population for sample 29, walk 2 as it was not found.
+RW sample no. 29 / walk no. 2 does not exist. Generating...
+Generated RW 2 of 5 (for this sample).
+Generating RW population for sample 19, walk 2 as it was not found.
+RW sample no. 19 / walk no. 2 does not exist. Generating...
+Generated RW 2 of 5 (for this sample).
+Generated RW 2 of 5 (for this sample).
+Generated RW 2 of 5 (for this sample).
+[2024-02-21 16:26:25] Saved walk population and individual neighbours for sample 5, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample5.
+Generating RW population for sample 12, walk 2 as it was not found.
+RW sample no. 12 / walk no. 2 does not exist. Generating...
+Generated RW 2 of 5 (for this sample).
+Generated RW 2 of 5 (for this sample).
+Generating RW population for sample 4, walk 2 as it was not found.
+RW sample no. 4 / walk no. 2 does not exist. Generating...
+Generating RW population for sample 6, walk 2 as it was not found.
+RW sample no. 6 / walk no. 2 does not exist. Generating...
+Generated RW 2 of 5 (for this sample).
+Generated RW 2 of 5 (for this sample).
+[2024-02-21 16:26:26] Saved walk population and individual neighbours for sample 7, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample7.
+Generated RW 2 of 5 (for this sample).
+Generated RW 2 of 5 (for this sample).
+Generated RW 2 of 5 (for this sample).
+Generated RW 2 of 5 (for this sample).
+Generated RW 2 of 5 (for this sample).
+[2024-02-21 16:26:26] Saved walk population and individual neighbours for sample 17, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample17.
+[2024-02-21 16:26:26] Saved walk population and individual neighbours for sample 18, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample18.
+Generated RW 2 of 5 (for this sample).
+Generated RW 2 of 5 (for this sample).
+Generating RW population for sample 5, walk 2 as it was not found.
+RW sample no. 5 / walk no. 2 does not exist. Generating...
+Generated RW 2 of 5 (for this sample).
+Generated RW 2 of 5 (for this sample).
+Generated RW 2 of 5 (for this sample).
+Generating RW population for sample 7, walk 2 as it was not found.
+RW sample no. 7 / walk no. 2 does not exist. Generating...
+Generated RW 2 of 5 (for this sample).
+Generated RW 2 of 5 (for this sample).
+Generating RW population for sample 18, walk 2 as it was not found.
+RW sample no. 18 / walk no. 2 does not exist. Generating...
+Generated RW 2 of 5 (for this sample).
+Generating RW population for sample 17, walk 2 as it was not found.
+RW sample no. 17 / walk no. 2 does not exist. Generating...
+Generated RW 2 of 5 (for this sample).
+Generated RW 2 of 5 (for this sample).
+Generated RW 2 of 5 (for this sample).
+[2024-02-21 16:26:36] Saved walk population and individual neighbours for sample 28, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample28.
+[2024-02-21 16:26:36] Saved walk population and individual neighbours for sample 24, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample24.
+Generating RW population for sample 28, walk 3 as it was not found.
+RW sample no. 28 / walk no. 3 does not exist. Generating...
+[2024-02-21 16:26:36] Saved walk population and individual neighbours for sample 10, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample10.
+[2024-02-21 16:26:37] Saved walk population and individual neighbours for sample 26, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample26.
+[2024-02-21 16:26:37] Saved walk population and individual neighbours for sample 23, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample23.
+Generating RW population for sample 24, walk 3 as it was not found.
+RW sample no. 24 / walk no. 3 does not exist. Generating...
+[2024-02-21 16:26:37] Saved walk population and individual neighbours for sample 21, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample21.
+[2024-02-21 16:26:37] Saved walk population and individual neighbours for sample 25, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample25.
+[2024-02-21 16:26:37] Saved walk population and individual neighbours for sample 22, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample22.
+[2024-02-21 16:26:37] Saved walk population and individual neighbours for sample 27, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample27.
+[2024-02-21 16:26:37] Saved walk population and individual neighbours for sample 19, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample19.
+[2024-02-21 16:26:37] Saved walk population and individual neighbours for sample 20, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample20.
+[2024-02-21 16:26:37] Saved walk population and individual neighbours for sample 12, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample12.
+Generated RW 3 of 5 (for this sample).
+[2024-02-21 16:26:37] Saved walk population and individual neighbours for sample 13, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample13.
+Generating RW population for sample 26, walk 3 as it was not found.
+RW sample no. 26 / walk no. 3 does not exist. Generating...
+[2024-02-21 16:26:37] Saved walk population and individual neighbours for sample 14, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample14.
+[2024-02-21 16:26:37] Saved walk population and individual neighbours for sample 8, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample8.
+[2024-02-21 16:26:37] Saved walk population and individual neighbours for sample 1, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample1.
+[2024-02-21 16:26:37] Saved walk population and individual neighbours for sample 3, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample3.
+Generating RW population for sample 23, walk 3 as it was not found.
+RW sample no. 23 / walk no. 3 does not exist. Generating...
+Generating RW population for sample 10, walk 3 as it was not found.
+RW sample no. 10 / walk no. 3 does not exist. Generating...
+Generating RW population for sample 21, walk 3 as it was not found.
+RW sample no. 21 / walk no. 3 does not exist. Generating...
+Generated RW 3 of 5 (for this sample).
+[2024-02-21 16:26:37] Saved walk population and individual neighbours for sample 2, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample2.
+Generating RW population for sample 27, walk 3 as it was not found.
+RW sample no. 27 / walk no. 3 does not exist. Generating...
+[2024-02-21 16:26:37] Saved walk population and individual neighbours for sample 9, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample9.
+Generating RW population for sample 22, walk 3 as it was not found.
+RW sample no. 22 / walk no. 3 does not exist. Generating...
+[2024-02-21 16:26:37] Saved walk population and individual neighbours for sample 16, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample16.
+Generating RW population for sample 19, walk 3 as it was not found.
+RW sample no. 19 / walk no. 3 does not exist. Generating...
+[2024-02-21 16:26:37] Saved walk population and individual neighbours for sample 5, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample5.
+[2024-02-21 16:26:37] Saved walk population and individual neighbours for sample 6, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample6.
+Generating RW population for sample 20, walk 3 as it was not found.
+RW sample no. 20 / walk no. 3 does not exist. Generating...
+Generating RW population for sample 12, walk 3 as it was not found.
+RW sample no. 12 / walk no. 3 does not exist. Generating...
+Generating RW population for sample 14, walk 3 as it was not found.
+RW sample no. 14 / walk no. 3 does not exist. Generating...
+[2024-02-21 16:26:37] Saved walk population and individual neighbours for sample 4, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample4.
+Generating RW population for sample 8, walk 3 as it was not found.
+RW sample no. 8 / walk no. 3 does not exist. Generating...
+Generating RW population for sample 13, walk 3 as it was not found.
+RW sample no. 13 / walk no. 3 does not exist. Generating...
+Generated RW 3 of 5 (for this sample).
+Generating RW population for sample 25, walk 3 as it was not found.
+RW sample no. 25 / walk no. 3 does not exist. Generating...
+[2024-02-21 16:26:37] Saved walk population and individual neighbours for sample 11, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample11.
+[2024-02-21 16:26:37] Saved walk population and individual neighbours for sample 29, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample29.
+Generating RW population for sample 3, walk 3 as it was not found.
+RW sample no. 3 / walk no. 3 does not exist. Generating...
+Generating RW population for sample 1, walk 3 as it was not found.
+RW sample no. 1 / walk no. 3 does not exist. Generating...
+[2024-02-21 16:26:37] Saved walk population and individual neighbours for sample 30, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample30.
+Generated RW 3 of 5 (for this sample).
+[2024-02-21 16:26:37] Saved walk population and individual neighbours for sample 15, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample15.
+Generated RW 3 of 5 (for this sample).
+Generating RW population for sample 2, walk 3 as it was not found.
+RW sample no. 2 / walk no. 3 does not exist. Generating...
+Generating RW population for sample 16, walk 3 as it was not found.
+RW sample no. 16 / walk no. 3 does not exist. Generating...
+Generating RW population for sample 9, walk 3 as it was not found.
+RW sample no. 9 / walk no. 3 does not exist. Generating...
+Generated RW 3 of 5 (for this sample).
+[2024-02-21 16:26:37] Saved walk population and individual neighbours for sample 7, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample7.
+Generated RW 3 of 5 (for this sample).
+Generated RW 3 of 5 (for this sample).
+Generating RW population for sample 5, walk 3 as it was not found.
+RW sample no. 5 / walk no. 3 does not exist. Generating...
+Generated RW 3 of 5 (for this sample).
+Generating RW population for sample 6, walk 3 as it was not found.
+RW sample no. 6 / walk no. 3 does not exist. Generating...
+Generated RW 3 of 5 (for this sample).
+Generated RW 3 of 5 (for this sample).
+Generating RW population for sample 4, walk 3 as it was not found.
+RW sample no. 4 / walk no. 3 does not exist. Generating...
+Generated RW 3 of 5 (for this sample).
+Generated RW 3 of 5 (for this sample).
+Generated RW 3 of 5 (for this sample).
+Generated RW 3 of 5 (for this sample).
+Generating RW population for sample 29, walk 3 as it was not found.
+RW sample no. 29 / walk no. 3 does not exist. Generating...
+Generating RW population for sample 15, walk 3 as it was not found.
+RW sample no. 15 / walk no. 3 does not exist. Generating...
+Generating RW population for sample 30, walk 3 as it was not found.
+RW sample no. 30 / walk no. 3 does not exist. Generating...
+Generated RW 3 of 5 (for this sample).
+Generated RW 3 of 5 (for this sample).
+[2024-02-21 16:26:37] Saved walk population and individual neighbours for sample 18, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample18.
+Generated RW 3 of 5 (for this sample).
+Generating RW population for sample 7, walk 3 as it was not found.
+RW sample no. 7 / walk no. 3 does not exist. Generating...
+Generated RW 3 of 5 (for this sample).
+Generating RW population for sample 11, walk 3 as it was not found.
+RW sample no. 11 / walk no. 3 does not exist. Generating...
+Generated RW 3 of 5 (for this sample).
+Generated RW 3 of 5 (for this sample).
+Generated RW 3 of 5 (for this sample).
+Generated RW 3 of 5 (for this sample).
+Generated RW 3 of 5 (for this sample).
+Generated RW 3 of 5 (for this sample).
+Generated RW 3 of 5 (for this sample).
+Generating RW population for sample 18, walk 3 as it was not found.
+RW sample no. 18 / walk no. 3 does not exist. Generating...
+Generated RW 3 of 5 (for this sample).
+Generated RW 3 of 5 (for this sample).
+[2024-02-21 16:26:38] Saved walk population and individual neighbours for sample 17, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample17.
+Generated RW 3 of 5 (for this sample).
+Generating RW population for sample 17, walk 3 as it was not found.
+RW sample no. 17 / walk no. 3 does not exist. Generating...
+Generated RW 3 of 5 (for this sample).
+[2024-02-21 16:26:48] Saved walk population and individual neighbours for sample 24, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample24.
+[2024-02-21 16:26:48] Saved walk population and individual neighbours for sample 23, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample23.
+[2024-02-21 16:26:48] Saved walk population and individual neighbours for sample 21, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample21.
+[2024-02-21 16:26:48] Saved walk population and individual neighbours for sample 26, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample26.
+[2024-02-21 16:26:48] Saved walk population and individual neighbours for sample 19, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample19.
+[2024-02-21 16:26:48] Saved walk population and individual neighbours for sample 12, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample12.
+Generating RW population for sample 24, walk 4 as it was not found.
+RW sample no. 24 / walk no. 4 does not exist. Generating...
+[2024-02-21 16:26:48] Saved walk population and individual neighbours for sample 3, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample3.
+[2024-02-21 16:26:48] Saved walk population and individual neighbours for sample 8, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample8.
+Generating RW population for sample 23, walk 4 as it was not found.
+RW sample no. 23 / walk no. 4 does not exist. Generating...
+Generating RW population for sample 21, walk 4 as it was not found.
+RW sample no. 21 / walk no. 4 does not exist. Generating...
+[2024-02-21 16:26:48] Saved walk population and individual neighbours for sample 13, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample13.
+[2024-02-21 16:26:48] Saved walk population and individual neighbours for sample 20, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample20.
+Generating RW population for sample 26, walk 4 as it was not found.
+RW sample no. 26 / walk no. 4 does not exist. Generating...
+Generating RW population for sample 19, walk 4 as it was not found.
+RW sample no. 19 / walk no. 4 does not exist. Generating...
+[2024-02-21 16:26:48] Saved walk population and individual neighbours for sample 27, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample27.
+[2024-02-21 16:26:48] Saved walk population and individual neighbours for sample 1, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample1.
+Generating RW population for sample 12, walk 4 as it was not found.
+RW sample no. 12 / walk no. 4 does not exist. Generating...
+[2024-02-21 16:26:48] Saved walk population and individual neighbours for sample 16, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample16.
+[2024-02-21 16:26:48] Saved walk population and individual neighbours for sample 15, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample15.
+[2024-02-21 16:26:48] Saved walk population and individual neighbours for sample 10, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample10.
+Generating RW population for sample 8, walk 4 as it was not found.
+RW sample no. 8 / walk no. 4 does not exist. Generating...
+Generating RW population for sample 3, walk 4 as it was not found.
+RW sample no. 3 / walk no. 4 does not exist. Generating...
+[2024-02-21 16:26:48] Saved walk population and individual neighbours for sample 2, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample2.
+Generated RW 4 of 5 (for this sample).
+[2024-02-21 16:26:48] Saved walk population and individual neighbours for sample 9, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample9.
+[2024-02-21 16:26:48] Saved walk population and individual neighbours for sample 25, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample25.
+Generated RW 4 of 5 (for this sample).
+Generating RW population for sample 13, walk 4 as it was not found.
+RW sample no. 13 / walk no. 4 does not exist. Generating...
+[2024-02-21 16:26:48] Saved walk population and individual neighbours for sample 28, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample28.
+[2024-02-21 16:26:48] Saved walk population and individual neighbours for sample 5, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample5.
+Generating RW population for sample 20, walk 4 as it was not found.
+RW sample no. 20 / walk no. 4 does not exist. Generating...
+Generated RW 4 of 5 (for this sample).
+Generated RW 4 of 5 (for this sample).
+Generating RW population for sample 1, walk 4 as it was not found.
+RW sample no. 1 / walk no. 4 does not exist. Generating...
+Generated RW 4 of 5 (for this sample).
+[2024-02-21 16:26:49] Saved walk population and individual neighbours for sample 7, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample7.
+Generating RW population for sample 16, walk 4 as it was not found.
+RW sample no. 16 / walk no. 4 does not exist. Generating...
+Generated RW 4 of 5 (for this sample).
+Generating RW population for sample 15, walk 4 as it was not found.
+RW sample no. 15 / walk no. 4 does not exist. Generating...
+Generating RW population for sample 27, walk 4 as it was not found.
+RW sample no. 27 / walk no. 4 does not exist. Generating...
+[2024-02-21 16:26:49] Saved walk population and individual neighbours for sample 4, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample4.
+Generating RW population for sample 10, walk 4 as it was not found.
+RW sample no. 10 / walk no. 4 does not exist. Generating...
+[2024-02-21 16:26:49] Saved walk population and individual neighbours for sample 29, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample29.
+Generating RW population for sample 9, walk 4 as it was not found.
+RW sample no. 9 / walk no. 4 does not exist. Generating...
+Generating RW population for sample 2, walk 4 as it was not found.
+RW sample no. 2 / walk no. 4 does not exist. Generating...
+Generating RW population for sample 28, walk 4 as it was not found.
+RW sample no. 28 / walk no. 4 does not exist. Generating...
+Generated RW 4 of 5 (for this sample).
+Generated RW 4 of 5 (for this sample).
+Generating RW population for sample 5, walk 4 as it was not found.
+RW sample no. 5 / walk no. 4 does not exist. Generating...
+Generating RW population for sample 25, walk 4 as it was not found.
+RW sample no. 25 / walk no. 4 does not exist. Generating...
+[2024-02-21 16:26:49] Saved walk population and individual neighbours for sample 14, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample14.
+[2024-02-21 16:26:49] Saved walk population and individual neighbours for sample 18, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample18.
+Generated RW 4 of 5 (for this sample).
+Generated RW 4 of 5 (for this sample).
+Generated RW 4 of 5 (for this sample).
+[2024-02-21 16:26:49] Saved walk population and individual neighbours for sample 6, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample6.
+Generating RW population for sample 7, walk 4 as it was not found.
+RW sample no. 7 / walk no. 4 does not exist. Generating...
+[2024-02-21 16:26:49] Saved walk population and individual neighbours for sample 22, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample22.
+Generated RW 4 of 5 (for this sample).
+[2024-02-21 16:26:49] Saved walk population and individual neighbours for sample 30, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample30.
+Generated RW 4 of 5 (for this sample).
+Generating RW population for sample 4, walk 4 as it was not found.
+RW sample no. 4 / walk no. 4 does not exist. Generating...
+Generating RW population for sample 29, walk 4 as it was not found.
+RW sample no. 29 / walk no. 4 does not exist. Generating...
+Generated RW 4 of 5 (for this sample).
+Generating RW population for sample 14, walk 4 as it was not found.
+RW sample no. 14 / walk no. 4 does not exist. Generating...
+Generated RW 4 of 5 (for this sample).
+Generated RW 4 of 5 (for this sample).
+Generated RW 4 of 5 (for this sample).
+Generated RW 4 of 5 (for this sample).
+Generating RW population for sample 18, walk 4 as it was not found.
+RW sample no. 18 / walk no. 4 does not exist. Generating...
+Generated RW 4 of 5 (for this sample).
+Generated RW 4 of 5 (for this sample).
+Generated RW 4 of 5 (for this sample).
+Generating RW population for sample 30, walk 4 as it was not found.
+RW sample no. 30 / walk no. 4 does not exist. Generating...
+Generating RW population for sample 6, walk 4 as it was not found.
+RW sample no. 6 / walk no. 4 does not exist. Generating...
+Generated RW 4 of 5 (for this sample).
+Generated RW 4 of 5 (for this sample).
+Generating RW population for sample 22, walk 4 as it was not found.
+RW sample no. 22 / walk no. 4 does not exist. Generating...
+Generated RW 4 of 5 (for this sample).
+Generated RW 4 of 5 (for this sample).
+[2024-02-21 16:26:49] Saved walk population and individual neighbours for sample 11, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample11.
+Generated RW 4 of 5 (for this sample).
+[2024-02-21 16:26:49] Saved walk population and individual neighbours for sample 17, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A/temp_pops/DASCMOP1_d5/eval/rw/sample17.
+Generated RW 4 of 5 (for this sample).
+Generating RW population for sample 11, walk 4 as it was not found.
+RW sample no. 11 / walk no. 4 does not exist. Generating...
+Generated RW 4 of 5 (for this sample).
+Generating RW population for sample 17, walk 4 as it was not found.
+RW sample no. 17 / walk no. 4 does not exist. Generating...
+Generated RW 4 of 5 (for this sample).
+Generated RW 4 of 5 (for this sample).
+Terminating program...
+Removed temporary directory: /home/kj66/Documents/Richard/rrut_thesis_code/ci-Y6tw32189A

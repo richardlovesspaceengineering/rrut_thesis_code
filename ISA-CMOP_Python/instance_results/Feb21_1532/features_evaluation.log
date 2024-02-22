@@ -1,0 +1,829 @@
+Run folder: instance_results/Feb21_1532
+Experimental setup:
+Increased dimensionality, now running full benchmark suites (other than aerofoils).
+
+Host is: megatron2
+Using interpreter: /home/kj66/Documents/Richard/venv/bin/python3
+New directory: /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX
+Writing ISA-CMOP_Python to temporary directory.
+File running inside: /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/runner.py
+
+Running problem: CTP1, dimension: 5
+Initialising evaluator in debug mode.
+
+------------------------ Evaluating instance: CTP1_d5 ------------------------
+Starting the creation process for population directories for problem: CTP1_d5 in mode: debug
+Directory does not exist and will be created: /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/global
+Directory created: /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/global
+Directory does not exist and will be created: /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw
+Directory created: /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw
+Population directories setup complete.
+Global population directory: /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/global
+RW population directory: /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw
+
+[2024-02-21 15:32:05] Creating a single population to initialise PF.
+
+Summary of cores allocation (have taken the minimum of self.num_samples and num_cores except for larger-dimension global cases):
+RW processes will use 3 cores.
+AW processes will use 3 cores.
+Global processes will use 3 cores.
+
+ 
+ ~~~~~~~~~~~~ RW Analysis for CTP1_d5 ~~~~~~~~~~~~ 
+
+[2024-02-21 15:32:05] Initialising normalisation computations for RW samples using 3 cores. This requires full evaluation of the entire sample set and may take some time while still being memory-efficient.
+Generating RW population for sample 4, walk 1 as it was not found.
+RW sample no. 4 / walk no. 1 does not exist. Generating...
+Generating RW population for sample 7, walk 1 as it was not found.Generating RW population for sample 1, walk 1 as it was not found.
+
+RW sample no. 7 / walk no. 1 does not exist. Generating...RW sample no. 1 / walk no. 1 does not exist. Generating...
+
+Generated RW 1 of 5 (for this sample).
+Generated RW 1 of 5 (for this sample).
+Generated RW 1 of 5 (for this sample).
+[2024-02-21 15:32:05] Saved walk population and individual neighbours for sample 7, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample7.
+Generating RW population for sample 7, walk 2 as it was not found.
+RW sample no. 7 / walk no. 2 does not exist. Generating...
+[2024-02-21 15:32:05] Saved walk population and individual neighbours for sample 4, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample4.
+Generating RW population for sample 4, walk 2 as it was not found.
+RW sample no. 4 / walk no. 2 does not exist. Generating...
+Generated RW 2 of 5 (for this sample).
+[2024-02-21 15:32:05] Saved walk population and individual neighbours for sample 1, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample1.
+Generating RW population for sample 1, walk 2 as it was not found.
+RW sample no. 1 / walk no. 2 does not exist. Generating...
+Generated RW 2 of 5 (for this sample).
+Generated RW 2 of 5 (for this sample).
+[2024-02-21 15:32:06] Saved walk population and individual neighbours for sample 7, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample7.
+Generating RW population for sample 7, walk 3 as it was not found.
+RW sample no. 7 / walk no. 3 does not exist. Generating...
+[2024-02-21 15:32:06] Saved walk population and individual neighbours for sample 4, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample4.
+Generating RW population for sample 4, walk 3 as it was not found.
+RW sample no. 4 / walk no. 3 does not exist. Generating...
+[2024-02-21 15:32:06] Saved walk population and individual neighbours for sample 1, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample1.
+Generated RW 3 of 5 (for this sample).
+Generating RW population for sample 1, walk 3 as it was not found.
+RW sample no. 1 / walk no. 3 does not exist. Generating...
+Generated RW 3 of 5 (for this sample).
+Generated RW 3 of 5 (for this sample).
+[2024-02-21 15:32:06] Saved walk population and individual neighbours for sample 7, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample7.
+Generating RW population for sample 7, walk 4 as it was not found.
+RW sample no. 7 / walk no. 4 does not exist. Generating...
+Generated RW 4 of 5 (for this sample).
+[2024-02-21 15:32:06] Saved walk population and individual neighbours for sample 4, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample4.
+Generating RW population for sample 4, walk 4 as it was not found.
+RW sample no. 4 / walk no. 4 does not exist. Generating...
+[2024-02-21 15:32:06] Saved walk population and individual neighbours for sample 1, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample1.
+Generating RW population for sample 1, walk 4 as it was not found.
+RW sample no. 1 / walk no. 4 does not exist. Generating...
+Generated RW 4 of 5 (for this sample).
+Generated RW 4 of 5 (for this sample).
+[2024-02-21 15:32:06] Saved walk population and individual neighbours for sample 7, walk 4 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample7.
+Generating RW population for sample 7, walk 5 as it was not found.
+RW sample no. 7 / walk no. 5 does not exist. Generating...
+Generated RW 5 of 5 (for this sample).
+[2024-02-21 15:32:06] Saved walk population and individual neighbours for sample 4, walk 4 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample4.
+Generating RW population for sample 4, walk 5 as it was not found.
+RW sample no. 4 / walk no. 5 does not exist. Generating...
+[2024-02-21 15:32:06] Saved walk population and individual neighbours for sample 1, walk 4 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample1.
+Generated RW 5 of 5 (for this sample).
+Generating RW population for sample 1, walk 5 as it was not found.
+RW sample no. 1 / walk no. 5 does not exist. Generating...
+Generated RW 5 of 5 (for this sample).
+[2024-02-21 15:32:06] Saved walk population and individual neighbours for sample 7, walk 5 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample7.
+Generating RW population for sample 8, walk 1 as it was not found.
+RW sample no. 8 / walk no. 1 does not exist. Generating...
+Generated RW 1 of 5 (for this sample).
+[2024-02-21 15:32:06] Saved walk population and individual neighbours for sample 4, walk 5 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample4.
+Generating RW population for sample 5, walk 1 as it was not found.
+RW sample no. 5 / walk no. 1 does not exist. Generating...
+[2024-02-21 15:32:06] Saved walk population and individual neighbours for sample 1, walk 5 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample1.
+Generated RW 1 of 5 (for this sample).
+Generating RW population for sample 2, walk 1 as it was not found.
+RW sample no. 2 / walk no. 1 does not exist. Generating...
+Generated RW 1 of 5 (for this sample).
+[2024-02-21 15:32:06] Saved walk population and individual neighbours for sample 8, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample8.
+Generating RW population for sample 8, walk 2 as it was not found.
+RW sample no. 8 / walk no. 2 does not exist. Generating...
+Generated RW 2 of 5 (for this sample).
+[2024-02-21 15:32:07] Saved walk population and individual neighbours for sample 5, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample5.
+Generating RW population for sample 5, walk 2 as it was not found.
+RW sample no. 5 / walk no. 2 does not exist. Generating...
+[2024-02-21 15:32:07] Saved walk population and individual neighbours for sample 2, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample2.
+Generated RW 2 of 5 (for this sample).
+Generating RW population for sample 2, walk 2 as it was not found.
+RW sample no. 2 / walk no. 2 does not exist. Generating...
+Generated RW 2 of 5 (for this sample).
+[2024-02-21 15:32:07] Saved walk population and individual neighbours for sample 8, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample8.
+Generating RW population for sample 8, walk 3 as it was not found.
+RW sample no. 8 / walk no. 3 does not exist. Generating...
+Generated RW 3 of 5 (for this sample).
+[2024-02-21 15:32:07] Saved walk population and individual neighbours for sample 5, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample5.
+Generating RW population for sample 5, walk 3 as it was not found.
+RW sample no. 5 / walk no. 3 does not exist. Generating...
+[2024-02-21 15:32:07] Saved walk population and individual neighbours for sample 2, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample2.
+Generated RW 3 of 5 (for this sample).
+Generating RW population for sample 2, walk 3 as it was not found.
+RW sample no. 2 / walk no. 3 does not exist. Generating...
+Generated RW 3 of 5 (for this sample).
+[2024-02-21 15:32:07] Saved walk population and individual neighbours for sample 8, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample8.
+Generating RW population for sample 8, walk 4 as it was not found.
+RW sample no. 8 / walk no. 4 does not exist. Generating...
+Generated RW 4 of 5 (for this sample).
+[2024-02-21 15:32:07] Saved walk population and individual neighbours for sample 5, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample5.
+Generating RW population for sample 5, walk 4 as it was not found.
+RW sample no. 5 / walk no. 4 does not exist. Generating...
+[2024-02-21 15:32:07] Saved walk population and individual neighbours for sample 2, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample2.
+Generated RW 4 of 5 (for this sample).
+Generating RW population for sample 2, walk 4 as it was not found.
+RW sample no. 2 / walk no. 4 does not exist. Generating...
+Generated RW 4 of 5 (for this sample).
+[2024-02-21 15:32:07] Saved walk population and individual neighbours for sample 8, walk 4 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample8.
+Generating RW population for sample 8, walk 5 as it was not found.
+RW sample no. 8 / walk no. 5 does not exist. Generating...
+Generated RW 5 of 5 (for this sample).
+[2024-02-21 15:32:07] Saved walk population and individual neighbours for sample 5, walk 4 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample5.
+Generating RW population for sample 5, walk 5 as it was not found.
+RW sample no. 5 / walk no. 5 does not exist. Generating...
+[2024-02-21 15:32:07] Saved walk population and individual neighbours for sample 2, walk 4 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample2.
+Generated RW 5 of 5 (for this sample).
+Generating RW population for sample 2, walk 5 as it was not found.
+RW sample no. 2 / walk no. 5 does not exist. Generating...
+Generated RW 5 of 5 (for this sample).
+[2024-02-21 15:32:07] Saved walk population and individual neighbours for sample 8, walk 5 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample8.
+Generating RW population for sample 9, walk 1 as it was not found.
+RW sample no. 9 / walk no. 1 does not exist. Generating...
+Generated RW 1 of 5 (for this sample).
+[2024-02-21 15:32:07] Saved walk population and individual neighbours for sample 5, walk 5 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample5.
+Generating RW population for sample 6, walk 1 as it was not found.
+RW sample no. 6 / walk no. 1 does not exist. Generating...
+[2024-02-21 15:32:07] Saved walk population and individual neighbours for sample 2, walk 5 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample2.
+Generated RW 1 of 5 (for this sample).
+Generating RW population for sample 3, walk 1 as it was not found.
+RW sample no. 3 / walk no. 1 does not exist. Generating...
+Generated RW 1 of 5 (for this sample).
+[2024-02-21 15:32:08] Saved walk population and individual neighbours for sample 9, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample9.
+Generating RW population for sample 9, walk 2 as it was not found.
+RW sample no. 9 / walk no. 2 does not exist. Generating...
+Generated RW 2 of 5 (for this sample).
+[2024-02-21 15:32:08] Saved walk population and individual neighbours for sample 6, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample6.
+Generating RW population for sample 6, walk 2 as it was not found.
+RW sample no. 6 / walk no. 2 does not exist. Generating...
+[2024-02-21 15:32:08] Saved walk population and individual neighbours for sample 3, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample3.
+Generated RW 2 of 5 (for this sample).
+Generating RW population for sample 3, walk 2 as it was not found.
+RW sample no. 3 / walk no. 2 does not exist. Generating...
+Generated RW 2 of 5 (for this sample).
+[2024-02-21 15:32:08] Saved walk population and individual neighbours for sample 9, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample9.
+Generating RW population for sample 9, walk 3 as it was not found.
+RW sample no. 9 / walk no. 3 does not exist. Generating...
+Generated RW 3 of 5 (for this sample).
+[2024-02-21 15:32:08] Saved walk population and individual neighbours for sample 6, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample6.
+Generating RW population for sample 6, walk 3 as it was not found.
+RW sample no. 6 / walk no. 3 does not exist. Generating...
+[2024-02-21 15:32:08] Saved walk population and individual neighbours for sample 3, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample3.
+Generated RW 3 of 5 (for this sample).
+Generating RW population for sample 3, walk 3 as it was not found.
+RW sample no. 3 / walk no. 3 does not exist. Generating...
+Generated RW 3 of 5 (for this sample).
+[2024-02-21 15:32:08] Saved walk population and individual neighbours for sample 9, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample9.
+Generating RW population for sample 9, walk 4 as it was not found.
+RW sample no. 9 / walk no. 4 does not exist. Generating...
+Generated RW 4 of 5 (for this sample).
+[2024-02-21 15:32:08] Saved walk population and individual neighbours for sample 6, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample6.
+Generating RW population for sample 6, walk 4 as it was not found.
+RW sample no. 6 / walk no. 4 does not exist. Generating...
+[2024-02-21 15:32:08] Saved walk population and individual neighbours for sample 3, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample3.
+Generated RW 4 of 5 (for this sample).
+Generating RW population for sample 3, walk 4 as it was not found.
+RW sample no. 3 / walk no. 4 does not exist. Generating...
+Generated RW 4 of 5 (for this sample).
+[2024-02-21 15:32:08] Saved walk population and individual neighbours for sample 9, walk 4 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample9.
+Generating RW population for sample 9, walk 5 as it was not found.
+RW sample no. 9 / walk no. 5 does not exist. Generating...
+Generated RW 5 of 5 (for this sample).
+[2024-02-21 15:32:08] Saved walk population and individual neighbours for sample 6, walk 4 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample6.
+Generating RW population for sample 6, walk 5 as it was not found.
+RW sample no. 6 / walk no. 5 does not exist. Generating...
+[2024-02-21 15:32:08] Saved walk population and individual neighbours for sample 3, walk 4 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample3.
+Generated RW 5 of 5 (for this sample).
+Generating RW population for sample 3, walk 5 as it was not found.
+RW sample no. 3 / walk no. 5 does not exist. Generating...
+Generated RW 5 of 5 (for this sample).
+[2024-02-21 15:32:09] Saved walk population and individual neighbours for sample 9, walk 5 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample9.
+Generating RW population for sample 10, walk 1 as it was not found.
+RW sample no. 10 / walk no. 1 does not exist. Generating...
+[2024-02-21 15:32:09] Saved walk population and individual neighbours for sample 6, walk 5 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample6.
+Generated RW 1 of 5 (for this sample).
+Generating RW population for sample 13, walk 1 as it was not found.
+RW sample no. 13 / walk no. 1 does not exist. Generating...
+[2024-02-21 15:32:09] Saved walk population and individual neighbours for sample 3, walk 5 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample3.
+Generated RW 1 of 5 (for this sample).
+Generating RW population for sample 16, walk 1 as it was not found.
+RW sample no. 16 / walk no. 1 does not exist. Generating...
+Generated RW 1 of 5 (for this sample).
+[2024-02-21 15:32:09] Saved walk population and individual neighbours for sample 10, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample10.
+[2024-02-21 15:32:09] Saved walk population and individual neighbours for sample 13, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample13.
+Generating RW population for sample 10, walk 2 as it was not found.
+RW sample no. 10 / walk no. 2 does not exist. Generating...
+Generating RW population for sample 13, walk 2 as it was not found.
+RW sample no. 13 / walk no. 2 does not exist. Generating...
+Generated RW 2 of 5 (for this sample).
+[2024-02-21 15:32:09] Saved walk population and individual neighbours for sample 16, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample16.
+Generated RW 2 of 5 (for this sample).
+Generating RW population for sample 16, walk 2 as it was not found.
+RW sample no. 16 / walk no. 2 does not exist. Generating...
+Generated RW 2 of 5 (for this sample).
+[2024-02-21 15:32:09] Saved walk population and individual neighbours for sample 10, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample10.
+[2024-02-21 15:32:09] Saved walk population and individual neighbours for sample 16, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample16.
+[2024-02-21 15:32:09] Saved walk population and individual neighbours for sample 13, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample13.
+Generating RW population for sample 10, walk 3 as it was not found.
+RW sample no. 10 / walk no. 3 does not exist. Generating...
+Generating RW population for sample 16, walk 3 as it was not found.
+RW sample no. 16 / walk no. 3 does not exist. Generating...
+Generating RW population for sample 13, walk 3 as it was not found.
+RW sample no. 13 / walk no. 3 does not exist. Generating...
+Generated RW 3 of 5 (for this sample).
+Generated RW 3 of 5 (for this sample).
+Generated RW 3 of 5 (for this sample).
+[2024-02-21 15:32:09] Saved walk population and individual neighbours for sample 10, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample10.
+[2024-02-21 15:32:09] Saved walk population and individual neighbours for sample 16, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample16.
+[2024-02-21 15:32:09] Saved walk population and individual neighbours for sample 13, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample13.
+Generating RW population for sample 10, walk 4 as it was not found.
+RW sample no. 10 / walk no. 4 does not exist. Generating...
+Generating RW population for sample 16, walk 4 as it was not found.
+RW sample no. 16 / walk no. 4 does not exist. Generating...
+Generating RW population for sample 13, walk 4 as it was not found.
+RW sample no. 13 / walk no. 4 does not exist. Generating...
+Generated RW 4 of 5 (for this sample).
+Generated RW 4 of 5 (for this sample).
+Generated RW 4 of 5 (for this sample).
+[2024-02-21 15:32:09] Saved walk population and individual neighbours for sample 10, walk 4 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample10.
+[2024-02-21 15:32:09] Saved walk population and individual neighbours for sample 16, walk 4 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample16.
+[2024-02-21 15:32:09] Saved walk population and individual neighbours for sample 13, walk 4 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample13.
+Generating RW population for sample 10, walk 5 as it was not found.
+RW sample no. 10 / walk no. 5 does not exist. Generating...
+Generating RW population for sample 16, walk 5 as it was not found.
+RW sample no. 16 / walk no. 5 does not exist. Generating...
+Generating RW population for sample 13, walk 5 as it was not found.
+RW sample no. 13 / walk no. 5 does not exist. Generating...
+Generated RW 5 of 5 (for this sample).
+Generated RW 5 of 5 (for this sample).
+Generated RW 5 of 5 (for this sample).
+[2024-02-21 15:32:10] Saved walk population and individual neighbours for sample 10, walk 5 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample10.
+[2024-02-21 15:32:10] Saved walk population and individual neighbours for sample 16, walk 5 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample16.
+[2024-02-21 15:32:10] Saved walk population and individual neighbours for sample 13, walk 5 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample13.
+Generating RW population for sample 11, walk 1 as it was not found.
+RW sample no. 11 / walk no. 1 does not exist. Generating...
+Generating RW population for sample 17, walk 1 as it was not found.
+RW sample no. 17 / walk no. 1 does not exist. Generating...
+Generating RW population for sample 14, walk 1 as it was not found.
+RW sample no. 14 / walk no. 1 does not exist. Generating...
+Generated RW 1 of 5 (for this sample).
+Generated RW 1 of 5 (for this sample).
+Generated RW 1 of 5 (for this sample).
+[2024-02-21 15:32:10] Saved walk population and individual neighbours for sample 17, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample17.
+[2024-02-21 15:32:10] Saved walk population and individual neighbours for sample 11, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample11.
+[2024-02-21 15:32:10] Saved walk population and individual neighbours for sample 14, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample14.
+Generating RW population for sample 17, walk 2 as it was not found.
+RW sample no. 17 / walk no. 2 does not exist. Generating...
+Generating RW population for sample 11, walk 2 as it was not found.
+RW sample no. 11 / walk no. 2 does not exist. Generating...
+Generating RW population for sample 14, walk 2 as it was not found.
+RW sample no. 14 / walk no. 2 does not exist. Generating...
+Generated RW 2 of 5 (for this sample).
+Generated RW 2 of 5 (for this sample).
+Generated RW 2 of 5 (for this sample).
+[2024-02-21 15:32:10] Saved walk population and individual neighbours for sample 17, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample17.
+[2024-02-21 15:32:10] Saved walk population and individual neighbours for sample 11, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample11.
+[2024-02-21 15:32:10] Saved walk population and individual neighbours for sample 14, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample14.
+Generating RW population for sample 17, walk 3 as it was not found.
+RW sample no. 17 / walk no. 3 does not exist. Generating...
+Generating RW population for sample 11, walk 3 as it was not found.
+RW sample no. 11 / walk no. 3 does not exist. Generating...
+Generating RW population for sample 14, walk 3 as it was not found.
+RW sample no. 14 / walk no. 3 does not exist. Generating...
+Generated RW 3 of 5 (for this sample).
+Generated RW 3 of 5 (for this sample).
+Generated RW 3 of 5 (for this sample).
+[2024-02-21 15:32:10] Saved walk population and individual neighbours for sample 17, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample17.
+[2024-02-21 15:32:10] Saved walk population and individual neighbours for sample 14, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample14.
+Generating RW population for sample 17, walk 4 as it was not found.
+RW sample no. 17 / walk no. 4 does not exist. Generating...
+[2024-02-21 15:32:10] Saved walk population and individual neighbours for sample 11, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample11.
+Generating RW population for sample 14, walk 4 as it was not found.
+RW sample no. 14 / walk no. 4 does not exist. Generating...
+Generating RW population for sample 11, walk 4 as it was not found.
+RW sample no. 11 / walk no. 4 does not exist. Generating...
+Generated RW 4 of 5 (for this sample).
+Generated RW 4 of 5 (for this sample).
+Generated RW 4 of 5 (for this sample).
+[2024-02-21 15:32:11] Saved walk population and individual neighbours for sample 17, walk 4 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample17.
+[2024-02-21 15:32:11] Saved walk population and individual neighbours for sample 14, walk 4 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample14.
+[2024-02-21 15:32:11] Saved walk population and individual neighbours for sample 11, walk 4 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample11.
+Generating RW population for sample 17, walk 5 as it was not found.
+RW sample no. 17 / walk no. 5 does not exist. Generating...
+Generating RW population for sample 14, walk 5 as it was not found.
+RW sample no. 14 / walk no. 5 does not exist. Generating...
+Generating RW population for sample 11, walk 5 as it was not found.
+RW sample no. 11 / walk no. 5 does not exist. Generating...
+Generated RW 5 of 5 (for this sample).
+Generated RW 5 of 5 (for this sample).
+Generated RW 5 of 5 (for this sample).
+[2024-02-21 15:32:11] Saved walk population and individual neighbours for sample 17, walk 5 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample17.
+[2024-02-21 15:32:11] Saved walk population and individual neighbours for sample 14, walk 5 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample14.
+Generating RW population for sample 18, walk 1 as it was not found.
+RW sample no. 18 / walk no. 1 does not exist. Generating...
+Generating RW population for sample 15, walk 1 as it was not found.
+RW sample no. 15 / walk no. 1 does not exist. Generating...
+[2024-02-21 15:32:11] Saved walk population and individual neighbours for sample 11, walk 5 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample11.
+Generated RW 1 of 5 (for this sample).
+Generated RW 1 of 5 (for this sample).
+Generating RW population for sample 12, walk 1 as it was not found.
+RW sample no. 12 / walk no. 1 does not exist. Generating...
+Generated RW 1 of 5 (for this sample).
+[2024-02-21 15:32:11] Saved walk population and individual neighbours for sample 15, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample15.
+[2024-02-21 15:32:11] Saved walk population and individual neighbours for sample 18, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample18.
+Generating RW population for sample 15, walk 2 as it was not found.
+RW sample no. 15 / walk no. 2 does not exist. Generating...
+[2024-02-21 15:32:11] Saved walk population and individual neighbours for sample 12, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample12.
+Generating RW population for sample 18, walk 2 as it was not found.
+RW sample no. 18 / walk no. 2 does not exist. Generating...
+Generated RW 2 of 5 (for this sample).
+Generating RW population for sample 12, walk 2 as it was not found.
+RW sample no. 12 / walk no. 2 does not exist. Generating...
+Generated RW 2 of 5 (for this sample).
+Generated RW 2 of 5 (for this sample).
+[2024-02-21 15:32:11] Saved walk population and individual neighbours for sample 15, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample15.
+Generating RW population for sample 15, walk 3 as it was not found.
+RW sample no. 15 / walk no. 3 does not exist. Generating...
+[2024-02-21 15:32:11] Saved walk population and individual neighbours for sample 12, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample12.
+[2024-02-21 15:32:11] Saved walk population and individual neighbours for sample 18, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample18.
+Generated RW 3 of 5 (for this sample).
+Generating RW population for sample 12, walk 3 as it was not found.
+RW sample no. 12 / walk no. 3 does not exist. Generating...
+Generating RW population for sample 18, walk 3 as it was not found.
+RW sample no. 18 / walk no. 3 does not exist. Generating...
+Generated RW 3 of 5 (for this sample).
+Generated RW 3 of 5 (for this sample).
+[2024-02-21 15:32:11] Saved walk population and individual neighbours for sample 15, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample15.
+Generating RW population for sample 15, walk 4 as it was not found.
+RW sample no. 15 / walk no. 4 does not exist. Generating...
+[2024-02-21 15:32:11] Saved walk population and individual neighbours for sample 12, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample12.
+[2024-02-21 15:32:11] Saved walk population and individual neighbours for sample 18, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample18.
+Generated RW 4 of 5 (for this sample).
+Generating RW population for sample 12, walk 4 as it was not found.
+RW sample no. 12 / walk no. 4 does not exist. Generating...
+Generating RW population for sample 18, walk 4 as it was not found.
+RW sample no. 18 / walk no. 4 does not exist. Generating...
+Generated RW 4 of 5 (for this sample).
+Generated RW 4 of 5 (for this sample).
+[2024-02-21 15:32:12] Saved walk population and individual neighbours for sample 15, walk 4 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample15.
+Generating RW population for sample 15, walk 5 as it was not found.
+RW sample no. 15 / walk no. 5 does not exist. Generating...
+[2024-02-21 15:32:12] Saved walk population and individual neighbours for sample 12, walk 4 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample12.
+[2024-02-21 15:32:12] Saved walk population and individual neighbours for sample 18, walk 4 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample18.
+Generated RW 5 of 5 (for this sample).
+Generating RW population for sample 12, walk 5 as it was not found.
+RW sample no. 12 / walk no. 5 does not exist. Generating...
+Generating RW population for sample 18, walk 5 as it was not found.
+RW sample no. 18 / walk no. 5 does not exist. Generating...
+Generated RW 5 of 5 (for this sample).
+Generated RW 5 of 5 (for this sample).
+[2024-02-21 15:32:12] Saved walk population and individual neighbours for sample 15, walk 5 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample15.
+Generating RW population for sample 19, walk 1 as it was not found.
+RW sample no. 19 / walk no. 1 does not exist. Generating...
+[2024-02-21 15:32:12] Saved walk population and individual neighbours for sample 18, walk 5 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample18.
+[2024-02-21 15:32:12] Saved walk population and individual neighbours for sample 12, walk 5 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample12.
+Generated RW 1 of 5 (for this sample).
+Generating RW population for sample 22, walk 1 as it was not found.
+RW sample no. 22 / walk no. 1 does not exist. Generating...
+Generating RW population for sample 25, walk 1 as it was not found.
+RW sample no. 25 / walk no. 1 does not exist. Generating...
+Generated RW 1 of 5 (for this sample).
+Generated RW 1 of 5 (for this sample).
+[2024-02-21 15:32:12] Saved walk population and individual neighbours for sample 19, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample19.
+Generating RW population for sample 19, walk 2 as it was not found.
+RW sample no. 19 / walk no. 2 does not exist. Generating...
+[2024-02-21 15:32:12] Saved walk population and individual neighbours for sample 22, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample22.
+[2024-02-21 15:32:12] Saved walk population and individual neighbours for sample 25, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample25.
+Generated RW 2 of 5 (for this sample).
+Generating RW population for sample 25, walk 2 as it was not found.
+Generating RW population for sample 22, walk 2 as it was not found.
+RW sample no. 25 / walk no. 2 does not exist. Generating...
+RW sample no. 22 / walk no. 2 does not exist. Generating...
+Generated RW 2 of 5 (for this sample).
+Generated RW 2 of 5 (for this sample).
+[2024-02-21 15:32:12] Saved walk population and individual neighbours for sample 19, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample19.
+Generating RW population for sample 19, walk 3 as it was not found.
+RW sample no. 19 / walk no. 3 does not exist. Generating...
+[2024-02-21 15:32:12] Saved walk population and individual neighbours for sample 25, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample25.[2024-02-21 15:32:12] Saved walk population and individual neighbours for sample 22, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample22.
+
+Generated RW 3 of 5 (for this sample).
+Generating RW population for sample 22, walk 3 as it was not found.
+Generating RW population for sample 25, walk 3 as it was not found.
+RW sample no. 22 / walk no. 3 does not exist. Generating...
+RW sample no. 25 / walk no. 3 does not exist. Generating...
+Generated RW 3 of 5 (for this sample).Generated RW 3 of 5 (for this sample).
+
+[2024-02-21 15:32:13] Saved walk population and individual neighbours for sample 19, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample19.
+Generating RW population for sample 19, walk 4 as it was not found.
+RW sample no. 19 / walk no. 4 does not exist. Generating...
+[2024-02-21 15:32:13] Saved walk population and individual neighbours for sample 22, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample22.
+[2024-02-21 15:32:13] Saved walk population and individual neighbours for sample 25, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample25.
+Generated RW 4 of 5 (for this sample).
+Generating RW population for sample 22, walk 4 as it was not found.
+RW sample no. 22 / walk no. 4 does not exist. Generating...
+Generating RW population for sample 25, walk 4 as it was not found.
+RW sample no. 25 / walk no. 4 does not exist. Generating...
+Generated RW 4 of 5 (for this sample).
+Generated RW 4 of 5 (for this sample).
+[2024-02-21 15:32:13] Saved walk population and individual neighbours for sample 19, walk 4 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample19.
+Generating RW population for sample 19, walk 5 as it was not found.
+RW sample no. 19 / walk no. 5 does not exist. Generating...
+[2024-02-21 15:32:13] Saved walk population and individual neighbours for sample 22, walk 4 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample22.
+[2024-02-21 15:32:13] Saved walk population and individual neighbours for sample 25, walk 4 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample25.
+Generating RW population for sample 22, walk 5 as it was not found.
+RW sample no. 22 / walk no. 5 does not exist. Generating...
+Generated RW 5 of 5 (for this sample).
+Generating RW population for sample 25, walk 5 as it was not found.
+RW sample no. 25 / walk no. 5 does not exist. Generating...
+Generated RW 5 of 5 (for this sample).
+Generated RW 5 of 5 (for this sample).
+[2024-02-21 15:32:13] Saved walk population and individual neighbours for sample 19, walk 5 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample19.
+Generating RW population for sample 20, walk 1 as it was not found.
+RW sample no. 20 / walk no. 1 does not exist. Generating...
+[2024-02-21 15:32:13] Saved walk population and individual neighbours for sample 25, walk 5 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample25.
+Generated RW 1 of 5 (for this sample).
+Generating RW population for sample 26, walk 1 as it was not found.
+RW sample no. 26 / walk no. 1 does not exist. Generating...
+[2024-02-21 15:32:13] Saved walk population and individual neighbours for sample 22, walk 5 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample22.
+Generating RW population for sample 23, walk 1 as it was not found.
+RW sample no. 23 / walk no. 1 does not exist. Generating...
+Generated RW 1 of 5 (for this sample).
+Generated RW 1 of 5 (for this sample).
+[2024-02-21 15:32:13] Saved walk population and individual neighbours for sample 20, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample20.
+Generating RW population for sample 20, walk 2 as it was not found.
+RW sample no. 20 / walk no. 2 does not exist. Generating...
+[2024-02-21 15:32:13] Saved walk population and individual neighbours for sample 26, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample26.
+Generated RW 2 of 5 (for this sample).
+Generating RW population for sample 26, walk 2 as it was not found.
+RW sample no. 26 / walk no. 2 does not exist. Generating...
+[2024-02-21 15:32:13] Saved walk population and individual neighbours for sample 23, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample23.
+Generating RW population for sample 23, walk 2 as it was not found.
+RW sample no. 23 / walk no. 2 does not exist. Generating...
+Generated RW 2 of 5 (for this sample).
+Generated RW 2 of 5 (for this sample).
+[2024-02-21 15:32:14] Saved walk population and individual neighbours for sample 20, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample20.
+Generating RW population for sample 20, walk 3 as it was not found.
+RW sample no. 20 / walk no. 3 does not exist. Generating...
+[2024-02-21 15:32:14] Saved walk population and individual neighbours for sample 26, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample26.
+Generated RW 3 of 5 (for this sample).
+[2024-02-21 15:32:14] Saved walk population and individual neighbours for sample 23, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample23.
+Generating RW population for sample 26, walk 3 as it was not found.
+RW sample no. 26 / walk no. 3 does not exist. Generating...
+Generating RW population for sample 23, walk 3 as it was not found.
+RW sample no. 23 / walk no. 3 does not exist. Generating...
+Generated RW 3 of 5 (for this sample).
+Generated RW 3 of 5 (for this sample).
+[2024-02-21 15:32:14] Saved walk population and individual neighbours for sample 20, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample20.
+Generating RW population for sample 20, walk 4 as it was not found.
+RW sample no. 20 / walk no. 4 does not exist. Generating...
+[2024-02-21 15:32:14] Saved walk population and individual neighbours for sample 26, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample26.
+Generated RW 4 of 5 (for this sample).
+[2024-02-21 15:32:14] Saved walk population and individual neighbours for sample 23, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample23.
+Generating RW population for sample 26, walk 4 as it was not found.
+RW sample no. 26 / walk no. 4 does not exist. Generating...
+Generating RW population for sample 23, walk 4 as it was not found.
+RW sample no. 23 / walk no. 4 does not exist. Generating...
+Generated RW 4 of 5 (for this sample).
+Generated RW 4 of 5 (for this sample).
+[2024-02-21 15:32:14] Saved walk population and individual neighbours for sample 23, walk 4 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample23.
+[2024-02-21 15:32:14] Saved walk population and individual neighbours for sample 20, walk 4 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample20.
+[2024-02-21 15:32:14] Saved walk population and individual neighbours for sample 26, walk 4 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample26.
+Generating RW population for sample 23, walk 5 as it was not found.
+RW sample no. 23 / walk no. 5 does not exist. Generating...
+Generating RW population for sample 26, walk 5 as it was not found.
+RW sample no. 26 / walk no. 5 does not exist. Generating...
+Generating RW population for sample 20, walk 5 as it was not found.
+RW sample no. 20 / walk no. 5 does not exist. Generating...
+Generated RW 5 of 5 (for this sample).
+Generated RW 5 of 5 (for this sample).
+Generated RW 5 of 5 (for this sample).
+[2024-02-21 15:32:14] Saved walk population and individual neighbours for sample 20, walk 5 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample20.
+[2024-02-21 15:32:14] Saved walk population and individual neighbours for sample 23, walk 5 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample23.
+[2024-02-21 15:32:14] Saved walk population and individual neighbours for sample 26, walk 5 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample26.
+Generating RW population for sample 21, walk 1 as it was not found.
+RW sample no. 21 / walk no. 1 does not exist. Generating...
+Generating RW population for sample 24, walk 1 as it was not found.
+RW sample no. 24 / walk no. 1 does not exist. Generating...
+Generating RW population for sample 27, walk 1 as it was not found.
+RW sample no. 27 / walk no. 1 does not exist. Generating...
+Generated RW 1 of 5 (for this sample).
+Generated RW 1 of 5 (for this sample).
+Generated RW 1 of 5 (for this sample).
+[2024-02-21 15:32:14] Saved walk population and individual neighbours for sample 21, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample21.
+[2024-02-21 15:32:14] Saved walk population and individual neighbours for sample 27, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample27.
+[2024-02-21 15:32:14] Saved walk population and individual neighbours for sample 24, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample24.
+Generating RW population for sample 21, walk 2 as it was not found.
+RW sample no. 21 / walk no. 2 does not exist. Generating...
+Generating RW population for sample 24, walk 2 as it was not found.
+RW sample no. 24 / walk no. 2 does not exist. Generating...
+Generating RW population for sample 27, walk 2 as it was not found.
+RW sample no. 27 / walk no. 2 does not exist. Generating...
+Generated RW 2 of 5 (for this sample).
+Generated RW 2 of 5 (for this sample).
+Generated RW 2 of 5 (for this sample).
+[2024-02-21 15:32:15] Saved walk population and individual neighbours for sample 27, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample27.
+[2024-02-21 15:32:15] Saved walk population and individual neighbours for sample 24, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample24.
+[2024-02-21 15:32:15] Saved walk population and individual neighbours for sample 21, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample21.
+Generating RW population for sample 27, walk 3 as it was not found.
+RW sample no. 27 / walk no. 3 does not exist. Generating...
+Generating RW population for sample 24, walk 3 as it was not found.
+RW sample no. 24 / walk no. 3 does not exist. Generating...
+Generating RW population for sample 21, walk 3 as it was not found.
+RW sample no. 21 / walk no. 3 does not exist. Generating...
+Generated RW 3 of 5 (for this sample).
+Generated RW 3 of 5 (for this sample).
+Generated RW 3 of 5 (for this sample).
+[2024-02-21 15:32:15] Saved walk population and individual neighbours for sample 27, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample27.
+[2024-02-21 15:32:15] Saved walk population and individual neighbours for sample 24, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample24.
+Generating RW population for sample 27, walk 4 as it was not found.
+RW sample no. 27 / walk no. 4 does not exist. Generating...
+[2024-02-21 15:32:15] Saved walk population and individual neighbours for sample 21, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample21.
+Generating RW population for sample 24, walk 4 as it was not found.
+RW sample no. 24 / walk no. 4 does not exist. Generating...
+Generating RW population for sample 21, walk 4 as it was not found.
+RW sample no. 21 / walk no. 4 does not exist. Generating...
+Generated RW 4 of 5 (for this sample).
+Generated RW 4 of 5 (for this sample).
+Generated RW 4 of 5 (for this sample).
+[2024-02-21 15:32:15] Saved walk population and individual neighbours for sample 27, walk 4 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample27.
+Generating RW population for sample 27, walk 5 as it was not found.
+RW sample no. 27 / walk no. 5 does not exist. Generating...
+[2024-02-21 15:32:15] Saved walk population and individual neighbours for sample 21, walk 4 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample21.
+Generated RW 5 of 5 (for this sample).
+Generating RW population for sample 21, walk 5 as it was not found.
+RW sample no. 21 / walk no. 5 does not exist. Generating...
+[2024-02-21 15:32:15] Saved walk population and individual neighbours for sample 24, walk 4 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample24.
+Generated RW 5 of 5 (for this sample).
+Generating RW population for sample 24, walk 5 as it was not found.
+RW sample no. 24 / walk no. 5 does not exist. Generating...
+Generated RW 5 of 5 (for this sample).
+[2024-02-21 15:32:15] Saved walk population and individual neighbours for sample 27, walk 5 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample27.
+Generating RW population for sample 28, walk 1 as it was not found.
+RW sample no. 28 / walk no. 1 does not exist. Generating...
+[2024-02-21 15:32:15] Saved walk population and individual neighbours for sample 21, walk 5 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample21.
+Generated RW 1 of 5 (for this sample).
+[2024-02-21 15:32:15] Saved walk population and individual neighbours for sample 24, walk 5 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample24.
+[2024-02-21 15:32:16] Saved walk population and individual neighbours for sample 28, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample28.
+Generating RW population for sample 28, walk 2 as it was not found.
+RW sample no. 28 / walk no. 2 does not exist. Generating...
+Generated RW 2 of 5 (for this sample).
+[2024-02-21 15:32:16] Saved walk population and individual neighbours for sample 28, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample28.
+Generating RW population for sample 28, walk 3 as it was not found.
+RW sample no. 28 / walk no. 3 does not exist. Generating...
+Generated RW 3 of 5 (for this sample).
+[2024-02-21 15:32:16] Saved walk population and individual neighbours for sample 28, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample28.
+Generating RW population for sample 28, walk 4 as it was not found.
+RW sample no. 28 / walk no. 4 does not exist. Generating...
+Generated RW 4 of 5 (for this sample).
+[2024-02-21 15:32:16] Saved walk population and individual neighbours for sample 28, walk 4 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample28.
+Generating RW population for sample 28, walk 5 as it was not found.
+RW sample no. 28 / walk no. 5 does not exist. Generating...
+Generated RW 5 of 5 (for this sample).
+[2024-02-21 15:32:16] Saved walk population and individual neighbours for sample 28, walk 5 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample28.
+Generating RW population for sample 29, walk 1 as it was not found.
+RW sample no. 29 / walk no. 1 does not exist. Generating...
+Generated RW 1 of 5 (for this sample).
+[2024-02-21 15:32:17] Saved walk population and individual neighbours for sample 29, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample29.
+Generating RW population for sample 29, walk 2 as it was not found.
+RW sample no. 29 / walk no. 2 does not exist. Generating...
+Generated RW 2 of 5 (for this sample).
+[2024-02-21 15:32:17] Saved walk population and individual neighbours for sample 29, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample29.
+Generating RW population for sample 29, walk 3 as it was not found.
+RW sample no. 29 / walk no. 3 does not exist. Generating...
+Generated RW 3 of 5 (for this sample).
+[2024-02-21 15:32:17] Saved walk population and individual neighbours for sample 29, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample29.
+Generating RW population for sample 29, walk 4 as it was not found.
+RW sample no. 29 / walk no. 4 does not exist. Generating...
+Generated RW 4 of 5 (for this sample).
+[2024-02-21 15:32:17] Saved walk population and individual neighbours for sample 29, walk 4 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample29.
+Generating RW population for sample 29, walk 5 as it was not found.
+RW sample no. 29 / walk no. 5 does not exist. Generating...
+Generated RW 5 of 5 (for this sample).
+[2024-02-21 15:32:18] Saved walk population and individual neighbours for sample 29, walk 5 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample29.
+Generating RW population for sample 30, walk 1 as it was not found.
+RW sample no. 30 / walk no. 1 does not exist. Generating...
+Generated RW 1 of 5 (for this sample).
+[2024-02-21 15:32:18] Saved walk population and individual neighbours for sample 30, walk 1 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample30.
+Generating RW population for sample 30, walk 2 as it was not found.
+RW sample no. 30 / walk no. 2 does not exist. Generating...
+Generated RW 2 of 5 (for this sample).
+[2024-02-21 15:32:18] Saved walk population and individual neighbours for sample 30, walk 2 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample30.
+Generating RW population for sample 30, walk 3 as it was not found.
+RW sample no. 30 / walk no. 3 does not exist. Generating...
+Generated RW 3 of 5 (for this sample).
+[2024-02-21 15:32:18] Saved walk population and individual neighbours for sample 30, walk 3 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample30.
+Generating RW population for sample 30, walk 4 as it was not found.
+RW sample no. 30 / walk no. 4 does not exist. Generating...
+Generated RW 4 of 5 (for this sample).
+[2024-02-21 15:32:18] Saved walk population and individual neighbours for sample 30, walk 4 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample30.
+Generating RW population for sample 30, walk 5 as it was not found.
+RW sample no. 30 / walk no. 5 does not exist. Generating...
+Generated RW 5 of 5 (for this sample).
+[2024-02-21 15:32:19] Saved walk population and individual neighbours for sample 30, walk 5 in /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample30.
+[2024-02-21 15:32:19] Evaluated the normalisation values for this sample set in 13.45 seconds.
+
+
+[2024-02-21 15:32:19] Running parallel computation for RW features with 3 processes. 
+
+[2024-02-21 15:32:19] Initialising feature evaluation for RW samples.
+[2024-02-21 15:32:19] Initialising feature evaluation for RW samples.[2024-02-21 15:32:19] Initialising feature evaluation for RW samples.
+
+[2024-02-21 15:32:19] Loaded walk and individual neighbours for sample 1, walk 1 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample1.
+[2024-02-21 15:32:19] Loaded walk and individual neighbours for sample 4, walk 1 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample4.
+[2024-02-21 15:32:19] Loaded walk and individual neighbours for sample 7, walk 1 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample7.
+[2024-02-21 15:32:19] Loaded walk and individual neighbours for sample 4, walk 2 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample4.
+[2024-02-21 15:32:19] Loaded walk and individual neighbours for sample 1, walk 2 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample1.
+[2024-02-21 15:32:19] Loaded walk and individual neighbours for sample 7, walk 2 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample7.
+[2024-02-21 15:32:20] Loaded walk and individual neighbours for sample 4, walk 3 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample4.
+[2024-02-21 15:32:20] Loaded walk and individual neighbours for sample 1, walk 3 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample1.
+[2024-02-21 15:32:20] Loaded walk and individual neighbours for sample 7, walk 3 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample7.
+[2024-02-21 15:32:20] Loaded walk and individual neighbours for sample 4, walk 4 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample4.
+[2024-02-21 15:32:21] Loaded walk and individual neighbours for sample 1, walk 4 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample1.
+[2024-02-21 15:32:21] Loaded walk and individual neighbours for sample 7, walk 4 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample7.
+[2024-02-21 15:32:21] Loaded walk and individual neighbours for sample 1, walk 5 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample1.
+[2024-02-21 15:32:21] Loaded walk and individual neighbours for sample 7, walk 5 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample7.
+[2024-02-21 15:32:21] Loaded walk and individual neighbours for sample 4, walk 5 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample4.
+[2024-02-21 15:32:22] Initialising feature evaluation for RW samples.
+[2024-02-21 15:32:22] Loaded walk and individual neighbours for sample 2, walk 1 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample2.
+[2024-02-21 15:32:22] Initialising feature evaluation for RW samples.
+[2024-02-21 15:32:22] Initialising feature evaluation for RW samples.
+[2024-02-21 15:32:22] Loaded walk and individual neighbours for sample 5, walk 1 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample5.
+[2024-02-21 15:32:22] Loaded walk and individual neighbours for sample 8, walk 1 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample8.
+[2024-02-21 15:32:22] Loaded walk and individual neighbours for sample 2, walk 2 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample2.
+[2024-02-21 15:32:22] Loaded walk and individual neighbours for sample 8, walk 2 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample8.
+[2024-02-21 15:32:22] Loaded walk and individual neighbours for sample 5, walk 2 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample5.
+[2024-02-21 15:32:23] Loaded walk and individual neighbours for sample 2, walk 3 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample2.
+[2024-02-21 15:32:23] Loaded walk and individual neighbours for sample 8, walk 3 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample8.
+[2024-02-21 15:32:23] Loaded walk and individual neighbours for sample 5, walk 3 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample5.
+[2024-02-21 15:32:24] Loaded walk and individual neighbours for sample 2, walk 4 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample2.
+[2024-02-21 15:32:24] Loaded walk and individual neighbours for sample 8, walk 4 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample8.
+[2024-02-21 15:32:24] Loaded walk and individual neighbours for sample 5, walk 4 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample5.
+[2024-02-21 15:32:24] Loaded walk and individual neighbours for sample 2, walk 5 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample2.
+[2024-02-21 15:32:24] Loaded walk and individual neighbours for sample 8, walk 5 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample8.
+[2024-02-21 15:32:24] Loaded walk and individual neighbours for sample 5, walk 5 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample5.
+[2024-02-21 15:32:25] Initialising feature evaluation for RW samples.
+[2024-02-21 15:32:25] Loaded walk and individual neighbours for sample 3, walk 1 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample3.
+[2024-02-21 15:32:25] Initialising feature evaluation for RW samples.
+[2024-02-21 15:32:25] Loaded walk and individual neighbours for sample 9, walk 1 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample9.
+[2024-02-21 15:32:25] Initialising feature evaluation for RW samples.
+[2024-02-21 15:32:25] Loaded walk and individual neighbours for sample 6, walk 1 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample6.
+[2024-02-21 15:32:26] Loaded walk and individual neighbours for sample 9, walk 2 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample9.
+[2024-02-21 15:32:26] Loaded walk and individual neighbours for sample 3, walk 2 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample3.
+Had to remove 20 rows that were further than the nadir from the origin.
+There are no individuals closer to the origin than the nadir. Setting all step HV metrics for this sample to 0.
+/home/kj66/Documents/Richard/venv/lib/python3.8/site-packages/numpy/core/fromnumeric.py:3464: RuntimeWarning: Mean of empty slice.
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/home/kj66/Documents/Richard/venv/lib/python3.8/site-packages/numpy/core/_methods.py:192: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+[2024-02-21 15:32:26] Loaded walk and individual neighbours for sample 6, walk 2 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample6.
+Had to remove 20 rows that were further than the nadir from the origin.
+There are no individuals closer to the origin than the nadir. Setting all step HV metrics for this sample to 0.
+/home/kj66/Documents/Richard/venv/lib/python3.8/site-packages/numpy/core/fromnumeric.py:3464: RuntimeWarning: Mean of empty slice.
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/home/kj66/Documents/Richard/venv/lib/python3.8/site-packages/numpy/core/_methods.py:192: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+[2024-02-21 15:32:26] Loaded walk and individual neighbours for sample 3, walk 3 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample3.
+[2024-02-21 15:32:26] Loaded walk and individual neighbours for sample 9, walk 3 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample9.
+[2024-02-21 15:32:26] Loaded walk and individual neighbours for sample 6, walk 3 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample6.
+[2024-02-21 15:32:27] Loaded walk and individual neighbours for sample 3, walk 4 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample3.
+[2024-02-21 15:32:27] Loaded walk and individual neighbours for sample 9, walk 4 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample9.
+[2024-02-21 15:32:27] Loaded walk and individual neighbours for sample 6, walk 4 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample6.
+[2024-02-21 15:32:27] Loaded walk and individual neighbours for sample 3, walk 5 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample3.
+[2024-02-21 15:32:27] Loaded walk and individual neighbours for sample 9, walk 5 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample9.
+[2024-02-21 15:32:28] Loaded walk and individual neighbours for sample 6, walk 5 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample6.
+[2024-02-21 15:32:28] Initialising feature evaluation for RW samples.
+[2024-02-21 15:32:28] Loaded walk and individual neighbours for sample 10, walk 1 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample10.
+[2024-02-21 15:32:28] Initialising feature evaluation for RW samples.
+[2024-02-21 15:32:28] Loaded walk and individual neighbours for sample 13, walk 1 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample13.
+[2024-02-21 15:32:28] Initialising feature evaluation for RW samples.
+[2024-02-21 15:32:28] Loaded walk and individual neighbours for sample 16, walk 1 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample16.
+[2024-02-21 15:32:29] Loaded walk and individual neighbours for sample 10, walk 2 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample10.
+[2024-02-21 15:32:29] Loaded walk and individual neighbours for sample 13, walk 2 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample13.
+[2024-02-21 15:32:29] Loaded walk and individual neighbours for sample 16, walk 2 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample16.
+[2024-02-21 15:32:29] Loaded walk and individual neighbours for sample 10, walk 3 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample10.
+[2024-02-21 15:32:29] Loaded walk and individual neighbours for sample 16, walk 3 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample16.
+[2024-02-21 15:32:29] Loaded walk and individual neighbours for sample 13, walk 3 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample13.
+[2024-02-21 15:32:30] Loaded walk and individual neighbours for sample 10, walk 4 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample10.
+[2024-02-21 15:32:30] Loaded walk and individual neighbours for sample 16, walk 4 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample16.
+[2024-02-21 15:32:30] Loaded walk and individual neighbours for sample 13, walk 4 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample13.
+[2024-02-21 15:32:30] Loaded walk and individual neighbours for sample 10, walk 5 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample10.
+[2024-02-21 15:32:31] Loaded walk and individual neighbours for sample 16, walk 5 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample16.
+[2024-02-21 15:32:31] Loaded walk and individual neighbours for sample 13, walk 5 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample13.
+[2024-02-21 15:32:31] Initialising feature evaluation for RW samples.
+[2024-02-21 15:32:31] Loaded walk and individual neighbours for sample 11, walk 1 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample11.
+[2024-02-21 15:32:31] Initialising feature evaluation for RW samples.
+[2024-02-21 15:32:31] Loaded walk and individual neighbours for sample 17, walk 1 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample17.
+[2024-02-21 15:32:31] Initialising feature evaluation for RW samples.
+[2024-02-21 15:32:31] Loaded walk and individual neighbours for sample 14, walk 1 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample14.
+[2024-02-21 15:32:32] Loaded walk and individual neighbours for sample 11, walk 2 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample11.
+[2024-02-21 15:32:32] Loaded walk and individual neighbours for sample 17, walk 2 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample17.
+[2024-02-21 15:32:32] Loaded walk and individual neighbours for sample 14, walk 2 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample14.
+[2024-02-21 15:32:32] Loaded walk and individual neighbours for sample 11, walk 3 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample11.
+[2024-02-21 15:32:32] Loaded walk and individual neighbours for sample 17, walk 3 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample17.
+[2024-02-21 15:32:32] Loaded walk and individual neighbours for sample 14, walk 3 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample14.
+[2024-02-21 15:32:33] Loaded walk and individual neighbours for sample 11, walk 4 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample11.
+[2024-02-21 15:32:33] Loaded walk and individual neighbours for sample 17, walk 4 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample17.
+[2024-02-21 15:32:33] Loaded walk and individual neighbours for sample 14, walk 4 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample14.
+[2024-02-21 15:32:34] Loaded walk and individual neighbours for sample 11, walk 5 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample11.
+[2024-02-21 15:32:34] Loaded walk and individual neighbours for sample 17, walk 5 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample17.
+[2024-02-21 15:32:34] Loaded walk and individual neighbours for sample 14, walk 5 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample14.
+[2024-02-21 15:32:34] Initialising feature evaluation for RW samples.
+[2024-02-21 15:32:34] Loaded walk and individual neighbours for sample 12, walk 1 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample12.
+[2024-02-21 15:32:34] Initialising feature evaluation for RW samples.
+[2024-02-21 15:32:34] Loaded walk and individual neighbours for sample 18, walk 1 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample18.
+[2024-02-21 15:32:34] Initialising feature evaluation for RW samples.
+[2024-02-21 15:32:34] Loaded walk and individual neighbours for sample 15, walk 1 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample15.
+[2024-02-21 15:32:35] Loaded walk and individual neighbours for sample 12, walk 2 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample12.
+[2024-02-21 15:32:35] Loaded walk and individual neighbours for sample 18, walk 2 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample18.
+[2024-02-21 15:32:35] Loaded walk and individual neighbours for sample 15, walk 2 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample15.
+[2024-02-21 15:32:35] Loaded walk and individual neighbours for sample 12, walk 3 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample12.
+[2024-02-21 15:32:35] Loaded walk and individual neighbours for sample 18, walk 3 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample18.
+[2024-02-21 15:32:36] Loaded walk and individual neighbours for sample 15, walk 3 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample15.
+[2024-02-21 15:32:36] Loaded walk and individual neighbours for sample 12, walk 4 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample12.
+[2024-02-21 15:32:36] Loaded walk and individual neighbours for sample 18, walk 4 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample18.
+[2024-02-21 15:32:36] Loaded walk and individual neighbours for sample 15, walk 4 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample15.
+[2024-02-21 15:32:37] Loaded walk and individual neighbours for sample 12, walk 5 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample12.
+[2024-02-21 15:32:37] Loaded walk and individual neighbours for sample 18, walk 5 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample18.
+[2024-02-21 15:32:37] Loaded walk and individual neighbours for sample 15, walk 5 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample15.
+[2024-02-21 15:32:37] Initialising feature evaluation for RW samples.
+[2024-02-21 15:32:37] Loaded walk and individual neighbours for sample 19, walk 1 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample19.
+[2024-02-21 15:32:37] Initialising feature evaluation for RW samples.
+[2024-02-21 15:32:37] Loaded walk and individual neighbours for sample 22, walk 1 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample22.
+[2024-02-21 15:32:38] Initialising feature evaluation for RW samples.
+[2024-02-21 15:32:38] Loaded walk and individual neighbours for sample 25, walk 1 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample25.
+[2024-02-21 15:32:38] Loaded walk and individual neighbours for sample 19, walk 2 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample19.
+[2024-02-21 15:32:38] Loaded walk and individual neighbours for sample 22, walk 2 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample22.
+[2024-02-21 15:32:38] Loaded walk and individual neighbours for sample 25, walk 2 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample25.
+[2024-02-21 15:32:39] Loaded walk and individual neighbours for sample 19, walk 3 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample19.
+[2024-02-21 15:32:39] Loaded walk and individual neighbours for sample 22, walk 3 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample22.
+[2024-02-21 15:32:39] Loaded walk and individual neighbours for sample 25, walk 3 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample25.
+[2024-02-21 15:32:39] Loaded walk and individual neighbours for sample 22, walk 4 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample22.
+[2024-02-21 15:32:39] Loaded walk and individual neighbours for sample 19, walk 4 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample19.
+[2024-02-21 15:32:40] Loaded walk and individual neighbours for sample 25, walk 4 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample25.
+[2024-02-21 15:32:40] Loaded walk and individual neighbours for sample 19, walk 5 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample19.
+[2024-02-21 15:32:40] Loaded walk and individual neighbours for sample 22, walk 5 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample22.
+[2024-02-21 15:32:40] Loaded walk and individual neighbours for sample 25, walk 5 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample25.
+[2024-02-21 15:32:40] Initialising feature evaluation for RW samples.
+[2024-02-21 15:32:40] Loaded walk and individual neighbours for sample 23, walk 1 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample23.
+[2024-02-21 15:32:41] Initialising feature evaluation for RW samples.
+[2024-02-21 15:32:41] Loaded walk and individual neighbours for sample 20, walk 1 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample20.
+[2024-02-21 15:32:41] Initialising feature evaluation for RW samples.
+[2024-02-21 15:32:41] Loaded walk and individual neighbours for sample 26, walk 1 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample26.
+[2024-02-21 15:32:41] Loaded walk and individual neighbours for sample 23, walk 2 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample23.
+[2024-02-21 15:32:41] Loaded walk and individual neighbours for sample 20, walk 2 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample20.
+[2024-02-21 15:32:41] Loaded walk and individual neighbours for sample 26, walk 2 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample26.
+[2024-02-21 15:32:42] Loaded walk and individual neighbours for sample 23, walk 3 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample23.
+[2024-02-21 15:32:42] Loaded walk and individual neighbours for sample 20, walk 3 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample20.
+[2024-02-21 15:32:42] Loaded walk and individual neighbours for sample 26, walk 3 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample26.
+Had to remove 6 rows that were further than the nadir from the origin.
+Had to remove 6 rows that were further than the nadir from the origin.
+[2024-02-21 15:32:42] Loaded walk and individual neighbours for sample 23, walk 4 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample23.
+[2024-02-21 15:32:42] Loaded walk and individual neighbours for sample 20, walk 4 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample20.
+[2024-02-21 15:32:43] Loaded walk and individual neighbours for sample 26, walk 4 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample26.
+[2024-02-21 15:32:43] Loaded walk and individual neighbours for sample 23, walk 5 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample23.
+[2024-02-21 15:32:43] Loaded walk and individual neighbours for sample 20, walk 5 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample20.
+[2024-02-21 15:32:43] Loaded walk and individual neighbours for sample 26, walk 5 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample26.
+[2024-02-21 15:32:44] Initialising feature evaluation for RW samples.
+[2024-02-21 15:32:44] Loaded walk and individual neighbours for sample 24, walk 1 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample24.
+[2024-02-21 15:32:44] Initialising feature evaluation for RW samples.
+[2024-02-21 15:32:44] Loaded walk and individual neighbours for sample 21, walk 1 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample21.
+[2024-02-21 15:32:44] Initialising feature evaluation for RW samples.
+[2024-02-21 15:32:44] Loaded walk and individual neighbours for sample 27, walk 1 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample27.
+[2024-02-21 15:32:44] Loaded walk and individual neighbours for sample 24, walk 2 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample24.
+[2024-02-21 15:32:44] Loaded walk and individual neighbours for sample 21, walk 2 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample21.
+[2024-02-21 15:32:44] Loaded walk and individual neighbours for sample 27, walk 2 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample27.
+[2024-02-21 15:32:45] Loaded walk and individual neighbours for sample 24, walk 3 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample24.
+[2024-02-21 15:32:45] Loaded walk and individual neighbours for sample 21, walk 3 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample21.
+[2024-02-21 15:32:45] Loaded walk and individual neighbours for sample 27, walk 3 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample27.
+[2024-02-21 15:32:45] Loaded walk and individual neighbours for sample 24, walk 4 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample24.
+[2024-02-21 15:32:46] Loaded walk and individual neighbours for sample 21, walk 4 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample21.
+[2024-02-21 15:32:46] Loaded walk and individual neighbours for sample 27, walk 4 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample27.
+[2024-02-21 15:32:46] Loaded walk and individual neighbours for sample 24, walk 5 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample24.
+[2024-02-21 15:32:46] Loaded walk and individual neighbours for sample 21, walk 5 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample21.
+[2024-02-21 15:32:46] Loaded walk and individual neighbours for sample 27, walk 5 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample27.
+[2024-02-21 15:32:47] Initialising feature evaluation for RW samples.
+[2024-02-21 15:32:47] Loaded walk and individual neighbours for sample 28, walk 1 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample28.
+[2024-02-21 15:32:47] Loaded walk and individual neighbours for sample 28, walk 2 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample28.
+[2024-02-21 15:32:48] Loaded walk and individual neighbours for sample 28, walk 3 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample28.
+[2024-02-21 15:32:48] Loaded walk and individual neighbours for sample 28, walk 4 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample28.
+[2024-02-21 15:32:49] Loaded walk and individual neighbours for sample 28, walk 5 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample28.
+[2024-02-21 15:32:50] Initialising feature evaluation for RW samples.
+[2024-02-21 15:32:50] Loaded walk and individual neighbours for sample 29, walk 1 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample29.
+[2024-02-21 15:32:50] Loaded walk and individual neighbours for sample 29, walk 2 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample29.
+[2024-02-21 15:32:51] Loaded walk and individual neighbours for sample 29, walk 3 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample29.
+[2024-02-21 15:32:51] Loaded walk and individual neighbours for sample 29, walk 4 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample29.
+[2024-02-21 15:32:52] Loaded walk and individual neighbours for sample 29, walk 5 from /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX/temp_pops/CTP1_d5/debug/rw/sample29.
+Terminating program...
+Removed temporary directory: /home/kj66/Documents/Richard/rrut_thesis_code/ci-wSmI6fpoOX

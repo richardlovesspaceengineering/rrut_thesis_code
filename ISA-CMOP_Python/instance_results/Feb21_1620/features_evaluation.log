@@ -1,0 +1,54 @@
+Run folder: instance_results/Feb21_1620
+Experimental setup:
+Running all 5D, then 10D and so on from JSON file.
+
+Host is: megatron2
+Using interpreter: /home/kj66/Documents/Richard/venv/bin/python3
+New directory: /home/kj66/Documents/Richard/rrut_thesis_code/ci-agi2WvPTW0
+Writing ISA-CMOP_Python to temporary directory.
+File running inside: /home/kj66/Documents/Richard/rrut_thesis_code/ci-agi2WvPTW0/runner.py
+
+Running problem: DASCMOP1, dimension: 5
+Initialising evaluator in eval mode.
+
+------------------------ Evaluating instance: DASCMOP1_d5 ------------------------
+Starting the creation process for population directories for problem: DASCMOP1_d5 in mode: eval
+Directory does not exist and will be created: /home/kj66/Documents/Richard/rrut_thesis_code/ci-agi2WvPTW0/temp_pops/DASCMOP1_d5/eval/global
+Directory created: /home/kj66/Documents/Richard/rrut_thesis_code/ci-agi2WvPTW0/temp_pops/DASCMOP1_d5/eval/global
+Directory does not exist and will be created: /home/kj66/Documents/Richard/rrut_thesis_code/ci-agi2WvPTW0/temp_pops/DASCMOP1_d5/eval/rw
+Directory created: /home/kj66/Documents/Richard/rrut_thesis_code/ci-agi2WvPTW0/temp_pops/DASCMOP1_d5/eval/rw
+Population directories setup complete.
+Global population directory: /home/kj66/Documents/Richard/rrut_thesis_code/ci-agi2WvPTW0/temp_pops/DASCMOP1_d5/eval/global
+RW population directory: /home/kj66/Documents/Richard/rrut_thesis_code/ci-agi2WvPTW0/temp_pops/DASCMOP1_d5/eval/rw
+
+[2024-02-21 16:20:05] Creating a single population to initialise PF.
+
+Summary of cores allocation (have taken the minimum of self.num_samples and num_cores except for larger-dimension global cases):
+RW processes will use 6 cores.
+AW processes will use 15 cores.
+Global processes will use 15 cores.
+
+ 
+ ~~~~~~~~~~~~ RW Analysis for DASCMOP1_d5 ~~~~~~~~~~~~ 
+
+[2024-02-21 16:20:11] Initialising normalisation computations for RW samples using 6 cores. This requires full evaluation of the entire sample set and may take some time while still being memory-efficient.
+Generating RW population for sample 1, walk 1 as it was not found.
+RW sample no. 1 / walk no. 1 does not exist. Generating...
+Generating RW population for sample 5, walk 1 as it was not found.Generating RW population for sample 3, walk 1 as it was not found.
+
+RW sample no. 3 / walk no. 1 does not exist. Generating...
+RW sample no. 5 / walk no. 1 does not exist. Generating...
+Generating RW population for sample 7, walk 1 as it was not found.Generating RW population for sample 11, walk 1 as it was not found.Generating RW population for sample 9, walk 1 as it was not found.
+
+
+RW sample no. 11 / walk no. 1 does not exist. Generating...RW sample no. 7 / walk no. 1 does not exist. Generating...RW sample no. 9 / walk no. 1 does not exist. Generating...
+
+
+Generated RW 1 of 30 (for this sample).
+Generated RW 1 of 30 (for this sample).
+Generated RW 1 of 30 (for this sample).
+Generated RW 1 of 30 (for this sample).
+Generated RW 1 of 30 (for this sample).
+Generated RW 1 of 30 (for this sample).
+Terminating program...
+Removed temporary directory: /home/kj66/Documents/Richard/rrut_thesis_code/ci-agi2WvPTW0

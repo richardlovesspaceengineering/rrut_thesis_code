@@ -1,0 +1,9 @@
+Run folder: instance_results/Feb21_1529
+Experimental setup:
+Increased dimensionality, now running full benchmark suites (other than aerofoils).
+
+Host is: megatron2
+Using interpreter: /home/kj66/Documents/Richard/venv/bin/python3
+New directory: /home/kj66/Documents/Richard/rrut_thesis_code/ci-2xzSSuiKwM
+Writing ISA-CMOP_Python to temporary directory.
+File running inside: /home/kj66/Documents/Richard/rrut_thesis_code/ci-2xzSSuiKwM/runner.py
