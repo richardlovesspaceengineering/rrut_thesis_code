@@ -17,25 +17,21 @@ class Individual(object):
 
         if "pymoo" in getattr(self.problem, "__module__"):
             self.n_cons = problem.n_constr
-            self.var_lower = problem.xl
-            self.var_upper = problem.xu
+            var_lower = problem.xl
+            var_upper = problem.xu
         else:
             # Aerofoils
             self.n_cons = problem.n_con
-            self.var_lower = problem.lb
-            self.var_upper = problem.ub
+            var_lower = problem.lb
+            var_upper = problem.ub
 
-        self.bounds = np.vstack((self.var_lower, self.var_upper))
+        self.bounds = np.vstack((var_lower, var_upper))
 
         # Initialize arrays.
         self.var = np.zeros((1, self.n_var))
         self.obj = np.zeros((1, self.n_obj))
         self.cons = np.zeros((1, self.n_cons))
         self.cv = np.zeros((1, 1))
-
-        # Exact/approximated pareto front
-        # TODO: figure out how this will work with aerofoil problems.
-        self.pareto_front = problem._calc_pareto_front()
 
         # Rank, crowding distance & hypervolume
         self.rank = np.nan
@@ -80,7 +76,12 @@ class Individual(object):
     ### EVALUATION FUNCTIONS
     def eval_obj_cons(self):
         # Returns a tuple (obj, cons)
-        return self.problem.evaluate(self.var)
+
+        if "pymoo" in getattr(self.problem, "__module__"):
+            return self.problem.evaluate(self.var)
+        else:
+            # Aerofoils called with call method.
+            return self.problem(self.var)
 
     def eval_cv(self, use_norm=True):
         # Find the constraint violation.
