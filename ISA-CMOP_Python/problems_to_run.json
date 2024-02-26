@@ -3,6 +3,7 @@
     "MW14_d30": "true"
     },
   "eval": {
+    "ICAS2024Test_d10": "true",
     "MW14_d30": "true",
     "CTP1_d5": "false",
     "CTP2_d5": "false",
@@ -46,7 +47,6 @@
     "C2DTLZ2_d5": "false",
     "C3DTLZ1_d5": "false",
     "C3DTLZ4_d5": "false",
-    "ICAS2024Test_d5": "false",
     "CTP1_d10": "false",
     "CTP2_d10": "false",
     "CTP3_d10": "false",
