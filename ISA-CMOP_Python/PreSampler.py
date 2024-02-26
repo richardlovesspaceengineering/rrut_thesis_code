@@ -35,7 +35,7 @@ class PreSampler:
         elif self.mode == "debug":
             self.neighbourhood_size_rw = self.dim
             self.num_steps_rw = 5
-            self.step_size_rw = 0.01  # 1% of the range of the instance domain
+            self.step_size_rw = 0.1  # 10% of the range of the instance domain
 
             # Experimental setup of Liefooghe2021 for global.
             self.num_points_glob = int(self.dim * 5)
