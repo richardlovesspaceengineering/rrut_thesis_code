@@ -147,8 +147,8 @@ class ProblemEvaluator:
                 "30d": 5,
             }
             self.num_processes_global_norm_dict = self.num_processes_rw_norm_dict
-            self.num_processes_rw_eval_dict = self.num_processes_rw_dict
-            self.num_processes_global_eval_dict = self.num_processes_rw_dict
+            self.num_processes_rw_eval_dict = self.num_processes_rw_norm_dict
+            self.num_processes_global_eval_dict = self.num_processes_rw_norm_dict
         else:
             # Megatrons. Assumed available RAM of 128 GB.
             self.num_processes_rw_norm_dict = {
