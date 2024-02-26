@@ -141,12 +141,14 @@ class ProblemEvaluator:
         # 15,000 points uses about 4 GB memory per process.
         hostname = socket.gethostname()
         if hostname == "RichardPC":
-            self.num_processes_rw_dict = {
+            self.num_processes_rw_norm_dict = {
                 "15d": 5,
                 "20d": 5,
                 "30d": 5,
             }
-            self.num_processes_global_dict = self.num_processes_rw_dict
+            self.num_processes_global_norm_dict = self.num_processes_rw_norm_dict
+            self.num_processes_rw_eval_dict = self.num_processes_rw_dict
+            self.num_processes_global_eval_dict = self.num_processes_rw_dict
         else:
             # Megatrons. Assumed available RAM of 128 GB.
             self.num_processes_rw_norm_dict = {
