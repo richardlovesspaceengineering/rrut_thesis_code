@@ -146,16 +146,28 @@ class ProblemEvaluator:
                 "20d": 5,
                 "30d": 5,
             }
-            self.num_processes_glob_dict = self.num_processes_rw_dict
+            self.num_processes_global_dict = self.num_processes_rw_dict
         else:
             # Megatrons. Assumed available RAM of 128 GB.
-            self.num_processes_rw_dict = {
+            self.num_processes_rw_norm_dict = {
                 "15d": 30,
                 "20d": 30,
                 "30d": 30,
             }
 
-            self.num_processes_glob_dict = {
+            self.num_processes_rw_eval_dict = {
+                "15d": 30,
+                "20d": 30,
+                "30d": 30,
+            }
+
+            self.num_processes_global_norm_dict = {
+                "15d": 30,
+                "20d": 30,
+                "30d": 15,
+            }
+
+            self.num_processes_global_eval_dict = {
                 "15d": 30,
                 "20d": 30,
                 "30d": 30,
@@ -164,29 +176,41 @@ class ProblemEvaluator:
         # Now we will allocate num_cores_global. This value will need to be smaller to deal with memory issues related to large matrices.
         dim_key = f"{self.instance.n_var}d"  # Assuming self.dim is an integer or string that matches the keys in the dictionary
 
-        # Check if the current dimension has a specified number of processes
-        if dim_key in self.num_processes_glob_dict:
+        # Check if the current dimension has a specified number of processes. Just check one dictionary since they all have the same keys.
+        if dim_key in self.num_processes_global_norm_dict:
             # Update num_processes based on the dictionary entry
-            self.num_processes_global = min(
-                self.num_processes_glob_dict[dim_key], self.num_samples
+            self.num_processes_global_norm = min(
+                self.num_processes_global_norm_dict[dim_key], self.num_samples
             )
-            self.num_processes_rw = min(
-                self.num_processes_rw_dict[dim_key], self.num_samples
+            self.num_processes_global_eval = min(
+                self.num_processes_global_eval_dict[dim_key], self.num_samples
+            )
+            self.num_processes_rw_norm = min(
+                self.num_processes_rw_norm_dict[dim_key], self.num_samples
+            )
+            self.num_processes_rw_eval = min(
+                self.num_processes_rw_eval_dict[dim_key], self.num_samples
             )
         else:
-            self.num_processes_global = min(self.num_cores_user_input, self.num_samples)
-            self.num_processes_rw = min(self.num_cores_user_input, self.num_samples)
+            self.num_processes_global_norm = min(
+                self.num_cores_user_input, self.num_samples
+            )
+            self.num_processes_global_eval = self.num_processes_global_norm
+            self.num_processes_rw_norm = min(
+                self.num_cores_user_input, self.num_samples
+            )
+            self.num_processes_rw_eval = self.num_processes_rw_norm
 
-        self.num_processes_aw = self.num_processes_global
+        self.num_processes_aw = self.num_processes_global_eval
 
     def send_initialisation_email(self, header):
         # Summarize the core allocation
         cores_summary = textwrap.dedent(
             f"""
         Summary of cores allocation (have taken the minimum of self.num_samples and num_cores except for larger-dimension global cases):
-        RW processes will use {self.num_processes_rw} cores.
+        RW processes will use {self.num_processes_rw_norm} cores for normalisation, {self.num_processes_rw_eval} cores for evaluation.
+        Global processes will use {self.num_processes_global_norm} cores for normalisation, {self.num_processes_global_eval} cores for evaluation.
         AW processes will use {self.num_processes_aw} cores.
-        Global processes will use {self.num_processes_global} cores.
         """
         )
 
@@ -383,12 +407,12 @@ class ProblemEvaluator:
         min_values_array = max_values_array
 
         print_with_timestamp(
-            f"Initialising normalisation computations for global samples with {self.num_processes_global} processes. This requires full evaluation of the entire sample set and may take some time while still being memory-efficient."
+            f"Initialising normalisation computations for global samples with {self.num_processes_global_norm} processes. This requires full evaluation of the entire sample set and may take some time while still being memory-efficient."
         )
 
         # Can use max amount of cores here since NDSorting does not happen here.
         with multiprocessing.Pool(
-            self.num_processes_global, initializer=init_pool
+            self.num_processes_global_norm, initializer=init_pool
         ) as pool:
             args_list = [(i, pre_sampler, problem) for i in range(self.num_samples)]
 
@@ -471,7 +495,7 @@ class ProblemEvaluator:
             pop_walk, pop_neighbours_list = self.get_rw_pop(
                 pre_sampler, problem, i + 1, j + 1
             )
-            
+
             pf = pop_walk.extract_pf()
 
             for which_variable in variables:
@@ -504,10 +528,12 @@ class ProblemEvaluator:
         min_values_array = max_values_array
 
         print_with_timestamp(
-            f"Initialising normalisation computations for RW samples using {self.num_processes_rw} cores. This requires full evaluation of the entire sample set and may take some time while still being memory-efficient."
+            f"Initialising normalisation computations for RW samples using {self.num_processes_rw_norm} cores. This requires full evaluation of the entire sample set and may take some time while still being memory-efficient."
         )
 
-        with multiprocessing.Pool(self.num_processes_rw, initializer=init_pool) as pool:
+        with multiprocessing.Pool(
+            self.num_processes_rw_norm, initializer=init_pool
+        ) as pool:
             args_list = [(i, pre_sampler, problem) for i in range(self.num_samples)]
 
             results = pool.map(self.process_rw_sample_norm, args_list)
@@ -575,11 +601,13 @@ class ProblemEvaluator:
 
         start_time = time.time()
 
-        with multiprocessing.Pool(self.num_processes_rw, initializer=init_pool) as pool:
+        with multiprocessing.Pool(
+            self.num_processes_rw_eval, initializer=init_pool
+        ) as pool:
             # Use partial method here.
             print_with_timestamp(
                 "\nRunning parallel computation for RW features with {} processes. \n".format(
-                    self.num_processes_rw
+                    self.num_processes_rw_eval
                 )
             )
             results = pool.starmap(
@@ -640,11 +668,11 @@ class ProblemEvaluator:
         global_multiple_analyses_list = []
 
         with multiprocessing.Pool(
-            self.num_processes_global, initializer=init_pool
+            self.num_processes_global_eval, initializer=init_pool
         ) as pool:
             print_with_timestamp(
                 "\nRunning parallel computation for global features with {} processes. \n".format(
-                    self.num_processes_global
+                    self.num_processes_global_eval
                 )
             )
 
