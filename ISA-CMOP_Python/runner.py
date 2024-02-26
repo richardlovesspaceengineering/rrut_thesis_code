@@ -8,12 +8,20 @@ from PreSampler import PreSampler
 from pymoo.problems import get_problem
 from pathlib import Path
 import numpy as np
+import socket
 
 
 def append_airfoilsuite_path():
-    sys_path = str(
-        Path("C:/Users/richa/Documents/Thesis/AirfoilBenchmarkSuite/").expanduser()
-    )
+
+    hostname = socket.gethostname()
+    if hostname == "megatron2":
+        sys_path = str(
+            Path("/home/kj66/Documents/Richard/AirfoilBenchmarkSuite/").expanduser()
+        )
+    else:
+        sys_path = str(
+            Path("C:/Users/richa/Documents/Thesis/AirfoilBenchmarkSuite/").expanduser()
+        )
     sys.path.append(sys_path)
 
 
