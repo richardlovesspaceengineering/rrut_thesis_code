@@ -191,10 +191,11 @@ class GlobalAnalysis(Analysis):
         if obj.size > 1:
             # Constrained ranks.
             ranks = self.pop.extract_rank()
+            min_rank = np.min(ranks)  # more robust than using rank = 1.
 
             # Distance across and between n1 and n2 rank fronts in decision space. Each argument of cdist should be arrays corresponding to the DVs on front n1 and front n2.
-            var_dist_matrix = pdist(var[ranks == 1, :], "euclidean")
-            obj_dist_matrix = pdist(obj[ranks == 1, :], "euclidean")
+            var_dist_matrix = pdist(var[ranks == min_rank, :], "euclidean")
+            obj_dist_matrix = pdist(obj[ranks == min_rank, :], "euclidean")
 
             # Compute statistics on this var_dist_matrix, presuming there is more than one point on the front.
             if var_dist_matrix.size != 0:

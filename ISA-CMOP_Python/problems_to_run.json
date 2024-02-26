@@ -4,7 +4,6 @@
     "MW14_d30": "true"
     },
   "eval": {
-    "MW12_d30": "true",
     "CTP1_d5": "false",
     "CTP2_d5": "false",
     "CTP3_d5": "false",
@@ -134,7 +133,7 @@
     "ICAS2024Test_d20": "false",
     "CTP1_d30": "true",
     "CTP2_d30": "true",
-    "CTP3_d30": "false",
+    "CTP3_d30": "true",
     "CTP4_d30": "true",
     "CTP5_d30": "true",
     "CTP6_d30": "true",

@@ -875,18 +875,18 @@ class ProblemEvaluator:
 
         self.send_initialisation_email(f"STARTED RUN OF {self.instance_name}.")
 
-        # # RW Analysis.
-        # print(
-        #     " \n ~~~~~~~~~~~~ RW Analysis for "
-        #     + self.instance_name
-        #     + " ~~~~~~~~~~~~ \n"
-        # )
+        # RW Analysis.
+        print(
+            " \n ~~~~~~~~~~~~ RW Analysis for "
+            + self.instance_name
+            + " ~~~~~~~~~~~~ \n"
+        )
 
-        # rw_features = self.do_random_walk_analysis(
-        #     self.instance,
-        #     pre_sampler,
-        # )
-        # rw_features.export_unaggregated_features(self.instance_name, "rw", save_arrays)
+        rw_features = self.do_random_walk_analysis(
+            self.instance,
+            pre_sampler,
+        )
+        rw_features.export_unaggregated_features(self.instance_name, "rw", save_arrays)
 
         # Global Analysis.
         print(
