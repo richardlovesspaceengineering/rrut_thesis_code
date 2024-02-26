@@ -152,13 +152,13 @@ class ProblemEvaluator:
             self.num_processes_rw_dict = {
                 "15d": 10,
                 "20d": 10,
-                "30d": 6,
+                "30d": 30,
             }
 
             self.num_processes_glob_dict = {
                 "15d": 30,
                 "20d": 15,
-                "30d": 15,
+                "30d": 30,
             }
 
         # Now we will allocate num_cores_global. This value will need to be smaller to deal with memory issues related to large matrices.
