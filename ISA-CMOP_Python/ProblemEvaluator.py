@@ -164,7 +164,7 @@ class ProblemEvaluator:
             self.num_processes_global_norm_dict = {
                 "15d": 30,
                 "20d": 30,
-                "30d": 15,
+                "30d": 30,
             }
 
             self.num_processes_global_eval_dict = {
