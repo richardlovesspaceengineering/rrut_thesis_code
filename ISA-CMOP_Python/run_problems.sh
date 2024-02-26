@@ -128,15 +128,14 @@ if [ "$regenerate_samples" = true ]; then
   done
 fi
 
-# Depending on the mode, use the appropriate JSON file for problem definitions
-if [ "$mode" = "eval" ]; then
-    config_file="problems_to_run_eval.json"
-else
-    config_file="problems_to_run_debug.json"
-fi
+# Define the JSON file path
+config_file="problems_to_run.json"
 
-# Read and execute based on the JSON file
-jq -r 'to_entries|map("\(.key) \(.value)")|.[]' $config_file | while read line; do
+# Depending on the mode, extract the appropriate section from the JSON file for problem definitions
+jq_filter=".$mode | to_entries|map(\"\(.key) \(.value)\")|.[]"
+
+# Read and execute based on the selected section of the JSON file
+jq -r "$jq_filter" $config_file | while read line; do
     problem_dim=$(echo $line | cut -d ' ' -f 1)
     should_run=$(echo $line | cut -d ' ' -f 2)
     
@@ -155,16 +154,13 @@ jq -r 'to_entries|map("\(.key) \(.value)")|.[]' $config_file | while read line; 
         rm -rf "${temp_pops_dir:?}"/*  # Ensure safety with :?
         echo "temp_pops directory cleaned." | tee -a "$log_file"
         
-        # Update the JSON to mark this problem-dimension as false, indicating it's been run, only if mode is "eval"
-        if [[ "$mode" == "eval" ]]; then
-            jq ".[\"$problem_dim\"] = \"false\"" $config_file > temp.json && mv temp.json $config_file
-            echo "Updated $problem_dim in JSON file to false."
-        fi
+        # Specific handling for mode "eval" here if needed
 
     else
         echo "Skipping problem: $problem, dimension: $dim as per config."
     fi
 done
+
 
 
 
