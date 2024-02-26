@@ -349,6 +349,7 @@ class ProblemEvaluator:
         min_values_array = max_values_array
 
         pop_global = self.get_global_pop(pre_sampler, problem, i + 1)
+        pf = pop_global.extract_pf()
 
         # Loop over each variable.
         for which_variable in variables:
@@ -357,7 +358,7 @@ class ProblemEvaluator:
             )
 
             fmin, fmax = self.compute_maxmin_for_sample(
-                combined_array, pop_global.extract_pf(), which_variable
+                combined_array, pf, which_variable
             )
 
             # Append min and max values for this variable
@@ -851,11 +852,11 @@ class ProblemEvaluator:
             + " ~~~~~~~~~~~~ \n"
         )
 
-        # rw_features = self.do_random_walk_analysis(
-        #     self.instance,
-        #     pre_sampler,
-        # )
-        # rw_features.export_unaggregated_features(self.instance_name, "rw", save_arrays)
+        rw_features = self.do_random_walk_analysis(
+            self.instance,
+            pre_sampler,
+        )
+        rw_features.export_unaggregated_features(self.instance_name, "rw", save_arrays)
 
         # Global Analysis.
         print(
