@@ -761,7 +761,7 @@ class ProblemEvaluator:
 
         elif self.mode == "debug":
             # Runs quickly
-            neighbourhood_size = 2 * n_var + 1
+            neighbourhood_size = n_var
             max_steps = 10
             step_size = 0.01  # 1% of the range of the instance domain
 
