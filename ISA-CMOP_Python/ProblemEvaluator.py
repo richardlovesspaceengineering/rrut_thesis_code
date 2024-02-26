@@ -150,14 +150,14 @@ class ProblemEvaluator:
         else:
             # Megatrons. Assumed available RAM of 128 GB.
             self.num_processes_rw_dict = {
-                "15d": 10,
-                "20d": 10,
+                "15d": 30,
+                "20d": 30,
                 "30d": 30,
             }
 
             self.num_processes_glob_dict = {
                 "15d": 30,
-                "20d": 15,
+                "20d": 30,
                 "30d": 30,
             }
 
@@ -851,11 +851,11 @@ class ProblemEvaluator:
             + " ~~~~~~~~~~~~ \n"
         )
 
-        rw_features = self.do_random_walk_analysis(
-            self.instance,
-            pre_sampler,
-        )
-        rw_features.export_unaggregated_features(self.instance_name, "rw", save_arrays)
+        # rw_features = self.do_random_walk_analysis(
+        #     self.instance,
+        #     pre_sampler,
+        # )
+        # rw_features.export_unaggregated_features(self.instance_name, "rw", save_arrays)
 
         # Global Analysis.
         print(
