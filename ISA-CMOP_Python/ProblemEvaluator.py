@@ -176,6 +176,7 @@ class ProblemEvaluator:
             }
 
         # Now we will allocate num_cores_global. This value will need to be smaller to deal with memory issues related to large matrices.
+        print(self.instance)
         dim_key = f"{self.instance.n_var}d"  # Assuming self.dim is an integer or string that matches the keys in the dictionary
 
         # Check if the current dimension has a specified number of processes. Just check one dictionary since they all have the same keys.

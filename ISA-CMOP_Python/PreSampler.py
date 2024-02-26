@@ -33,7 +33,7 @@ class PreSampler:
                 self.num_points_glob = int(1e4 / 40 * self.dim + 0.75e4)
             self.iterations_glob = self.num_points_glob  # not relevant for lhs scipy.
         elif self.mode == "debug":
-            self.neighbourhood_size_rw = self.dim
+            self.neighbourhood_size_rw = 5
             self.num_steps_rw = 5
             self.step_size_rw = 0.1  # 10% of the range of the instance domain
 
