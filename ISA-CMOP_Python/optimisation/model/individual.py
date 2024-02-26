@@ -80,7 +80,12 @@ class Individual(object):
     ### EVALUATION FUNCTIONS
     def eval_obj_cons(self):
         # Returns a tuple (obj, cons)
-        return self.problem.evaluate(self.var)
+
+        if "pymoo" in getattr(self.problem, "__module__"):
+            return self.problem.evaluate(self.var)
+        else:
+            # Aerofoils called with call method.
+            return self.problem(self.var)
 
     def eval_cv(self, use_norm=True):
         # Find the constraint violation.

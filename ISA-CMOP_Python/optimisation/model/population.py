@@ -205,7 +205,14 @@ class Population(np.ndarray):
                 self[i].rank_uncons = k + 1  # lowest rank is 1
 
     ### EVALUATE AT A GIVEN SET OF POINTS.
-    def evaluate(self, var_array, eval_fronts, parallel=True):
+    def evaluate(self, var_array, eval_fronts):
+
+        if "pymoo" in getattr(self[0].problem, "__module__"):
+            parallel = True
+        else:
+            # Aerofoils evaluated serially.
+            parallel = False
+
         if parallel:
             # Evaluate vectorized.
             obj, cons = self[0].problem.evaluate(var_array)

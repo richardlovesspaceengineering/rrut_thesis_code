@@ -18,7 +18,7 @@ problemsICAS=("ICAS2024Test")
 # dimensions=(5 10)
 
 # Number of samples to run.
-num_samples=30
+num_samples=1
 
 # Modes are debug or eval.
 mode="eval"

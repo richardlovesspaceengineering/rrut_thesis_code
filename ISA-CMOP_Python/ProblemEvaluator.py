@@ -206,9 +206,16 @@ class ProblemEvaluator:
         pop = Population(problem, n_individuals=1)
 
     def get_bounds(self, problem):
+
+        if "pymoo" in getattr(problem, "__module__"):
+            x_lower = problem.xl
+            x_upper = problem.xu
+        else:
+            # Aerofoils
+            x_lower = problem.lb
+            x_upper = problem.ub
         # Bounds of the decision variables.
-        x_lower = problem.xl
-        x_upper = problem.xu
+
         return x_lower, x_upper
 
     def rescale_pregen_sample(self, x, problem):
