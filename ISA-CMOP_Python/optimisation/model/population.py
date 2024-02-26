@@ -107,7 +107,7 @@ class Population(np.ndarray):
         return self.extract_attribute("crowding_distance")
 
     def extract_pf(self):
-        return self[0].pareto_front
+        return self[0].problem._calc_pareto_front()
 
     def extract_bounds(self):
         return self[0].bounds

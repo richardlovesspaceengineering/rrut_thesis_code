@@ -33,10 +33,6 @@ class Individual(object):
         self.cons = np.zeros((1, self.n_cons))
         self.cv = np.zeros((1, 1))
 
-        # Exact/approximated pareto front
-        # TODO: figure out how this will work with aerofoil problems.
-        self.pareto_front = problem._calc_pareto_front()
-
         # Rank, crowding distance & hypervolume
         self.rank = np.nan
         self.crowding_distance = 0.0
