@@ -1,5 +1,6 @@
 {
   "debug": {
+    "ICAS2024Test_d10": "true",
     "MW14_d30": "true"
     },
   "eval": {
