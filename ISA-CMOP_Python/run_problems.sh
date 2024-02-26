@@ -128,7 +128,12 @@ if [ "$regenerate_samples" = true ]; then
   done
 fi
 
-config_file="problems_to_run.json"
+# Depending on the mode, use the appropriate JSON file for problem definitions
+if [ "$mode" = "eval" ]; then
+    config_file="problems_to_run_eval.json"
+else
+    config_file="problems_to_run_debug.json"
+fi
 
 # Read and execute based on the JSON file
 jq -r 'to_entries|map("\(.key) \(.value)")|.[]' $config_file | while read line; do
