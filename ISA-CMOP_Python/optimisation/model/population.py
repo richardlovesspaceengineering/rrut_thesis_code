@@ -231,6 +231,9 @@ class Population(np.ndarray):
                 # Run evaluation of objectives, constraints and CV.
                 self[i].eval_instance()
 
+        # Clear all unnecessary variables from memory.
+        del var_array, obj, cons
+
         if eval_fronts:
             self.evaluate_fronts()
 
