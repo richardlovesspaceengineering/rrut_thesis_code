@@ -25,49 +25,73 @@ def get_df_from_filepath(filepath, give_sd):
 
 
 class FeaturesDashboard:
-    def __init__(self, features_path, algo_perf_path):
+    def __init__(self, features_path_list, new_save_path):
         """
         Initialize the FeaturesDashboard with paths to the directories containing features.csv and algo_performance.csv.
-        :param features_path: Path to the folder containing the features.csv file.
-        :param algo_perf_path: Path to the folder containing the algo_performance.csv file.
+        :param features_path_list: List of paths to the folder containing the features.csv file. Assuming these are stored in instance_results.
         """
-        self.features_path = features_path
-        self.algo_perf_path = algo_perf_path
-        self.overall_df = self.get_overall_df()
+        self.features_path_list = features_path_list
+        self.new_save_path = new_save_path
+        self.features_df = self.get_landscape_features_df(give_sd=True)
 
-    def get_landscape_features_df(self, give_sd=True):
-        features_filepath = os.path.join(self.features_path, "features.csv")
-        return get_df_from_filepath(features_filepath, give_sd=give_sd)
-
-    def get_algo_performance_df(self, give_sd=True):
-        algo_perf_file_path = os.path.join(self.algo_perf_path, "algo_performance.csv")
-        return get_df_from_filepath(algo_perf_file_path, give_sd=give_sd)
-
-    def get_overall_df(self, give_sd=True):
+    def get_landscape_features_df(self, give_sd):
         """
-        Reads the features.csv and algo_performance.csv files from their respective directories
-        and joins them into a single DataFrame, resolving any 'D' column duplication.
-        :return: A pandas DataFrame containing the joined data with a single 'D' column.
+        Collates features.csv files from each directory in features_path_list, adding an additional column to indicate the source directory.
         """
+        # Initialize an empty list to store dataframes
+        df_list = []
 
-        # Read the CSV files into DataFrames
-        features_df = self.get_landscape_features_df(give_sd=give_sd)
-        algo_perf_df = self.get_algo_performance_df(give_sd=give_sd)
+        # Loop through each path in the features path list
+        for folder_path in self.features_path_list:
+            # Construct the filepath to the features.csv file
+            features_filepath = os.path.join(
+                "instance_results", folder_path, "features.csv"
+            )
 
-        # Join the DataFrames, specifying suffixes for overlapping column names other than the join key
-        overall_df = pd.merge(
-            features_df, algo_perf_df, on="Name", how="inner", suffixes=("", "_drop")
-        )
+            temp_df = get_df_from_filepath(features_filepath, give_sd)
 
-        # Drop the redundant 'D' column from the right DataFrame (algo_performance.csv)
-        # and any other unwanted duplicate columns that were suffixed with '_drop'
-        overall_df.drop(
-            [col for col in overall_df.columns if "drop" in col], axis=1, inplace=True
-        )
+            # Extract the folder name from the folder path to use as the Date identifier
+            folder_name = os.path.basename(folder_path)
+
+            # Add the folder name as a new column in the dataframe
+            temp_df["Date"] = folder_name
+
+            # Ensure 'Date' column is the second column
+            cols = temp_df.columns.tolist()
+            # Then, move 'Date' to the second position (index 1) assuming the first column is something you want to keep at the start
+            cols.insert(1, cols.pop(cols.index("Date")))
+            # Reindex the dataframe with the new column order
+            temp_df = temp_df[cols]
+
+            # Append the dataframe to the list
+            df_list.append(temp_df)
+
+        # Concatenate all dataframes in the list
+        if df_list:
+            overall_df = pd.concat(df_list, ignore_index=True)
+        else:
+            raise FileNotFoundError(
+                "No features.csv files found in the provided directories."
+            )
 
         return overall_df
 
-    def get_problem_features_df(self, problem_name, dim, analysis_type):
+    def save_features_collated_csv(self):
+        """
+        Saves the collated features dataframe as features_collated.csv in the specified new_save_path.
+        """
+        # Ensure the save path directory exists
+        os.makedirs(self.new_save_path, exist_ok=True)
+
+        # Construct the full path to the output csv file
+        output_filepath = os.path.join(self.new_save_path, "features_collated.csv")
+
+        # Save the dataframe to csv
+        self.features_df.to_csv(output_filepath, index=False)
+
+        print(f"Features collated csv saved to {output_filepath}")
+
+    def get_problem_features_df(self, problem_name, dim, analysis_type, path):
         """
         Reads a specific features.csv file based on the problem name, dimension, and analysis type.
         :param problem_name: The name of the problem.
@@ -89,22 +113,6 @@ class FeaturesDashboard:
         df = pd.read_csv(file_path)
 
         return df
-
-    def get_problem_algo_df(self, problem_name, dim):
-        algo_perf_file_name = f"{problem_name}_d{dim}_algo.csv"
-        algo_perf_file_path = os.path.join(
-            self.algo_perf_path, f"{problem_name}_d{dim}", algo_perf_file_name
-        )
-
-        # Check if the files exist
-        if not os.path.exists(algo_perf_file_path):
-            raise FileNotFoundError(
-                f"The algorithm performance file {algo_perf_file_path} does not exist."
-            )
-        # Read the CSV files into DataFrames
-        algo_perf_df = pd.read_csv(algo_perf_file_path)
-
-        return algo_perf_df
 
     @staticmethod
     def get_features_for_analysis_type(df, analysis_type):
@@ -211,43 +219,6 @@ class FeaturesDashboard:
             else:
                 # Hide unused subplots
                 axes[i].axis("off")
-
-        plt.tight_layout(
-            rect=[0, 0.03, 1, 0.95]
-        )  # Adjust layout to make room for the main title
-        plt.show()
-
-    def plot_problem_algo_performance(self, problem_name, dim, algorithms=None):
-        """
-        Creates a row of violin plots for algorithm performance metrics for a specific problem instance.
-        :param problem_name: Name of the problem.
-        :param dim: Dimension of the problem.
-        :param algorithms: Optional list of algorithms to plot. If None, plots all algorithms.
-        """
-        df = self.get_problem_algo_df(problem_name, dim)
-
-        # If no specific algorithms are provided, plot for all available in the DataFrame
-        if algorithms is None:
-            algorithms = df.columns.tolist()
-        else:
-            # Filter only the columns that match the specified algorithms
-            df = df[algorithms]
-
-        n_algorithms = len(algorithms)
-
-        # Create a 1xn grid of plots
-        fig, axes = plt.subplots(1, n_algorithms, figsize=(5 * n_algorithms, 5))
-        fig.suptitle(
-            f"Algorithm Performance for {problem_name} (Dimension: {dim})", fontsize=16
-        )
-
-        # In case there's only one algorithm, ensure axes is iterable
-        if n_algorithms == 1:
-            axes = [axes]
-
-        for i, algorithm in enumerate(algorithms):
-            sns.violinplot(y=df[algorithm], ax=axes[i])
-            axes[i].set_title(algorithm)
 
         plt.tight_layout(
             rect=[0, 0.03, 1, 0.95]
