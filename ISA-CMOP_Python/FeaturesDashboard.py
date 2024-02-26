@@ -3,6 +3,7 @@ import os
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
+import shutil
 
 
 def remove_sd_cols(df, suffix="_std"):
@@ -30,48 +31,59 @@ class FeaturesDashboard:
         Initialize the FeaturesDashboard with paths to the directories containing features.csv and algo_performance.csv.
         :param features_path_list: List of paths to the folder containing the features.csv file. Assuming these are stored in instance_results.
         """
-        self.features_path_list = features_path_list
+        self.features_path_list = [
+            os.path.join("instance_results", path) for path in features_path_list
+        ]
         self.new_save_path = new_save_path
+        self.copy_directory_contents()
         self.features_df = self.get_landscape_features_df(give_sd=True)
 
     def get_landscape_features_df(self, give_sd):
         """
-        Collates features.csv files from each directory in features_path_list, adding an additional column to indicate the source directory.
+        Collates features_{timestamp}.csv files that have been copied to self.new_save_path,
+        adding an additional column to indicate the source timestamp.
         """
         # Initialize an empty list to store dataframes
         df_list = []
 
-        # Loop through each path in the features path list
-        for folder_path in self.features_path_list:
-            # Construct the filepath to the features.csv file
-            features_filepath = os.path.join(
-                "instance_results", folder_path, "features.csv"
-            )
+        # Iterate over all files in the new_save_path
+        for filename in os.listdir(self.new_save_path):
+            # Check if the file matches the pattern of features_{timestamp}.csv
+            if (
+                filename.startswith("features_")
+                and filename.endswith(".csv")
+                and "collated" not in filename  # avoid circular import
+            ):
+                # Construct the full path to the file
+                file_path = os.path.join(self.new_save_path, filename)
 
-            temp_df = get_df_from_filepath(features_filepath, give_sd)
+                # Apply any specific processing function if required
+                # For example, you mentioned `get_df_from_filepath` which is not defined here.
+                # Assuming it's a function that processes the DataFrame.
+                temp_df = get_df_from_filepath(file_path, give_sd)
 
-            # Extract the folder name from the folder path to use as the Date identifier
-            folder_name = os.path.basename(folder_path)
+                # Extract the timestamp from the filename
+                timestamp = filename.replace("features_", "").replace(".csv", "")
 
-            # Add the folder name as a new column in the dataframe
-            temp_df["Date"] = folder_name
+                # Add the timestamp as a new column in the dataframe
+                temp_df["Date"] = timestamp
 
-            # Ensure 'Date' column is the second column
-            cols = temp_df.columns.tolist()
-            # Then, move 'Date' to the second position (index 1) assuming the first column is something you want to keep at the start
-            cols.insert(1, cols.pop(cols.index("Date")))
-            # Reindex the dataframe with the new column order
-            temp_df = temp_df[cols]
+                # Ensure 'Date' column is the second column
+                cols = temp_df.columns.tolist()
+                # Move 'Date' to the second position (index 1) assuming the first column is something you want to keep at the start
+                cols.insert(1, cols.pop(cols.index("Date")))
+                # Reindex the dataframe with the new column order
+                temp_df = temp_df[cols]
 
-            # Append the dataframe to the list
-            df_list.append(temp_df)
+                # Append the dataframe to the list
+                df_list.append(temp_df)
 
         # Concatenate all dataframes in the list
         if df_list:
             overall_df = pd.concat(df_list, ignore_index=True)
         else:
             raise FileNotFoundError(
-                "No features.csv files found in the provided directories."
+                "No features_{timestamp}.csv files found in the new save path."
             )
 
         return overall_df
@@ -90,6 +102,69 @@ class FeaturesDashboard:
         self.features_df.to_csv(output_filepath, index=False)
 
         print(f"Features collated csv saved to {output_filepath}")
+
+    def copy_directory_contents(self):
+        """
+        Copies the contents of directories from self.features_path_list into self.new_save_path.
+        Each item (file or directory) will have a timestamp derived from its source directory appended to its name to ensure uniqueness.
+        """
+        # Ensure the new_save_path exists
+        os.makedirs(self.new_save_path, exist_ok=True)
+
+        for src_dir in self.features_path_list:
+            if os.path.isdir(src_dir):
+                unique_identifier = os.path.basename(
+                    src_dir
+                )  # Extract a unique identifier from the directory name
+
+                self._copy_items(src_dir, self.new_save_path, unique_identifier)
+
+            else:
+                print(f"Warning: {src_dir} is not a directory or does not exist.")
+
+    def _copy_items(self, src, dst, unique_identifier):
+        """
+        Recursively copies items from src to dst, appending unique_identifier to each name.
+        """
+        for item in os.listdir(src):
+            src_item = os.path.join(src, item)
+            if os.path.isdir(src_item):
+                # For directories, append the unique identifier to the directory name and create it in the destination
+                new_dir_name = f"{item}_{unique_identifier}"
+                new_dir_path = os.path.join(dst, new_dir_name)
+                os.makedirs(new_dir_path, exist_ok=True)
+                # Recursively copy the directory contents
+                self._copy_items(src_item, new_dir_path, unique_identifier)
+            else:
+                # For files, append the unique identifier to the file name before copying
+                file_base, file_extension = os.path.splitext(item)
+                new_filename = f"{file_base}_{unique_identifier}{file_extension}"
+                dst_item = os.path.join(dst, new_filename)
+                shutil.copy2(src_item, dst_item)
+                print(f"Copied {src_item} to {dst_item}")
+
+    def wipe_features_directory(self):
+        """
+        Wipes the self.new_save_path directory clean by removing all its contents.
+        """
+        # Check if the directory exists
+        if os.path.exists(self.new_save_path) and os.path.isdir(self.new_save_path):
+            # Iterate over all the files and directories within self.new_save_path
+            for filename in os.listdir(self.new_save_path):
+                file_path = os.path.join(self.new_save_path, filename)
+                try:
+                    # If it's a file, remove it directly
+                    if os.path.isfile(file_path) or os.path.islink(file_path):
+                        os.unlink(file_path)
+                    # If it's a directory, remove the entire directory tree
+                    elif os.path.isdir(file_path):
+                        shutil.rmtree(file_path)
+                except Exception as e:
+                    print(f"Failed to delete {file_path}. Reason: {e}")
+        else:
+            print(
+                f"The directory {self.new_save_path} does not exist or is not a directory."
+            )
 
     def get_problem_features_df(self, problem_name, dim, analysis_type, path):
         """
