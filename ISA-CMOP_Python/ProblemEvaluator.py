@@ -471,13 +471,15 @@ class ProblemEvaluator:
             pop_walk, pop_neighbours_list = self.get_rw_pop(
                 pre_sampler, problem, i + 1, j + 1
             )
+            
+            pf = pop_walk.extract_pf()
 
             for which_variable in variables:
                 combined_array = Analysis.combine_arrays_for_pops(
                     [pop_walk] + pop_neighbours_list, which_variable
                 )
                 fmin, fmax = self.compute_maxmin_for_sample(
-                    combined_array, pop_walk.extract_pf(), which_variable
+                    combined_array, pf, which_variable
                 )
 
                 min_values_array[which_variable] = np.vstack(
