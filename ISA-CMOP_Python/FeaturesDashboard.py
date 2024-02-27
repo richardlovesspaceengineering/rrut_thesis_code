@@ -26,15 +26,36 @@ def get_df_from_filepath(filepath, give_sd):
 
 
 class FeaturesDashboard:
-    def __init__(self, features_path_list, new_save_path):
+    def __init__(self, results_dict, new_save_path):
         """
-        Initialize the FeaturesDashboard with paths to the directories containing features.csv and algo_performance.csv.
-        :param features_path_list: List of paths to the folder containing the features.csv file. Assuming these are stored in instance_results.
+        Initialize the FeaturesDashboard with a dictionary mapping problem names to lists of result storage folders.
+        :param results_dict: Dictionary where keys are problem names and values are lists of storage folder names.
+        :param new_save_path: Path to the directory where new files will be saved.
         """
-        self.features_path_list = [
-            os.path.join("instance_results", path) for path in features_path_list
-        ]
+        self.results_dict = results_dict
         self.new_save_path = new_save_path
+        # Initialize features_path_list as an empty list
+        self.features_path_list = []
+        # Base directory where instance results are stored
+        self.base_results_dir = "instance_results"
+
+        # Process the results_dict to populate features_path_list
+        missing_folders = []
+        for folders in results_dict.values():
+            if folders is not None:
+                for folder in folders:
+                    full_path = os.path.join(self.base_results_dir, folder)
+                    # Check if the directory exists before appending
+                    if os.path.isdir(full_path):
+                        self.features_path_list.append(full_path)
+                    else:
+
+                        # Ensures warning only gets printed once.
+                        if folder not in missing_folders:
+                            missing_folders.append(folder)
+                            print(f"Warning: The directory {full_path} does not exist.")
+
+        # Collate all results into one folder.
         self.copy_directory_contents()
         self.features_df = self.get_landscape_features_df(give_sd=True)
 
@@ -138,7 +159,7 @@ class FeaturesDashboard:
             else:
                 # For files, append the unique identifier to the file name before copying
                 file_base, file_extension = os.path.splitext(item)
-                new_filename = f"{file_base}_{unique_identifier}{file_extension}"
+                new_filename = f"{file_base}{file_extension}"
                 dst_item = os.path.join(dst, new_filename)
                 shutil.copy2(src_item, dst_item)
                 print(f"Copied {src_item} to {dst_item}")
@@ -166,19 +187,46 @@ class FeaturesDashboard:
                 f"The directory {self.new_save_path} does not exist or is not a directory."
             )
 
-    def get_problem_features_df(self, problem_name, dim, analysis_type, path):
+    def get_problem_features_samples_df(
+        self, problem_name, dim, analysis_type, timestamp=None
+    ):
         """
-        Reads a specific features.csv file based on the problem name, dimension, and analysis type.
+        Reads a specific features.csv file based on the problem name, dimension, analysis type, and an optional timestamp.
         :param problem_name: The name of the problem.
         :param dim: The dimension of the problem.
         :param analysis_type: The type of analysis (e.g., "summary", "detailed").
+        :param timestamp: Optional. Specifies the exact result folder if there are multiple possibilities and a timestamp is required.
         :return: A pandas DataFrame containing the data from the specific features.csv file.
         """
-        # Constructing the file path based on problem name, dimension, and analysis type
+        problem_key = f"{problem_name}_d{dim}"
+        folders = self.results_dict.get(problem_key)
+
+        # Check for multiple folders and no timestamp specified
+        if folders and len(folders) > 1 and timestamp is None:
+            raise ValueError(
+                f"Multiple result directories exist for {problem_key}. Please specify the result directory using a timestamp from: {folders}."
+            )
+
+        if timestamp:
+            # Use the specified timestamp to find the folder
+            folder_name = f"{problem_name}_d{dim}_{timestamp}"
+        else:
+            # Use the first (or only) folder path available, if only one exists
+            folder_name = f"{problem_name}_d{dim}_{folders[0]}" if folders else None
+
+        if not folder_name:
+            raise ValueError(
+                f"No results directory specified or found for {problem_key}."
+            )
+
+        folder_path = os.path.join(self.new_save_path, folder_name)
+
+        if not os.path.isdir(folder_path):
+            raise FileNotFoundError(f"The directory {folder_path} does not exist.")
+
+        # Constructing the file path
         file_name = f"{problem_name}_d{dim}_{analysis_type}_features.csv"
-        file_path = os.path.join(
-            self.features_path, f"{problem_name}_d{dim}", file_name
-        )
+        file_path = os.path.join(folder_path, file_name)
 
         # Check if the file exists
         if not os.path.exists(file_path):
@@ -245,7 +293,7 @@ class FeaturesDashboard:
         feature_name = feature_name + "_mean"
 
         for i, suite_name in enumerate(suite_names, start=1):
-            df_filtered = self.get_features_for_suite(self.overall_df, suite_name)
+            df_filtered = self.get_features_for_suite(self.features_df, suite_name)
             if feature_name in df_filtered.columns:
                 plt.subplot(1, len(suite_names), i)
                 sns.violinplot(y=df_filtered[feature_name])
@@ -258,7 +306,9 @@ class FeaturesDashboard:
         plt.tight_layout()
         plt.show()
 
-    def plot_problem_features(self, problem_name, dim, analysis_type, features=None):
+    def plot_problem_features(
+        self, problem_name, dim, analysis_type, features=None, path=None
+    ):
         """
         Creates a grid of violin plots for specified features for a specific problem instance.
         :param problem_name: Name of the problem.
@@ -267,7 +317,9 @@ class FeaturesDashboard:
         :param features: Optional list of features to plot. If None, plots all columns.
         """
 
-        df = self.get_problem_features_df(problem_name, dim, analysis_type)
+        df = self.get_problem_features_samples_df(
+            problem_name, dim, analysis_type, path
+        )
 
         # If no specific features are provided, use all numeric columns
         if features is None:
