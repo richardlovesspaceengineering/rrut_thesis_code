@@ -39,6 +39,28 @@ class FeaturesDashboard:
         # Base directory where instance results are stored
         self.base_results_dir = "instance_results"
 
+        self.suites_problems_dict = {
+            "MW": [f"MW{x}" for x in range(1, 15, 1)],
+            "CTP": [f"CTP{x}" for x in range(1, 9, 1)],
+            "DASCMOP": [f"CTP{x}" for x in range(1, 10, 1)],
+            "DCDTLZ": [
+                "DC1DTLZ1",
+                "DC1DTLZ3",
+                "DC2DTLZ1",
+                "DC2DTLZ3",
+                "DC3DTLZ1",
+                "DC3DTLZ3",
+            ],
+            "CDTLZ": [
+                "C1DTLZ1",
+                "C1DTLZ3",
+                "C2DTLZ2",
+                "DC2DTLZ3",
+                "C3DTLZ1",
+                "C3DTLZ4",
+            ],
+        }
+
         # Process the results_dict to populate features_path_list
         missing_folders = []
         for folders in results_dict.values():
@@ -269,39 +291,256 @@ class FeaturesDashboard:
 
         return df_filtered
 
-    @staticmethod
-    def get_features_for_suite(df, suite_name):
-        # Filter rows based on the suite_name in the 'Name' column
-
-        valid_suites = ["MW", "CTP", "DASCMOP", "DCDTLZ", "CDTLZ"]
-        if suite_name not in valid_suites:
+    def get_features_for_suite(self, df, suite_name, dim=None):
+        # Ensure suite_name is valid and in the suites_problems_dict
+        if suite_name not in self.suites_problems_dict:
             raise ValueError(
-                f"Invalid suite '{suite_name}'. Valid types are: {', '.join(valid_suites)}"
+                f"Invalid suite '{suite_name}'. Please check the suite name and try again."
             )
 
-        df_filtered = df[df["Name"].str.contains(suite_name, na=False)]
+        # Retrieve the list of problems for the suite
+        problems_list = self.suites_problems_dict[suite_name]
+
+        # If dimension is specified, refine the problems list to include only those with the specified dimension
+        if dim:
+            problems_list = [f"{problem}_d{dim}" for problem in problems_list]
+
+        # Use the refined problems_list to filter rows in the dataframe
+        pattern = "|".join(
+            problems_list
+        )  # Creates a regex pattern that matches any of the problem names
+        df_filtered = df[df["Name"].str.contains(pattern, na=False, regex=True)]
+
         return df_filtered
 
-    def plot_feature_across_suites(self, feature_name, suite_names):
+    def compute_global_maxmin(self, feature_name_with_mean, suite_names, dims):
+
+        # Determine the global y-axis limits across all suites and dimensions
+        global_min, global_max = float("inf"), -float("inf")
+        for suite_name in suite_names:
+            for dim in dims if dims else [None]:
+                df_filtered = self.get_features_for_suite(
+                    self.features_df, suite_name, dim
+                )
+                if feature_name_with_mean in df_filtered.columns:
+                    current_min = df_filtered[feature_name_with_mean].min()
+                    current_max = df_filtered[feature_name_with_mean].max()
+                    global_min = min(global_min, current_min)
+                    global_max = max(global_max, current_max)
+
+        # Add a buffer to the global y-axis limits
+        buffer_percent = 0.05  # For example, 5% buffer
+        buffer = (global_max - global_min) * buffer_percent
+        global_min -= buffer
+        global_max += buffer
+
+        return global_min, global_max
+
+    def plot_feature_across_suites(self, feature_name, suite_names=None, dims=None):
         """
-        Generates a 1xN grid of violin plots for a specified feature across different benchmark suites.
+        Generates a 1xN grid of violin plots for a specified feature across different benchmark suites, with points overlaying the violin plots.
+        A single violin plot is shown for all dimensions, with different marker types used for each dimension, all in violet color. A legend is included.
         :param feature_name: The name of the feature to plot. Can be a landscape feature or algo performance.
         :param suite_names: A list of benchmark suite names.
+        :param dims: Optional. A list of dimensions to filter the features by and to differentiate in the plot with markers.
         """
-        plt.figure(figsize=(10, 6))
+        plt.figure(figsize=(15, 6))
+        feature_name_with_mean = feature_name + "_mean"
 
-        feature_name = feature_name + "_mean"
+        # Define marker types for different dimensions.
+        dim_colors = {
+            5: "#1f77b4",
+            10: "#ff7f0e",
+            20: "#2ca02c",
+            30: "#d62728",
+        }
+        marker_type = "o"  # Consistent color for all markers
+
+        if not suite_names:
+            suite_names = self.suites_problems_dict.keys()
+
+        if not dims:
+            dims = [5, 10, 20, 30]  # Default dimensions if none provided
+
+        global_min, global_max = self.compute_global_maxmin(
+            feature_name_with_mean, suite_names, dims
+        )
 
         for i, suite_name in enumerate(suite_names, start=1):
-            df_filtered = self.get_features_for_suite(self.features_df, suite_name)
-            if feature_name in df_filtered.columns:
-                plt.subplot(1, len(suite_names), i)
-                sns.violinplot(y=df_filtered[feature_name])
-                plt.title(suite_name)
-                plt.ylabel(
-                    feature_name if i == 1 else ""
-                )  # Only add y-label to the first plot
-                plt.xlabel("")
+            ax = plt.subplot(1, len(suite_names), i)
+            combined_df = pd.DataFrame()  # Initialize empty DataFrame for combined data
+
+            # Combine data across dimensions
+            for dim in dims:
+                df_filtered = self.get_features_for_suite(
+                    self.features_df, suite_name, dim
+                )
+                if feature_name_with_mean in df_filtered.columns:
+                    combined_df = pd.concat(
+                        [combined_df, df_filtered], ignore_index=True
+                    )
+
+            # Plot a single violin plot for the combined data
+            if not combined_df.empty:
+                sns.violinplot(y=combined_df[feature_name_with_mean], color="lightgrey")
+
+            # Overlay points for each dimension
+            for dim in dims:
+                df_filtered = self.get_features_for_suite(
+                    self.features_df, suite_name, dim
+                )
+                if feature_name_with_mean in df_filtered.columns:
+                    sns.stripplot(
+                        y=df_filtered[feature_name_with_mean],
+                        marker=marker_type,
+                        color=dim_colors[dim],
+                        label=f"{dim}D",
+                        size=5,
+                        alpha=0.5,
+                    )
+
+            plt.title(suite_name)
+            plt.ylabel(feature_name_with_mean if i == 1 else "")
+            plt.xlabel("")
+
+            # Only add legend to the first subplot
+            if i == 1:
+                plt.legend()
+
+            else:
+                ax.get_legend().remove()
+
+            # Set the y-axis limits with buffer for the subplot
+            ax.set_ylim(global_min, global_max)
+
+        plt.tight_layout()
+        plt.show()
+
+    def get_features_for_dim(self, df, dim, suite_name=None):
+        """
+        Filters the DataFrame for features related to a specified dimension. Optionally,
+        further refines the filtering to include only problems from a specified benchmark suite.
+        :param df: The DataFrame containing features data.
+        :param dim: The dimension to filter the features by.
+        :param suite_name: Optional. A specific benchmark suite name to further refine the filtering.
+        :return: A filtered DataFrame based on the specified dimension, and optionally, the suite name.
+        """
+        # Filter the DataFrame based on the specified dimension.
+        pattern_dim = f"_d{dim}"
+        df_filtered = df[df["Name"].str.contains(pattern_dim, na=False, regex=True)]
+
+        # If suite_name is specified, further refine the filtering.
+        if suite_name:
+            # Ensure suite_name is valid and in the suites_problems_dict
+            if suite_name not in self.suites_problems_dict:
+                raise ValueError(
+                    f"Invalid suite '{suite_name}'. Please check the suite name and try again."
+                )
+            # Retrieve the list of problems for the suite
+            problems_list = self.suites_problems_dict[suite_name]
+            # Use the problems list to filter rows in the dataframe
+            pattern_suite = "|".join(
+                problems_list
+            )  # Creates a regex pattern that matches any of the problem names
+            # Ensure only rows matching both the dimension and suite are included
+            df_filtered = df_filtered[
+                df_filtered["Name"].str.contains(pattern_suite, na=False, regex=True)
+            ]
+
+        return df_filtered
+
+    def plot_feature_across_dims(self, feature_name, dims=None, suite_names=None):
+        """
+        Generates a 1xN grid of violin plots for a specified feature across different dimensions, with points overlaying the violin plots.
+        Each violin plot represents a different dimension, with distinct colors used for each dimension.
+        :param feature_name: The name of the feature to plot. Can be a landscape feature or algo performance.
+        :param dims: A list of dimensions to plot.
+        :param suite_names: Optional. A list of benchmark suite names to filter the features by.
+        """
+        plt.figure(figsize=(15, 6))
+        feature_name_with_mean = feature_name + "_mean"
+
+        # Define colors for different dimensions.
+        suite_colors = {
+            "MW": "#1f77b4",
+            "CTP": "#ff7f0e",
+            "DASCMOP": "#2ca02c",
+            "DCDTLZ": "#d62728",
+            "CDTLZ": "#e62728",
+        }
+        marker_type = "o"
+
+        if not suite_names:
+            suite_names = self.suites_problems_dict.keys()
+
+        if not dims:
+            dims = [5, 10, 20, 30]  # Default dimensions if none provided
+
+        global_min, global_max = self.compute_global_maxmin(
+            feature_name_with_mean, suite_names, dims
+        )
+
+        for i, dim in enumerate(dims, start=1):
+            ax = plt.subplot(1, len(dims), i)
+            combined_df = pd.DataFrame()  # Initialize empty DataFrame for combined data
+
+            # Combine data across suites
+            for suite_name in suite_names:
+                df_filtered = self.get_features_for_dim(
+                    self.features_df, dim, suite_name
+                )
+                if feature_name_with_mean in df_filtered.columns:
+                    combined_df = pd.concat(
+                        [combined_df, df_filtered], ignore_index=True
+                    )
+
+            # Plot a single violin plot for the combined data
+            if not combined_df.empty:
+                sns.violinplot(
+                    y=combined_df[feature_name_with_mean],
+                    color="lightgrey",
+                )
+                # Annotate number of points
+                num_points = combined_df.shape[0]  # Calculate number of points
+                ax.text(
+                    0.95,
+                    0.95,
+                    f"n={num_points}",  # Position inside the subplot, top right corner
+                    verticalalignment="top",
+                    horizontalalignment="right",
+                    transform=ax.transAxes,  # Coordinate system relative to the axes
+                    color="black",
+                    fontsize=10,
+                )
+
+            # Overlay points for each suite.
+            for suite_name in suite_names:
+                df_filtered = self.get_features_for_dim(
+                    self.features_df, dim, suite_name
+                )
+                if feature_name_with_mean in df_filtered.columns:
+                    sns.stripplot(
+                        y=df_filtered[feature_name_with_mean],
+                        color=suite_colors[suite_name],
+                        marker=marker_type,
+                        label=suite_name,
+                        size=5,
+                        alpha=0.5,
+                        jitter=True,
+                    )
+
+            plt.title(f"{dim}D")
+            plt.ylabel(feature_name_with_mean if i == 1 else "")
+            plt.xlabel("")
+
+            # Only add legend to the first subplot
+            if i == 1:
+                plt.legend()
+            else:
+                ax.get_legend().remove()
+
+            # Set the y-axis limits with buffer for the subplot
+            ax.set_ylim(global_min, global_max)
 
         plt.tight_layout()
         plt.show()
