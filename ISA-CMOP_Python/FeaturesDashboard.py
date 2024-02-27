@@ -313,7 +313,7 @@ class FeaturesDashboard:
 
         return df_filtered
 
-    def compute_global_maxmin(self, feature_name_with_mean, suite_names, dims):
+    def compute_global_maxmin_for_plot(self, feature_name_with_mean, suite_names, dims):
 
         # Determine the global y-axis limits across all suites and dimensions
         global_min, global_max = float("inf"), -float("inf")
@@ -362,7 +362,7 @@ class FeaturesDashboard:
         if not dims:
             dims = [5, 10, 20, 30]  # Default dimensions if none provided
 
-        global_min, global_max = self.compute_global_maxmin(
+        global_min, global_max = self.compute_global_maxmin_for_plot(
             feature_name_with_mean, suite_names, dims
         )
 
@@ -383,6 +383,18 @@ class FeaturesDashboard:
             # Plot a single violin plot for the combined data
             if not combined_df.empty:
                 sns.violinplot(y=combined_df[feature_name_with_mean], color="lightgrey")
+                # Annotate number of points
+                num_points = combined_df.shape[0]  # Calculate number of points
+                ax.text(
+                    0.95,
+                    0.95,
+                    f"n={num_points}",  # Position inside the subplot, top right corner
+                    verticalalignment="top",
+                    horizontalalignment="right",
+                    transform=ax.transAxes,  # Coordinate system relative to the axes
+                    color="black",
+                    fontsize=10,
+                )
 
             # Overlay points for each dimension
             for dim in dims:
@@ -476,7 +488,7 @@ class FeaturesDashboard:
         if not dims:
             dims = [5, 10, 20, 30]  # Default dimensions if none provided
 
-        global_min, global_max = self.compute_global_maxmin(
+        global_min, global_max = self.compute_global_maxmin_for_plot(
             feature_name_with_mean, suite_names, dims
         )
 
@@ -535,9 +547,13 @@ class FeaturesDashboard:
 
             # Only add legend to the first subplot
             if i == 1:
+                # Always add legend to the first subplot
                 plt.legend()
             else:
-                ax.get_legend().remove()
+                # Check if legend exists before attempting to remove it
+                legend = ax.get_legend()
+                if legend is not None:
+                    legend.remove()
 
             # Set the y-axis limits with buffer for the subplot
             ax.set_ylim(global_min, global_max)
