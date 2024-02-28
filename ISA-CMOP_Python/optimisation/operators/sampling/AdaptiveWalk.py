@@ -42,7 +42,7 @@ class AdaptiveWalk(RandomWalk):
         # Start adaptive walk.
         walk[0, :] = starting_point
 
-        # Create single-step population.
+        # Create single-step population. Guaranteed that first step works.
         pop_walk = Population(self.problem_instance, n_individuals=1)
         pop_walk.evaluate(np.atleast_2d(walk[0, :]), eval_fronts=False, num_processes=1)
 
@@ -55,28 +55,29 @@ class AdaptiveWalk(RandomWalk):
                 walk[step_counter, :], self.neighbourhood_size
             )
 
-            # Put all together in one large matrix.
-            step_and_neighbours = np.vstack(
-                (walk[step_counter, :], potential_next_steps)
+            # Evaluate potential next steps.
+            pop_potential_next = Population(
+                self.problem_instance, n_individuals=potential_next_steps.shape[0]
+            )
+            pop_potential_next.evaluate(
+                potential_next_steps, eval_fronts=False, num_processes=num_processes
             )
 
-            # Evaluate the problem at this step.
-            pop_first_step = Population(
-                self.problem_instance, n_individuals=step_and_neighbours.shape[0]
-            )
-            pop_first_step.evaluate(
-                step_and_neighbours,
-                eval_fronts=True,
-                num_processes=num_processes,
-            )
-
-            # Remove NaNs before looking at next step.
-            pop_walk_new, _ = pop_first_step.remove_nan_inf_rows("walk")
+            # Remove any NaNs before moving on.
+            pop_potential_next_clean, _ = pop_potential_next.remove_nan_inf_rows("walk")
 
             # If there are only NaNs around
-            if len(pop_walk_new) == 0:
+            if len(pop_potential_next_clean) == 0:
+                print("All nearby solutions are NaN. AW has ended.")
                 improving_solutions_exist = False
                 break
+
+            # Concatenate populations and eval fronts.
+            pop_first_step = Population.merge(
+                pop_walk.get_single_pop(step_counter),
+                pop_potential_next_clean,
+            )
+            pop_first_step.eval_fronts(constrained=True)
 
             # The first solution which has a rank lower than the current solution (located at top of matrix) is the next step of our walk.
             if not constrained_ranks:
@@ -88,7 +89,7 @@ class AdaptiveWalk(RandomWalk):
             # Take first dominating solution.
             try:
                 mask = ranks < ranks[0]
-                next_step = step_and_neighbours[mask][0, :]
+                next_step = potential_next_steps[mask][0, :]
                 walk[step_counter + 1, :] = next_step
                 index_of_true = np.where(mask)[0][0]
                 pop_best = pop_first_step.get_single_pop(index_of_true)

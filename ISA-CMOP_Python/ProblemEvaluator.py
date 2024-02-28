@@ -929,7 +929,7 @@ class ProblemEvaluator:
 
         if not eval_pops_parallel:
 
-            print("Running in series.")
+            print("Running seeds in series.")
 
             with multiprocessing.Pool(
                 self.num_processes_aw, initializer=init_pool
@@ -959,7 +959,7 @@ class ProblemEvaluator:
                     )
                     aw_multiple_samples_analyses_list.append(aw_single_sample)
         else:
-            print("Running in parallel.")
+            print("Running seeds in parallel.")
             init_pool()
             for i in range(self.num_samples):
                 aw_single_sample_analyses_list = self.eval_single_sample_aw_features(
