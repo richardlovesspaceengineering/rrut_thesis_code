@@ -1,7 +1,7 @@
 {
   "debug": {
     "ICAS2024Test_d10": "true",
-    "MW14_d30": "true"
+    "MW14_d30": "false"
     },
   "eval": {
     "CTP1_d5": "false",
