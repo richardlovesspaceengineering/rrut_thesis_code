@@ -106,7 +106,7 @@ class PreSampler:
         step = math.ceil(num_patterns / self.dim)
 
         # for i in range(0, num_patterns, step):
-        binary_pattern = np.binary_repr(0, width=self.dim)
+        binary_pattern = np.binary_repr(1, width=self.dim)
         patterns.append([int(bit) for bit in binary_pattern])
         return patterns
 
