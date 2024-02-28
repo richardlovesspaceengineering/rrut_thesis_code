@@ -409,7 +409,7 @@ class MultipleAnalysis:
 
         self.normalisation_values = normalisation_values
         self.feature_arrays = {}
-        self.results_dir = single_sample_analyses[0].results_dir
+        self.results_dir = self.single_sample_analyses[0].results_dir
 
     def generate_array_for_feature(self, feature_name):
         feature_array = []
