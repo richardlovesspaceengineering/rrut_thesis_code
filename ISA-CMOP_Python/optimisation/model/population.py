@@ -276,6 +276,7 @@ class Population(np.ndarray):
         else:
             if num_processes > 1:
                 # Parallel evaluation
+                print(f"Evaluating in parallel with {num_processes} processes.")
                 with multiprocessing.Pool(
                     processes=num_processes, initializer=init_pool
                 ) as pool:

@@ -233,7 +233,6 @@ class ProblemEvaluator:
         combined_array = combined_array[~np.isnan(combined_array).any(axis=1)]
 
         # Check if combined_array is empty after removing NaNs.
-        print(combined_array)
         if combined_array.size == 0:
             # Return dummy min and max values if combined_array is empty.
             return np.zeros(combined_array.shape[1]), np.ones(combined_array.shape[1])
@@ -475,7 +474,7 @@ class ProblemEvaluator:
                         (max_values_array[var], max_values[var])
                     )
                 self.send_update_email(
-                    f"EVALUATED GLOBAL SEED {i+1}/{len(self)} FOR {self.instance_name}."
+                    f"EVALUATED GLOBAL SEED {i+1}/{self.num_samples} FOR {self.instance_name}."
                 )
 
         normalisation_values = self.compute_norm_values_from_maxmin_arrays(
@@ -638,7 +637,7 @@ class ProblemEvaluator:
                         (max_values_array[var], max_values[var])
                     )
                 self.send_update_email(
-                    f"EVALUATED RW SEED {i+1}/{len(self)} FOR {self.instance_name}."
+                    f"EVALUATED RW SEED {i+1}/{self.num_samples} FOR {self.instance_name}."
                 )
 
         normalisation_values = self.compute_norm_values_from_maxmin_arrays(
