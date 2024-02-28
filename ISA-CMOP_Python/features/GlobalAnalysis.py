@@ -565,7 +565,7 @@ class GlobalAnalysis(Analysis):
 
     def eval_features(self):
         # Remove any samples if they contain infs or nans.
-        new_pop, _ = self.pop.remove_nan_inf_rows("global", re_evaluate=True)
+        new_pop, _ = self.pop.remove_nan_inf_rows("global")
 
         # Global scr. "glob" will be appended to the name in the results file.
         self.features["scr"] = Analysis.compute_solver_crash_ratio(self.pop, new_pop)
