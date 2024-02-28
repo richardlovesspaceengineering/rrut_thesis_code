@@ -229,11 +229,11 @@ class ProblemEvaluator:
         return x * (x_upper - x_lower) + x_lower
 
     def compute_maxmin_for_sample(self, combined_array, PF, which_variable):
-        
+
         # Initialise fmin and fmax.
         fmin = np.zeros(combined_array.shape[1])
         fmax = np.ones(combined_array.shape[1])
-        
+
         # Deal with nans here to ensure no nans are returned.
         combined_array = combined_array[~np.isnan(combined_array).any(axis=1)]
 
