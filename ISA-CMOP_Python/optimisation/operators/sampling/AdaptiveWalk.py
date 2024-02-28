@@ -67,6 +67,7 @@ class AdaptiveWalk(RandomWalk):
                 ranks = pop_first_step.extract_uncons_rank()
             else:
                 ranks = pop_first_step.extract_rank()
+                print(ranks)
 
             # Take first dominating solution.
             try:
