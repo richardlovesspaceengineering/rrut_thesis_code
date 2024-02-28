@@ -166,9 +166,10 @@ class GlobalAnalysis(Analysis):
         tree = cKDTree(obj)
 
         # Query the tree to find the nearest neighbours in obj for each point on the PF.
+        num_nearest = min(len(self.pop), 20)
         distances, indices = tree.query(
             Analysis.apply_normalisation(self.pop.extract_pf(), obj_lb, obj_ub),
-            k=20,
+            k=num_nearest,
             workers=-1,
         )  # use parallel processing
 
