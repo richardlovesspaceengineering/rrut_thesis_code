@@ -158,7 +158,13 @@ class Analysis:
         """
         Compute autocorrelation of data with applied lag.
         """
-        return Analysis.corr_coef(data[:-lag], data[lag:], spearman, significance_level)
+
+        if len(data) < 2:
+            return np.nan
+        else:
+            return Analysis.corr_coef(
+                data[:-lag], data[lag:], spearman, significance_level
+            )
 
     @staticmethod
     def compute_correlation_matrix(matrix, correlation_type, alpha=0.05):

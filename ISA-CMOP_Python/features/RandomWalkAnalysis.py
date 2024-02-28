@@ -129,24 +129,29 @@ class RandomWalkAnalysis(Analysis):
         Currently only returns [dist_f_dist_x_avg_rws, dist_c_dist_x_avg_rws, bhv_avg_rws] since these are the only features required in Eq.(13) of Alsouly.
         """
 
+        if len(self.pop_walk) == 0:
+            return (np.nan,) * 14  # this function returns 14 values.
+
         # Extract normalisation values.
         var_lb, var_ub, obj_lb, obj_ub, cv_lb, cv_ub = super().extract_norm_values(
             norm_method
         )
+        neig_nan_ctr = 0
 
-        print(f"var_lb: {var_lb}")
-        print(f"var_ub: {var_ub}")
-        print(f"obj_lb: {obj_lb}")
-        print(f"obj_lb: {obj_ub}")
-        print(f"cv_lb: {cv_lb}")
-        print(f"cv_ub: {cv_ub}")
+        # print(f"var_lb: {var_lb}")
+        # print(f"var_ub: {var_ub}")
+        # print(f"obj_lb: {obj_lb}")
+        # print(f"obj_lb: {obj_ub}")
+        # print(f"cv_lb: {cv_lb}")
+        # print(f"cv_ub: {cv_ub}")
 
-        print(f"pop_walk.var: {self.pop_walk.extract_var()}")
+        # print(f"pop_walk.var: {self.pop_walk.extract_var()}")
 
         # Extract walk arrays.
         walk_var = Analysis.apply_normalisation(
             self.pop_walk.extract_var(), var_lb, var_ub
         )
+
         walk_obj = Analysis.apply_normalisation(
             self.pop_walk.extract_obj(), obj_lb, obj_ub
         )
@@ -170,6 +175,17 @@ class RandomWalkAnalysis(Analysis):
 
             # Extract neighbours for this point and append.
             pop_neighbourhood = copy.deepcopy(self.pop_neighbours_list[i])
+
+            if len(pop_neighbourhood) == 0:
+                neig_nan_ctr += 1
+                dist_x_array[i] = np.nan
+                dist_f_array[i] = np.nan
+                dist_c_array[i] = np.nan
+                dist_f_c_array[i] = np.nan
+                dist_f_dist_x_array[i] = np.nan
+                dist_c_dist_x_array[i] = np.nan
+                dist_f_c_dist_x_array[i] = np.nan
+                continue
 
             # Extract evaluated values for this neighbourhood and apply normalisation.
             neig_var = Analysis.apply_normalisation(
@@ -209,14 +225,35 @@ class RandomWalkAnalysis(Analysis):
             dist_c_dist_x_array[i] = dist_c_array[i] / dist_x_array[i]
             dist_f_c_dist_x_array[i] = dist_f_c_array[i] / dist_x_array[i]
 
-        # Aggregate for this walk.
-        dist_x_avg = np.mean(dist_x_array)
-        dist_f_avg = np.mean(dist_f_array)
-        dist_c_avg = np.mean(dist_c_array)
-        dist_f_c_avg = np.mean(dist_f_c_array)
-        dist_f_dist_x_avg = np.mean(dist_f_dist_x_array)
-        dist_c_dist_x_avg = np.mean(dist_c_dist_x_array)
-        dist_f_c_dist_x_avg = np.mean(dist_f_c_dist_x_array)
+        # Calculate means after displaying how many NaNs we got.
+        if neig_nan_ctr > 0:
+            print(
+                f"Distance features returned {neig_nan_ctr} out of {len(self.pop_walk)} with NaN."
+            )
+
+        # Drop NaNs from each array
+        dist_x_array = dist_x_array[~np.isnan(dist_x_array)]
+        dist_f_array = dist_f_array[~np.isnan(dist_f_array)]
+        dist_c_array = dist_c_array[~np.isnan(dist_c_array)]
+        dist_f_c_array = dist_f_c_array[~np.isnan(dist_f_c_array)]
+        dist_f_dist_x_array = dist_f_dist_x_array[~np.isnan(dist_f_dist_x_array)]
+        dist_c_dist_x_array = dist_c_dist_x_array[~np.isnan(dist_c_dist_x_array)]
+        dist_f_c_dist_x_array = dist_f_c_dist_x_array[~np.isnan(dist_f_c_dist_x_array)]
+
+        # Calculate means of the cleaned arrays
+        dist_x_avg = np.mean(dist_x_array) if dist_x_array.size > 0 else np.nan
+        dist_f_avg = np.mean(dist_f_array) if dist_f_array.size > 0 else np.nan
+        dist_c_avg = np.mean(dist_c_array) if dist_c_array.size > 0 else np.nan
+        dist_f_c_avg = np.mean(dist_f_c_array) if dist_f_c_array.size > 0 else np.nan
+        dist_f_dist_x_avg = (
+            np.mean(dist_f_dist_x_array) if dist_f_dist_x_array.size > 0 else np.nan
+        )
+        dist_c_dist_x_avg = (
+            np.mean(dist_c_dist_x_array) if dist_c_dist_x_array.size > 0 else np.nan
+        )
+        dist_f_c_dist_x_avg = (
+            np.mean(dist_f_c_dist_x_array) if dist_f_c_dist_x_array.size > 0 else np.nan
+        )
 
         # Compute Analysis.autocorrelations
         dist_x_r1 = Analysis.autocorr(dist_x_array, lag=1)
@@ -277,7 +314,7 @@ class RandomWalkAnalysis(Analysis):
 
         if len(pop_walk) == 0:
             # If we are here, the population is empty. This might occur when using this function to determine constrained HV values and there are no feasible solutions.
-            return (0,) * 8  # this function returns 8 values
+            return (np.nan,) * 8  # this function returns 8 values
 
         # Extract evaluated population values, normalise and trim any points larger than the nadir.
         obj = pop_walk.extract_obj()
@@ -409,6 +446,10 @@ class RandomWalkAnalysis(Analysis):
         )
 
     def compute_neighbourhood_violation_features(self, norm_method):
+
+        if len(self.pop_walk) == 0:
+            return (np.nan,) * 7
+
         # Extract normalisation values.
         var_lb, var_ub, obj_lb, obj_ub, cv_lb, cv_ub = super().extract_norm_values(
             norm_method
@@ -451,6 +492,13 @@ class RandomWalkAnalysis(Analysis):
         for i in range(var.shape[0]):
             # Extract neighbours for this point and normalise.
             pop_neighbourhood = self.pop_neighbours_list[i]
+
+            if len(pop_neighbourhood) == 0:
+                nncv_array[i] = np.nan
+                ncv_array[i] = np.nan
+                bncv_array[i] = np.nan
+                continue
+
             neig_cv = Analysis.apply_normalisation(
                 pop_neighbourhood.extract_cv(), cv_lb, cv_ub
             )
@@ -506,8 +554,13 @@ class RandomWalkAnalysis(Analysis):
         return nrfbx, nncv_avg, nncv_r1, ncv_avg, ncv_r1, bncv_avg, bncv_r1
 
     def compute_neighbourhood_dominance_features(self):
+
+        if len(self.pop_walk) == 0:
+            return (np.nan,) * 10
+
         # Extract evaluated population values.
         var = self.pop_walk.extract_var()
+        neig_nan_ctr = 0
 
         # Initialise arrays.
         sup_array = np.zeros(var.shape[0])
@@ -516,14 +569,18 @@ class RandomWalkAnalysis(Analysis):
         lnd_array = np.zeros(var.shape[0])
         nfronts_array = np.zeros(var.shape[0])
 
-        # print(self.pop_walk[1:3])
-        # print(self.pop_walk.slice_population(1, 3 + 1))
-
-        # time.sleep(10)
-
         for i in range(var.shape[0]):
             # Extract neighbours and step populations.
             pop_neighbourhood = self.pop_neighbours_list[i]
+
+            if len(pop_neighbourhood) == 0:
+                neig_nan_ctr += 1
+                sup_array[i] = np.nan
+                inf_array[i] = np.nan
+                inc_array[i] = np.nan
+                lnd_array[i] = np.nan
+                nfronts_array[i] = np.nan
+                continue
 
             # Use the base class __getitem__ to get the item or slice.
             pop_step = self.pop_walk.get_single_pop(i)
@@ -536,9 +593,6 @@ class RandomWalkAnalysis(Analysis):
             # Create merged population and re-evaluate ranks.
             merged_pop = Population.merge(pop_step, pop_neighbourhood)
             merged_pop.evaluate_fronts()
-            # print(pop_step.extract_var())
-            # print(pop_neighbourhood.extract_var())
-            # print(merged_pop.extract_var())
 
             ranks = merged_pop.extract_rank()
             step_rank = ranks[0]
@@ -558,12 +612,27 @@ class RandomWalkAnalysis(Analysis):
             incomparable_neighbours = ranks[ranks == step_rank] - 1
             inc_array[i] = incomparable_neighbours.size / len(pop_neighbourhood)
 
-        # Calculate means
-        sup_avg = np.mean(sup_array)
-        inf_avg = np.mean(inf_array)
-        inc_avg = np.mean(inc_array)
-        lnd_avg = np.mean(lnd_array)
-        nfronts_avg = np.mean(nfronts_array)
+        # Drop NaNs from each array
+        sup_array = sup_array[~np.isnan(sup_array)]
+        inf_array = inf_array[~np.isnan(inf_array)]
+        inc_array = inc_array[~np.isnan(inc_array)]
+        lnd_array = lnd_array[~np.isnan(lnd_array)]
+        nfronts_array = nfronts_array[
+            ~np.isnan(nfronts_array)
+        ]  # Corrected to use nfronts_array instead of lnd_array again
+
+        # Display the count of NaNs if any
+        if neig_nan_ctr > 0:
+            print(
+                f"Dominance features returned {neig_nan_ctr} out of {len(self.pop_walk)} with NaN."
+            )
+
+        # Calculate means of the cleaned arrays, handling empty arrays by returning np.nan if array is empty
+        sup_avg = np.mean(sup_array) if sup_array.size > 0 else np.nan
+        inf_avg = np.mean(inf_array) if inf_array.size > 0 else np.nan
+        inc_avg = np.mean(inc_array) if inc_array.size > 0 else np.nan
+        lnd_avg = np.mean(lnd_array) if lnd_array.size > 0 else np.nan
+        nfronts_avg = np.mean(nfronts_array) if nfronts_array.size > 0 else np.nan
 
         # Calculate Analysis.autocorrelations
         sup_r1 = Analysis.autocorr(sup_array, lag=1)

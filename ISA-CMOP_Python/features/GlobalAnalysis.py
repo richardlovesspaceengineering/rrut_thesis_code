@@ -438,6 +438,9 @@ class GlobalAnalysis(Analysis):
     def compute_ic_features(pop, sample_type="global"):
         # Can be reused for RW and global samples.
 
+        if len(pop) == 0:
+            return (np.nan,) * 4
+
         # Setup
         if sample_type == "global":
             ic_sorting = (

@@ -554,6 +554,7 @@ class ProblemEvaluator:
         min_values_array = max_values_array
 
         # for j in range(pre_sampler.dim):
+        # TODO: CHANGE BACK!!!!
         for j in range(2):
 
             pop_walk, pop_neighbours_list = self.get_rw_pop(
