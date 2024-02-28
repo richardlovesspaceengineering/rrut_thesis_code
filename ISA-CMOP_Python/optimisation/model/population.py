@@ -1,4 +1,6 @@
 import numpy as np
+import multiprocessing
+from multiprocessing_util import *
 
 from optimisation.model.individual import Individual
 
@@ -233,16 +235,32 @@ class Population(np.ndarray):
             for j, i in enumerate(front):
                 self[i].rank_uncons = k + 1  # lowest rank is 1
 
-    ### EVALUATE AT A GIVEN SET OF POINTS.
-    def evaluate(self, var_array, eval_fronts):
+    def evaluate_individual(self, individual, var_array):
+        """
+        Function to evaluate a single individual.
+        Arguments:
+            individual: The individual to evaluate.
+            var_array: The array of variables for evaluation.
+        Returns:
+            Tuple containing the individual's index, evaluated variables, objectives, constraints, and constraint violation.
+        """
+        # Assign decision variables.
+        individual.var = var_array
 
+        # Run evaluation of objectives, constraints, and CV.
+        individual.eval_instance()
+
+        return individual
+
+    @handle_ctrl_c
+    def evaluate(self, var_array, eval_fronts, num_processes=1):
         if "pymoo" in getattr(self[0].problem, "__module__"):
-            parallel = True
+            # vectorized = True
+            vectorized = False
         else:
-            # Aerofoils evaluated serially.
-            parallel = False
+            vectorized = False
 
-        if parallel:
+        if vectorized:
             # Evaluate vectorized.
             obj, cons = self[0].problem.evaluate(var_array)
 
@@ -256,12 +274,26 @@ class Population(np.ndarray):
             # Clear all unnecessary variables from memory.
             del var_array, obj, cons
         else:
-            for i in range(len(self)):
-                # Assign decision variables.
-                self[i].var = var_array[i, :]
+            if num_processes > 1:
+                # Parallel evaluation
+                with multiprocessing.Pool(
+                    processes=num_processes, initializer=init_pool
+                ) as pool:
+                    results = pool.starmap(
+                        self.evaluate_individual,
+                        [(self[i], var_array[i, :]) for i in range(len(self))],
+                    )
 
-                # Run evaluation of objectives, constraints and CV.
-                self[i].eval_instance()
+                    # Assign results back to individuals
+                    for i, result in enumerate(results):
+                        self[i] = result
+            else:
+                for i in range(len(self)):
+                    # Assign decision variables.
+                    self[i].var = var_array[i, :]
+
+                    # Run evaluation of objectives, constraints and CV.
+                    self[i].eval_instance()
 
         if eval_fronts:
             self.evaluate_fronts()
