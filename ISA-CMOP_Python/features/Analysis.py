@@ -401,7 +401,12 @@ class MultipleAnalysis:
     """
 
     def __init__(self, single_sample_analyses, normalisation_values):
-        self.analyses = single_sample_analyses
+
+        if not isinstance(single_sample_analyses, list):
+            self.analyses = [single_sample_analyses]
+        else:
+            self.analyses = single_sample_analyses
+
         self.normalisation_values = normalisation_values
         self.feature_arrays = {}
         self.results_dir = single_sample_analyses[0].results_dir

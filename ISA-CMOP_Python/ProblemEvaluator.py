@@ -842,7 +842,6 @@ class ProblemEvaluator:
                 num_processes=num_processes,
             )
             neighbours = awGenerator.generate_neighbours_for_walk(walk)
-            # _, neighbours = pre_sampler.read_walk_neighbours(i + 1, 10)
             print(
                 "Generated AW {} of {} (for this sample). Length: {}".format(
                     j + 1,

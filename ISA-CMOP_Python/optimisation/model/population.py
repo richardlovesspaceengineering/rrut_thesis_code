@@ -255,8 +255,7 @@ class Population(np.ndarray):
     @handle_ctrl_c
     def evaluate(self, var_array, eval_fronts, num_processes=1):
         if "pymoo" in getattr(self[0].problem, "__module__"):
-            # vectorized = True
-            vectorized = False
+            vectorized = True
         else:
             vectorized = False
 
