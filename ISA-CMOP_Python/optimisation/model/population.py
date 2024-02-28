@@ -45,18 +45,47 @@ class Population(np.ndarray):
 
         return base
 
-    def slice_population(self, start, end):
-        # Ensuring start and end are within bounds and logical
-        start = max(start, 0)
-        end = min(end, len(self))
+    def get_single_pop(self, index):
+        result = self[index]  # Utilize the built-in __getitem__ for extraction
+        # Ensure the result is a Population instance, especially for single item extraction
+        if not isinstance(result, Population):
+            result = np.array([result])
+            result = result.view(Population)
 
-        # Slicing the numpy array (self) directly to get a slice of individuals
-        sliced_array = super(Population, self).__getitem__(slice(start, end))
+        return result
 
-        # Ensuring the sliced array is viewed as a Population instance
-        sliced = sliced_array.view(Population)
+    def remove_nan_inf_rows(self, pop_type):
+        """
+        pop_type is "neig" or "walk" or "global"
+        """
 
-        return sliced
+        # Extract evaluated population values.
+        var = self.extract_var()
+        obj = self.extract_obj()
+        cons = self.extract_cons()
+
+        # Get indices of rows without NaN or infinity in the objective array
+        nan_inf_idx = self.get_nan_inf_idx()
+        num_rows_removed = len(nan_inf_idx)
+
+        # If there are rows to remove, slice directly to exclude them
+        if num_rows_removed != 0:
+            print(
+                "\nHad to remove {} out of {} individuals for {} due to objectives containing nan/inf.".format(
+                    num_rows_removed, var.shape[0], pop_type
+                )
+            )
+
+            # Calculate indices to keep
+            all_indices = np.arange(len(self))
+            keep_indices = np.setdiff1d(all_indices, nan_inf_idx)
+
+            # Directly slice the Population instance to keep only valid individuals
+            new_pop = self[keep_indices]
+
+            return new_pop, num_rows_removed
+        else:
+            return self, 0
 
     ### GETTERS
     def extract_attribute(self, attr_name):
@@ -311,54 +340,6 @@ class Population(np.ndarray):
 
         for i in range(len(self)):
             self[i].set_obj(obj[i, :])
-
-    def remove_nan_inf_rows(self, pop_type, re_evaluate=True):
-        """
-        pop_type is "neig" or "walk" or "global"
-
-        """
-
-        # TODO: remove the need for re-evaluation of the population.
-
-        # Extract evaluated population values.
-        var = self.extract_var()
-        obj = self.extract_obj()
-        cons = self.extract_cons()
-
-        # Get indices of rows with NaN or infinity in the objective array
-        nan_inf_idx = self.get_nan_inf_idx()
-        num_rows_removed = len(nan_inf_idx)
-
-        # Remove rows with NaN or infinity values
-        if num_rows_removed != 0:
-            print(
-                "\nHad to remove {} out of {} individuals for {} due to objectives containing nan/inf. Re-evaluating population...".format(
-                    num_rows_removed, var.shape[1], pop_type
-                )
-            )
-
-            # Remove nans from all affected arrays.
-            var = np.delete(var, nan_inf_idx, axis=0)
-            obj = np.delete(obj, nan_inf_idx, axis=0)
-            cons = np.delete(cons, nan_inf_idx, axis=0)
-            obj = np.delete(obj, nan_inf_idx, axis=0)
-            obj = np.delete(obj, nan_inf_idx, axis=0)
-
-            start_time = time.time()
-
-            if re_evaluate:
-                # Create new population and evaluate.
-                new_pop = Population(self[0].problem, n_individuals=var.shape[0])
-                new_pop.evaluate(var, eval_fronts=True)
-                end_time = time.time()
-                elapsed_time = end_time - start_time
-                print("Re-evaluated in {:.2f} seconds.\n".format(elapsed_time))
-            else:
-                print("Still implementing non-evaluation manipulation of pop.")
-
-            return new_pop, num_rows_removed
-        else:
-            return self, 0
 
     def get_nan_inf_idx(self):
         # Extract evaluated population values.

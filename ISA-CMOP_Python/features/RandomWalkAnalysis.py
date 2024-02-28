@@ -511,10 +511,17 @@ class RandomWalkAnalysis(Analysis):
         lnd_array = np.zeros(var.shape[0])
         nfronts_array = np.zeros(var.shape[0])
 
+        # print(self.pop_walk[1:3])
+        # print(self.pop_walk.slice_population(1, 3 + 1))
+
+        # time.sleep(10)
+
         for i in range(var.shape[0]):
             # Extract neighbours and step populations.
             pop_neighbourhood = self.pop_neighbours_list[i]
-            pop_step = self.pop_walk.slice_population(i, i + 1)  # get the current step.
+
+            # Use the base class __getitem__ to get the item or slice.
+            pop_step = self.pop_walk.get_single_pop(i)
 
             # Compute proportion of locally non-dominated solutions.
             lnd_array[i] = np.atleast_2d(
