@@ -969,6 +969,10 @@ class ProblemEvaluator:
                     awGenerator,
                     eval_pops_parallel=eval_pops_parallel,
                 )
+                aw_single_sample = Analysis.concatenate_single_analyses(
+                    aw_single_sample_analyses_list
+                )
+                aw_multiple_samples_analyses_list.append(aw_single_sample)
                 self.send_update_email(
                     f"EVALUATED AW SEED {i+1}/{self.num_samples} FOR {self.instance_name}."
                 )

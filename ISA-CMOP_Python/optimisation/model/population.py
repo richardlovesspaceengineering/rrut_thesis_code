@@ -72,11 +72,6 @@ class Population(np.ndarray):
 
         # If there are rows to remove, slice directly to exclude them
         if num_rows_removed != 0:
-            print(
-                "\nHad to remove {} out of {} individuals for {} due to objectives containing nan/inf.".format(
-                    num_rows_removed, var.shape[0], pop_type
-                )
-            )
 
             # Calculate indices to keep
             all_indices = np.arange(len(self))
