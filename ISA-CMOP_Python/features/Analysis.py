@@ -116,10 +116,16 @@ class Analysis:
         return new_matrix
 
     @staticmethod
-    def generate_bounds_from_problem(problem_instance):
-        # Bounds of the varision variables.
-        x_lower = problem_instance.xl
-        x_upper = problem_instance.xu
+    def generate_bounds_from_problem(problem):
+        if "pymoo" in getattr(problem, "__module__"):
+            x_lower = problem.xl
+            x_upper = problem.xu
+        else:
+            # Aerofoils
+            x_lower = problem.lb
+            x_upper = problem.ub
+        # Bounds of the decision variables.
+
         bounds = np.vstack((x_lower, x_upper))
         return bounds
 
