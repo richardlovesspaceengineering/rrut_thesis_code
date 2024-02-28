@@ -156,7 +156,7 @@ class PreSampler:
 
         start_time = time.time()  # Record the start time for this sample
 
-        for ctr, starting_zone in enumerate(starting_zones[0]):
+        for ctr, starting_zone in enumerate(starting_zones):
             self.generate_single_rw_walk(sample_number, ctr + 1)
 
         # Record elapsed time and print.
