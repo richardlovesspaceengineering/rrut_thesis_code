@@ -672,7 +672,9 @@ class ProblemEvaluator:
         rw_single_sample_analyses_list = []
 
         # Loop over each of the walks within this sample.
-        for j in range(pre_sampler.dim):
+
+        # TODO: change back
+        for j in range(2):
 
             # Directly wrap the call to get_rw_pop inside the instantiation of RandomWalkAnalysis.
             rw_analysis = RandomWalkAnalysis(

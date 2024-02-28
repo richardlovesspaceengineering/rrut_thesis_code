@@ -228,7 +228,7 @@ class RandomWalkAnalysis(Analysis):
         # Calculate means after displaying how many NaNs we got.
         if neig_nan_ctr > 0:
             print(
-                f"Distance features returned {neig_nan_ctr} out of {len(self.pop_walk)} with NaN."
+                f"Distance features returned empty neighbourhoods for {neig_nan_ctr} out of {len(self.pop_walk)}."
             )
 
         # Drop NaNs from each array
@@ -455,6 +455,8 @@ class RandomWalkAnalysis(Analysis):
             norm_method
         )
 
+        neig_nan_ctr = 0
+
         # Extract evaluated population values.
         var = self.pop_walk.extract_var()
         obj = self.pop_walk.extract_obj()
@@ -494,6 +496,7 @@ class RandomWalkAnalysis(Analysis):
             pop_neighbourhood = self.pop_neighbours_list[i]
 
             if len(pop_neighbourhood) == 0:
+                neig_nan_ctr += 1
                 nncv_array[i] = np.nan
                 ncv_array[i] = np.nan
                 bncv_array[i] = np.nan
@@ -541,10 +544,21 @@ class RandomWalkAnalysis(Analysis):
         else:
             nrfbx = 0
 
-        # Calculate means
-        nncv_avg = np.mean(nncv_array)
-        ncv_avg = np.mean(ncv_array)
-        bncv_avg = np.mean(bncv_array)
+        # Calculate means after displaying how many NaNs we got.
+        if neig_nan_ctr > 0:
+            print(
+                f"Violation features returned empty neighbourhoods for {neig_nan_ctr} out of {len(self.pop_walk)}."
+            )
+
+        # Drop NaNs from each array
+        nncv_array = nncv_array[~np.isnan(nncv_array)]
+        ncv_array = ncv_array[~np.isnan(ncv_array)]
+        bncv_array = bncv_array[~np.isnan(bncv_array)]
+
+        # Calculate means of the cleaned arrays, returning np.nan for empty arrays
+        nncv_avg = np.mean(nncv_array) if nncv_array.size > 0 else np.nan
+        ncv_avg = np.mean(ncv_array) if ncv_array.size > 0 else np.nan
+        bncv_avg = np.mean(bncv_array) if bncv_array.size > 0 else np.nan
 
         # Calculate Analysis.autocorrelations
         nncv_r1 = Analysis.autocorr(nncv_array, lag=1)
@@ -621,10 +635,10 @@ class RandomWalkAnalysis(Analysis):
             ~np.isnan(nfronts_array)
         ]  # Corrected to use nfronts_array instead of lnd_array again
 
-        # Display the count of NaNs if any
+        # Calculate means after displaying how many NaNs we got.
         if neig_nan_ctr > 0:
             print(
-                f"Dominance features returned {neig_nan_ctr} out of {len(self.pop_walk)} with NaN."
+                f"Dominance features returned empty neighbourhoods for {neig_nan_ctr} out of {len(self.pop_walk)}."
             )
 
         # Calculate means of the cleaned arrays, handling empty arrays by returning np.nan if array is empty
