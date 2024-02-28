@@ -141,7 +141,7 @@ class RandomWalkAnalysis(Analysis):
         print(f"cv_lb: {cv_lb}")
         print(f"cv_ub: {cv_ub}")
 
-        print(f"pop_walk.var: {pop_walk.extract_var()}")
+        print(f"pop_walk.var: {self.pop_walk.extract_var()}")
 
         # Extract walk arrays.
         walk_var = Analysis.apply_normalisation(
