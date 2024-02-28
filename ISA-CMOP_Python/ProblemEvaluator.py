@@ -269,7 +269,7 @@ class ProblemEvaluator:
         walk,
         neighbours,
         eval_fronts=True,
-        evaluate_pops_parallel=False,
+        eval_pops_parallel=False,
         adaptive_walk=False,
     ):
         # Generate populations for walk and neighbours separately.
@@ -277,7 +277,7 @@ class ProblemEvaluator:
 
         pop_neighbours_list = []
 
-        if evaluate_pops_parallel:
+        if eval_pops_parallel:
             # num_processes = self.num_processes_rw_eval
             num_processes = 3
         else:
@@ -317,16 +317,34 @@ class ProblemEvaluator:
 
         return pop_walk, pop_neighbours_list
 
-    def generate_global_population(self, problem, global_sample, eval_fronts=True):
+    def generate_global_population(
+        self, problem, global_sample, eval_pops_parallel=False, eval_fronts=True
+    ):
+
+        if eval_pops_parallel:
+            # num_processes = self.num_processes_rw_eval
+            num_processes = 3
+        else:
+            num_processes = 1
+
         pop_global = Population(problem, n_individuals=global_sample.shape[0])
 
         pop_global.evaluate(
-            self.rescale_pregen_sample(global_sample, problem), eval_fronts=eval_fronts
+            self.rescale_pregen_sample(global_sample, problem),
+            eval_fronts=eval_fronts,
+            num_processes=num_processes,
         )
 
         return pop_global
 
-    def get_global_pop(self, pre_sampler, problem, sample_number, eval_fronts=True):
+    def get_global_pop(
+        self,
+        pre_sampler,
+        problem,
+        sample_number,
+        eval_pops_parallel=False,
+        eval_fronts=True,
+    ):
 
         # Flag for whether we should manually generate new populations.
         continue_generation = True
@@ -344,7 +362,10 @@ class ProblemEvaluator:
         if continue_generation:
             global_sample = pre_sampler.read_global_sample(sample_number)
             pop_global = self.generate_global_population(
-                problem, global_sample, eval_fronts
+                problem,
+                global_sample,
+                eval_fronts=eval_fronts,
+                eval_pops_parallel=eval_pops_parallel,
             )
             pre_sampler.save_global_population(pop_global, sample_number)
 
@@ -352,7 +373,7 @@ class ProblemEvaluator:
 
     @handle_ctrl_c
     def eval_single_sample_global_features_norm(self, args):
-        i, pre_sampler, problem = args
+        i, pre_sampler, problem, eval_pops_parallel = args
         variables = ["var", "obj", "cv"]
         max_values_array = {
             "var": np.empty((0, problem.n_var)),
@@ -361,7 +382,9 @@ class ProblemEvaluator:
         }
         min_values_array = max_values_array
 
-        pop_global = self.get_global_pop(pre_sampler, problem, i + 1)
+        pop_global = self.get_global_pop(
+            pre_sampler, problem, i + 1, eval_pops_parallel=eval_pops_parallel
+        )
         pf = pop_global.extract_pf()
 
         # Loop over each variable.
@@ -383,7 +406,9 @@ class ProblemEvaluator:
             )
         return min_values_array, max_values_array
 
-    def compute_global_normalisation_values(self, pre_sampler, problem):
+    def compute_global_normalisation_values(
+        self, pre_sampler, problem, eval_pops_parallel=False
+    ):
         norm_start = time.time()
         variables = ["var", "obj", "cv"]
 
@@ -399,15 +424,21 @@ class ProblemEvaluator:
             f"Initialising normalisation computations for global samples with {self.num_processes_global_norm} processes. This requires full evaluation of the entire sample set and may take some time while still being memory-efficient."
         )
 
-        # Can use max amount of cores here since NDSorting does not happen here.
-        with multiprocessing.Pool(
-            self.num_processes_global_norm, initializer=init_pool
-        ) as pool:
-            args_list = [(i, pre_sampler, problem) for i in range(self.num_samples)]
+        if not eval_pops_parallel:
 
-            results = pool.map(self.eval_single_sample_global_features_norm, args_list)
-            if any(map(lambda x: isinstance(x, KeyboardInterrupt), results)):
-                print("Ctrl-C was entered.")
+            print("Running seeds in series.")
+
+            # Can use max amount of cores here since NDSorting does not happen here.
+            with multiprocessing.Pool(
+                self.num_processes_global_norm, initializer=init_pool
+            ) as pool:
+                args_list = [(i, pre_sampler, problem) for i in range(self.num_samples)]
+
+                results = pool.map(
+                    self.eval_single_sample_global_features_norm, args_list
+                )
+                if any(map(lambda x: isinstance(x, KeyboardInterrupt), results)):
+                    print("Ctrl-C was entered.")
 
             for min_values, max_values in results:
                 for var in variables:
@@ -418,17 +449,34 @@ class ProblemEvaluator:
                         (max_values_array[var], max_values[var])
                     )
 
-            normalisation_values = self.compute_norm_values_from_maxmin_arrays(
-                min_values_array,
-                max_values_array,
-            )
-            norm_end = time.time()
-            elapsed_time = norm_end - norm_start
-            print_with_timestamp(
-                "Evaluated the normalisation values for this sample set in {:.2f} seconds.\n".format(
-                    elapsed_time
+        else:
+
+            print("Running seeds in parallel.")
+
+            init_pool()  # set some global variables for ctrl + c handling
+            for i in range(self.num_samples):
+                min_values, max_values = self.eval_single_sample_global_features_norm(
+                    (i, pre_sampler, problem, True)
                 )
+                for var in variables:
+                    min_values_array[var] = np.vstack(
+                        (min_values_array[var], min_values[var])
+                    )
+                    max_values_array[var] = np.vstack(
+                        (max_values_array[var], max_values[var])
+                    )
+
+        normalisation_values = self.compute_norm_values_from_maxmin_arrays(
+            min_values_array,
+            max_values_array,
+        )
+        norm_end = time.time()
+        elapsed_time = norm_end - norm_start
+        print_with_timestamp(
+            "Evaluated the normalisation values for this sample set in {:.2f} seconds.\n".format(
+                elapsed_time
             )
+        )
 
         self.send_analysis_completion_email(
             self.instance_name, "Global norm.", elapsed_time
@@ -441,7 +489,7 @@ class ProblemEvaluator:
         problem,
         sample_number,
         walk_number,
-        evaluate_pops_parallel=False,
+        eval_pops_parallel=False,
         eval_fronts=True,
     ):
 
@@ -469,7 +517,7 @@ class ProblemEvaluator:
                 walk,
                 neighbours,
                 eval_fronts=eval_fronts,
-                evaluate_pops_parallel=evaluate_pops_parallel,
+                eval_pops_parallel=eval_pops_parallel,
             )
             pre_sampler.save_walk_neig_population(
                 pop_walk, pop_neighbours_list, sample_number, walk_number
@@ -481,7 +529,7 @@ class ProblemEvaluator:
     def process_rw_sample_norm(self, args):
         variables = ["var", "obj", "cv"]
 
-        i, pre_sampler, problem, evaluate_pops_parallel = args
+        i, pre_sampler, problem, eval_pops_parallel = args
         max_values_array = {
             "var": np.empty((0, problem.n_var)),
             "obj": np.empty((0, problem.n_obj)),
@@ -492,7 +540,11 @@ class ProblemEvaluator:
         for j in range(pre_sampler.dim):
 
             pop_walk, pop_neighbours_list = self.get_rw_pop(
-                pre_sampler, problem, i + 1, j + 1, evaluate_pops_parallel
+                pre_sampler,
+                problem,
+                i + 1,
+                j + 1,
+                eval_pops_parallel=eval_pops_parallel,
             )
 
             pf = pop_walk.extract_pf()
@@ -515,7 +567,7 @@ class ProblemEvaluator:
         return min_values_array, max_values_array
 
     def compute_rw_normalisation_values(
-        self, pre_sampler, problem, evaluate_pops_parallel=False
+        self, pre_sampler, problem, eval_pops_parallel=False
     ):
 
         norm_start = time.time()
@@ -528,11 +580,13 @@ class ProblemEvaluator:
         }
         min_values_array = max_values_array
 
-        if not evaluate_pops_parallel:
+        print_with_timestamp(
+            f"Initialising normalisation computations for RW samples using {self.num_processes_rw_norm} cores. This requires full evaluation of the entire sample set and may take some time while still being memory-efficient."
+        )
 
-            print_with_timestamp(
-                f"Initialising normalisation computations for RW samples using {self.num_processes_rw_norm} cores. This requires full evaluation of the entire sample set and may take some time while still being memory-efficient. Running seeds in series."
-            )
+        if not eval_pops_parallel:
+
+            print("Running seeds in series.")
 
             # Evaluate features in parallel
             with multiprocessing.Pool(
@@ -556,12 +610,10 @@ class ProblemEvaluator:
                         )
         else:
 
-            print_with_timestamp(
-                f"Initialising normalisation computations for RW samples using {self.num_processes_rw_norm} cores. This requires full evaluation of the entire sample set and may take some time while still being memory-efficient. Running seeds in parallel."
-            )
+            print("Running seeds in parallel.")
 
             # Evaluate populations in parallel
-            init_pool()  # set some nice global variables
+            init_pool()  # set some global variables for ctrl + c handling
             for i in range(self.num_samples):
                 min_values, max_values = self.process_rw_sample_norm(
                     (i, pre_sampler, problem, True)
@@ -618,7 +670,7 @@ class ProblemEvaluator:
 
     def do_random_walk_analysis(self, problem, pre_sampler):
         self.walk_normalisation_values = self.compute_rw_normalisation_values(
-            pre_sampler, problem, evaluate_pops_parallel=True
+            pre_sampler, problem, eval_pops_parallel=True
         )
 
         rw_multiple_samples_analyses_list = []
@@ -684,7 +736,7 @@ class ProblemEvaluator:
 
     def do_global_analysis(self, problem, pre_sampler):
         self.global_normalisation_values = self.compute_global_normalisation_values(
-            pre_sampler, problem
+            pre_sampler, problem, eval_pops_parallel=True
         )
 
         start_time = time.time()
@@ -899,7 +951,7 @@ class ProblemEvaluator:
 
         self.send_initialisation_email(f"STARTED RUN OF {self.instance_name}.")
 
-        # # RW Analysis.
+        # RW Analysis.
         print(
             " \n ~~~~~~~~~~~~ RW Analysis for "
             + self.instance_name
