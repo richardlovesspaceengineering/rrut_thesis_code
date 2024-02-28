@@ -64,6 +64,7 @@ class AdaptiveWalk(RandomWalk):
             pop_first_step = Population(
                 self.problem_instance, n_individuals=step_and_neighbours.shape[0]
             )
+            print(num_processes)
             pop_first_step.evaluate(
                 step_and_neighbours,
                 eval_fronts=True,
@@ -76,8 +77,6 @@ class AdaptiveWalk(RandomWalk):
                 ranks = pop_first_step.extract_uncons_rank()
             else:
                 ranks = pop_first_step.extract_rank()
-                print(pop_first_step.extract_obj())
-                print(pop_first_step.extract_cons())
 
             # Take first dominating solution.
             try:
