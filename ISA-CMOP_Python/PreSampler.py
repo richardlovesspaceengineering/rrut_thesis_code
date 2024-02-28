@@ -105,9 +105,9 @@ class PreSampler:
         patterns = []
         step = math.ceil(num_patterns / self.dim)
 
-        # for i in range(0, num_patterns, step):
-        binary_pattern = np.binary_repr(1, width=self.dim)
-        patterns.append([int(bit) for bit in binary_pattern])
+        for i in range(0, num_patterns, step):
+            binary_pattern = np.binary_repr(i, width=self.dim)
+            patterns.append([int(bit) for bit in binary_pattern])
         return patterns
 
     def generate_single_rw_walk(self, sample_number, ind_walk_number):
@@ -156,7 +156,7 @@ class PreSampler:
 
         start_time = time.time()  # Record the start time for this sample
 
-        for ctr, starting_zone in enumerate(starting_zones):
+        for ctr, starting_zone in enumerate(starting_zones[0]):
             self.generate_single_rw_walk(sample_number, ctr + 1)
 
         # Record elapsed time and print.
