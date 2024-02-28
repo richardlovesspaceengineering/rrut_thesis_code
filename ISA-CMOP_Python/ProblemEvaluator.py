@@ -973,14 +973,7 @@ class ProblemEvaluator:
         pre_sampler = self.initialize_evaluator(temp_pops_dir)
 
         self.send_initialisation_email(f"STARTED RUN OF {self.instance_name}.")
-
-        # RW Analysis.
-        print(
-            " \n ~~~~~~~~~~~~ RW Analysis for "
-            + self.instance_name
-            + " ~~~~~~~~~~~~ \n"
-        )
-
+        
         # TODO: generalise
         if "icas" in self.instance_name.lower():
             eval_pops_parallel = True
@@ -993,10 +986,17 @@ class ProblemEvaluator:
                 "RW and Global populations will be evaluated in series (1 features run per core)."
             )
 
-        rw_features = self.do_random_walk_analysis(
-            self.instance, pre_sampler, eval_pops_parallel=eval_pops_parallel
+        # RW Analysis.
+        print(
+            " \n ~~~~~~~~~~~~ RW Analysis for "
+            + self.instance_name
+            + " ~~~~~~~~~~~~ \n"
         )
-        rw_features.export_unaggregated_features(self.instance_name, "rw", save_arrays)
+
+        # rw_features = self.do_random_walk_analysis(
+        #     self.instance, pre_sampler, eval_pops_parallel=eval_pops_parallel
+        # )
+        # rw_features.export_unaggregated_features(self.instance_name, "rw", save_arrays)
 
         # Global Analysis.
         print(
