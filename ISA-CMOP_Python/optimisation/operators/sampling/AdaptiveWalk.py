@@ -70,6 +70,14 @@ class AdaptiveWalk(RandomWalk):
                 num_processes=num_processes,
             )
 
+            # Remove NaNs before looking at next step.
+            pop_walk_new, _ = pop_first_step.remove_nan_inf_rows("walk")
+
+            # If there are only NaNs around
+            if len(pop_walk_new) == 0:
+                improving_solutions_exist = False
+                break
+
             # The first solution which has a rank lower than the current solution (located at top of matrix) is the next step of our walk.
             if not constrained_ranks:
                 pop_first_step.eval_unconstrained_rank()
@@ -82,7 +90,9 @@ class AdaptiveWalk(RandomWalk):
                 mask = ranks < ranks[0]
                 next_step = step_and_neighbours[mask][0, :]
                 walk[step_counter + 1, :] = next_step
-                pop_walk = Population.merge(pop_walk, pop_first_step[mask])
+                index_of_true = np.where(mask)[0][0]
+                pop_best = pop_first_step.get_single_pop(index_of_true)
+                pop_walk = Population.merge(pop_walk, pop_best)
                 step_counter += 1
             except:
                 improving_solutions_exist = False

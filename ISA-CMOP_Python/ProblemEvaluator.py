@@ -276,24 +276,16 @@ class ProblemEvaluator:
 
         return normalisation_values
 
-    def generate_walk_neig_populations(
+    def generate_neig_populations(
         self,
         problem,
-        walk,
         neighbours,
-        eval_fronts=True,
-        eval_pops_parallel=False,
+        eval_fronts=False,
+        num_processes=1,
         adaptive_walk=False,
     ):
-        # Generate populations for walk and neighbours separately.
-        pop_walk = Population(problem, n_individuals=walk.shape[0])
 
         pop_neighbours_list = []
-
-        if eval_pops_parallel:
-            num_processes = self.num_processes_parallel_seed
-        else:
-            num_processes = 1
 
         # Evaluate each neighbourhood - remember that these are stored in 3D arrays.
         for neighbourhood in neighbours:
@@ -313,8 +305,29 @@ class ProblemEvaluator:
                     neighbourhood, eval_fronts=eval_fronts, num_processes=num_processes
                 )
             pop_neighbours_list.append(pop_neighbourhood)
+        return pop_neighbours_list
 
-        # Never need to know the ranks of the walk steps relative to each other.
+    def generate_walk_neig_populations(
+        self,
+        problem,
+        walk,
+        neighbours,
+        eval_fronts=True,
+        eval_pops_parallel=False,
+        adaptive_walk=False,
+    ):
+
+        if eval_pops_parallel:
+            num_processes = self.num_processes_parallel_seed
+        else:
+            num_processes = 1
+
+        # Generate populations for walk and neighbours separately.
+        pop_walk = Population(problem, n_individuals=walk.shape[0])
+
+        pop_neighbours_list = self.generate_neig_populations(
+            problem, neighbours, eval_fronts, num_processes=num_processes
+        )
 
         if not adaptive_walk:
             pop_walk.evaluate(
@@ -553,9 +566,7 @@ class ProblemEvaluator:
         }
         min_values_array = max_values_array
 
-        # for j in range(pre_sampler.dim):
-        # TODO: CHANGE BACK!!!!
-        for j in range(2):
+        for j in range(pre_sampler.dim):
 
             pop_walk, pop_neighbours_list = self.get_rw_pop(
                 pre_sampler,
@@ -673,8 +684,7 @@ class ProblemEvaluator:
 
         # Loop over each of the walks within this sample.
 
-        # TODO: change back
-        for j in range(2):
+        for j in range(pre_sampler.dim):
 
             # Directly wrap the call to get_rw_pop inside the instantiation of RandomWalkAnalysis.
             rw_analysis = RandomWalkAnalysis(
@@ -825,9 +835,9 @@ class ProblemEvaluator:
             num_processes = 1
 
         # Load in the pre-generated LHS sample as a starting point.
-        distributed_sample = self.rescale_pregen_sample(
-            pre_sampler.read_global_sample(i + 1), problem
-        )
+        pop_global = self.get_global_pop(pre_sampler, problem, i + 1)
+        pop_global_clean, _ = pop_global.remove_nan_inf_rows("global")
+        distributed_sample = pop_global_clean.extract_var()
 
         # Each sample contains 10n walks.
         num_walks = int(distributed_sample.shape[0] / 100) if self.mode == "eval" else 2
@@ -836,9 +846,11 @@ class ProblemEvaluator:
             # Initialise AdaptiveWalkAnalysis evaluator. Do at every iteration or existing list entries get overwritten.
 
             # Generate the adaptive walk sample.
-            walk = awGenerator.do_adaptive_phc_walk_for_starting_point(
+            start_time = time.time()
+            walk, pop_walk = awGenerator.do_adaptive_phc_walk_for_starting_point(
                 distributed_sample[j, :],
                 constrained_ranks=True,
+                return_pop=True,
                 num_processes=num_processes,
             )
             neighbours = awGenerator.generate_neighbours_for_walk(walk)
@@ -850,14 +862,9 @@ class ProblemEvaluator:
                 )
             )
 
-            # Create population and evaluate.
-            start_time = time.time()
-            pop_walk, pop_neighbours_list = self.generate_walk_neig_populations(
-                problem,
-                walk,
-                neighbours,
-                eval_pops_parallel=eval_pops_parallel,
-                adaptive_walk=True,
+            # Now find neighbours.
+            pop_neighbours_list = self.generate_neig_populations(
+                problem, neighbours, eval_fronts=False, num_processes=num_processes
             )
 
             aw_analysis = AdaptiveWalkAnalysis(
