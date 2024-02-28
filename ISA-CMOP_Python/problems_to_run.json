@@ -130,7 +130,6 @@
     "C2DTLZ2_d20": "false",
     "C3DTLZ1_d20": "false",
     "C3DTLZ4_d20": "false",
-    "ICAS2024Test_d20": "false",
     "CTP1_d30": "false",
     "CTP2_d30": "false",
     "CTP3_d30": "false",
@@ -173,6 +172,8 @@
     "C2DTLZ2_d30": "true",
     "C3DTLZ1_d30": "true",
     "C3DTLZ4_d30": "true",
+    "ICAS2024Test_d10": "false",
+    "ICAS2024Test_d20": "false",
     "ICAS2024Test_d30": "false"
   }
 }
