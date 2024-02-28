@@ -900,9 +900,9 @@ class ProblemEvaluator:
 
         elif self.mode == "debug":
             # Runs quickly
-            neighbourhood_size = n_var
-            max_steps = 10
-            step_size = 0.01  # 1% of the range of the instance domain
+            neighbourhood_size = 5
+            max_steps = 5
+            step_size = 0.1  # 1% of the range of the instance domain
 
         # Now initialise adaptive walk generator.
         awGenerator = AdaptiveWalk(
