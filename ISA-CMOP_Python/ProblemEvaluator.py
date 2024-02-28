@@ -236,7 +236,7 @@ class ProblemEvaluator:
         print(combined_array)
         if combined_array.size == 0:
             # Return dummy min and max values if combined_array is empty.
-            return 0, 1
+            return np.zeros(combined_array.shape[1]), np.ones(combined_array.shape[1])
 
         # Find the min and max of each column.
         fmin = np.min(combined_array, axis=0)
