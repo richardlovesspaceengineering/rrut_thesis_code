@@ -174,6 +174,8 @@ class GlobalAnalysis(Analysis):
 
         # For each point in the Pareto front, average the CV of the nearest neighbours to the PF in the sample.
         avg_cv_neighbours = []
+        print(f"indices: {indices}")
+        print(f"pop_len: {len(self.pop)}")
         for i in range(indices.shape[0]):
             avg_cv_neighbours.append(np.mean(cv[indices[i, :]]))
 
