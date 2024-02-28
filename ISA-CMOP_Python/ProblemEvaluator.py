@@ -853,7 +853,11 @@ class ProblemEvaluator:
             # Create population and evaluate.
             start_time = time.time()
             pop_walk, pop_neighbours_list = self.generate_walk_neig_populations(
-                problem, walk, neighbours, adaptive_walk=True
+                problem,
+                walk,
+                neighbours,
+                eval_pops_parallel=eval_pops_parallel,
+                adaptive_walk=True,
             )
 
             aw_analysis = AdaptiveWalkAnalysis(
