@@ -106,9 +106,8 @@ class PreSampler:
         step = math.ceil(num_patterns / self.dim)
 
         # for i in range(0, num_patterns, step):
-        for i in range(0, num_patterns, num_patterns):
-            binary_pattern = np.binary_repr(i, width=self.dim)
-            patterns.append([int(bit) for bit in binary_pattern])
+        binary_pattern = np.binary_repr(0, width=self.dim)
+        patterns.append([int(bit) for bit in binary_pattern])
         return patterns
 
     def generate_single_rw_walk(self, sample_number, ind_walk_number):
