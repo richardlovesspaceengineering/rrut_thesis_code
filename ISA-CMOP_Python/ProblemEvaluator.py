@@ -56,7 +56,7 @@ class ProblemEvaluator:
         self.results_dir = results_dir
         self.csv_filename = results_dir + "/features.csv"
 
-        # Less samples for airfoils
+        # Less samples for airfoils. # TODO: generalise
         if "icas" in instance_name.lower():
             self.num_samples = min(num_samples, 10)
         else:
@@ -124,6 +124,7 @@ class ProblemEvaluator:
             self.num_processes_global_norm_dict = self.num_processes_rw_norm_dict
             self.num_processes_rw_eval_dict = self.num_processes_rw_norm_dict
             self.num_processes_global_eval_dict = self.num_processes_rw_norm_dict
+            self.num_processes_parallel_seed = 10  # max cores
         else:
             # Megatrons. Assumed available RAM of 128 GB.
             self.num_processes_rw_norm_dict = {
@@ -149,6 +150,8 @@ class ProblemEvaluator:
                 "20d": 30,
                 "30d": 30,
             }
+
+            self.num_processes_parallel_seed = 32  # max cores
 
         # Now we will allocate num_cores_global. This value will need to be smaller to deal with memory issues related to large matrices.
         print(self.instance)
@@ -278,8 +281,7 @@ class ProblemEvaluator:
         pop_neighbours_list = []
 
         if eval_pops_parallel:
-            # num_processes = self.num_processes_rw_eval
-            num_processes = 3
+            num_processes = self.num_processes_parallel_seed
         else:
             num_processes = 1
 
@@ -322,8 +324,7 @@ class ProblemEvaluator:
     ):
 
         if eval_pops_parallel:
-            # num_processes = self.num_processes_rw_eval
-            num_processes = 3
+            num_processes = self.num_processes_parallel_seed
         else:
             num_processes = 1
 
@@ -432,7 +433,9 @@ class ProblemEvaluator:
             with multiprocessing.Pool(
                 self.num_processes_global_norm, initializer=init_pool
             ) as pool:
-                args_list = [(i, pre_sampler, problem) for i in range(self.num_samples)]
+                args_list = [
+                    (i, pre_sampler, problem, False) for i in range(self.num_samples)
+                ]
 
                 results = pool.map(
                     self.eval_single_sample_global_features_norm, args_list
@@ -668,9 +671,9 @@ class ProblemEvaluator:
 
         return rw_single_sample_analyses_list
 
-    def do_random_walk_analysis(self, problem, pre_sampler):
+    def do_random_walk_analysis(self, problem, pre_sampler, eval_pops_parallel=False):
         self.walk_normalisation_values = self.compute_rw_normalisation_values(
-            pre_sampler, problem, eval_pops_parallel=True
+            pre_sampler, problem, eval_pops_parallel=eval_pops_parallel
         )
 
         rw_multiple_samples_analyses_list = []
@@ -734,9 +737,9 @@ class ProblemEvaluator:
 
         return global_analysis
 
-    def do_global_analysis(self, problem, pre_sampler):
+    def do_global_analysis(self, problem, pre_sampler, eval_pops_parallel=False):
         self.global_normalisation_values = self.compute_global_normalisation_values(
-            pre_sampler, problem, eval_pops_parallel=True
+            pre_sampler, problem, eval_pops_parallel=eval_pops_parallel
         )
 
         start_time = time.time()
@@ -958,9 +961,20 @@ class ProblemEvaluator:
             + " ~~~~~~~~~~~~ \n"
         )
 
+        # TODO: generalise
+        if "icas" in self.instance_name.lower():
+            eval_pops_parallel = True
+            print(
+                "RW and Global populations will be evaluated in parallel (1 individual per core)."
+            )
+        else:
+            eval_pops_parallel = False
+            print(
+                "RW and Global populations will be evaluated in series (1 features run per core)."
+            )
+
         rw_features = self.do_random_walk_analysis(
-            self.instance,
-            pre_sampler,
+            self.instance, pre_sampler, eval_pops_parallel=eval_pops_parallel
         )
         rw_features.export_unaggregated_features(self.instance_name, "rw", save_arrays)
 
@@ -971,12 +985,14 @@ class ProblemEvaluator:
             + " ~~~~~~~~~~~~ \n"
         )
 
-        global_features = self.do_global_analysis(self.instance, pre_sampler)
+        global_features = self.do_global_analysis(
+            self.instance, pre_sampler, eval_pops_parallel=eval_pops_parallel
+        )
         global_features.export_unaggregated_features(
             self.instance_name, "glob", save_arrays
         )
 
-        # Adaptive Walk Analysis.
+        # Adaptive Walk Analysis. Always do in series since we need evaluations of one point to get to the next.
         print(
             " \n ~~~~~~~~~~~~ AW Analysis for "
             + self.instance_name
