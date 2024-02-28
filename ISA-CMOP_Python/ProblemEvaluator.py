@@ -806,7 +806,9 @@ class ProblemEvaluator:
         return global_multiple_analysis
 
     @handle_ctrl_c
-    def eval_single_sample_aw_features(self, i, pre_sampler, problem, awGenerator):
+    def eval_single_sample_aw_features(
+        self, i, pre_sampler, problem, awGenerator, eval_pops_parallel=False
+    ):
         aw_single_sample_analyses_list = []
 
         # Loop over each of the walks within this sample.
@@ -816,6 +818,11 @@ class ProblemEvaluator:
                 i + 1, self.num_samples
             )
         )
+
+        if eval_pops_parallel:
+            num_processes = self.num_processes_parallel_seed
+        else:
+            num_processes = 1
 
         # Load in the pre-generated LHS sample as a starting point.
         distributed_sample = self.rescale_pregen_sample(
@@ -830,7 +837,9 @@ class ProblemEvaluator:
 
             # Generate the adaptive walk sample.
             walk = awGenerator.do_adaptive_phc_walk_for_starting_point(
-                distributed_sample[j, :], constrained_ranks=True
+                distributed_sample[j, :],
+                constrained_ranks=True,
+                num_processes=num_processes,
             )
             neighbours = awGenerator.generate_neighbours_for_walk(walk)
             # _, neighbours = pre_sampler.read_walk_neighbours(i + 1, 10)
@@ -879,7 +888,7 @@ class ProblemEvaluator:
 
         return aw_single_sample_analyses_list
 
-    def do_adaptive_walk_analysis(self, problem, pre_sampler):
+    def do_adaptive_walk_analysis(self, problem, pre_sampler, eval_pops_parallel=False):
         # Initialise AW generator object before any loops.
         n_var = pre_sampler.dim
 
@@ -908,30 +917,51 @@ class ProblemEvaluator:
 
         start_time = time.time()
 
-        with multiprocessing.Pool(self.num_processes_aw, initializer=init_pool) as pool:
-            print_with_timestamp(
-                "\nRunning parallel computation for AW features with {} processes. \n".format(
-                    self.num_processes_aw
-                )
-            )
-            results = pool.starmap(
-                self.eval_single_sample_aw_features,
-                zip(
-                    range(self.num_samples),
-                    repeat(pre_sampler),
-                    repeat(problem),
-                    repeat(awGenerator),
-                ),
-            )
+        if not eval_pops_parallel:
 
-            if any(map(lambda x: isinstance(x, KeyboardInterrupt), results)):
-                print("Ctrl-C was entered.")
+            print("Running in series.")
 
-            for i, aw_single_sample_analyses_list in enumerate(results):
-                aw_single_sample = Analysis.concatenate_single_analyses(
-                    aw_single_sample_analyses_list
+            with multiprocessing.Pool(
+                self.num_processes_aw, initializer=init_pool
+            ) as pool:
+                print_with_timestamp(
+                    "\nRunning parallel computation for AW features with {} processes. \n".format(
+                        self.num_processes_aw
+                    )
                 )
-                aw_multiple_samples_analyses_list.append(aw_single_sample)
+                results = pool.starmap(
+                    self.eval_single_sample_aw_features,
+                    zip(
+                        range(self.num_samples),
+                        repeat(pre_sampler),
+                        repeat(problem),
+                        repeat(awGenerator),
+                        repeat(False),
+                    ),
+                )
+
+                if any(map(lambda x: isinstance(x, KeyboardInterrupt), results)):
+                    print("Ctrl-C was entered.")
+
+                for i, aw_single_sample_analyses_list in enumerate(results):
+                    aw_single_sample = Analysis.concatenate_single_analyses(
+                        aw_single_sample_analyses_list
+                    )
+                    aw_multiple_samples_analyses_list.append(aw_single_sample)
+        else:
+            print("Running in parallel.")
+            init_pool()
+            for i in range(self.num_samples):
+                aw_single_sample_analyses_list = self.eval_single_sample_aw_features(
+                    i,
+                    pre_sampler,
+                    problem,
+                    awGenerator,
+                    eval_pops_parallel=eval_pops_parallel,
+                )
+                self.send_update_email(
+                    f"EVALUATED AW SEED {i+1}/{self.num_samples} FOR {self.instance_name}."
+                )
 
         # Concatenate analyses across samples.
         aw_analysis_all_samples = MultipleAnalysis(
@@ -973,7 +1003,7 @@ class ProblemEvaluator:
         pre_sampler = self.initialize_evaluator(temp_pops_dir)
 
         self.send_initialisation_email(f"STARTED RUN OF {self.instance_name}.")
-        
+
         # TODO: generalise
         if "icas" in self.instance_name.lower():
             eval_pops_parallel = True
@@ -1019,8 +1049,7 @@ class ProblemEvaluator:
             + " ~~~~~~~~~~~~ \n"
         )
         aw_features = self.do_adaptive_walk_analysis(
-            self.instance,
-            pre_sampler,
+            self.instance, pre_sampler, eval_pops_parallel=eval_pops_parallel
         )
         aw_features.export_unaggregated_features(self.instance_name, "aw", save_arrays)
 

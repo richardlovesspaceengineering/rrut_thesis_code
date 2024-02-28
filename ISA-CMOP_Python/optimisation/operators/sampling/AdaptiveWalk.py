@@ -21,7 +21,7 @@ class AdaptiveWalk(RandomWalk):
         self.initialise_step_sizes()
 
     def do_adaptive_phc_walk_for_starting_point(
-        self, starting_point, constrained_ranks, seed=None
+        self, starting_point, constrained_ranks, num_processes=1, seed=None
     ):
         """
         Simulate a Pareto Hill Climber - walk will move in direction that ensures improvement. If no further improvement is possible, the walk is concluded.
@@ -55,7 +55,11 @@ class AdaptiveWalk(RandomWalk):
             pop_first_step = Population(
                 self.problem_instance, n_individuals=step_and_neighbours.shape[0]
             )
-            pop_first_step.evaluate(step_and_neighbours, eval_fronts=True)
+            pop_first_step.evaluate(
+                step_and_neighbours,
+                eval_fronts=True,
+                num_processes=num_processes,
+            )
 
             # The first solution which has a rank lower than the current solution (located at top of matrix) is the next step of our walk.
             if not constrained_ranks:
