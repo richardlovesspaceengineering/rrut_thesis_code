@@ -3,26 +3,15 @@
 # Message describing the experimental setup.
 desc_msg="Running all 5D, then 10D and so on from JSON file."
 
-# Problem suites - these variables do not do anything.
-problemsCTP=("CTP1", "CTP2", "CTP3", "CTP4", "CTP5", "CTP6", "CTP7", "CTP8")
-problemsMW=("MW1", "MW2", "MW3", "MW4", "MW5", "MW6", "MW7", "MW8", "MW9", "MW10", "MW11", "MW12", "MW13", "MW14")
-problemsDASCMOP=("DASCMOP1", "DASCMOP2", "DASCMOP3", "DASCMOP4", "DASCMOP5", "DASCMOP6", "DASCMOP7", "DASCMOP8", "DASCMOP9")
-problemsDCDTLZ=("DC1DTLZ1" "DC1DTLZ3" "DC2DTLZ1" "DC2DTLZ3" "DC3DTLZ1" "DC3DTLZ3")
-problemsCDTLZ=("C1DTLZ1" "C1DTLZ3" "C2DTLZ2" "C3DTLZ1" "C3DTLZ4")
-problemsICAS=("ICAS2024Test")
 # problemsRW=("Truss2D", "WeldedBeam") # not scalable in Pymoo
 # problemsMODACT=("MODACT") # requires extra package
 
-# Dimensions to consider
-# dimensions=(5 10 15 20 30)
-# dimensions=(5 10)
-
-# Number of samples to run.
+# Number of samples to run. Will max out at 10 for aerofoil problems (handled in Python).
 num_samples=1
 
 # Modes are debug or eval.
-# mode="eval"
-mode="debug"
+mode="eval"
+# mode="debug"
 
 # Use pre-generated samples?
 regenerate_samples=false #@JUAN set to true if you need to generate/can't see the pregen_samples folder as a sibling folder.
@@ -160,8 +149,6 @@ jq -r "$jq_filter" $config_file | while read line; do
         echo "Skipping problem: $problem, dimension: $dim as per config."
     fi
 done
-
-
 
 
 # Clean up temp dir
