@@ -174,7 +174,7 @@ class GlobalAnalysis(Analysis):
 
         # For each point in the Pareto front, average the CV of the nearest neighbours to the PF in the sample.
         avg_cv_neighbours = []
-        print(f"indices: {indices}")
+        print(f"indices_shape: {indices.shape}")
         print(f"pop_len: {len(self.pop)}")
         for i in range(indices.shape[0]):
             avg_cv_neighbours.append(np.mean(cv[indices[i, :]]))
@@ -183,12 +183,12 @@ class GlobalAnalysis(Analysis):
         PFCV = np.mean(avg_cv_neighbours)
 
         # Initialize metrics.
-        PS_dist_max = 0
-        PS_dist_mean = 0
-        PS_dist_iqr = 0
-        PF_dist_max = 0
-        PF_dist_mean = 0
-        PF_dist_iqr = 0
+        PS_dist_max = np.nan
+        PS_dist_mean = np.nan
+        PS_dist_iqr = np.nan
+        PF_dist_max = np.nan
+        PF_dist_mean = np.nan
+        PF_dist_iqr = np.nan
 
         if obj.size > 1:
             # Constrained ranks.
