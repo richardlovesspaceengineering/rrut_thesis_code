@@ -233,6 +233,7 @@ class ProblemEvaluator:
         combined_array = combined_array[~np.isnan(combined_array).any(axis=1)]
 
         # Check if combined_array is empty after removing NaNs.
+        print(combined_array)
         if combined_array.size == 0:
             # Return dummy min and max values if combined_array is empty.
             return 0, 1
