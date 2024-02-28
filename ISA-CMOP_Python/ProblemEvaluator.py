@@ -229,13 +229,18 @@ class ProblemEvaluator:
         return x * (x_upper - x_lower) + x_lower
 
     def compute_maxmin_for_sample(self, combined_array, PF, which_variable):
+        
+        # Initialise fmin and fmax.
+        fmin = np.zeros(combined_array.shape[1])
+        fmax = np.ones(combined_array.shape[1])
+        
         # Deal with nans here to ensure no nans are returned.
         combined_array = combined_array[~np.isnan(combined_array).any(axis=1)]
 
         # Check if combined_array is empty after removing NaNs.
         if combined_array.size == 0:
             # Return dummy min and max values if combined_array is empty.
-            return np.zeros(combined_array.shape[1]), np.ones(combined_array.shape[1])
+            return fmin, fmax
 
         # Find the min and max of each column.
         fmin = np.min(combined_array, axis=0)
