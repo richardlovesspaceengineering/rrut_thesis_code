@@ -407,8 +407,6 @@ class MultipleAnalysis:
         else:
             self.analyses = single_sample_analyses
 
-        print(self.analyses)
-
         self.normalisation_values = normalisation_values
         self.feature_arrays = {}
         self.results_dir = self.analyses[0].results_dir
