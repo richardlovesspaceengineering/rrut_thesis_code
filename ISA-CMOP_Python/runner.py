@@ -82,7 +82,7 @@ def generate_instance(problem_name, n_var):
         append_airfoilsuite_path()
         from test_problems.icas2024 import ICAS2024Test
 
-        problem = ICAS2024Test(n_dim=n_var, solver="xfoil", impute_values=True)
+        problem = ICAS2024Test(n_dim=n_var, solver="xfoil", impute_values=False)
     else:
         problem = get_problem(problem_name, n_var=n_var)
 
