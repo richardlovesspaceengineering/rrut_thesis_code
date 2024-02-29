@@ -16,12 +16,12 @@
         "name": "Python: Run Single Problem",
         "type": "python",
         "request": "launch",
-        // "program": "C:/Users/richa/Documents/Thesis/rrut_thesis_code/ISA-CMOP_Python/runner.py",
-        "program": "/Users/richardrutherford/Documents/Thesis Code/rrut_thesis_code/ISA-CMOP_Python/runner.py",
+        "program": "C:/Users/richa/Documents/Thesis/rrut_thesis_code/ISA-CMOP_Python/runner.py",
+        // "program": "/Users/richardrutherford/Documents/Thesis Code/rrut_thesis_code/ISA-CMOP_Python/runner.py",
         "args": [
             // "ICAS2024Test", //problem
-            "DASCMOP2",
-            "10", // dimension
+            "CS1",
+            "20", // dimension
             "1", // num samples
             "debug", // mode
             "true", // save results
@@ -30,8 +30,8 @@
             "3", // num cores
         ],
         "console": "integratedTerminal",
-        "cwd": "/Users/richardrutherford/Documents/Thesis Code/rrut_thesis_code/ISA-CMOP_Python",
-        // "cwd": "C:/Users/richa/Documents/Thesis/rrut_thesis_code/ISA-CMOP_Python",
+        // "cwd": "/Users/richardrutherford/Documents/Thesis Code/rrut_thesis_code/ISA-CMOP_Python",
+        "cwd": "C:/Users/richa/Documents/Thesis/rrut_thesis_code/ISA-CMOP_Python",
         "justMyCode": false
     }
     

@@ -1,6 +1,7 @@
 {
   "debug": {
-    "ICAS2024Test_d10": "true",
+    "CS1_d20": "true",
+    "ICAS2024Test_d10": "false",
     "MW14_d30": "false"
     },
   "eval": {
@@ -130,6 +131,11 @@
     "C2DTLZ2_d20": "false",
     "C3DTLZ1_d20": "false",
     "C3DTLZ4_d20": "false",
+    "CS1_d20": "false",
+    "CS2_d20": "false",
+    "CS3_d20": "false",
+    "CS4_d20": "false",
+    "CST1_d20": "false",
     "CTP1_d30": "false",
     "CTP2_d30": "false",
     "CTP3_d30": "false",

@@ -864,7 +864,11 @@ class ProblemEvaluator:
 
             # Now find neighbours.
             pop_neighbours_list = self.generate_neig_populations(
-                problem, neighbours, eval_fronts=False, num_processes=num_processes
+                problem,
+                neighbours,
+                eval_fronts=False,
+                adaptive_walk=True,
+                num_processes=num_processes,
             )
 
             aw_analysis = AdaptiveWalkAnalysis(

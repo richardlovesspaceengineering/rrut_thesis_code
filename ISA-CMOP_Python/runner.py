@@ -6,6 +6,7 @@ from PreSampler import PreSampler
 
 # Import the get_problem method from pymoo.problems
 from pymoo.problems import get_problem
+from pymoo.problems.multi import MODAct
 from pathlib import Path
 import numpy as np
 import socket
@@ -75,10 +76,15 @@ def generate_suite_structure(benchmark_problem_names, dimensions):
 
 # Function to generate a single problem instance
 def generate_instance(problem_name, n_var):
+    problem_name = problem_name.lower()
+
     # Check if problem_name contains 'DASCMOP'
-    if "dascmop" in problem_name.lower():
+    if "dascmop" in problem_name:
         problem = get_problem(problem_name, n_var=n_var, difficulty=8)
-    elif problem_name.lower() == "icas2024test":
+    elif problem_name.startswith("cs"):
+        problem = MODAct(problem_name)
+        print("MODAct problem selected - note that these are fixed 20D problems.")
+    elif problem_name == "icas2024test":
         append_airfoilsuite_path()
         from test_problems.icas2024 import ICAS2024Test
 
@@ -86,7 +92,7 @@ def generate_instance(problem_name, n_var):
     else:
         problem = get_problem(problem_name, n_var=n_var)
 
-    instance_string = f"{problem_name}_d{n_var}"
+    instance_string = f"{problem_name.upper()}_d{n_var}"
     return problem, instance_string
 
 
