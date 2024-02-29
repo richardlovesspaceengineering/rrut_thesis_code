@@ -4,12 +4,11 @@ import numpy as np
 class Setup:
 
     def __init__(self):
-
         """
         This case implements the abstract parent class on which any case setup instance can be based
         """
 
-        self.name = ''
+        self.name = ""
 
     def do(self, prob, **kwargs):
 
@@ -35,5 +34,6 @@ class Setup:
     def set_pareto(self, prob, pareto_set, **kwargs):
         pass
 
-
-
+    def _calc_pareto_front(self, path):
+        # Assuming that PF is always stored in a text file.
+        return np.genfromtxt(path, delimiter="")

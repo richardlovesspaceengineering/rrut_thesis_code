@@ -249,9 +249,10 @@ class Population(np.ndarray):
 
     @handle_ctrl_c
     def evaluate(self, var_array, eval_fronts, num_processes=1):
-        if "pymoo" in getattr(self[0].problem, "__module__"):
-            vectorized = True
-        else:
+
+        vectorized = True
+
+        if self[0].problem.name.lower().startswith(("icas", "lircmop")):
             vectorized = False
 
         if vectorized:
