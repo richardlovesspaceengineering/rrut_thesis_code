@@ -1,5 +1,0 @@
-Name,D,nsga3_HV_mean,nsga3_HV_std,nsga2_HV_mean,nsga2_HV_std,moead_HV_mean,moead_HV_std
-CTP1_d5, 5, 0.1, 0.01, 0.2, 0.02, 0.3, 0.03
-CTP2_d5, 5, 0.1, 0.01, 0.2, 0.02, 0.3, 0.03
-MW1_d5, 5, 0.1, 0.01, 0.2, 0.02, 0.3, 0.03
-MW2_d5, 5, 0.1, 0.01, 0.2, 0.02, 0.3, 0.03
