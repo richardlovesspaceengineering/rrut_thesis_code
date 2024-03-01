@@ -57,7 +57,11 @@ class ProblemEvaluator:
         self.csv_filename = results_dir + "/features.csv"
 
         # Less samples for airfoils. # TODO: generalise
-        if "icas" in instance_name.lower():
+        instance_name_lower = instance_name.lower()
+        if "icas" in instance_name_lower or (
+            instance_name_lower.startswith(("cs", "ct"))
+            and "ctp" not in instance_name_lower
+        ):
             self.num_samples = min(num_samples, 10)
         else:
             self.num_samples = num_samples
@@ -1022,7 +1026,11 @@ class ProblemEvaluator:
         self.send_initialisation_email(f"STARTED RUN OF {self.instance_name}.")
 
         # TODO: generalise
-        if "icas" in self.instance_name.lower():
+        instance_name_lower = self.instance_name.lower()
+        if "icas" in instance_name_lower or (
+            instance_name_lower.startswith(("cs", "ct"))
+            and "ctp" not in instance_name_lower
+        ):
             eval_pops_parallel = True
             print(
                 "RW and Global populations will be evaluated in parallel (1 individual per core)."

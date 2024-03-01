@@ -4,14 +4,15 @@
     "CS2_d20": "false",
     "CS3_d20": "false",
     "CS4_d20": "false",
-    "CT1_d20": "true",
-    "CT2_d20": "true",
-    "CT3_d20": "true",
-    "CT4_d20": "true",
+    "CT1_d20": "false",
+    "CT2_d20": "false",
+    "CT3_d20": "false",
+    "CT4_d20": "false",
     "ICAS2024Test_d10": "false",
     "MW14_d30": "false"
     },
   "eval": {
+    "ICAS2024Test_d10": "true",
     "CTP1_d5": "false",
     "CTP2_d5": "false",
     "CTP3_d5": "false",
@@ -244,7 +245,6 @@
     "C2DTLZ2_d30": "false",
     "C3DTLZ1_d30": "false",
     "C3DTLZ4_d30": "false",
-    "ICAS2024Test_d10": "false",
     "ICAS2024Test_d20": "false",
     "ICAS2024Test_d30": "false"
   }
