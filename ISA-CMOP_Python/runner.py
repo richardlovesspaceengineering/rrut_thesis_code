@@ -80,9 +80,7 @@ def generate_instance(problem_name, n_var):
     problem_name = problem_name.lower()
 
     # Check if problem_name contains 'DASCMOP'
-    if "dascmop" in problem_name:
-        problem = get_problem(problem_name, n_var=n_var, difficulty=8)
-    elif problem_name.startswith("cs"):
+    if problem_name.startswith("cs"):
         problem = MODAct(problem_name)
         print("MODAct problem selected - note that these are fixed 20D problems.")
     elif "lircmop" in problem_name:
@@ -94,7 +92,6 @@ def generate_instance(problem_name, n_var):
         problem.n_constr = problem.n_constraints
         problem.xl = problem.lb
         problem.xu = problem.ub
-        problem.name = problem.problem_name
 
     elif problem_name == "icas2024test":
         append_airfoilsuite_path()
@@ -109,7 +106,13 @@ def generate_instance(problem_name, n_var):
         problem.xu = problem.ub
 
     else:
-        problem = get_problem(problem_name, n_var=n_var)
+
+        if "dascmop" in problem_name:
+            problem = get_problem(problem_name, n_var=n_var, difficulty=8)
+        else:
+            problem = get_problem(problem_name, n_var=n_var)
+
+    problem.problem_name = problem_name.upper()
 
     instance_string = f"{problem_name.upper()}_d{n_var}"
     return problem, instance_string

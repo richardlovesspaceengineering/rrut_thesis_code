@@ -252,7 +252,7 @@ class Population(np.ndarray):
 
         vectorized = True
 
-        if self[0].problem.name.lower().startswith(("icas", "lircmop")):
+        if self[0].problem.problem_name.lower().startswith(("icas", "lircmop")):
             vectorized = False
 
         if vectorized:
