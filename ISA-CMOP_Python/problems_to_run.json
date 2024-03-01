@@ -1,10 +1,11 @@
 {
   "debug": {
-    "CS1_d20": "false",
+    "LIRCMOP1_d5": "true",
+    "CS1_d20": "true",
     "CS2_d20": "false",
     "CS3_d20": "false",
     "CS4_d20": "false",
-    "CT1_d20": "false",
+    "CT1_d20": "true",
     "CT2_d20": "false",
     "CT3_d20": "false",
     "CT4_d20": "false",
