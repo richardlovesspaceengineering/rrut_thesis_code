@@ -80,7 +80,7 @@ def generate_instance(problem_name, n_var):
     problem_name = problem_name.lower()
 
     # Check if problem_name contains 'DASCMOP'
-    if problem_name.startswith("cs"):
+    if problem_name.startswith(("cs", "ct")) and "ctp" not in problem_name:
         problem = MODAct(problem_name)
         print("MODAct problem selected - note that these are fixed 20D problems.")
     elif "lircmop" in problem_name:
