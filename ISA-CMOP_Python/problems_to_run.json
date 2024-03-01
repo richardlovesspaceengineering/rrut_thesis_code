@@ -1,6 +1,6 @@
 {
   "debug": {
-    "LIRCMOP1_d5": "true",
+    "LIRCMOP1_d5": "false",
     "CS1_d20": "true",
     "CS2_d20": "false",
     "CS3_d20": "false",
