@@ -69,7 +69,8 @@ class FeaturesDashboard:
                     full_path = os.path.join(self.base_results_dir, folder)
                     # Check if the directory exists before appending
                     if os.path.isdir(full_path):
-                        self.features_path_list.append(full_path)
+                        if full_path not in self.features_path_list:
+                            self.features_path_list.append(full_path)
                     else:
 
                         # Ensures warning only gets printed once.
@@ -78,6 +79,7 @@ class FeaturesDashboard:
                             print(f"Warning: The directory {full_path} does not exist.")
 
         # Collate all results into one folder.
+        self.wipe_features_directory()
         self.copy_directory_contents()
         self.features_df = self.get_landscape_features_df(give_sd=True)
 
@@ -104,7 +106,7 @@ class FeaturesDashboard:
 
         for filename in os.listdir(self.new_save_path):
             if (
-                filename.startswith("features_")
+                filename.startswith("features")
                 and filename.endswith(".csv")
                 and "collated" not in filename
             ):
@@ -117,18 +119,32 @@ class FeaturesDashboard:
                 # Add suite column based on problem name
                 temp_df["Suite"] = temp_df["Name"].apply(self.get_suite_for_problem)
 
-                cols = temp_df.columns.tolist()
-                cols.insert(1, cols.pop(cols.index("Date")))  # Ensure 'Date' is second
-                cols.insert(2, cols.pop(cols.index("Suite")))  # Ensure 'Suite' is third
-                temp_df = temp_df[cols]
+                # Filter rows based on 'Name' and 'Date'. For each problem, we only want to keep results from the dates given in results_dict.
+                temp_df = temp_df[
+                    temp_df.apply(
+                        lambda row: row["Name"] in self.results_dict
+                        and row["Date"] in self.results_dict[row["Name"]],
+                        axis=1,
+                    )
+                ]
 
-                df_list.append(temp_df)
+                if not temp_df.empty:
+                    cols = temp_df.columns.tolist()
+                    cols.insert(
+                        1, cols.pop(cols.index("Date"))
+                    )  # Ensure 'Date' is second
+                    cols.insert(
+                        2, cols.pop(cols.index("Suite"))
+                    )  # Ensure 'Suite' is third
+                    temp_df = temp_df[cols]
+
+                    df_list.append(temp_df)
 
         if df_list:
             overall_df = pd.concat(df_list, ignore_index=True)
         else:
             raise FileNotFoundError(
-                "No features_{timestamp}.csv files found in the new save path."
+                f"No features_{timestamp}.csv files found in the new save path."
             )
 
         return overall_df
@@ -157,7 +173,7 @@ class FeaturesDashboard:
         os.makedirs(self.new_save_path, exist_ok=True)
 
         for src_dir in self.features_path_list:
-            if os.path.isdir(src_dir):
+            if os.path.exists(src_dir):
                 unique_identifier = os.path.basename(
                     src_dir
                 )  # Extract a unique identifier from the directory name
@@ -173,7 +189,9 @@ class FeaturesDashboard:
         """
         for item in os.listdir(src):
             src_item = os.path.join(src, item)
+
             if os.path.isdir(src_item):
+
                 # For directories, append the unique identifier to the directory name and create it in the destination
                 new_dir_name = f"{item}_{unique_identifier}"
                 new_dir_path = os.path.join(dst, new_dir_name)
@@ -181,9 +199,12 @@ class FeaturesDashboard:
                 # Recursively copy the directory contents
                 self._copy_items(src_item, new_dir_path, unique_identifier)
             else:
+
                 # For files, append the unique identifier to the file name before copying
                 file_base, file_extension = os.path.splitext(item)
-                new_filename = f"{file_base}{file_extension}"
+
+                new_filename = f"{file_base}_{unique_identifier}{file_extension}"
+
                 dst_item = os.path.join(dst, new_filename)
                 shutil.copy2(src_item, dst_item)
                 print(f"Copied {src_item} to {dst_item}")

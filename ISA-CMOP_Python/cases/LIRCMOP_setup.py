@@ -11,6 +11,7 @@ class LIRCMOPSetup(Setup):
     """
     Wrapper class for standarised LIRCMOP methods
     """
+
     def __init__(self, dim, n_objectives):
         super().__init__()
 
@@ -20,7 +21,7 @@ class LIRCMOPSetup(Setup):
     # LIRCMOP13-14
     @staticmethod
     def g(obj):
-        return np.sum(obj ** 2)
+        return np.sum(obj**2)
 
     # LIRCMOP1-4
     @staticmethod
@@ -40,13 +41,18 @@ class LIRCMOPSetup(Setup):
 
     # LIRCMOP5-12
     def g4(self, x):
-        const = 0.5 * np.pi * np.arange(2, self.dim+1, 2) / self.dim
+        const = 0.5 * np.pi * np.arange(2, self.dim + 1, 2) / self.dim
         g = np.sum((x[1::2] - np.cos(const * x[0])) ** 2)
         return g
 
     # LIRCMOP13-14
     def g5(self, x):
-        return np.sum((x[2::2] - 0.5)**2)
+        return np.sum((x[2::2] - 0.5) ** 2)
+
+    def _calc_pareto_front(self):
+        return super()._calc_pareto_front(
+            f"./cases/LIRCMOP_files/{self.problem_name}.pf"
+        )
 
 
 class LIRCMOP1(LIRCMOPSetup):
@@ -55,15 +61,13 @@ class LIRCMOP1(LIRCMOPSetup):
     """
 
     def __init__(self, n_dim=30, n_constraints=2):
-        self.problem_name = 'LIRCMOP1'
+        self.problem_name = "LIRCMOP1"
         self.dim = n_dim
         self.n_objectives = 2
         self.n_constraints = n_constraints
         super().__init__(dim=n_dim, n_objectives=self.n_objectives)
 
-        # TODO: Optimum Pareto Front
-        # self.f_opt = self.exact_pareto(50)
-        self.f_opt = np.genfromtxt(f"./cases/LIRCMOP_files/{self.problem_name}.pf", delimiter='')
+        self.f_opt = None
         self.var_opt = None
 
         self.int_var = np.array([])
@@ -73,23 +77,38 @@ class LIRCMOP1(LIRCMOPSetup):
         self.ub = np.ones(self.dim)
 
     def set_variables(self, prob, **kwargs):
-        prob.add_var_group('x_vars', self.dim, 'c', lower=self.lb, upper=self.ub, value=0.5 * np.ones(self.dim),
-                           scale=1.0, f_opt=self.f_opt)
+        prob.add_var_group(
+            "x_vars",
+            self.dim,
+            "c",
+            lower=self.lb,
+            upper=self.ub,
+            value=0.5 * np.ones(self.dim),
+            scale=1.0,
+            f_opt=self.f_opt,
+        )
 
     def set_constraints(self, prob, **kwargs):
-        prob.add_con_group('con', self.n_constraints, lower=None, upper=None)  # Todo: check bounds
+        prob.add_con_group(
+            "con", self.n_constraints, lower=None, upper=None
+        )  # Todo: check bounds
 
     def set_objectives(self, prob, **kwargs):
         for i in range(self.n_objectives):
             prob.add_obj(f"f_{i}")
 
     def obj_func(self, x_dict, **kwargs):
-        x = x_dict['x_vars']
+        x = x_dict["x_vars"]
         obj = self.obj_func_specific(x)
         cons = self.cons_func_specific(x)
         performance = None
 
         return obj, cons, performance
+
+    def evaluate(self, var):
+        obj = self.obj_func_specific(var)
+        cons = self.cons_func_specific(var)
+        return obj, cons
 
     def obj_func_specific(self, x):
         obj = np.zeros(self.n_objectives)
@@ -123,11 +142,10 @@ class LIRCMOP2(LIRCMOP1):
 
     def __init__(self, n_dim=30, n_constraints=2):
         super().__init__(n_dim=n_dim, n_constraints=n_constraints)
-        self.problem_name = 'LIRCMOP2'
+        self.problem_name = "LIRCMOP2"
 
         # Optimum Pareto Front
-        # self.f_opt = self.exact_pareto(50)
-        self.f_opt = np.genfromtxt(f"./cases/LIRCMOP_files/{self.problem_name}.pf", delimiter='')
+        self.f_opt = None
 
     def obj_func_specific(self, x):
         obj = np.zeros(self.n_objectives)
@@ -153,8 +171,8 @@ class LIRCMOP3(LIRCMOP1):
 
     def __init__(self, n_dim=30):
         super().__init__(n_dim=n_dim, n_constraints=3)
-        self.problem_name = 'LIRCMOP3'
-        self.f_opt = np.genfromtxt(f"./cases/LIRCMOP_files/{self.problem_name}.pf", delimiter='')
+        self.problem_name = "LIRCMOP3"
+        self.f_opt = None
 
     def cons_func_specific(self, x, a=0.51, b=0.5, c=20.0):
         cons = np.zeros(self.n_constraints)
@@ -173,8 +191,8 @@ class LIRCMOP4(LIRCMOP2):
 
     def __init__(self, n_dim=30):
         super().__init__(n_dim=n_dim, n_constraints=3)
-        self.problem_name = 'LIRCMOP4'
-        self.f_opt = np.genfromtxt(f"./cases/LIRCMOP_files/{self.problem_name}.pf", delimiter='')
+        self.problem_name = "LIRCMOP4"
+        self.f_opt = None
 
     def cons_func_specific(self, x, a=0.51, b=0.5, c=20.0):
         cons = np.zeros(self.n_constraints)
@@ -192,15 +210,13 @@ class LIRCMOP5(LIRCMOPSetup):
     """
 
     def __init__(self, n_dim=30, n_constraints=2):
-        self.problem_name = 'LIRCMOP5'
+        self.problem_name = "LIRCMOP5"
         self.dim = n_dim
         self.n_objectives = 2
         self.n_constraints = n_constraints
         super().__init__(dim=n_dim, n_objectives=self.n_objectives)
 
-        # TODO: Optimum Pareto Front
-        # self.f_opt = self.exact_pareto(50)
-        self.f_opt = np.genfromtxt(f"./cases/LIRCMOP_files/{self.problem_name}.pf", delimiter='')
+        self.f_opt
         self.var_opt = None
 
         self.int_var = np.array([])
@@ -210,18 +226,28 @@ class LIRCMOP5(LIRCMOPSetup):
         self.ub = np.ones(self.dim)
 
     def set_variables(self, prob, **kwargs):
-        prob.add_var_group('x_vars', self.dim, 'c', lower=self.lb, upper=self.ub, value=0.5 * np.ones(self.dim),
-                           scale=1.0, f_opt=self.f_opt)
+        prob.add_var_group(
+            "x_vars",
+            self.dim,
+            "c",
+            lower=self.lb,
+            upper=self.ub,
+            value=0.5 * np.ones(self.dim),
+            scale=1.0,
+            f_opt=self.f_opt,
+        )
 
     def set_constraints(self, prob, **kwargs):
-        prob.add_con_group('con', self.n_constraints, lower=None, upper=None)  # Todo: check bounds
+        prob.add_con_group(
+            "con", self.n_constraints, lower=None, upper=None
+        )  # Todo: check bounds
 
     def set_objectives(self, prob, **kwargs):
         for i in range(self.n_objectives):
             prob.add_obj(f"f_{i}")
 
     def obj_func(self, x_dict, **kwargs):
-        x = x_dict['x_vars']
+        x = x_dict["x_vars"]
         obj, cons = self.obj_func_specific(x)
         # cons = self.cons_func_specific(x)
         performance = None
@@ -237,7 +263,7 @@ class LIRCMOP5(LIRCMOPSetup):
         cons = self.cons_func_specific(obj)
         return obj, cons
 
-    def cons_func_specific(self, obj, r=0.1, theta=-0.25*np.pi):
+    def cons_func_specific(self, obj, r=0.1, theta=-0.25 * np.pi):
         a_array = [2.0, 2.0]
         b_array = [4.0, 8.0]
         x_offset = [1.6, 2.5]
@@ -246,8 +272,19 @@ class LIRCMOP5(LIRCMOPSetup):
         f1 = obj[0]
         f2 = obj[1]
 
-        cons = (((f1 - x_offset) * np.cos(theta) - (f2 - y_offset) * np.sin(theta)) / a_array) ** 2 +\
-               (((f1 - x_offset) * np.sin(theta) + (f2 - y_offset) * np.cos(theta)) / b_array) ** 2 - r
+        cons = (
+            (
+                ((f1 - x_offset) * np.cos(theta) - (f2 - y_offset) * np.sin(theta))
+                / a_array
+            )
+            ** 2
+            + (
+                ((f1 - x_offset) * np.sin(theta) + (f2 - y_offset) * np.cos(theta))
+                / b_array
+            )
+            ** 2
+            - r
+        )
 
         return -cons
 
@@ -267,8 +304,8 @@ class LIRCMOP6(LIRCMOP5):
 
     def __init__(self, n_dim=30, n_constraints=2):
         super().__init__(n_dim=n_dim, n_constraints=n_constraints)
-        self.problem_name = 'LIRCMOP6'
-        self.f_opt = np.genfromtxt(f"./cases/LIRCMOP_files/{self.problem_name}.pf", delimiter='')
+        self.problem_name = "LIRCMOP6"
+        self.f_opt = None
 
     def obj_func_specific(self, x):
         obj = np.zeros(self.n_objectives)
@@ -279,7 +316,7 @@ class LIRCMOP6(LIRCMOP5):
         cons = self.cons_func_specific(obj)
         return obj, cons
 
-    def cons_func_specific(self, obj, r=0.1, theta=-0.25*np.pi):
+    def cons_func_specific(self, obj, r=0.1, theta=-0.25 * np.pi):
         a_array = [2.0, 2.0]
         b_array = [8.0, 8.0]
         x_offset = [1.8, 2.8]
@@ -288,8 +325,19 @@ class LIRCMOP6(LIRCMOP5):
         f1 = obj[0]
         f2 = obj[1]
 
-        cons = (((f1 - x_offset) * np.cos(theta) - (f2 - y_offset) * np.sin(theta)) / a_array) ** 2 +\
-               (((f1 - x_offset) * np.sin(theta) + (f2 - y_offset) * np.cos(theta)) / b_array) ** 2 - r
+        cons = (
+            (
+                ((f1 - x_offset) * np.cos(theta) - (f2 - y_offset) * np.sin(theta))
+                / a_array
+            )
+            ** 2
+            + (
+                ((f1 - x_offset) * np.sin(theta) + (f2 - y_offset) * np.cos(theta))
+                / b_array
+            )
+            ** 2
+            - r
+        )
 
         return -cons
 
@@ -301,10 +349,10 @@ class LIRCMOP7(LIRCMOP5):
 
     def __init__(self, n_dim=30):
         super().__init__(n_dim=n_dim, n_constraints=3)
-        self.problem_name = 'LIRCMOP7'
-        self.f_opt = np.genfromtxt(f"./cases/LIRCMOP_files/{self.problem_name}.pf", delimiter='')
+        self.problem_name = "LIRCMOP7"
+        self.f_opt = None
 
-    def cons_func_specific(self, obj, r=0.1, theta=-0.25*np.pi):
+    def cons_func_specific(self, obj, r=0.1, theta=-0.25 * np.pi):
         a_array = [2.0, 2.5, 2.5]
         b_array = [6.0, 12.0, 10.0]
         x_offset = [1.2, 2.25, 3.5]
@@ -313,8 +361,19 @@ class LIRCMOP7(LIRCMOP5):
         f1 = obj[0]
         f2 = obj[1]
 
-        cons = (((f1 - x_offset) * np.cos(theta) - (f2 - y_offset) * np.sin(theta)) / a_array) ** 2 +\
-               (((f1 - x_offset) * np.sin(theta) + (f2 - y_offset) * np.cos(theta)) / b_array) ** 2 - r
+        cons = (
+            (
+                ((f1 - x_offset) * np.cos(theta) - (f2 - y_offset) * np.sin(theta))
+                / a_array
+            )
+            ** 2
+            + (
+                ((f1 - x_offset) * np.sin(theta) + (f2 - y_offset) * np.cos(theta))
+                / b_array
+            )
+            ** 2
+            - r
+        )
 
         return -cons
 
@@ -326,10 +385,10 @@ class LIRCMOP8(LIRCMOP6):
 
     def __init__(self, n_dim=30, n_constraints=3):
         super().__init__(n_dim=n_dim, n_constraints=n_constraints)
-        self.problem_name = 'LIRCMOP8'
-        self.f_opt = np.genfromtxt(f"./cases/LIRCMOP_files/{self.problem_name}.pf", delimiter='')
+        self.problem_name = "LIRCMOP8"
+        self.f_opt = None
 
-    def cons_func_specific(self, obj, r=0.1, theta=-0.25*np.pi):
+    def cons_func_specific(self, obj, r=0.1, theta=-0.25 * np.pi):
         a_array = [2.0, 2.5, 2.5]
         b_array = [6.0, 12.0, 10.0]
         x_offset = [1.2, 2.25, 3.5]
@@ -338,8 +397,19 @@ class LIRCMOP8(LIRCMOP6):
         f1 = obj[0]
         f2 = obj[1]
 
-        cons = (((f1 - x_offset) * np.cos(theta) - (f2 - y_offset) * np.sin(theta)) / a_array) ** 2 +\
-               (((f1 - x_offset) * np.sin(theta) + (f2 - y_offset) * np.cos(theta)) / b_array) ** 2 - r
+        cons = (
+            (
+                ((f1 - x_offset) * np.cos(theta) - (f2 - y_offset) * np.sin(theta))
+                / a_array
+            )
+            ** 2
+            + (
+                ((f1 - x_offset) * np.sin(theta) + (f2 - y_offset) * np.cos(theta))
+                / b_array
+            )
+            ** 2
+            - r
+        )
 
         return -cons
 
@@ -351,8 +421,8 @@ class LIRCMOP9(LIRCMOP8):
 
     def __init__(self, n_dim=30, n_constraints=2):
         super().__init__(n_dim=n_dim, n_constraints=n_constraints)
-        self.problem_name = 'LIRCMOP9'
-        self.f_opt = np.genfromtxt(f"./cases/LIRCMOP_files/{self.problem_name}.pf", delimiter='')
+        self.problem_name = "LIRCMOP9"
+        self.f_opt = None
 
     def obj_func_specific(self, x):
         obj = np.zeros(self.n_objectives)
@@ -363,7 +433,7 @@ class LIRCMOP9(LIRCMOP8):
         cons = self.cons_func_specific(obj)
         return obj, cons
 
-    def cons_func_specific(self, obj, r=0.1, theta=-0.25*np.pi, n=4.0):
+    def cons_func_specific(self, obj, r=0.1, theta=-0.25 * np.pi, n=4.0):
         cons = np.zeros(self.n_constraints)
 
         x_offset = 1.40
@@ -375,10 +445,19 @@ class LIRCMOP9(LIRCMOP8):
         f1 = obj[0]
         f2 = obj[1]
 
-        cons[0] = f1 * np.sin(alpha) + f2 * np.cos(alpha) - np.sin(n * np.pi *
-                                                                      (f1 * np.cos(alpha) - f2 * np.sin(alpha))) - 2
-        cons[1] = (((f1 - x_offset) * np.cos(theta) - (f2 - y_offset) * np.sin(theta)) / a) ** 2 +\
-                  (((f1 - x_offset) * np.sin(theta) + (f2 - y_offset) * np.cos(theta)) / b) ** 2 - r
+        cons[0] = (
+            f1 * np.sin(alpha)
+            + f2 * np.cos(alpha)
+            - np.sin(n * np.pi * (f1 * np.cos(alpha) - f2 * np.sin(alpha)))
+            - 2
+        )
+        cons[1] = (
+            (((f1 - x_offset) * np.cos(theta) - (f2 - y_offset) * np.sin(theta)) / a)
+            ** 2
+            + (((f1 - x_offset) * np.sin(theta) + (f2 - y_offset) * np.cos(theta)) / b)
+            ** 2
+            - r
+        )
 
         return -cons
 
@@ -390,11 +469,11 @@ class LIRCMOP10(LIRCMOP9):
 
     def __init__(self, n_dim=30, n_constraints=2):
         super().__init__(n_dim=n_dim, n_constraints=n_constraints)
-        self.problem_name = 'LIRCMOP10'
-        self.f_opt = np.genfromtxt(f"./cases/LIRCMOP_files/{self.problem_name}.pf", delimiter='')
+        self.problem_name = "LIRCMOP10"
+        self.f_opt = None
 
     def obj_func(self, x_dict, **kwargs):
-        x = x_dict['x_vars']
+        x = x_dict["x_vars"]
         obj, cons = self.obj_func_specific(x)
         performance = None
 
@@ -409,7 +488,7 @@ class LIRCMOP10(LIRCMOP9):
         cons = self.cons_func_specific(obj)
         return obj, cons
 
-    def cons_func_specific(self, obj, r=0.1, theta=-0.25*np.pi, n=4.0):
+    def cons_func_specific(self, obj, r=0.1, theta=-0.25 * np.pi, n=4.0):
         cons = np.zeros(self.n_constraints)
 
         x_offset = 1.1
@@ -421,10 +500,19 @@ class LIRCMOP10(LIRCMOP9):
         f1 = obj[0]
         f2 = obj[1]
 
-        cons[0] = f1 * np.sin(alpha) + f2 * np.cos(alpha) - np.sin(n * np.pi *
-                                                                      (f1 * np.cos(alpha) - f2 * np.sin(alpha))) - 2
-        cons[1] = (((f1 - x_offset) * np.cos(theta) - (f2 - y_offset) * np.sin(theta)) / a) ** 2 +\
-                  (((f1 - x_offset) * np.sin(theta) + (f2 - y_offset) * np.cos(theta)) / b) ** 2 - r
+        cons[0] = (
+            f1 * np.sin(alpha)
+            + f2 * np.cos(alpha)
+            - np.sin(n * np.pi * (f1 * np.cos(alpha) - f2 * np.sin(alpha)))
+            - 2
+        )
+        cons[1] = (
+            (((f1 - x_offset) * np.cos(theta) - (f2 - y_offset) * np.sin(theta)) / a)
+            ** 2
+            + (((f1 - x_offset) * np.sin(theta) + (f2 - y_offset) * np.cos(theta)) / b)
+            ** 2
+            - r
+        )
 
         return -cons
 
@@ -436,10 +524,10 @@ class LIRCMOP11(LIRCMOP10):
 
     def __init__(self, n_dim=30, n_constraints=2):
         super().__init__(n_dim=n_dim, n_constraints=n_constraints)
-        self.problem_name = 'LIRCMOP11'
-        self.f_opt = np.genfromtxt(f"./cases/LIRCMOP_files/{self.problem_name}.pf", delimiter='')
+        self.problem_name = "LIRCMOP11"
+        self.f_opt = None
 
-    def cons_func_specific(self, obj, r=0.1, theta=-0.25*np.pi, n=4.0):
+    def cons_func_specific(self, obj, r=0.1, theta=-0.25 * np.pi, n=4.0):
         cons = np.zeros(self.n_constraints)
 
         x_offset = 1.2
@@ -451,10 +539,19 @@ class LIRCMOP11(LIRCMOP10):
         f1 = obj[0]
         f2 = obj[1]
 
-        cons[0] = f1 * np.sin(alpha) + f2 * np.cos(alpha) - np.sin(n * np.pi *
-                                                                      (f1 * np.cos(alpha) - f2 * np.sin(alpha))) - 2
-        cons[1] = (((f1 - x_offset) * np.cos(theta) - (f2 - y_offset) * np.sin(theta)) / a) ** 2 +\
-                  (((f1 - x_offset) * np.sin(theta) + (f2 - y_offset) * np.cos(theta)) / b) ** 2 - r
+        cons[0] = (
+            f1 * np.sin(alpha)
+            + f2 * np.cos(alpha)
+            - np.sin(n * np.pi * (f1 * np.cos(alpha) - f2 * np.sin(alpha)))
+            - 2
+        )
+        cons[1] = (
+            (((f1 - x_offset) * np.cos(theta) - (f2 - y_offset) * np.sin(theta)) / a)
+            ** 2
+            + (((f1 - x_offset) * np.sin(theta) + (f2 - y_offset) * np.cos(theta)) / b)
+            ** 2
+            - r
+        )
 
         return -cons
 
@@ -466,10 +563,10 @@ class LIRCMOP12(LIRCMOP9):
 
     def __init__(self, n_dim=30, n_constraints=2):
         super().__init__(n_dim=n_dim, n_constraints=n_constraints)
-        self.problem_name = 'LIRCMOP12'
-        self.f_opt = np.genfromtxt(f"./cases/LIRCMOP_files/{self.problem_name}.pf", delimiter='')
+        self.problem_name = "LIRCMOP12"
+        self.f_opt = None
 
-    def cons_func_specific(self, obj, r=0.1, theta=-0.25*np.pi, n=4.0):
+    def cons_func_specific(self, obj, r=0.1, theta=-0.25 * np.pi, n=4.0):
         cons = np.zeros(self.n_constraints)
 
         x_offset = 1.6
@@ -481,10 +578,19 @@ class LIRCMOP12(LIRCMOP9):
         f1 = obj[0]
         f2 = obj[1]
 
-        cons[0] = f1 * np.sin(alpha) + f2 * np.cos(alpha) - np.sin(n * np.pi *
-                                                                      (f1 * np.cos(alpha) - f2 * np.sin(alpha))) - 2
-        cons[1] = (((f1 - x_offset) * np.cos(theta) - (f2 - y_offset) * np.sin(theta)) / a) ** 2 +\
-                  (((f1 - x_offset) * np.sin(theta) + (f2 - y_offset) * np.cos(theta)) / b) ** 2 - r
+        cons[0] = (
+            f1 * np.sin(alpha)
+            + f2 * np.cos(alpha)
+            - np.sin(n * np.pi * (f1 * np.cos(alpha) - f2 * np.sin(alpha)))
+            - 2
+        )
+        cons[1] = (
+            (((f1 - x_offset) * np.cos(theta) - (f2 - y_offset) * np.sin(theta)) / a)
+            ** 2
+            + (((f1 - x_offset) * np.sin(theta) + (f2 - y_offset) * np.cos(theta)) / b)
+            ** 2
+            - r
+        )
 
         return -cons
 
@@ -495,15 +601,13 @@ class LIRCMOP13(LIRCMOPSetup):
     """
 
     def __init__(self, n_dim=30, n_constraints=2):
-        self.problem_name = 'LIRCMOP13'
+        self.problem_name = "LIRCMOP13"
         self.dim = n_dim
         self.n_objectives = 3
         self.n_constraints = n_constraints
         super().__init__(dim=n_dim, n_objectives=self.n_objectives)
 
-        # TODO: Optimum Pareto Front
-        # self.f_opt = self.exact_pareto(50)
-        self.f_opt = np.genfromtxt(f"./cases/LIRCMOP_files/{self.problem_name}.pf", delimiter='')
+        self.f_opt
         self.var_opt = None
 
         self.int_var = np.array([])
@@ -513,18 +617,28 @@ class LIRCMOP13(LIRCMOPSetup):
         self.ub = np.ones(self.dim)
 
     def set_variables(self, prob, **kwargs):
-        prob.add_var_group('x_vars', self.dim, 'c', lower=self.lb, upper=self.ub, value=0.5 * np.ones(self.dim),
-                           scale=1.0, f_opt=self.f_opt)
+        prob.add_var_group(
+            "x_vars",
+            self.dim,
+            "c",
+            lower=self.lb,
+            upper=self.ub,
+            value=0.5 * np.ones(self.dim),
+            scale=1.0,
+            f_opt=self.f_opt,
+        )
 
     def set_constraints(self, prob, **kwargs):
-        prob.add_con_group('con', self.n_constraints, lower=None, upper=None)  # Todo: check bounds
+        prob.add_con_group(
+            "con", self.n_constraints, lower=None, upper=None
+        )  # Todo: check bounds
 
     def set_objectives(self, prob, **kwargs):
         for i in range(self.n_objectives):
             prob.add_obj(f"f_{i}")
 
     def obj_func(self, x_dict, **kwargs):
-        x = x_dict['x_vars']
+        x = x_dict["x_vars"]
         obj, cons = self.obj_func_specific(x)
         performance = None
 
@@ -533,8 +647,16 @@ class LIRCMOP13(LIRCMOPSetup):
     def obj_func_specific(self, x):
         obj = np.zeros(self.n_objectives)
 
-        obj[0] = (1.7057 + self.g5(x)) * np.cos(0.5 * np.pi * x[0]) * np.cos(0.5 * np.pi + x[1])
-        obj[1] = (1.7057 + self.g5(x)) * np.cos(0.5 * np.pi * x[0]) * np.sin(0.5 * np.pi + x[1])
+        obj[0] = (
+            (1.7057 + self.g5(x))
+            * np.cos(0.5 * np.pi * x[0])
+            * np.cos(0.5 * np.pi + x[1])
+        )
+        obj[1] = (
+            (1.7057 + self.g5(x))
+            * np.cos(0.5 * np.pi * x[0])
+            * np.sin(0.5 * np.pi + x[1])
+        )
         obj[2] = (1.7057 + self.g5(x)) * np.sin(0.5 * np.pi + x[0])
 
         cons = self.cons_func_specific(obj)
@@ -566,8 +688,8 @@ class LIRCMOP14(LIRCMOP13):
 
     def __init__(self, n_dim=30, n_constraints=3):
         super().__init__(n_dim=n_dim, n_constraints=n_constraints)
-        self.problem_name = 'LIRCMOP14'
-        self.f_opt = np.genfromtxt(f"./cases/LIRCMOP_files/{self.problem_name}.pf", delimiter='')
+        self.problem_name = "LIRCMOP14"
+        self.f_opt = None
 
     def cons_func_specific(self, obj):
         cons = np.zeros(self.n_constraints)

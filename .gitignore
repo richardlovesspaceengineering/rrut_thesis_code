@@ -5,3 +5,4 @@ __pycache__
 ci*
 pregen_samples
 evaluated_pops
+features_results

@@ -154,7 +154,6 @@ class ProblemEvaluator:
             self.num_processes_parallel_seed = 32  # max cores
 
         # Now we will allocate num_cores_global. This value will need to be smaller to deal with memory issues related to large matrices.
-        print(self.instance)
         dim_key = f"{self.instance.n_var}d"  # Assuming self.dim is an integer or string that matches the keys in the dictionary
 
         # Check if the current dimension has a specified number of processes. Just check one dictionary since they all have the same keys.
@@ -864,7 +863,11 @@ class ProblemEvaluator:
 
             # Now find neighbours.
             pop_neighbours_list = self.generate_neig_populations(
-                problem, neighbours, eval_fronts=False, num_processes=num_processes
+                problem,
+                neighbours,
+                eval_fronts=False,
+                adaptive_walk=True,
+                num_processes=num_processes,
             )
 
             aw_analysis = AdaptiveWalkAnalysis(

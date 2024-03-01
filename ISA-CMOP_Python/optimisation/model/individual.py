@@ -1,5 +1,12 @@
 import numpy as np
 import copy
+import re
+
+
+# Function to check if an object is imported from a module matching 'cases.*'
+def is_imported_from_cases(obj):
+    module_name = obj.__class__.__module__
+    return re.match(r"^cases\.", module_name) is not None
 
 
 class Individual(object):
@@ -12,20 +19,13 @@ class Individual(object):
 
         # Problem characteristics. Updated to work with pymoo.
         self.problem = problem
+
+        # Dealing with naming conventions from cases module vs pymoo.
         self.n_var = problem.n_var
         self.n_obj = problem.n_obj
+        self.n_cons = problem.n_constr
 
-        if "pymoo" in getattr(self.problem, "__module__"):
-            self.n_cons = problem.n_constr
-            var_lower = problem.xl
-            var_upper = problem.xu
-        else:
-            # Aerofoils
-            self.n_cons = problem.n_con
-            var_lower = problem.lb
-            var_upper = problem.ub
-
-        self.bounds = np.vstack((var_lower, var_upper))
+        self.bounds = np.vstack((problem.xl, problem.xu))
 
         # Initialize arrays.
         self.var = np.zeros((1, self.n_var))
@@ -78,6 +78,8 @@ class Individual(object):
         # Returns a tuple (obj, cons)
 
         if "pymoo" in getattr(self.problem, "__module__"):
+            return self.problem.evaluate(self.var)
+        elif self.problem.__class__.__module__.startswith("cases."):
             return self.problem.evaluate(self.var)
         else:
             # Aerofoils called with call method.

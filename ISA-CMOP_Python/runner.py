@@ -6,6 +6,8 @@ from PreSampler import PreSampler
 
 # Import the get_problem method from pymoo.problems
 from pymoo.problems import get_problem
+from pymoo.problems.multi import MODAct
+import cases.LIRCMOP_setup
 from pathlib import Path
 import numpy as np
 import socket
@@ -75,18 +77,44 @@ def generate_suite_structure(benchmark_problem_names, dimensions):
 
 # Function to generate a single problem instance
 def generate_instance(problem_name, n_var):
+    problem_name = problem_name.lower()
+
     # Check if problem_name contains 'DASCMOP'
-    if "dascmop" in problem_name.lower():
-        problem = get_problem(problem_name, n_var=n_var, difficulty=8)
-    elif problem_name.lower() == "icas2024test":
+    if problem_name.startswith("cs"):
+        problem = MODAct(problem_name)
+        print("MODAct problem selected - note that these are fixed 20D problems.")
+    elif "lircmop" in problem_name:
+        problem = getattr(cases.LIRCMOP_setup, problem_name.upper())(n_dim=n_var)
+
+        # Helps with downstream naming issues
+        problem.n_var = problem.dim
+        problem.n_obj = problem.n_objectives
+        problem.n_constr = problem.n_constraints
+        problem.xl = problem.lb
+        problem.xu = problem.ub
+
+    elif problem_name == "icas2024test":
         append_airfoilsuite_path()
         from test_problems.icas2024 import ICAS2024Test
 
         problem = ICAS2024Test(n_dim=n_var, solver="xfoil", impute_values=False)
-    else:
-        problem = get_problem(problem_name, n_var=n_var)
 
-    instance_string = f"{problem_name}_d{n_var}"
+        # Helps with downstream naming issues
+        problem.n_var = problem.n_dim
+        problem.n_constr = problem.n_constr
+        problem.xl = problem.lb
+        problem.xu = problem.ub
+
+    else:
+
+        if "dascmop" in problem_name:
+            problem = get_problem(problem_name, n_var=n_var, difficulty=8)
+        else:
+            problem = get_problem(problem_name, n_var=n_var)
+
+    problem.problem_name = problem_name.upper()
+
+    instance_string = f"{problem_name.upper()}_d{n_var}"
     return problem, instance_string
 
 
