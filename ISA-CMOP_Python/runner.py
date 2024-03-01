@@ -100,8 +100,6 @@ def generate_instance(problem_name, n_var):
         problem = ICAS2024Test(n_dim=n_var, solver="xfoil", impute_values=False)
 
         # Helps with downstream naming issues
-        problem.n_var = problem.n_dim
-        problem.n_constr = problem.n_constr
         problem.xl = problem.lb
         problem.xu = problem.ub
 
