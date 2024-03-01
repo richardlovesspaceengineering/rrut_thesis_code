@@ -1,6 +1,13 @@
 {
   "debug": {
     "CS1_d20": "true",
+    "CS2_d20": "true",
+    "CS3_d20": "true",
+    "CS4_d20": "true",
+    "CT1_d20": "true",
+    "CT2_d20": "true",
+    "CT3_d20": "true",
+    "CT4_d20": "true",
     "ICAS2024Test_d10": "false",
     "MW14_d30": "false"
     },
