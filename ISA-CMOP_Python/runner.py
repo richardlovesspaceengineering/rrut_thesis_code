@@ -91,7 +91,7 @@ def generate_instance(problem_name, n_var):
         # Helps with downstream naming issues
         problem.n_var = problem.dim
         problem.n_obj = problem.n_objectives
-        problem.n_cons = problem.n_constraints
+        problem.n_constr = problem.n_constraints
         problem.xl = problem.lb
         problem.xu = problem.ub
         problem.name = problem.problem_name
@@ -104,7 +104,7 @@ def generate_instance(problem_name, n_var):
 
         # Helps with downstream naming issues
         problem.n_var = problem.n_dim
-        problem.n_cons = problem.n_constr
+        problem.n_constr = problem.n_constr
         problem.xl = problem.lb
         problem.xu = problem.ub
 

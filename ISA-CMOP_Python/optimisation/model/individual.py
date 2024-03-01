@@ -23,7 +23,7 @@ class Individual(object):
         # Dealing with naming conventions from cases module vs pymoo.
         self.n_var = problem.n_var
         self.n_obj = problem.n_obj
-        self.n_cons = problem.n_cons
+        self.n_cons = problem.n_constr
 
         self.bounds = np.vstack((problem.xl, problem.xu))
 
