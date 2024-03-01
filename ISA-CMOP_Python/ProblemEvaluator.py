@@ -1026,21 +1026,17 @@ class ProblemEvaluator:
         self.send_initialisation_email(f"STARTED RUN OF {self.instance_name}.")
 
         # TODO: generalise
-        # instance_name_lower = self.instance_name.lower()
-        # if "icas" in instance_name_lower or (
-        #     instance_name_lower.startswith(("cs", "ct"))
-        #     and "ctp" not in instance_name_lower
-        # ):
-        #     eval_pops_parallel = True
-        #     print(
-        #         "RW and Global populations will be evaluated in parallel (1 individual per core)."
-        #     )
-        # else:
-        #     eval_pops_parallel = False
-        #     print(
-        #         "RW and Global populations will be evaluated in series (1 features run per core)."
-        #     )
-        eval_pops_parallel = False
+        instance_name_lower = self.instance_name.lower()
+        if "icas" in instance_name_lower:
+            eval_pops_parallel = True
+            print(
+                "RW and Global populations will be evaluated in parallel (1 individual per core)."
+            )
+        else:
+            eval_pops_parallel = False
+            print(
+                "RW and Global populations will be evaluated in series (1 features run per core)."
+            )
 
         # RW Analysis.
         print(
