@@ -56,17 +56,8 @@ class ProblemEvaluator:
         self.results_dir = results_dir
         self.csv_filename = results_dir + "/features.csv"
 
-        # Less samples for airfoils. # TODO: generalise
-        instance_name_lower = instance_name.lower()
-        if "icas" in instance_name_lower or (
-            instance_name_lower.startswith(("cs", "ct"))
-            and "ctp" not in instance_name_lower
-        ):
-            self.num_samples = min(num_samples, 10)
-        else:
-            self.num_samples = num_samples
-
         self.num_cores_user_input = num_cores
+        self.num_samples_user_input = num_samples
         print("Initialising evaluator in {} mode.".format(self.mode))
 
         # Gmail account credentials for email updates.
@@ -111,6 +102,36 @@ class ProblemEvaluator:
             f"{problem_name} finished {analysis_type} in {round(elapsed_time,2)} seconds",
             f"The analysis of {problem_name} ({analysis_type}) has completed in {round(elapsed_time,2)} seconds.",
         )
+
+    def check_if_modact_or_aerofoil(self):
+        instance_name_lower = self.instance_name.lower()
+        return "icas" in instance_name_lower or (
+            instance_name_lower.startswith(("cs", "ct"))
+            and "ctp" not in instance_name_lower
+        )
+
+    def initialize_number_of_samples(self):
+        n_var = self.instance.n_var
+
+        if self.check_if_modact_or_aerofoil():
+            self.num_samples = min(self.num_samples_user_input, 10)
+
+            # Number of independent random walks within a single RW sample.
+            self.num_walks_rw = int(n_var / 2)
+            self.num_walks_aw = int(5 * n_var)
+        else:
+            self.num_samples = self.num_samples_user_input
+            self.num_walks_rw = self.instance.n_var
+
+            if n_var <= 10:
+                self.num_walks_aw = int(10 * n_var)
+            else:
+                self.num_walks_aw = int(5 * n_var)
+
+        # Account for debug mode.
+        if self.mode == "debug":
+            self.num_walks_rw = 2
+            self.num_walks_aw = 2
 
     def initialize_number_of_cores(self):
         # Number of cores to use for RW.
@@ -191,6 +212,11 @@ class ProblemEvaluator:
         # Summarize the core allocation
         cores_summary = textwrap.dedent(
             f"""
+        Summary of sampling:
+        - Number of samples: {self.num_samples}
+        - Number of independent RWs within each sample: {self.num_walks_rw}    
+        - Number of independent AWs within each sample: {self.num_walks_aw}    
+        
         Summary of cores allocation (have taken the minimum of self.num_samples and num_cores except for larger-dimension global cases):
         RW processes will use {self.num_processes_rw_norm} cores for normalisation, {self.num_processes_rw_eval} cores for evaluation.
         Global processes will use {self.num_processes_global_norm} cores for normalisation, {self.num_processes_global_eval} cores for evaluation.
@@ -297,7 +323,7 @@ class ProblemEvaluator:
         if not adaptive_walk:
             pop_total.evaluate(
                 self.rescale_pregen_sample(all_neighbours, problem),
-                eval_fronts=eval_fronts,
+                eval_fronts=False,  # no need to compare all neighbours to all steps
                 num_processes=num_processes,
             )
         else:
@@ -312,6 +338,10 @@ class ProblemEvaluator:
         for neighbourhood in neighbours:
             end_idx = start_idx + neighbourhood.shape[0]
             pop_neighbourhood = pop_total[start_idx:end_idx]
+
+            # Only evaluate fronts within neighbourhoods
+            if eval_fronts:
+                pop_neighbourhood.evaluate_fronts()
             pop_neighbours_list.append(pop_neighbourhood)
             start_idx = end_idx
 
@@ -576,7 +606,7 @@ class ProblemEvaluator:
         }
         min_values_array = max_values_array
 
-        for j in range(pre_sampler.dim):
+        for j in range(self.num_walks_rw):
 
             pop_walk, pop_neighbours_list = self.get_rw_pop(
                 pre_sampler,
@@ -694,7 +724,7 @@ class ProblemEvaluator:
 
         # Loop over each of the walks within this sample.
 
-        for j in range(pre_sampler.dim):
+        for j in range(self.num_walks_rw):
 
             # Directly wrap the call to get_rw_pop inside the instantiation of RandomWalkAnalysis.
             rw_analysis = RandomWalkAnalysis(
@@ -849,10 +879,7 @@ class ProblemEvaluator:
         pop_global_clean, _ = pop_global.remove_nan_inf_rows("global")
         distributed_sample = pop_global_clean.extract_var()
 
-        # Each sample contains 10n walks.
-        num_walks = int(distributed_sample.shape[0] / 100) if self.mode == "eval" else 2
-
-        for j in range(num_walks):
+        for j in range(self.num_walks_aw):
             # Initialise AdaptiveWalkAnalysis evaluator. Do at every iteration or existing list entries get overwritten.
 
             # Generate the adaptive walk sample.
@@ -867,7 +894,7 @@ class ProblemEvaluator:
             print(
                 "Generated AW {} of {} (for this sample). Length: {}".format(
                     j + 1,
-                    num_walks,
+                    self.num_walks_aw,
                     walk.shape[0],
                 )
             )
@@ -891,7 +918,7 @@ class ProblemEvaluator:
             elapsed_time = end_time - start_time
             print(
                 "Evaluated population {} of {} in {:.2f} seconds.".format(
-                    j + 1, num_walks, elapsed_time
+                    j + 1, self.num_walks_aw, elapsed_time
                 )
             )
 
@@ -904,7 +931,7 @@ class ProblemEvaluator:
             # Print to log for each walk within the sample.
             print(
                 "Evaluated AW features for walk {} out of {} in {:.2f} seconds.\n".format(
-                    j + 1, num_walks, elapsed_time
+                    j + 1, self.num_walks_aw, elapsed_time
                 )
             )
             aw_analysis.clear_for_storage()
@@ -1008,6 +1035,10 @@ class ProblemEvaluator:
         return aw_analysis_all_samples
 
     def initialize_evaluator(self, temp_pops_dir):
+
+        # Define number of samples.
+        self.initialize_number_of_samples()
+
         # Load presampler and create directories for populations.
         pre_sampler = self.create_pre_sampler()
         pre_sampler.create_pregen_sample_dir()
@@ -1032,9 +1063,7 @@ class ProblemEvaluator:
 
         self.send_initialisation_email(f"STARTED RUN OF {self.instance_name}.")
 
-        # TODO: generalise
-        instance_name_lower = self.instance_name.lower()
-        if "icas" in instance_name_lower:
+        if self.check_if_modact_or_aerofoil():
             eval_pops_parallel = True
             print(
                 "RW and Global populations will be evaluated in parallel (1 individual per core)."
