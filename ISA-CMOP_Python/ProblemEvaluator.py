@@ -128,7 +128,7 @@ class ProblemEvaluator:
             self.num_processes_global_norm_dict = self.num_processes_rw_norm_dict
             self.num_processes_rw_eval_dict = self.num_processes_rw_norm_dict
             self.num_processes_global_eval_dict = self.num_processes_rw_norm_dict
-            self.num_processes_parallel_seed = 10  # max cores
+            self.num_processes_parallel_seed = 20  # max cores
         else:
             # Megatrons. Assumed available RAM of 128 GB.
             self.num_processes_rw_norm_dict = {
@@ -1027,16 +1027,18 @@ class ProblemEvaluator:
 
         # TODO: generalise
         instance_name_lower = self.instance_name.lower()
-        if "icas" in instance_name_lower:
-            eval_pops_parallel = True
-            print(
-                "RW and Global populations will be evaluated in parallel (1 individual per core)."
-            )
-        else:
-            eval_pops_parallel = False
-            print(
-                "RW and Global populations will be evaluated in series (1 features run per core)."
-            )
+        # if "icas" in instance_name_lower:
+        #     eval_pops_parallel = True
+        #     print(
+        #         "RW and Global populations will be evaluated in parallel (1 individual per core)."
+        #     )
+        # else:
+        #     eval_pops_parallel = False
+        #     print(
+        #         "RW and Global populations will be evaluated in series (1 features run per core)."
+        #     )
+
+        eval_pops_parallel = True
 
         # RW Analysis.
         print(

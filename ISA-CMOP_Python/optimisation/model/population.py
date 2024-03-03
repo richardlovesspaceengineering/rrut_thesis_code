@@ -250,15 +250,15 @@ class Population(np.ndarray):
     @handle_ctrl_c
     def evaluate(self, var_array, eval_fronts, num_processes=1):
 
-        vectorized = True
+        vectorized = False
 
-        if (
-            self[0]
-            .problem.problem_name.lower()
-            .startswith(("icas", "lircmop", "ct", "cs"))
-            and "ctp" not in self[0].problem.problem_name.lower()
-        ):
-            vectorized = False
+        # if (
+        #     self[0]
+        #     .problem.problem_name.lower()
+        #     .startswith(("icas", "lircmop", "ct", "cs"))
+        #     and "ctp" not in self[0].problem.problem_name.lower()
+        # ):
+        #     vectorized = False
 
         if vectorized:
             # Evaluate vectorized.
