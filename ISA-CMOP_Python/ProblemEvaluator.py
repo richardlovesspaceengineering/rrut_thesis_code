@@ -288,26 +288,33 @@ class ProblemEvaluator:
         adaptive_walk=False,
     ):
 
-        pop_neighbours_list = []
+        # Squash the list of neighbourhoods into one large numpy array to speed up evaluation.
+        all_neighbours = np.concatenate(neighbours, axis=0)
 
-        # Evaluate each neighbourhood - remember that these are stored in 3D arrays.
-        for neighbourhood in neighbours:
-            # None of the features related to neighbours ever require knowledge of the neighbours ranks relative to each other.
-            pop_neighbourhood = Population(
-                problem, n_individuals=neighbourhood.shape[0]
+        # Generate one large population for all neighbours combined
+        pop_total = Population(problem, n_individuals=all_neighbours.shape[0])
+
+        if not adaptive_walk:
+            pop_total.evaluate(
+                self.rescale_pregen_sample(all_neighbours, problem),
+                eval_fronts=eval_fronts,
+                num_processes=num_processes,
             )
-            if not adaptive_walk:
-                pop_neighbourhood.evaluate(
-                    self.rescale_pregen_sample(neighbourhood, problem),
-                    eval_fronts=eval_fronts,
-                    num_processes=num_processes,
-                )
-            else:
-                # Adaptive walks are already rescaled.
-                pop_neighbourhood.evaluate(
-                    neighbourhood, eval_fronts=eval_fronts, num_processes=num_processes
-                )
+        else:
+            # Adaptive walks are already rescaled
+            pop_total.evaluate(
+                all_neighbours, eval_fronts=eval_fronts, num_processes=num_processes
+            )
+
+        # Now, split the population back into the respective neighbourhoods
+        pop_neighbours_list = []
+        start_idx = 0
+        for neighbourhood in neighbours:
+            end_idx = start_idx + neighbourhood.shape[0]
+            pop_neighbourhood = pop_total[start_idx:end_idx]
             pop_neighbours_list.append(pop_neighbourhood)
+            start_idx = end_idx
+
         return pop_neighbours_list
 
     def generate_walk_neig_populations(
@@ -1027,16 +1034,16 @@ class ProblemEvaluator:
 
         # TODO: generalise
         instance_name_lower = self.instance_name.lower()
-        # if "icas" in instance_name_lower:
-        #     eval_pops_parallel = True
-        #     print(
-        #         "RW and Global populations will be evaluated in parallel (1 individual per core)."
-        #     )
-        # else:
-        #     eval_pops_parallel = False
-        #     print(
-        #         "RW and Global populations will be evaluated in series (1 features run per core)."
-        #     )
+        if "icas" in instance_name_lower:
+            eval_pops_parallel = True
+            print(
+                "RW and Global populations will be evaluated in parallel (1 individual per core)."
+            )
+        else:
+            eval_pops_parallel = False
+            print(
+                "RW and Global populations will be evaluated in series (1 features run per core)."
+            )
 
         eval_pops_parallel = True
 
