@@ -20,7 +20,8 @@
         // "program": "/Users/richardrutherford/Documents/Thesis Code/rrut_thesis_code/ISA-CMOP_Python/runner.py",
         "args": [
             // "ICAS2024Test", //problem
-            "MW1",
+            // "MW1",
+            // "LIRCMOP1",
             "5", // dimension
             "1", // num samples
             "debug", // mode

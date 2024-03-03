@@ -1,7 +1,8 @@
 {
   "debug": {
-    "LIRCMOP1_d5": "false",
-    "CS1_d20": "true",
+    "ICAS2024Test_d10": "false",
+    "LIRCMOP1_d5": "true",
+    "CS1_d20": "false",
     "CS2_d20": "false",
     "CS3_d20": "false",
     "CS4_d20": "false",
@@ -9,7 +10,6 @@
     "CT2_d20": "false",
     "CT3_d20": "false",
     "CT4_d20": "false",
-    "ICAS2024Test_d10": "false",
     "MW14_d30": "false"
     },
   "eval": {

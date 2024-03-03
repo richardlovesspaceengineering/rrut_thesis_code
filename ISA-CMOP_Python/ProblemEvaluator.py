@@ -1045,8 +1045,6 @@ class ProblemEvaluator:
                 "RW and Global populations will be evaluated in series (1 features run per core)."
             )
 
-        eval_pops_parallel = True
-
         # RW Analysis.
         print(
             " \n ~~~~~~~~~~~~ RW Analysis for "

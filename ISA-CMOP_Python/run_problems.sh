@@ -9,8 +9,8 @@ desc_msg="Running all 5D, then 10D and so on from JSON file."
 num_samples=30
 
 # Modes are debug or eval.
-mode="eval"
-# mode="debug"
+# mode="eval"
+mode="debug"
 
 # Use pre-generated samples?
 regenerate_samples=false #@JUAN set to true if you need to generate/can't see the pregen_samples folder as a sibling folder.
@@ -63,6 +63,39 @@ echo "Using interpreter: $PYTHON_SCRIPT" | tee -a "$log_file"
 temp_dir=$(mktemp -d -t ci-XXXXXXXXXX --tmpdir="$SCRIPT_PATH")
 echo "New directory: $temp_dir" | tee -a "$log_file"
 
+# Create sibling temp_pops directory and ensure it's cleaned up properly
+temp_pops_dir="../temp_pops/" # Create temp_pops as a sibling directory.
+mkdir -p "$temp_pops_dir"
+echo "Created temp_pops directory: $temp_pops_dir" | tee -a "$log_file"
+
+clean_temp_pops_dir() {
+    local dir_to_clean="$1"
+
+    # Normalize the directory path to use forward slashes
+    dir_to_clean=$(cygpath -w "$dir_to_clean" | tr '\\' '/')
+
+    # Find and print top-level directories not containing 'ICAS'
+    echo "Directories not containing ICAS in $dir_to_clean:"
+    local dirs_without_icas=$(find "$dir_to_clean" -mindepth 1 -maxdepth 1 -type d ! -name '*ICAS*' | tr '\\' '/')
+    if [ -z "$dirs_without_icas" ]; then
+        echo "None"
+    else
+        echo "$dirs_without_icas"
+        # Remove directories not containing 'ICAS'
+        echo "$dirs_without_icas" | xargs -I {} rm -rf "{}"
+        echo "Non-ICAS directories removed."
+    fi
+
+    # Find and print top-level directories containing 'ICAS'
+    echo "Directories containing ICAS in $dir_to_clean:"
+    local dirs_with_icas=$(find "$dir_to_clean" -mindepth 1 -maxdepth 1 -type d -name '*ICAS*' | tr '\\' '/')
+    if [ -z "$dirs_with_icas" ]; then
+        echo "None"
+    else
+        echo "$dirs_with_icas"
+    fi
+}
+
 # Copy framework to temporary directory
 echo "Writing ISA-CMOP_Python to temporary directory." | tee -a "$log_file"
 copy_dir="$SCRIPT_PATH"
@@ -71,27 +104,17 @@ cd_dir+="ISA-CMOP_Python/"
 copy_dir+="ISA-CMOP_Python/*"
 cp -R $copy_dir "$temp_dir"
 
-# Create sibling temp_pops directory and ensure it's cleaned up properly
-temp_pops_dir="${temp_dir}/temp_pops" # Adjusted to use temp_dir as the base
-mkdir -p "$temp_pops_dir"
-echo "Created temp_pops directory inside temp_dir: $temp_pops_dir"
-
 # Handle CTRL+C event clean up
 trap ctrl_c INT
 function ctrl_c() {
     echo "Terminating program..." | tee -a "$log_file"
 
-    # Clean up temp dir
-    if [ -d "$temp_dir" ]; then
-        rm -rf "$temp_dir"
-        echo "Removed temporary directory: $temp_dir" | tee -a "$log_file"
-    fi
+    # Clean up temp_pops dir, excluding directories with 'ICAS' in the name
+    clean_temp_pops_dir "$temp_pops_dir"
 
-    # Clean up temp_pops dir
-    if [ -d "$temp_pops_dir" ]; then
-        rm -rf "$temp_pops_dir"
-        echo "Removed temp_pops directory: $temp_pops_dir" | tee -a "$log_file"
-    fi
+    # Clean up temp dir
+    rm -rf "$temp_dir"
+    echo "Removed temporary directory: $temp_dir" | tee -a "$log_file"
 
     exit 0
 }
@@ -138,11 +161,9 @@ jq -r "$jq_filter" $config_file | while read line; do
         "$PYTHON_SCRIPT" -u "$run_dir" "$problem" "$dim" "$num_samples" "$mode" "$save_feature_arrays" "$results_dir" "$temp_pops_dir" "$num_cores" 2>&1 | tee -a "$log_file"
 
         # Clean up, etc.
-        echo "Cleaning temp_pops directory for next run..." | tee -a "$log_file"
-        rm -rf "${temp_pops_dir:?}"/*  # Ensure safety with :?
+        echo "Cleaning temp_pops directory for next run (other than ICAS)..." | tee -a "$log_file"
+        clean_temp_pops_dir "$temp_pops_dir"
         echo "temp_pops directory cleaned." | tee -a "$log_file"
-        
-        # Specific handling for mode "eval" here if needed
 
     else
         echo "Skipping problem: $problem, dimension: $dim as per config."
@@ -150,9 +171,15 @@ jq -r "$jq_filter" $config_file | while read line; do
 done
 
 
+# At the end of the program, clean up temp_pops_dir except ICAS directories
+clean_temp_pops_dir "$temp_pops_dir"
+echo "Final cleanup of temp_pops directory, excluding ICAS folders." | tee -a "$log_file"
+
 # Clean up temp dir
-echo "Runs finished. Cleaning up temp directory."
 rm -rf "$temp_dir"
+echo "Removed temporary directory: $temp_dir" | tee -a "$log_file"
+
+exit 0
 
 # Exit
 exit 0
