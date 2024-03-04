@@ -1,12 +1,13 @@
 {
   "debug": {
     "ICAS2024Test_d10": "false",
-    "LIRCMOP1_d5": "true",
+    "LIRCMOP1_d5": "false",
     "CS1_d20": "false",
+    "CT1_d20": "false",
+    "CTP1_d10": "true",
     "CS2_d20": "false",
     "CS3_d20": "false",
     "CS4_d20": "false",
-    "CT1_d20": "false",
     "CT2_d20": "false",
     "CT3_d20": "false",
     "CT4_d20": "false",

@@ -6,11 +6,11 @@ desc_msg="Running all 5D, then 10D and so on from JSON file."
 # problemsRW=("Truss2D", "WeldedBeam") # not scalable in Pymoo
 
 # Number of samples to run. Will max out at 10 for aerofoil problems (handled in Python).
-num_samples=30
+num_samples=5
 
 # Modes are debug or eval.
-mode="eval"
-# mode="debug"
+# mode="eval"
+mode="debug"
 
 # Use pre-generated samples?
 regenerate_samples=false #@JUAN set to true if you need to generate/can't see the pregen_samples folder as a sibling folder.
@@ -71,32 +71,33 @@ echo "Created temp_pops directory: $temp_pops_dir" | tee -a "$log_file"
 clean_temp_pops_dir() {
     local dir_to_clean="$1"
 
-    # Check if cygpath exists (Windows only) and use it to normalize the directory path on Cygwin
+    # Check if cygpath exists and use it to normalize the directory path on Cygwin
     if command -v cygpath &> /dev/null; then
         dir_to_clean=$(cygpath -w "$dir_to_clean" | tr '\\' '/')
     fi
 
-    # Find and print top-level directories not containing 'ICAS'
-    echo "Directories not containing ICAS in $dir_to_clean:"
-    local dirs_without_icas=$(find "$dir_to_clean" -mindepth 1 -maxdepth 1 -type d ! -name '*ICAS*' | tr '\\' '/')
-    if [ -z "$dirs_without_icas" ]; then
+    # Find and print top-level directories not containing 'ICAS', not starting with 'CS' or 'CT' (excluding 'CTP')
+    echo "Directories to be removed from $dir_to_clean:"
+    local dirs_to_remove=$(find "$dir_to_clean" -mindepth 1 -maxdepth 1 -type d ! -name '*ICAS*' ! -name 'CS*' ! -name 'CT*' -o -name 'CTP*' | tr '\\' '/')
+    if [ -z "$dirs_to_remove" ]; then
         echo "None"
     else
-        echo "$dirs_without_icas"
-        # Remove directories not containing 'ICAS'
-        echo "$dirs_without_icas" | xargs -I {} rm -rf "{}"
-        echo "Non-ICAS directories removed."
+        echo "$dirs_to_remove"
+        # Remove directories based on the specified criteria
+        echo "$dirs_to_remove" | xargs -I {} rm -rf "{}"
+        echo "Specified directories removed."
     fi
 
-    # Find and print top-level directories containing 'ICAS'
-    echo "Directories containing ICAS in $dir_to_clean:"
-    local dirs_with_icas=$(find "$dir_to_clean" -mindepth 1 -maxdepth 1 -type d -name '*ICAS*' | tr '\\' '/')
-    if [ -z "$dirs_with_icas" ]; then
+    # Find and print top-level directories that are being kept
+    echo "Directories being kept in $dir_to_clean:"
+    local dirs_kept=$(find "$dir_to_clean" -mindepth 1 -maxdepth 1 -type d \( -name '*ICAS*' -o -name 'CS*' -o -name 'CT*' ! -name 'CTP*' \) | tr '\\' '/')
+    if [ -z "$dirs_kept" ]; then
         echo "None"
     else
-        echo "$dirs_with_icas"
+        echo "$dirs_kept"
     fi
 }
+
 
 # Copy framework to temporary directory
 echo "Writing ISA-CMOP_Python to temporary directory." | tee -a "$log_file"
