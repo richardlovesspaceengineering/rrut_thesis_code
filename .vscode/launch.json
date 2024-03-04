@@ -21,7 +21,7 @@
         "args": [
             // "ICAS2024Test", //problem
             // "MW1",
-            // "LIRCMOP1",
+            "LIRCMOP5",
             "5", // dimension
             "1", // num samples
             "debug", // mode

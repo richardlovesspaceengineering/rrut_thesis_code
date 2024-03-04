@@ -49,6 +49,11 @@ class LIRCMOPSetup(Setup):
     def g5(self, x):
         return np.sum((x[2::2] - 0.5) ** 2)
 
+    def evaluate(self, var):
+        obj = self.obj_func_specific(var)
+        cons = self.cons_func_specific(var)
+        return obj, cons
+
     def _calc_pareto_front(self):
         return super()._calc_pareto_front(
             f"./cases/LIRCMOP_files/{self.problem_name}.pf"
@@ -104,11 +109,6 @@ class LIRCMOP1(LIRCMOPSetup):
         performance = None
 
         return obj, cons, performance
-
-    def evaluate(self, var):
-        obj = self.obj_func_specific(var)
-        cons = self.cons_func_specific(var)
-        return obj, cons
 
     def obj_func_specific(self, x):
         obj = np.zeros(self.n_objectives)
@@ -260,8 +260,7 @@ class LIRCMOP5(LIRCMOPSetup):
         obj[0] = x[0] + 10 * self.g3(x) + 0.7057
         obj[1] = 1 - np.sqrt(x[0]) + 10 * self.g4(x) + 0.7057
 
-        cons = self.cons_func_specific(obj)
-        return obj, cons
+        return obj
 
     def cons_func_specific(self, obj, r=0.1, theta=-0.25 * np.pi):
         a_array = [2.0, 2.0]
@@ -313,8 +312,7 @@ class LIRCMOP6(LIRCMOP5):
         obj[0] = x[0] + 10 * self.g3(x) + 0.7057
         obj[1] = 1 - x[0] ** 2 + 10 * self.g4(x) + 0.7057
 
-        cons = self.cons_func_specific(obj)
-        return obj, cons
+        return obj
 
     def cons_func_specific(self, obj, r=0.1, theta=-0.25 * np.pi):
         a_array = [2.0, 2.0]
@@ -430,8 +428,7 @@ class LIRCMOP9(LIRCMOP8):
         obj[0] = 1.7057 * x[0] * (10 * self.g3(x) + 1)
         obj[1] = 1.7957 * (1 - x[0] ** 2) * (10 * self.g4(x) + 1)
 
-        cons = self.cons_func_specific(obj)
-        return obj, cons
+        return obj
 
     def cons_func_specific(self, obj, r=0.1, theta=-0.25 * np.pi, n=4.0):
         cons = np.zeros(self.n_constraints)
@@ -485,8 +482,7 @@ class LIRCMOP10(LIRCMOP9):
         obj[0] = 1.7057 * x[0] * (10 * self.g3(x) + 1)
         obj[1] = 1.7957 * (1 - np.sqrt(x[0])) * (10 * self.g4(x) + 1)
 
-        cons = self.cons_func_specific(obj)
-        return obj, cons
+        return obj
 
     def cons_func_specific(self, obj, r=0.1, theta=-0.25 * np.pi, n=4.0):
         cons = np.zeros(self.n_constraints)
@@ -659,9 +655,7 @@ class LIRCMOP13(LIRCMOPSetup):
         )
         obj[2] = (1.7057 + self.g5(x)) * np.sin(0.5 * np.pi + x[0])
 
-        cons = self.cons_func_specific(obj)
-
-        return obj, cons
+        return obj
 
     def cons_func_specific(self, obj):
         cons = np.zeros(self.n_constraints)
