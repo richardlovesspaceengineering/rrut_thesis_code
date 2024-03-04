@@ -6,7 +6,7 @@ desc_msg="Running all 5D, then 10D and so on from JSON file."
 # problemsRW=("Truss2D", "WeldedBeam") # not scalable in Pymoo
 
 # Number of samples to run. Will max out at 10 for aerofoil problems (handled in Python).
-num_samples=1
+num_samples=30
 
 # Modes are debug or eval.
 mode="eval"
