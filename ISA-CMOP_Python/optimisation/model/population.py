@@ -317,9 +317,9 @@ class Population(np.ndarray):
         # Unconstrained ranks
         self.eval_unconstrained_rank()
         end_time = time.time()
-        print(
-            f"Evaluated ranks (size {len(self)}) in {end_time - start_time:.2f} seconds."
-        )
+        # print(
+        #     f"Evaluated ranks (size {len(self)}) in {end_time - start_time:.2f} seconds."
+        # )
 
     def eval_instance(self):
         obj, cons = self.eval_obj_cons()
