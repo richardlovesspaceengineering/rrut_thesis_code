@@ -1094,7 +1094,7 @@ class ProblemEvaluator:
         self.send_initialisation_email(f"STARTED RUN OF {self.instance_name}.")
 
         if self.check_if_modact_or_aerofoil():
-            eval_pops_parallel = False
+            eval_pops_parallel = True
             print(
                 "RW and Global populations will be evaluated in parallel (1 individual per core)."
             )
