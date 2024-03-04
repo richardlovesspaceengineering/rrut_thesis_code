@@ -13,7 +13,9 @@
     "MW14_d30": "false"
     },
   "eval": {
-    "ICAS2024Test_d10": "true",
+    "LIRCMOP1_d20": "false",
+    "CS1_d20": "true",
+    "ICAS2024Test_d10": "false",
     "CTP1_d5": "false",
     "CTP2_d5": "false",
     "CTP3_d5": "false",
@@ -157,7 +159,6 @@
     "DASCMOP7_d20": "false",
     "DASCMOP8_d20": "false",
     "DASCMOP9_d20": "false",
-    "LIRCMOP1_d20": "true",
     "LIRCMOP2_d20": "true",
     "LIRCMOP3_d20": "true",
     "LIRCMOP4_d20": "true",
@@ -182,7 +183,6 @@
     "C2DTLZ2_d20": "false",
     "C3DTLZ1_d20": "false",
     "C3DTLZ4_d20": "false",
-    "CS1_d20": "true",
     "CS2_d20": "true",
     "CS3_d20": "true",
     "CS4_d20": "true",

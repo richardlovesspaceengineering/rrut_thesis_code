@@ -260,6 +260,7 @@ class Population(np.ndarray):
         ):
             vectorized = False
 
+        start_time = time.time()
         if vectorized:
             # Evaluate vectorized.
             obj, cons = self[0].problem.evaluate(var_array)
@@ -276,7 +277,9 @@ class Population(np.ndarray):
         else:
             if num_processes > 1:
                 # Parallel evaluation
-                print(f"Evaluating in parallel with {num_processes} processes.")
+                print(
+                    f"Evaluating population of size {len(self)} in parallel with {num_processes} processes."
+                )
                 with multiprocessing.Pool(
                     processes=num_processes, initializer=init_pool
                 ) as pool:
@@ -288,6 +291,7 @@ class Population(np.ndarray):
                     # Assign results back to individuals
                     for i, result in enumerate(results):
                         self[i] = result
+
             else:
                 for i in range(len(self)):
                     # Assign decision variables.
@@ -296,15 +300,26 @@ class Population(np.ndarray):
                     # Run evaluation of objectives, constraints and CV.
                     self[i].eval_instance()
 
+        end_time = time.time()
+        print(
+            f"Evaluated population of size {len(self)} in {end_time - start_time:.2f} seconds."
+        )
+
         if eval_fronts:
             self.evaluate_fronts()
 
     def evaluate_fronts(self):
+        start_time = time.time()
+
         # Now can find rank and crowding of each individual.
         self.eval_rank_and_crowding()
 
         # Unconstrained ranks
         self.eval_unconstrained_rank()
+        end_time = time.time()
+        print(
+            f"Evaluated ranks (size {len(self)}) in {end_time - start_time:.2f} seconds."
+        )
 
     def eval_instance(self):
         obj, cons = self.eval_obj_cons()

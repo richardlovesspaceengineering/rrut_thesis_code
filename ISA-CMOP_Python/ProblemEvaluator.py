@@ -103,12 +103,22 @@ class ProblemEvaluator:
             f"The analysis of {problem_name} ({analysis_type}) has completed in {round(elapsed_time,2)} seconds.",
         )
 
-    def check_if_modact_or_aerofoil(self):
+    def check_if_modact(self):
         instance_name_lower = self.instance_name.lower()
-        return "icas" in instance_name_lower or (
+        return (
             instance_name_lower.startswith(("cs", "ct"))
             and "ctp" not in instance_name_lower
         )
+
+    def check_if_aerofoil(self):
+        instance_name_lower = self.instance_name.lower()
+        return "icas" in instance_name_lower
+
+    def check_if_modact_or_aerofoil(self):
+        return self.check_if_aerofoil() or self.check_if_modact()
+
+    def check_if_lircmop(self):
+        return "lircmop" in self.instance_name.lower()
 
     def initialize_number_of_samples(self):
         n_var = self.instance.n_var
@@ -149,7 +159,11 @@ class ProblemEvaluator:
             self.num_processes_global_norm_dict = self.num_processes_rw_norm_dict
             self.num_processes_rw_eval_dict = self.num_processes_rw_norm_dict
             self.num_processes_global_eval_dict = self.num_processes_rw_norm_dict
-            self.num_processes_parallel_seed = 20  # max cores
+
+            if self.check_if_aerofoil():
+                self.num_processes_parallel_seed = 20  # max cores
+            else:
+                self.num_processes_parallel_seed = 10  # max cores
         else:
             # Megatrons. Assumed available RAM of 128 GB.
             self.num_processes_rw_norm_dict = {
@@ -176,7 +190,10 @@ class ProblemEvaluator:
                 "30d": 30,
             }
 
-            self.num_processes_parallel_seed = 32  # max cores
+            if self.check_if_aerofoil():
+                self.num_processes_parallel_seed = 32  # max cores
+            else:
+                self.num_processes_parallel_seed = 10  # max cores
 
         # Now we will allocate num_cores_global. This value will need to be smaller to deal with memory issues related to large matrices.
         dim_key = f"{self.instance.n_var}d"  # Assuming self.dim is an integer or string that matches the keys in the dictionary
@@ -320,6 +337,8 @@ class ProblemEvaluator:
         # Generate one large population for all neighbours combined
         pop_total = Population(problem, n_individuals=all_neighbours.shape[0])
 
+        print_with_timestamp("Evaluating neighbours...")
+
         if not adaptive_walk:
             pop_total.evaluate(
                 self.rescale_pregen_sample(all_neighbours, problem),
@@ -368,6 +387,8 @@ class ProblemEvaluator:
         pop_neighbours_list = self.generate_neig_populations(
             problem, neighbours, eval_fronts, num_processes=num_processes
         )
+
+        print_with_timestamp("Evaluating walk...")
 
         if not adaptive_walk:
             pop_walk.evaluate(
@@ -521,6 +542,8 @@ class ProblemEvaluator:
 
             init_pool()  # set some global variables for ctrl + c handling
             for i in range(self.num_samples):
+                start_time = time.time()
+
                 min_values, max_values = self.eval_single_sample_global_features_norm(
                     (i, pre_sampler, problem, True)
                 )
@@ -531,8 +554,11 @@ class ProblemEvaluator:
                     max_values_array[var] = np.vstack(
                         (max_values_array[var], max_values[var])
                     )
+
+                end_time = time.time()
+
                 self.send_update_email(
-                    f"EVALUATED GLOBAL SEED {i+1}/{self.num_samples} FOR {self.instance_name}."
+                    f"{self.instance_name} finished Global seed {i+1}/{self.num_samples} in {end_time - start_time:.2f} seconds."
                 )
 
         normalisation_values = self.compute_norm_values_from_maxmin_arrays(
@@ -684,6 +710,7 @@ class ProblemEvaluator:
             # Evaluate populations in parallel
             init_pool()  # set some global variables for ctrl + c handling
             for i in range(self.num_samples):
+                start_time = time.time()
                 min_values, max_values = self.process_rw_sample_norm(
                     (i, pre_sampler, problem, True)
                 )
@@ -694,8 +721,10 @@ class ProblemEvaluator:
                     max_values_array[var] = np.vstack(
                         (max_values_array[var], max_values[var])
                     )
+                end_time = time.time()
+
                 self.send_update_email(
-                    f"EVALUATED RW SEED {i+1}/{self.num_samples} FOR {self.instance_name}."
+                    f"{self.instance_name} finished RW seed {i+1}/{self.num_samples} in {end_time - start_time:.2f} seconds."
                 )
 
         normalisation_values = self.compute_norm_values_from_maxmin_arrays(
@@ -1003,6 +1032,7 @@ class ProblemEvaluator:
             print("Running seeds in parallel.")
             init_pool()
             for i in range(self.num_samples):
+                start_time_seed = time.time()
                 aw_single_sample_analyses_list = self.eval_single_sample_aw_features(
                     i,
                     pre_sampler,
@@ -1014,10 +1044,10 @@ class ProblemEvaluator:
                     aw_single_sample_analyses_list
                 )
                 aw_multiple_samples_analyses_list.append(aw_single_sample)
+                end_time_seed = time.time()
                 self.send_update_email(
-                    f"EVALUATED AW SEED {i+1}/{self.num_samples} FOR {self.instance_name}."
+                    f"{self.instance_name} finished AW seed {i+1}/{self.num_samples} in {end_time_seed - start_time_seed:.2f} seconds."
                 )
-
         # Concatenate analyses across samples.
         aw_analysis_all_samples = MultipleAnalysis(
             aw_multiple_samples_analyses_list, self.walk_normalisation_values
@@ -1064,7 +1094,7 @@ class ProblemEvaluator:
         self.send_initialisation_email(f"STARTED RUN OF {self.instance_name}.")
 
         if self.check_if_modact_or_aerofoil():
-            eval_pops_parallel = True
+            eval_pops_parallel = False
             print(
                 "RW and Global populations will be evaluated in parallel (1 individual per core)."
             )
