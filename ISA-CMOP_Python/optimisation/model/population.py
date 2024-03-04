@@ -321,12 +321,6 @@ class Population(np.ndarray):
         #     f"Evaluated ranks (size {len(self)}) in {end_time - start_time:.2f} seconds."
         # )
 
-    def eval_instance(self):
-        obj, cons = self.eval_obj_cons()
-        self.set_obj(obj)
-        self.set_cons(cons)
-        self.set_cv(self.eval_cv())
-
     # Plotters
     def var_scatterplot_matrix(self, bounds=None):
         """
