@@ -13,7 +13,6 @@
     "MW14_d30": "false"
     },
   "eval": {
-    "LIRCMOP5_d5": "true",
     "ICAS2024Test_d10": "false",
     "CTP1_d5": "false",
     "CTP2_d5": "false",
@@ -46,10 +45,11 @@
     "DASCMOP7_d5": "false",
     "DASCMOP8_d5": "false",
     "DASCMOP9_d5": "false",
-    "LIRCMOP1_d5": "true",
-    "LIRCMOP2_d5": "true",
-    "LIRCMOP3_d5": "true",
-    "LIRCMOP4_d5": "true",
+    "LIRCMOP1_d5": "false",
+    "LIRCMOP2_d5": "false",
+    "LIRCMOP3_d5": "false",
+    "LIRCMOP4_d5": "false",
+    "LIRCMOP5_d5": "true",
     "LIRCMOP6_d5": "true",
     "LIRCMOP7_d5": "true",
     "LIRCMOP8_d5": "true",
