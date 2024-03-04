@@ -71,8 +71,10 @@ echo "Created temp_pops directory: $temp_pops_dir" | tee -a "$log_file"
 clean_temp_pops_dir() {
     local dir_to_clean="$1"
 
-    # Normalize the directory path to use forward slashes
-    dir_to_clean=$(cygpath -w "$dir_to_clean" | tr '\\' '/')
+    # Check if cygpath exists (Windows only) and use it to normalize the directory path on Cygwin
+    if command -v cygpath &> /dev/null; then
+        dir_to_clean=$(cygpath -w "$dir_to_clean" | tr '\\' '/')
+    fi
 
     # Find and print top-level directories not containing 'ICAS'
     echo "Directories not containing ICAS in $dir_to_clean:"
