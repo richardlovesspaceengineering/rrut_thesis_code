@@ -610,6 +610,25 @@ class ProblemEvaluator:
             pop_walk, pop_neighbours_list = pre_sampler.load_walk_neig_population(
                 sample_number, walk_number
             )
+
+            # Evaluate fronts.
+            if eval_fronts:
+
+                if not pop_walk.is_ranks_evaluated():
+                    pop_walk.evaluate_fronts(show_time=True)
+
+                print("Evaluating ranks for all neighbours...")
+                for (
+                    pop_neighbourhood
+                ) in pop_neighbours_list:  # Only evaluate fronts within neighbourhoods
+                    if not pop_neighbourhood.is_ranks_evaluated():
+                        pop_neighbourhood.evaluate_fronts(show_time=False)
+
+                # Save again to save us having to re-evaluate the fronts.
+                pre_sampler.save_walk_neig_population(
+                    pop_walk, pop_neighbours_list, sample_number, walk_number
+                )
+
             # If loading is successful, skip the generation and saving process.
             continue_generation = False
         except FileNotFoundError:
@@ -654,6 +673,7 @@ class ProblemEvaluator:
                 i + 1,
                 j + 1,
                 eval_pops_parallel=eval_pops_parallel,
+                eval_fronts=False,
             )
 
             pf = pop_walk.extract_pf()
@@ -769,9 +789,9 @@ class ProblemEvaluator:
 
         for j in range(self.num_walks_rw):
 
-            # Directly wrap the call to get_rw_pop inside the instantiation of RandomWalkAnalysis.
+            # Directly wrap the call to get_rw_pop inside the instantiation of RandomWalkAnalysis. We also need to evaluate the fronts now.
             rw_analysis = RandomWalkAnalysis(
-                *self.get_rw_pop(pre_sampler, problem, i + 1, j + 1),
+                *self.get_rw_pop(pre_sampler, problem, i + 1, j + 1, eval_fronts=True),
                 self.walk_normalisation_values,
                 self.results_dir,
             )

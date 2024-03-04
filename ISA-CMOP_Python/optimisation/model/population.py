@@ -329,8 +329,9 @@ class Population(np.ndarray):
 
         # Check if the length of the arrays matches the length of self
         # and if there are no NaN values in the arrays
-        return (len(ranks) == len(self) and not np.any(np.isnan(ranks))) and (
-            len(uncons_ranks) == len(self) and not np.any(np.isnan(uncons_ranks))
+        # TODO: might need to make this more robust for aerofoils.
+        return (len(ranks) == len(self) and not np.all(np.isnan(ranks))) and (
+            len(uncons_ranks) == len(self) and not np.all(np.isnan(uncons_ranks))
         )
 
     # Plotters
