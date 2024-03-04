@@ -35,6 +35,7 @@ class Individual(object):
 
         # Rank, crowding distance & hypervolume
         self.rank = np.nan
+        self.rank_uncons = np.nan
         self.crowding_distance = 0.0
         self.hypervolume = 0.0
 

@@ -301,6 +301,10 @@ class PreSampler:
         with open(file_path, "wb") as file:
             pickle.dump(pop_global, file)
 
+        print_with_timestamp(
+            f"Saved global population and individual neighbours for sample {sample_number} in {file_path}."
+        )
+
     def load_global_population(self, sample_number):
         # Path for the file from which to load the global population
         file_path = os.path.join(self.global_pop_dir, f"pop_global_{sample_number}.pkl")

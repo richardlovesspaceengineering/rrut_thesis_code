@@ -437,6 +437,14 @@ class ProblemEvaluator:
         try:
             # Attempting to use pre-evaluated populations.
             pop_global = pre_sampler.load_global_population(sample_number)
+
+            # Evaluate fronts.
+            if eval_fronts and not pop_global.is_ranks_evaluated():
+                pop_global.evaluate_fronts(show_time=True)
+
+                # Save again to save us having to re-evaluate the fronts.
+                pre_sampler.save_global_population(pop_global, sample_number)
+
             # If loading is successful, no need to generate a new population.
             continue_generation = False
         except FileNotFoundError:
@@ -467,8 +475,14 @@ class ProblemEvaluator:
         }
         min_values_array = max_values_array
 
+        # We will wait until features evaluation to evaluate fronts if we are using parallel processing to evaluate seeds. This means we can run NDSort on num_samples seeds simultaneously.
+
         pop_global = self.get_global_pop(
-            pre_sampler, problem, i + 1, eval_pops_parallel=eval_pops_parallel
+            pre_sampler,
+            problem,
+            i + 1,
+            eval_fronts=False,
+            eval_pops_parallel=eval_pops_parallel,
         )
         pf = pop_global.extract_pf()
 
@@ -824,7 +838,7 @@ class ProblemEvaluator:
         # We already evaluated the populations when we computed the norms.
 
         global_analysis = GlobalAnalysis(
-            self.get_global_pop(pre_sampler, problem, i + 1),
+            self.get_global_pop(pre_sampler, problem, i + 1, eval_fronts=True),
             self.global_normalisation_values,
             self.results_dir,
         )

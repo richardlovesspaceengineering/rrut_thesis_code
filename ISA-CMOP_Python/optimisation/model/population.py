@@ -308,7 +308,7 @@ class Population(np.ndarray):
         if eval_fronts:
             self.evaluate_fronts()
 
-    def evaluate_fronts(self):
+    def evaluate_fronts(self, show_time=False):
         start_time = time.time()
 
         # Now can find rank and crowding of each individual.
@@ -317,9 +317,21 @@ class Population(np.ndarray):
         # Unconstrained ranks
         self.eval_unconstrained_rank()
         end_time = time.time()
-        # print(
-        #     f"Evaluated ranks (size {len(self)}) in {end_time - start_time:.2f} seconds."
-        # )
+
+        if show_time:
+            print(
+                f"Evaluated ranks (size {len(self)}) in {end_time - start_time:.2f} seconds."
+            )
+
+    def is_ranks_evaluated(self):
+        ranks = self.extract_rank()
+        uncons_ranks = self.extract_uncons_rank()
+
+        # Check if the length of the arrays matches the length of self
+        # and if there are no NaN values in the arrays
+        return (len(ranks) == len(self) and not np.any(np.isnan(ranks))) and (
+            len(uncons_ranks) == len(self) and not np.any(np.isnan(uncons_ranks))
+        )
 
     # Plotters
     def var_scatterplot_matrix(self, bounds=None):
