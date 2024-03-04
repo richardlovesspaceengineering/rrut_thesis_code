@@ -216,7 +216,7 @@ class LIRCMOP5(LIRCMOPSetup):
         self.n_constraints = n_constraints
         super().__init__(dim=n_dim, n_objectives=self.n_objectives)
 
-        self.f_opt
+        self.f_opt = None
         self.var_opt = None
 
         self.int_var = np.array([])
@@ -607,7 +607,7 @@ class LIRCMOP13(LIRCMOPSetup):
         self.n_constraints = n_constraints
         super().__init__(dim=n_dim, n_objectives=self.n_objectives)
 
-        self.f_opt
+        self.f_opt = None
         self.var_opt = None
 
         self.int_var = np.array([])

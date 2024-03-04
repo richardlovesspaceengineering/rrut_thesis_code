@@ -13,6 +13,7 @@
     "MW14_d30": "false"
     },
   "eval": {
+    "LIRCMOP5_d5": "true",
     "ICAS2024Test_d10": "false",
     "CTP1_d5": "false",
     "CTP2_d5": "false",
@@ -49,7 +50,6 @@
     "LIRCMOP2_d5": "true",
     "LIRCMOP3_d5": "true",
     "LIRCMOP4_d5": "true",
-    "LIRCMOP5_d5": "true",
     "LIRCMOP6_d5": "true",
     "LIRCMOP7_d5": "true",
     "LIRCMOP8_d5": "true",
