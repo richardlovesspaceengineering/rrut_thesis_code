@@ -6,11 +6,11 @@ desc_msg="Running all 5D, then 10D and so on from JSON file."
 # problemsRW=("Truss2D", "WeldedBeam") # not scalable in Pymoo
 
 # Number of samples to run. Will max out at 10 for aerofoil problems (handled in Python).
-num_samples=5
+num_samples=30
 
 # Modes are debug or eval.
-# mode="eval"
-mode="debug"
+mode="eval"
+# mode="debug"
 
 # Use pre-generated samples?
 regenerate_samples=false #@JUAN set to true if you need to generate/can't see the pregen_samples folder as a sibling folder.
@@ -167,6 +167,12 @@ jq -r "$jq_filter" $config_file | while read line; do
         echo "Cleaning temp_pops directory for next run (other than ICAS)..." | tee -a "$log_file"
         clean_temp_pops_dir "$temp_pops_dir"
         echo "temp_pops directory cleaned." | tee -a "$log_file"
+
+        # Update the JSON to mark this problem-dimension as false, indicating it's been run, only if mode is "eval"
+        if [[ "$mode" == "eval" ]]; then
+            jq ".[\"$mode\"][\"$problem_dim\"] = \"false\"" $config_file > temp.json && mv temp.json $config_file
+            echo "Updated $problem_dim in JSON file to false."
+        fi
 
     else
         echo "Skipping problem: $problem, dimension: $dim as per config."
