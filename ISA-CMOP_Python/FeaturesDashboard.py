@@ -270,7 +270,19 @@ class FeaturesDashboard:
             raise FileNotFoundError(f"The directory {folder_path} does not exist.")
 
         # Constructing the file path
-        file_name = f"{problem_name}_d{dim}_{analysis_type}_features.csv"
+        if timestamp:
+            # Use the specified timestamp to find the folder
+            file_name = (
+                f"{problem_name}_d{dim}_{analysis_type}_features_{timestamp}.csv"
+            )
+        else:
+            # Use the first (or only) folder path available, if only one exists
+            file_name = (
+                f"{problem_name}_d{dim}_{analysis_type}_features_{folders[0]}.csv"
+                if folders
+                else None
+            )
+
         file_path = os.path.join(folder_path, file_name)
 
         # Check if the file exists
