@@ -568,6 +568,9 @@ class GlobalAnalysis(Analysis):
         return (H.max(), eps_s, m0, eps05)
 
     def eval_features(self):
+
+        print("Made it here.")
+
         # Remove any samples if they contain infs or nans.
         new_pop, _ = self.pop.remove_nan_inf_rows("global")
 
