@@ -168,14 +168,11 @@ jq -r "$jq_filter" $config_file | while read line; do
         clean_temp_pops_dir "$temp_pops_dir"
         echo "temp_pops directory cleaned." | tee -a "$log_file"
 
-        # Store the exit status of the Python script
-        python_exit_status=$?
+
         # Update the JSON to mark this problem-dimension as false, indicating it's been run, only if mode is "eval"
-        if [[ "$mode" == "eval" ]] && [[ $python_exit_status -eq 0 ]]; then
+        if [[ "$mode" == "eval" ]]; then
             jq ".[\"$mode\"][\"$problem_dim\"] = \"false\"" $config_file > temp.json && mv temp.json $config_file
             echo "Updated $problem_dim in JSON file to false."
-        else
-            echo "Error in Python script. Moving to next problem."
         fi
 
     else

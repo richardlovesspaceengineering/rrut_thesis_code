@@ -1124,8 +1124,6 @@ class ProblemEvaluator:
             + " ------------------------"
         )
 
-        print(0 / 0)
-
         pre_sampler = self.initialize_evaluator(temp_pops_dir)
 
         self.send_initialisation_email(f"STARTED RUN OF {self.instance_name}.")
