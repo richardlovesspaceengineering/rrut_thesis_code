@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 import shutil
+from matplotlib.backends.backend_pdf import PdfPages
 
 
 def remove_sd_cols(df, suffix="_std"):
@@ -537,6 +538,22 @@ class FeaturesDashboard:
 
         plt.tight_layout()
         plt.show()
+
+    def plot_multiple_features_across_suites(
+        self, feature_names, suite_names=None, dims=None
+    ):
+        """
+        Generates a series of violin plots for multiple features across different suites, saving each plot to a separate page in a PDF file.
+        :param feature_names: A list of feature names to plot.
+        :param suite_names: Optional. A list of benchmark suite names to filter the features by.
+        :param dims: Optional. A list of dimensions to plot.
+        """
+        pdf_path = os.path.join(self.new_save_path, "feature_plots_by_suite.pdf")
+        with PdfPages(pdf_path) as pdf:
+            for feature_name in feature_names:
+                self.plot_feature_across_suites(feature_name, suite_names, dims)
+                pdf.savefig()  # saves the current figure into a pdf page
+                plt.close()  # close the figure to prevent it from being displayed
 
     def filter_df_by_suite_and_dim(self, suite_names=None, dims=None):
         """
