@@ -855,8 +855,8 @@ class ProblemEvaluator:
     @handle_ctrl_c
     def eval_single_sample_global_features(self, i, pre_sampler, problem):
 
-        # We already evaluated the populations when we computed the norms.
-        pop_global = self.get_global_pop(pre_sampler, problem, i + 1, eval_fronts=False)
+        # We already evaluated the populations when we computed the norms. Still need ranks though.
+        pop_global = self.get_global_pop(pre_sampler, problem, i + 1, eval_fronts=True)
 
         global_analysis = GlobalAnalysis(
             pop_global,
@@ -1146,10 +1146,10 @@ class ProblemEvaluator:
             + " ~~~~~~~~~~~~ \n"
         )
 
-        # rw_features = self.do_random_walk_analysis(
-        #     self.instance, pre_sampler, eval_pops_parallel=eval_pops_parallel
-        # )
-        # rw_features.export_unaggregated_features(self.instance_name, "rw", save_arrays)
+        rw_features = self.do_random_walk_analysis(
+            self.instance, pre_sampler, eval_pops_parallel=eval_pops_parallel
+        )
+        rw_features.export_unaggregated_features(self.instance_name, "rw", save_arrays)
 
         # Global Analysis.
         print(
