@@ -162,7 +162,7 @@ class GlobalAnalysis(Analysis):
         )
 
         # Compute IGD between normalised PF and cloud of points formed by this sample.
-        IGDind = IGD(pf, obj_lb, obj_ub)
+        IGDind = IGD(pf)
         PFd = IGDind(obj)
 
         # Initialise binary tree for nearest neighbour lookup on normalised PF.
