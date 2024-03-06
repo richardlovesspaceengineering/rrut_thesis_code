@@ -856,7 +856,7 @@ class ProblemEvaluator:
     def eval_single_sample_global_features(self, i, pre_sampler, problem):
 
         # We already evaluated the populations when we computed the norms.
-        pop_global = self.get_global_pop(pre_sampler, problem, i + 1, eval_fronts=True)
+        pop_global = self.get_global_pop(pre_sampler, problem, i + 1, eval_fronts=False)
 
         global_analysis = GlobalAnalysis(
             pop_global,
@@ -939,7 +939,7 @@ class ProblemEvaluator:
             num_processes = 1
 
         # Load in the pre-generated LHS sample as a starting point.
-        pop_global = self.get_global_pop(pre_sampler, problem, i + 1)
+        pop_global = self.get_global_pop(pre_sampler, problem, i + 1, eval_fronts=False)
         pop_global_clean, _ = pop_global.remove_nan_inf_rows("global")
         distributed_sample = pop_global_clean.extract_var()
 
