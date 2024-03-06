@@ -156,7 +156,9 @@ class GlobalAnalysis(Analysis):
         obj = Analysis.apply_normalisation(self.pop.extract_obj(), obj_lb, obj_ub)
         var = Analysis.apply_normalisation(self.pop.extract_var(), var_lb, var_ub)
         cv = Analysis.apply_normalisation(self.pop.extract_cv(), cv_lb, cv_ub)
-        pf = Analysis.apply_normalisation(self.pop.extract_pf(max_points=1000))
+        pf = Analysis.apply_normalisation(
+            self.pop.extract_pf(max_points=1000), obj_lb, obj_ub
+        )
 
         # Compute IGD between normalised PF and cloud of points formed by this sample.
         IGDind = IGD(pf, obj_lb, obj_ub)
