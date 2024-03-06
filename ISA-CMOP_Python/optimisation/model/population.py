@@ -254,7 +254,7 @@ class Population(np.ndarray):
         return individual
 
     @handle_ctrl_c
-    def evaluate(self, var_array, eval_fronts, num_processes=1):
+    def evaluate(self, var_array, eval_fronts, num_processes=1, show_msg=False):
 
         vectorized = True
 
@@ -307,9 +307,10 @@ class Population(np.ndarray):
                     self[i].eval_instance()
 
         end_time = time.time()
-        print(
-            f"Evaluated population of size {len(self)} in {end_time - start_time:.2f} seconds."
-        )
+        if show_msg:
+            print(
+                f"Evaluated population of size {len(self)} in {end_time - start_time:.2f} seconds."
+            )
 
         if eval_fronts:
             self.evaluate_fronts()
