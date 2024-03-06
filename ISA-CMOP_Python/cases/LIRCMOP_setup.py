@@ -54,10 +54,14 @@ class LIRCMOPSetup(Setup):
         cons = self.cons_func_specific(var)
         return obj, cons
 
+    def exact_pareto(self, num_points):
+        pass
+
     def _calc_pareto_front(self):
-        return super()._calc_pareto_front(
-            f"./cases/LIRCMOP_files/{self.problem_name}.pf"
-        )
+        # return super()._calc_pareto_front(
+        #     f"./cases/LIRCMOP_files/{self.problem_name}.pf"
+        # )
+        return self.exact_pareto(num_points=1000)
 
 
 class LIRCMOP1(LIRCMOPSetup):
