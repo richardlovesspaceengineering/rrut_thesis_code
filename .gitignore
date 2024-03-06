@@ -3,6 +3,7 @@ __pycache__
 *.DS_Store
 *.pkl
 ci*
+*.log
 pregen_samples
 temp_pops
 features_results
