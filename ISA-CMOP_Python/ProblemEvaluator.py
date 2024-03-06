@@ -443,7 +443,7 @@ class ProblemEvaluator:
                 pop_global.evaluate_fronts(show_time=True)
 
                 # Save again to save us having to re-evaluate the fronts.
-                # pre_sampler.save_global_population(pop_global, sample_number)
+                pre_sampler.save_global_population(pop_global, sample_number)
 
             # If loading is successful, no need to generate a new population.
             continue_generation = False
@@ -625,9 +625,9 @@ class ProblemEvaluator:
                         pop_neighbourhood.evaluate_fronts(show_time=False)
 
                 # Save again to save us having to re-evaluate the fronts.
-                # pre_sampler.save_walk_neig_population(
-                #     pop_walk, pop_neighbours_list, sample_number, walk_number
-                # )
+                pre_sampler.save_walk_neig_population(
+                    pop_walk, pop_neighbours_list, sample_number, walk_number
+                )
 
             # If loading is successful, skip the generation and saving process.
             continue_generation = False
