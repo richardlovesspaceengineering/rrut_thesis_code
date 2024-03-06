@@ -353,10 +353,7 @@ class FeaturesDashboard:
         return global_min, global_max
 
     def plot_feature_across_suites(
-        self,
-        feature_name,
-        suite_names=None,
-        dims=None,
+        self, feature_name, suite_names=None, dims=None, show_plot=True
     ):
         """
         Generates a 1xN grid of violin plots for a specified feature across different suites, with points overlaying the violin plots.
@@ -445,10 +442,14 @@ class FeaturesDashboard:
 
             ax.set_ylim(global_min, global_max)
 
+        plt.suptitle(feature_name_with_mean)
         plt.tight_layout()
-        plt.show()
+        if show_plot:
+            plt.show()
 
-    def plot_feature_across_dims(self, feature_name, dims=None, suite_names=None):
+    def plot_feature_across_dims(
+        self, feature_name, dims=None, suite_names=None, show_plot=True
+    ):
         """
         Generates a 1xN grid of violin plots for a specified feature across different dimensions, with points overlaying the violin plots.
         Each violin plot represents a different dimension, with distinct colors used for each dimension.
@@ -537,7 +538,8 @@ class FeaturesDashboard:
             ax.set_ylim(global_min, global_max)
 
         plt.tight_layout()
-        plt.show()
+        if show_plot:
+            plt.show()
 
     def plot_multiple_features_across_suites(
         self, feature_names, suite_names=None, dims=None
@@ -551,9 +553,20 @@ class FeaturesDashboard:
         pdf_path = os.path.join(self.new_save_path, "feature_plots_by_suite.pdf")
         with PdfPages(pdf_path) as pdf:
             for feature_name in feature_names:
-                self.plot_feature_across_suites(feature_name, suite_names, dims)
+                self.plot_feature_across_suites(
+                    feature_name, suite_names, dims, show_plot=False
+                )
                 pdf.savefig()  # saves the current figure into a pdf page
                 plt.close()  # close the figure to prevent it from being displayed
+
+    def generate_features_results_pdf_across_suites(self):
+        df_cols = self.get_landscape_features_df(give_sd=False).columns
+
+        # Remove _mean from each.
+        feature_names = [
+            col[:-5] for col in df_cols if col not in ["Name", "Date", "Suite", "D"]
+        ]
+        self.plot_multiple_features_across_suites(feature_names)
 
     def filter_df_by_suite_and_dim(self, suite_names=None, dims=None):
         """
