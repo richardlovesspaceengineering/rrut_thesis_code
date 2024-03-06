@@ -11,7 +11,7 @@ import seaborn as sns
 import pandas as pd
 from matplotlib.ticker import FuncFormatter
 import time
-import copy
+import math
 
 
 class Population(np.ndarray):
@@ -132,8 +132,14 @@ class Population(np.ndarray):
     def extract_crowding(self):
         return self.extract_attribute("crowding_distance")
 
-    def extract_pf(self):
-        return self[0].problem._calc_pareto_front()
+    def extract_pf(self, max_points=None):
+        pareto_front = self[0].problem._calc_pareto_front()
+
+        if max_points is not None and 0 < max_points < len(pareto_front):
+            interval = math.ceil(len(pareto_front) / max_points)
+            pareto_front = pareto_front[::interval]
+
+        return pareto_front
 
     def extract_bounds(self):
         return self[0].bounds
