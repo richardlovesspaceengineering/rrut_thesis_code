@@ -856,7 +856,7 @@ class ProblemEvaluator:
     def eval_single_sample_global_features(self, i, pre_sampler, problem):
 
         # We already evaluated the populations when we computed the norms.
-        pop_global = self.get_global_pop(pre_sampler, problem, i + 1, eval_fronts=True)
+        pop_global = self.get_global_pop(pre_sampler, problem, i + 1, eval_fronts=False)
 
         global_analysis = GlobalAnalysis(
             pop_global,
