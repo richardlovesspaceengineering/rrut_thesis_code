@@ -170,7 +170,7 @@ class GlobalAnalysis(Analysis):
         distances, indices = tree.query(
             Analysis.apply_normalisation(self.pop.extract_pf(), obj_lb, obj_ub),
             k=num_nearest,
-            workers=-1,
+            workers=1,
         )  # use parallel processing
 
         # For each point in the Pareto front, average the CV of the nearest neighbours to the PF in the sample.
