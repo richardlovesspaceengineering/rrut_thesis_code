@@ -1118,11 +1118,13 @@ class ProblemEvaluator:
         return pre_sampler
 
     def do(self, save_arrays, temp_pops_dir=None):
-        printe(
+        print(
             "\n------------------------ Evaluating instance: "
             + self.instance_name
             + " ------------------------"
         )
+
+        print(0 / 0)
 
         pre_sampler = self.initialize_evaluator(temp_pops_dir)
 
