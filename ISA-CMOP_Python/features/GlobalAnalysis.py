@@ -163,7 +163,9 @@ class GlobalAnalysis(Analysis):
 
         # Compute IGD between normalised PF and cloud of points formed by this sample.
         IGDind = IGD(
-            Analysis.apply_normalisation(self.pop.extract_pf(), obj_lb, obj_ub)
+            Analysis.apply_normalisation(
+                self.pop.extract_pf(max_points=1e3), obj_lb, obj_ub
+            )
         )
         PFd = IGDind(obj)
 
@@ -173,7 +175,9 @@ class GlobalAnalysis(Analysis):
         # Query the tree to find the nearest neighbours in obj for each point on the PF.
         num_nearest = min(len(self.pop), 20)
         dstances, indices = tree.query(
-            Analysis.apply_normalisation(self.pop.extract_pf(), obj_lb, obj_ub),
+            Analysis.apply_normalisation(
+                self.pop.extract_pf(max_points=1e4), obj_lb, obj_ub
+            ),
             k=num_nearest,
             workers=-1,
         )  # use parallel processing
