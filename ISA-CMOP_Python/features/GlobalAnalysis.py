@@ -569,13 +569,15 @@ class GlobalAnalysis(Analysis):
 
     def eval_features(self):
 
-        print("Made it here.")
-
         # Remove any samples if they contain infs or nans.
         new_pop, _ = self.pop.remove_nan_inf_rows("global")
 
+        print("nan done")
+
         # Global scr. "glob" will be appended to the name in the results file.
         self.features["scr"] = Analysis.compute_solver_crash_ratio(self.pop, new_pop)
+
+        print("scr done")
 
         # Now work with the trimmed population from now on.
         self.pop = new_pop
@@ -583,12 +585,16 @@ class GlobalAnalysis(Analysis):
         # Feasibility
         self.features["fsr"] = self.compute_fsr()
 
+        print("fsr done")
+
         # Correlation of objectives.
         (
             self.features["corr_obj_min"],
             self.features["corr_obj_max"],
             self.features["corr_obj_range"],
         ) = self.corr_obj()
+
+        print("corr_obj done")
 
         # Skewness of objective values.
         (
@@ -598,6 +604,8 @@ class GlobalAnalysis(Analysis):
             self.features["skew_rnge"],
         ) = self.obj_skew()
 
+        print("obj skew done")
+
         # Kurtosis of objective values.
         (
             self.features["kurt_avg"],
@@ -605,6 +613,8 @@ class GlobalAnalysis(Analysis):
             self.features["kurt_max"],
             self.features["kurt_rnge"],
         ) = self.obj_kurt()
+
+        print("obj kurt done")
 
         # Distribution of unconstrained ranks.
         (
@@ -616,6 +626,8 @@ class GlobalAnalysis(Analysis):
             self.features["kurt_uc_rk"],
         ) = self.uc_rk_distr()
 
+        print("uc rk done")
+
         # Distribution of CV (normalised).
         (
             self.features["mean_cv"],
@@ -626,12 +638,16 @@ class GlobalAnalysis(Analysis):
             self.features["kurt_cv"],
         ) = self.cv_distr(norm_method="95th")
 
+        print("cv distr done")
+
         # Proportion of solutions in ideal zone per objectives and overall proportion of solutions in ideal zone.
         (
             self.features["piz_ob_min"],
             self.features["piz_ob_max"],
             self.features["piz_ob_f"],
         ) = self.PiIZ()
+
+        print("PiIz done")
 
         # Pareto set and front properties (normalised).
         (
@@ -645,6 +661,8 @@ class GlobalAnalysis(Analysis):
             self.features["PF_dist_iqr"],
         ) = self.compute_ps_pf_distances(norm_method="95th")
 
+        print("ps pf done")
+
         # Get PF-UPF relationship features.
         (
             self.features["hv_est"],
@@ -657,8 +675,12 @@ class GlobalAnalysis(Analysis):
             self.features["cover_cpo_upo_n"],
         ) = self.compute_PF_UPF_features(norm_method="95th")
 
+        print("pf upf done")
+
         # Extract violation-distance correlation.
         self.features["dist_c_corr"] = self.dist_corr()
+
+        print("distccorr done")
 
         # Correlations of objectives with cv, unconstrained ranks and then cv with ranks.
         (
@@ -669,17 +691,23 @@ class GlobalAnalysis(Analysis):
             self.features["corr_cv_ranks"],
         ) = self.compute_ranks_cv_corr()
 
+        print("ranks cv corr done")
+
         # Decision variables-unconstrained ranks model properties.
         (
             self.features["rk_uc_mdl_r2"],
             self.features["rk_uc_range_coeff"],
         ) = self.rk_uc_var_mdl()
 
+        print("rk uc var mdl done")
+
         # Decision variables-CV model properties.
         (
             self.features["cv_mdl_r2"],
             self.features["cv_range_coeff"],
         ) = self.cv_var_mdl()
+
+        print("cv var mdl done done")
 
         # Information content features.
         (
@@ -688,3 +716,5 @@ class GlobalAnalysis(Analysis):
             self.features["m0"],
             self.features["eps05"],
         ) = GlobalAnalysis.compute_ic_features(self.pop, sample_type="global")
+
+        print("ic done")
