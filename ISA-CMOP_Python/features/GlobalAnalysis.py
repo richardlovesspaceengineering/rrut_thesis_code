@@ -152,14 +152,14 @@ class GlobalAnalysis(Analysis):
         var_lb, var_ub, obj_lb, obj_ub, cv_lb, cv_ub = super().extract_norm_values(
             norm_method
         )
+
         obj = Analysis.apply_normalisation(self.pop.extract_obj(), obj_lb, obj_ub)
         var = Analysis.apply_normalisation(self.pop.extract_var(), var_lb, var_ub)
         cv = Analysis.apply_normalisation(self.pop.extract_cv(), cv_lb, cv_ub)
+        pf = Analysis.apply_normalisation(self.pop.extract_pf(max_points=1000))
 
         # Compute IGD between normalised PF and cloud of points formed by this sample.
-        IGDind = IGD(
-            Analysis.apply_normalisation(self.pop.extract_pf(), obj_lb, obj_ub)
-        )
+        IGDind = IGD(pf, obj_lb, obj_ub)
         PFd = IGDind(obj)
 
         # Initialise binary tree for nearest neighbour lookup on normalised PF.
@@ -168,9 +168,7 @@ class GlobalAnalysis(Analysis):
         # Query the tree to find the nearest neighbours in obj for each point on the PF.
         num_nearest = min(len(self.pop), 20)
         dstances, indices = tree.query(
-            Analysis.apply_normalisation(
-                self.pop.extract_pf(max_points=1000), obj_lb, obj_ub
-            ),
+            pf,
             k=num_nearest,
             workers=-1,
         )  # use parallel processing
