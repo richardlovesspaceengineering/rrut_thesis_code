@@ -113,7 +113,7 @@ function ctrl_c() {
     echo "Terminating program..." | tee -a "$log_file"
 
     # Clean up temp_pops dir, excluding directories with 'ICAS' in the name
-    clean_temp_pops_dir "$temp_pops_dir"
+    # clean_temp_pops_dir "$temp_pops_dir"
 
     # Clean up temp dir
     rm -rf "$temp_dir"
