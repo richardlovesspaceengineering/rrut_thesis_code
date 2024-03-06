@@ -61,7 +61,7 @@ class LIRCMOPSetup(Setup):
         # return super()._calc_pareto_front(
         #     f"./cases/LIRCMOP_files/{self.problem_name}.pf"
         # )
-        return self.exact_pareto(n_points=1000)
+        return self.exact_pareto(n_points=500)
 
 
 class LIRCMOP1(LIRCMOPSetup):
