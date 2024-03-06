@@ -15,6 +15,7 @@ from pymoo.indicators.gd import GD
 from pymoo.indicators.igd import IGD
 from scipy.spatial import cKDTree
 from sklearn.neighbors import NearestNeighbors
+import time
 
 
 class GlobalAnalysis(Analysis):
@@ -170,10 +171,15 @@ class GlobalAnalysis(Analysis):
         # Query the tree to find the nearest neighbours in obj for each point on the PF.
         num_nearest = min(len(self.pop), 20)
         dstances, indices = tree.query(
-            pf,
+            Analysis.apply_normalisation(
+                self.pop.extract_pf(max_points=1000), obj_lb, obj_ub
+            ),
             k=num_nearest,
             workers=-1,
         )  # use parallel processing
+
+        time.sleep(100)
+        print("Sleeping for 100s")
 
         # For each point in the Pareto front, average the CV of the nearest neighbours to the PF in the sample.
         avg_cv_neighbours = []
