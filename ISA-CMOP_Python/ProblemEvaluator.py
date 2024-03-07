@@ -193,6 +193,7 @@ class ProblemEvaluator:
             if self.check_if_aerofoil():
                 self.num_processes_parallel_seed = 32  # max cores
             else:
+                # TODO: experiment with optimal value for ModAct
                 self.num_processes_parallel_seed = 10  # max cores
 
         # Now we will allocate num_cores_global. This value will need to be smaller to deal with memory issues related to large matrices.
@@ -344,11 +345,15 @@ class ProblemEvaluator:
                 self.rescale_pregen_sample(all_neighbours, problem),
                 eval_fronts=False,  # no need to compare all neighbours to all steps
                 num_processes=num_processes,
+                show_msg=True,
             )
         else:
             # Adaptive walks are already rescaled
             pop_total.evaluate(
-                all_neighbours, eval_fronts=eval_fronts, num_processes=num_processes
+                all_neighbours,
+                eval_fronts=eval_fronts,
+                num_processes=num_processes,
+                show_msg=True,
             )
 
         # Now, split the population back into the respective neighbourhoods
@@ -395,10 +400,14 @@ class ProblemEvaluator:
                 self.rescale_pregen_sample(walk, problem),
                 eval_fronts=eval_fronts,
                 num_processes=num_processes,
+                show_msg=True,
             )
         else:
             pop_walk.evaluate(
-                walk, eval_fronts=eval_fronts, num_processes=num_processes
+                walk,
+                eval_fronts=eval_fronts,
+                num_processes=num_processes,
+                show_msg=True,
             )
 
         return pop_walk, pop_neighbours_list
