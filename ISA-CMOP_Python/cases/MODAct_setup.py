@@ -95,6 +95,11 @@ class MODAct(Setup):
             * self.weights
         )
 
+    def evaluate(self, var):
+        obj = self.obj_func_specific(var)
+        cons = self.cons_func_specific(var)
+        return obj, cons
+
     def set_variables(self, prob, **kwargs):
         prob.add_var_group(
             "x_vars",
