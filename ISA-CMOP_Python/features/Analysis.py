@@ -196,7 +196,7 @@ class Analysis:
         elif correlation_type == "spearman":
             correlation_matrix, p_values = spearmanr(matrix, axis=0)
 
-        if correlation_matrix.size == 0:  # If the result is a scalar (2x2 matrix case)
+        if correlation_matrix.ndim == 0:  # If the result is a scalar (2x2 matrix case)
             correlation_matrix = np.array(
                 [[1, correlation_matrix], [correlation_matrix, 1]]
             )
