@@ -6,29 +6,24 @@ from PreSampler import PreSampler
 
 # Import the get_problem method from pymoo.problems
 from pymoo.problems import get_problem
-from pymoo.problems.multi import MODAct
 import cases.LIRCMOP_setup
 from pathlib import Path
 import numpy as np
 import socket
 
 
-def append_custom_library_path():
+def append_aerofoil_path():
 
     hostname = socket.gethostname()
     if hostname == "megatron2":
-        aerofoil_path = str(
+        sys_path = str(
             Path("/home/kj66/Documents/Richard/AirfoilBenchmarkSuite/").expanduser()
         )
-        modact_path = str(
-            Path("/home/kj66/Documents/Richard/optimisation_framework/").expanduser()
-        )
     else:
-        aerofoil_path = str(
+        sys_path = str(
             Path("C:/Users/richa/Documents/Thesis/AirfoilBenchmarkSuite/").expanduser()
         )
-    sys.path.append(aerofoil_path)
-    sys.path.append(modact_path)
+    sys.path.append(sys_path)
 
 
 # Load the JSON configuration from the file
@@ -85,8 +80,16 @@ def generate_instance(problem_name, n_var):
 
     # Check if problem_name contains 'DASCMOP'
     if problem_name.startswith(("cs", "ct")) and "ctp" not in problem_name:
+        from cases.MODAct_setup import MODAct
         problem = MODAct(problem_name)
         print("MODAct problem selected - note that these are fixed 20D problems.")
+        
+        problem.n_var = problem.dim
+        problem.n_obj = problem.n_objectives
+        problem.n_constr = problem.n_constraints
+        problem.xl = problem.lb
+        problem.xu = problem.ub
+        
     elif "lircmop" in problem_name:
         problem = getattr(cases.LIRCMOP_setup, problem_name.upper())(n_dim=n_var)
 
@@ -97,13 +100,15 @@ def generate_instance(problem_name, n_var):
         problem.xl = problem.lb
         problem.xu = problem.ub
 
-    elif (
-        problem_name.startswith(("cs", "ct")) and "ctp" not in problem_name
-    ) or problem_name == "icas2024test":
-        append_custom_library_path()
-        from test_problems.icas2024 import ICAS2024Test
+    elif problem_name == "icas2024test":
+        append_aerofoil_path()
+        
+        if problem_name == "icas2024test":
+            from test_problems.icas2024 import ICAS2024Test
 
-        problem = ICAS2024Test(n_dim=n_var, solver="xfoil", impute_values=False)
+            problem = ICAS2024Test(n_dim=n_var, solver="xfoil", impute_values=False)
+        else:
+            problem = 
 
         # Helps with downstream naming issues
         problem.n_constr = problem.n_con
