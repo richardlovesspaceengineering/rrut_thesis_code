@@ -13,18 +13,22 @@ import numpy as np
 import socket
 
 
-def append_airfoilsuite_path():
+def append_custom_library_path():
 
     hostname = socket.gethostname()
     if hostname == "megatron2":
-        sys_path = str(
+        aerofoil_path = str(
             Path("/home/kj66/Documents/Richard/AirfoilBenchmarkSuite/").expanduser()
         )
+        modact_path = str(
+            Path("/home/kj66/Documents/Richard/optimisation_framework/").expanduser()
+        )
     else:
-        sys_path = str(
+        aerofoil_path = str(
             Path("C:/Users/richa/Documents/Thesis/AirfoilBenchmarkSuite/").expanduser()
         )
-    sys.path.append(sys_path)
+    sys.path.append(aerofoil_path)
+    sys.path.append(modact_path)
 
 
 # Load the JSON configuration from the file
@@ -93,8 +97,10 @@ def generate_instance(problem_name, n_var):
         problem.xl = problem.lb
         problem.xu = problem.ub
 
-    elif problem_name == "icas2024test":
-        append_airfoilsuite_path()
+    elif (
+        problem_name.startswith(("cs", "ct")) and "ctp" not in problem_name
+    ) or problem_name == "icas2024test":
+        append_custom_library_path()
         from test_problems.icas2024 import ICAS2024Test
 
         problem = ICAS2024Test(n_dim=n_var, solver="xfoil", impute_values=False)
