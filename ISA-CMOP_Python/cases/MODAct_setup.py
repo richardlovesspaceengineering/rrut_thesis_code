@@ -98,11 +98,6 @@ class MODAct(Setup):
             * self.weights
         )
 
-    def evaluate(self, var):
-        obj = self.obj_func_specific(var)
-        cons = self.cons_func_specific(var)
-        return obj, cons
-
     def set_variables(self, prob, **kwargs):
         prob.add_var_group(
             "x_vars",
@@ -133,12 +128,12 @@ class MODAct(Setup):
 
         return obj, cons, performance
 
-    def obj_func_specific(self, x):
+    def evaluate(self, x):
         f, g = self.prob(x)
         obj = np.array(f) * -1.0 * self.weights
-        # cons = np.array(g) * self.c_weights
+        cons = np.array(g) * self.c_weights
 
-        return obj
+        return obj, cons
 
     def cons_func_specific(self, x):
         _, g = self.prob(x)
