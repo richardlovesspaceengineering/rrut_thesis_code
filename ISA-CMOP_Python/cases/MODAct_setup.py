@@ -136,9 +136,9 @@ class MODAct(Setup):
     def obj_func_specific(self, x):
         f, g = self.prob(x)
         obj = np.array(f) * -1.0 * self.weights
-        cons = np.array(g) * self.c_weights
+        # cons = np.array(g) * self.c_weights
 
-        return obj, cons
+        return obj
 
     def cons_func_specific(self, x):
         _, g = self.prob(x)

@@ -620,8 +620,8 @@ class ProblemEvaluator:
                 sample_number, walk_number
             )
 
-            print(pop_walk.extract_obj())
-            print(pop_walk.extract_cons())
+            # print(pop_walk.extract_obj())
+            # print(pop_walk.extract_cons())
 
             # Evaluate fronts.
             if eval_fronts:
