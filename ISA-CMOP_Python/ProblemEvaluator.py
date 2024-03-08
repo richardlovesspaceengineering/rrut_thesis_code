@@ -193,6 +193,7 @@ class ProblemEvaluator:
             if self.check_if_aerofoil():
                 self.num_processes_parallel_seed = 32  # max cores
             else:
+                # TODO: experiment with optimal value for ModAct
                 self.num_processes_parallel_seed = 10  # max cores
 
         # Now we will allocate num_cores_global. This value will need to be smaller to deal with memory issues related to large matrices.
@@ -344,11 +345,15 @@ class ProblemEvaluator:
                 self.rescale_pregen_sample(all_neighbours, problem),
                 eval_fronts=False,  # no need to compare all neighbours to all steps
                 num_processes=num_processes,
+                show_msg=True,
             )
         else:
             # Adaptive walks are already rescaled
             pop_total.evaluate(
-                all_neighbours, eval_fronts=eval_fronts, num_processes=num_processes
+                all_neighbours,
+                eval_fronts=eval_fronts,
+                num_processes=num_processes,
+                show_msg=True,
             )
 
         # Now, split the population back into the respective neighbourhoods
@@ -395,10 +400,14 @@ class ProblemEvaluator:
                 self.rescale_pregen_sample(walk, problem),
                 eval_fronts=eval_fronts,
                 num_processes=num_processes,
+                show_msg=True,
             )
         else:
             pop_walk.evaluate(
-                walk, eval_fronts=eval_fronts, num_processes=num_processes
+                walk,
+                eval_fronts=eval_fronts,
+                num_processes=num_processes,
+                show_msg=True,
             )
 
         return pop_walk, pop_neighbours_list
@@ -614,20 +623,24 @@ class ProblemEvaluator:
             # Evaluate fronts.
             if eval_fronts:
 
+                need_to_resave = False
+
                 if not pop_walk.is_ranks_evaluated():
                     pop_walk.evaluate_fronts(show_time=True)
+                    need_to_resave = True
 
-                print("Evaluating ranks for all neighbours...")
                 for (
                     pop_neighbourhood
                 ) in pop_neighbours_list:  # Only evaluate fronts within neighbourhoods
                     if not pop_neighbourhood.is_ranks_evaluated():
                         pop_neighbourhood.evaluate_fronts(show_time=False)
+                        need_to_resave = True
 
                 # Save again to save us having to re-evaluate the fronts.
-                pre_sampler.save_walk_neig_population(
-                    pop_walk, pop_neighbours_list, sample_number, walk_number
-                )
+                if need_to_resave:
+                    pre_sampler.save_walk_neig_population(
+                        pop_walk, pop_neighbours_list, sample_number, walk_number
+                    )
 
             # If loading is successful, skip the generation and saving process.
             continue_generation = False
