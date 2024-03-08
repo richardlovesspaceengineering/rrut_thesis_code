@@ -6,11 +6,11 @@ desc_msg="Running all 5D, then 10D and so on from JSON file."
 # problemsRW=("Truss2D", "WeldedBeam") # not scalable in Pymoo
 
 # Number of samples to run. Will max out at 10 for aerofoil problems (handled in Python).
-num_samples=3
+num_samples=30
 
 # Modes are debug or eval.
-# mode="eval"
-mode="debug"
+mode="eval"
+# mode="debug"
 
 # Use pre-generated samples?
 regenerate_samples=false #@JUAN set to true if you need to generate/can't see the pregen_samples folder as a sibling folder.
