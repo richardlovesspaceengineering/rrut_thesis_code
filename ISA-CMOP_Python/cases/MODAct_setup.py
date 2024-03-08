@@ -88,11 +88,10 @@ class MODAct(Setup):
             raise Exception("Not setup to handle discrete variables!")
 
     def _calc_pareto_front(self):
+        # New method added by Richard - had to slightly alter filepath.
         return (
             -1.0
-            * super()._calc_pareto_front(
-                f"../multi_obj/cases/MODAct_files/{self.problem_name}_PF.dat"
-            )
+            * super()._calc_pareto_front(f"MODAct_files/{self.problem_name}_PF.dat")
             * self.weights
         )
 
