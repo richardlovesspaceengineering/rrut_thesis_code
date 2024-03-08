@@ -3,6 +3,7 @@ from optimisation.setup import Setup
 from optimisation.util.reference_directions import UniformReferenceDirection
 
 import modact.problems as pb
+import os
 
 """
 A wrapper for the MODAct real-world problem sets
@@ -89,6 +90,7 @@ class MODAct(Setup):
 
     def _calc_pareto_front(self):
         # New method added by Richard - had to slightly alter filepath.
+        print(os.getcwd())
         return (
             -1.0
             * super()._calc_pareto_front(
