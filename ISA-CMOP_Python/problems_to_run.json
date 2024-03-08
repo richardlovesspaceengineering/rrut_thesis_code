@@ -1,5 +1,6 @@
 {
   "debug": {
+    "CTSE1_d20": "true",
     "ICAS2024Test_d10": "false",
     "LIRCMOP1_d5": "false",
     "CS1_d20": "true",
@@ -15,7 +16,6 @@
   },
   "eval": {
     "ICAS2024Test_d10": "false",
-    "CS1_d20": "true",
     "CTP1_d5": "false",
     "CTP2_d5": "false",
     "CTP3_d5": "false",
@@ -242,12 +242,22 @@
     "C3DTLZ4_d30": "false",
     "ICAS2024Test_d20": "false",
     "ICAS2024Test_d30": "false",
+    "CS1_d20": "true",
     "CS2_d20": "false",
-    "CS3_d20": "false",
-    "CS4_d20": "false",
+    "CS3_d20": "true",
+    "CS4_d20": "true",
     "CT1_d20": "true",
     "CT2_d20": "true",
     "CT3_d20": "true",
-    "CT4_d20": "true"
+    "CT4_d20": "true",
+    "CTSE1_d20": "true",
+    "CTSE2_d20": "true",
+    "CTSE3_d20": "true",
+    "CTSE4_d20": "true",
+    "CTSEI1_d20": "true",
+    "CTSEI2_d20": "true",
+    "CTSEI3_d20": "true",
+    "CTSEI4_d20": "true"
+
   }
 }
