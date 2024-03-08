@@ -90,7 +90,6 @@ class MODAct(Setup):
 
     def _calc_pareto_front(self):
         # New method added by Richard - had to slightly alter filepath.
-        print(os.getcwd())
         return (
             -1.0
             * super()._calc_pareto_front(
@@ -102,6 +101,8 @@ class MODAct(Setup):
     def evaluate(self, var):
         obj = self.obj_func_specific(var)
         cons = self.cons_func_specific(var)
+        print(obj)
+        print(cons)
         return obj, cons
 
     def set_variables(self, prob, **kwargs):
