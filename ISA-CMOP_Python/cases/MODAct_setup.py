@@ -91,7 +91,9 @@ class MODAct(Setup):
         # New method added by Richard - had to slightly alter filepath.
         return (
             -1.0
-            * super()._calc_pareto_front(f"MODAct_files/{self.problem_name}_PF.dat")
+            * super()._calc_pareto_front(
+                f"MODAct_files/{self.problem_name.lower()}_PF.dat"
+            )
             * self.weights
         )
 
