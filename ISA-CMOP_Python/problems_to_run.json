@@ -14,7 +14,7 @@
     "MW14_d30": "false"
   },
   "eval": {
-    "CS1_d20": "false",
+    "CS1_d20": "true",
     "ICAS2024Test_d10": "false",
     "CTP1_d5": "false",
     "CTP2_d5": "false",
