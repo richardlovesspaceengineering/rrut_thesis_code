@@ -194,7 +194,7 @@ class ProblemEvaluator:
                 self.num_processes_parallel_seed = 64  # max cores
             else:
                 # TODO: experiment with optimal value for ModAct
-                self.num_processes_parallel_seed = 20  # max cores
+                self.num_processes_parallel_seed = 32  # max cores
 
         # Now we will allocate num_cores_global. This value will need to be smaller to deal with memory issues related to large matrices.
         dim_key = f"{self.instance.n_var}d"  # Assuming self.dim is an integer or string that matches the keys in the dictionary
@@ -1154,6 +1154,8 @@ class ProblemEvaluator:
             print(
                 "RW and Global populations will be evaluated in series (1 features run per core)."
             )
+
+        # eval_pops_parallel = True
 
         # RW Analysis.
         print(
