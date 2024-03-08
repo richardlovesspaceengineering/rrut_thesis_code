@@ -309,6 +309,7 @@ class Population(np.ndarray):
                         for i, result in enumerate(results):
                             self[i] = result
                     else:
+                        print("Using chunked evaluation...")
                         # Split var_array into chunks
                         var_array_chunks = np.array_split(var_array, num_processes)
 
