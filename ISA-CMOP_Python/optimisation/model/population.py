@@ -327,8 +327,12 @@ class Population(np.ndarray):
                         # Use pool.starmap to parallelize
                         results = pool.starmap(self.evaluate_chunks, args)
 
-                        # Join back
-                        self = Population.merge_multiple(*results)
+                        # Instead of self = Population.merge_multiple(*results)
+                        merged_population = Population.merge_multiple(*results)
+
+                        # Update the original population with the merged results
+                        for i in range(len(merged_population)):
+                            self[i] = merged_population[i]
 
             else:
                 for i in range(len(self)):
