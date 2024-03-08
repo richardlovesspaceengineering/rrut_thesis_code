@@ -94,7 +94,7 @@ class MODAct(Setup):
         return (
             -1.0
             * super()._calc_pareto_front(
-                f"MODAct_files/{self.problem_name.lower()}_PF.dat"
+                f"cases/MODAct_files/{self.problem_name.lower()}_PF.dat"
             )
             * self.weights
         )
