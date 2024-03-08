@@ -191,7 +191,7 @@ class ProblemEvaluator:
             }
 
             if self.check_if_aerofoil():
-                self.num_processes_parallel_seed = 64  # max cores
+                self.num_processes_parallel_seed = 32  # max cores
             else:
                 # TODO: experiment with optimal value for ModAct
                 self.num_processes_parallel_seed = 20  # max cores
