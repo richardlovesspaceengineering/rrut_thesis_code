@@ -8,11 +8,28 @@ import modact.problems as pb
 A wrapper for the MODAct real-world problem sets
 """
 
-AVAILABLE_CASES = ['cs1', 'cs2', 'cs3', 'cs4',
-                   'ct1', 'ct2', 'ct3', 'ct4',
-                   'cts1', 'cts2', 'cts3', 'cts4',
-                   'ctse1', 'ctse2', 'ctse3', 'ctse4',
-                   'ctsei1', 'ctsei2', 'ctsei3', 'ctsei4']
+AVAILABLE_CASES = [
+    "cs1",
+    "cs2",
+    "cs3",
+    "cs4",
+    "ct1",
+    "ct2",
+    "ct3",
+    "ct4",
+    "cts1",
+    "cts2",
+    "cts3",
+    "cts4",
+    "ctse1",
+    "ctse2",
+    "ctse3",
+    "ctse4",
+    "ctsei1",
+    "ctsei2",
+    "ctsei3",
+    "ctsei4",
+]
 
 
 class MODAct(Setup):
@@ -27,7 +44,8 @@ class MODAct(Setup):
     C. Picard and J. Schiffmann, “Realistic Constrained Multi-Objective Optimization Benchmark Problems from Design,”
     IEEE Transactions on Evolutionary Computation, pp. 1–1, 2020.
     """
-    def __init__(self, problem_name='cs1'):
+
+    def __init__(self, problem_name="cs1"):
         problem_name = problem_name.lower()
         assert problem_name in AVAILABLE_CASES
         super().__init__()
@@ -56,25 +74,43 @@ class MODAct(Setup):
         self.c_weights = np.array(self.prob.c_weights)
 
         # Initial guess
-        self.initial_value = self.lb + 0.5*(self.ub - self.lb)
+        self.initial_value = self.lb + 0.5 * (self.ub - self.lb)
 
         # Optimum Pareto Front
         # self.f_opt = -1.0 * np.genfromtxt(f"./cases/MODAct_files/{self.problem_name}_PF.dat", delimiter="") * self.weights
-        self.f_opt = -1.0 * np.genfromtxt(f"../multi_obj/cases/MODAct_files/{self.problem_name}_PF.dat", delimiter="") * self.weights
+        self.f_opt = None
         self.var_opt = None
 
         if self.n_int == 0:
             self.int_var = np.array([])
             self.cont_var = np.arange(0, self.dim)
         else:
-            raise Exception('Not setup to handle discrete variables!')
+            raise Exception("Not setup to handle discrete variables!")
+
+    def _calc_pareto_front(self):
+        return (
+            -1.0
+            * super()._calc_pareto_front(
+                f"../multi_obj/cases/MODAct_files/{self.problem_name}_PF.dat"
+            )
+            * self.weights
+        )
 
     def set_variables(self, prob, **kwargs):
-        prob.add_var_group('x_vars', self.dim, 'c', lower=self.lb, upper=self.ub,
-                           value=self.initial_value, scale=1.0)  # TODO: initial value check
- 
+        prob.add_var_group(
+            "x_vars",
+            self.dim,
+            "c",
+            lower=self.lb,
+            upper=self.ub,
+            value=self.initial_value,
+            scale=1.0,
+        )  # TODO: initial value check
+
     def set_constraints(self, prob, **kwargs):
-        prob.add_con_group('con', self.n_constraints, lower=None, upper=None)  # TODO: check bounds
+        prob.add_con_group(
+            "con", self.n_constraints, lower=None, upper=None
+        )  # TODO: check bounds
 
     def set_objectives(self, prob, **kwargs):
         for i in range(self.n_objectives):
@@ -84,7 +120,7 @@ class MODAct(Setup):
         prob.add_pareto_set(prob, self.f_opt)
 
     def obj_func(self, x_dict, **kwargs):
-        x = x_dict['x_vars']
+        x = x_dict["x_vars"]
         obj, cons = self.obj_func_specific(x)
         performance = None
 
@@ -105,6 +141,6 @@ class MODAct(Setup):
 
 
 if __name__ == "__main__":
-    case = 'cs1'
+    case = "cs1"
     prob = MODAct(case)
     print(prob.lb, prob.ub)
