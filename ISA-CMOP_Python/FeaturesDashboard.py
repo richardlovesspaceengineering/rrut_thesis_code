@@ -44,6 +44,7 @@ class FeaturesDashboard:
             "MW": [f"MW{x}" for x in range(1, 15, 1)],
             "CTP": [f"CTP{x}" for x in range(1, 9, 1)],
             "DASCMOP": [f"DASCMOP{x}" for x in range(1, 10, 1)],
+            "LIRCMOP": [f"LIRCMOP{x}" for x in range(1, 15, 1)],
             "DCDTLZ": [
                 "DC1DTLZ1",
                 "DC1DTLZ3",
@@ -59,6 +60,24 @@ class FeaturesDashboard:
                 "DC2DTLZ3",
                 "C3DTLZ1",
                 "C3DTLZ4",
+            ],
+            "MODAct": [
+                "CS1",
+                "CS2",
+                "CS3",
+                "CS4",
+                "CT1",
+                "CT2",
+                "CT3",
+                "CT4",
+                "CTSE1",
+                "CTSE2",
+                "CTSE3",
+                "CTSE4",
+                "CTSEI1",
+                "CTSEI2",
+                "CTSEI3",
+                "CTSEI4",
             ],
         }
 
