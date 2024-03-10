@@ -101,7 +101,9 @@ class FeaturesDashboard:
         # Collate all results into one folder.
         self.wipe_features_directory()
         self.copy_directory_contents()
-        self.features_df = self.get_landscape_features_df(give_sd=True)
+        self.features_df = self.replace_outliers_with_nan(
+            self.get_landscape_features_df(give_sd=True)
+        )
 
     def get_suite_for_problem(self, problem_name):
         """
@@ -168,6 +170,46 @@ class FeaturesDashboard:
             )
 
         return overall_df
+
+    def replace_outliers_with_nan(self, df):
+        """
+        Replaces values in the numerical columns of df grouped by the "Suite" column with np.nan
+        if they are more than 4 orders of magnitude from the average order of magnitude of the
+        rest of the points in the grouped column, and logs the column name, Suite, Name value, and the outlier value.
+        """
+        outlier_log = []  # Initialize a list to store the log information
+
+        # Iterate through each group determined by 'Suite'
+        for suite, group_df in df.groupby("Suite"):
+            for column in group_df.select_dtypes(include=[np.number]).columns:
+
+                if column.endswith("_std"):  # Skip columns ending with "_std"
+                    continue
+
+                # Calculate the average order of magnitude for the column, excluding zero to avoid log(0)
+                valid_values = group_df[group_df[column] != 0][column].abs()
+                if not valid_values.empty:
+                    avg_order_magnitude = np.log10(valid_values).mean()
+
+                    # Define the bounds based on the average order of magnitude
+                    upper_bound = 10 ** (avg_order_magnitude + 4)
+
+                    # Iterate over each row in the group to check for outliers and log necessary information
+                    for index, row in group_df.iterrows():
+                        value = row[column]
+                        if (value != 0) and (abs(value) > upper_bound):
+                            # Log the column name, the Suite value, the value in the "Name" column, and the outlier value
+                            outlier_log.append((column, suite, row["Name"], value))
+                            # Replace the outlier with np.nan in the original dataframe
+                            df.at[index, column] = np.nan
+
+        # Optionally, print the log information
+        for log_entry in outlier_log:
+            print(
+                f"Column: {log_entry[0]}, Suite: {log_entry[1]}, Name: {log_entry[2]}, Outlier Value: {log_entry[3]}"
+            )
+
+        return df
 
     def save_features_collated_csv(self):
         """
@@ -463,6 +505,112 @@ class FeaturesDashboard:
 
         plt.suptitle(feature_name_with_mean)
         plt.tight_layout()
+        if show_plot:
+            plt.show()
+
+    def get_correlation_matrix(
+        self,
+        analysis_type=None,
+        dims=None,
+        suite_names=None,
+        method="pearson",
+        min_corr_magnitude=0,
+    ):
+
+        df = self.filter_df_by_suite_and_dim(suite_names=suite_names, dims=dims)
+
+        if analysis_type:
+            df = FeaturesDashboard.get_features_for_analysis_type(df, analysis_type)
+
+        if method not in ["pearson", "spearman"]:
+            raise ValueError("Method must be either 'pearson' or 'spearman'")
+
+        # Select only numeric columns
+        numeric_df = df.select_dtypes(include=[np.number])
+        filtered_columns = [
+            col for col in numeric_df.columns if not col.endswith("_std") and col != "D"
+        ]
+        numeric_df = numeric_df[filtered_columns]
+
+        # Remove '_mean' from the column labels
+        numeric_df.columns = [col.replace("_mean", "") for col in numeric_df.columns]
+
+        # Calculate the correlation matrix
+        correlation_matrix = numeric_df.corr(method=method)
+
+        return correlation_matrix[correlation_matrix.abs() > min_corr_magnitude]
+
+    def get_top_correlation_pairs(
+        self,
+        min_corr_magnitude,
+        analysis_type=None,
+        dims=None,
+        suite_names=None,
+        method="pearson",
+    ):
+        """
+        Returns the top n correlation pairs from the correlation matrix, sorted by absolute correlation value.
+
+        :param n: Number of top correlation pairs to return.
+        """
+        correlation_matrix = self.get_correlation_matrix(
+            analysis_type, dims, suite_names, method, min_corr_magnitude
+        )
+
+        au_corr = correlation_matrix.abs().unstack()
+        # Create a set to hold pairs to drop (diagonal and lower triangular)
+        pairs_to_drop = set()
+        cols = correlation_matrix.columns
+        for i in range(correlation_matrix.shape[1]):
+            for j in range(i + 1):
+                pairs_to_drop.add((cols[i], cols[j]))
+        # Drop redundant pairs and sort
+        au_corr = (
+            au_corr.drop(labels=pairs_to_drop).sort_values(ascending=False).dropna()
+        )
+
+        # Convert to DataFrame for a nicer display
+        au_corr_df = au_corr.reset_index()
+        au_corr_df.columns = ["Variable 1", "Variable 2", "Correlation"]
+        return au_corr_df
+
+    def plot_correlation_heatmap(
+        self,
+        analysis_type=None,
+        dims=None,
+        suite_names=None,
+        method="pearson",
+        min_corr_magnitude=0,
+        show_plot=True,
+    ):
+        """
+        Generates a heatmap of the correlation matrix for the numeric columns of the provided DataFrame.
+        :param df: The DataFrame for which the correlation matrix heatmap is to be generated.
+        """
+
+        correlation_matrix = self.get_correlation_matrix(
+            analysis_type, dims, suite_names, method, min_corr_magnitude
+        )
+
+        # Generate a heatmap
+        plt.figure(figsize=(20, 16))  # You can adjust the size as needed
+        sns.heatmap(
+            correlation_matrix[correlation_matrix.abs() >= min_corr_magnitude],
+            annot=False,
+            cmap="coolwarm",
+            square=True,
+        )
+
+        if not dims:
+            dims = "All"
+        if not suite_names:
+            suite_names = "All"
+        if not analysis_type:
+            analysis_type = "All"
+
+        plt.title(
+            f"Correlation heatmap for dimensions: {dims}, suites: {suite_names}, analysis type: {analysis_type}"
+        )
         if show_plot:
             plt.show()
 
