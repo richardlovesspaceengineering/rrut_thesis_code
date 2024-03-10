@@ -557,7 +557,7 @@ class FeaturesDashboard:
             analysis_type, dims, suite_names, method, min_corr_magnitude
         )
 
-        au_corr = correlation_matrix.abs().unstack()
+        au_corr = correlation_matrix.unstack()
         # Create a set to hold pairs to drop (diagonal and lower triangular)
         pairs_to_drop = set()
         cols = correlation_matrix.columns
@@ -593,13 +593,17 @@ class FeaturesDashboard:
         )
 
         # Generate a heatmap
-        plt.figure(figsize=(20, 16))  # You can adjust the size as needed
-        sns.heatmap(
-            correlation_matrix[correlation_matrix.abs() >= min_corr_magnitude],
+        plt.figure(figsize=(40, 32))  # You can adjust the size as needed
+        ax = sns.heatmap(
+            correlation_matrix,
             annot=False,
             cmap="coolwarm",
             square=True,
+            vmin=-1,
+            vmax=1,
         )
+        ax.set_yticklabels(ax.get_yticklabels(), fontsize=12, va="center")
+        ax.set_xticklabels(ax.get_xticklabels(), fontsize=12, ha="center")
 
         if not dims:
             dims = "All"
@@ -608,7 +612,7 @@ class FeaturesDashboard:
         if not analysis_type:
             analysis_type = "All"
 
-        plt.title(
+        ax.set_title(
             f"Correlation heatmap for dimensions: {dims}, suites: {suite_names}, analysis type: {analysis_type}"
         )
         if show_plot:
