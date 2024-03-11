@@ -7,6 +7,7 @@ import shutil
 from matplotlib.backends.backend_pdf import PdfPages
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
+from mpl_toolkits.mplot3d import Axes3D
 
 
 def remove_sd_cols(df, suffix="_std"):
@@ -103,9 +104,7 @@ class FeaturesDashboard:
         # Collate all results into one folder.
         self.wipe_features_directory()
         self.copy_directory_contents()
-        self.features_df = self.replace_outliers_with_nan(
-            self.get_landscape_features_df(give_sd=True)
-        )
+        self.features_df = self.get_landscape_features_df(give_sd=True)
 
         # Models/results objects.
         self.pca = None
@@ -120,6 +119,27 @@ class FeaturesDashboard:
         ]
 
         return df[filtered_columns]
+
+    def plot_missingness(self, show_only_nans=False):
+        # Create a DataFrame indicating where NaNs are located (True for NaN, False for non-NaN)
+        missingness = self.features_df.isnull()
+
+        # Filter columns to show only those that contain at least one NaN value if the flag is set
+        if show_only_nans:
+            missingness = missingness.loc[:, missingness.any()]
+
+        # Plotting the heatmap
+        plt.figure(figsize=(36, 24))
+        sns.heatmap(
+            missingness,
+            cbar=False,
+            yticklabels=self.features_df["Name"].values,
+            cmap="coolwarm",
+        )
+        plt.title("Missingness Plot")
+        plt.xlabel("Features")
+        plt.ylabel("Observations")
+        plt.show()
 
     def get_feature_names(self):
 
@@ -196,7 +216,7 @@ class FeaturesDashboard:
 
         return overall_df
 
-    def replace_outliers_with_nan(self, df):
+    def replace_outliers_with_nan(self):
         """
         Replaces values in the numerical columns of df grouped by the "Suite" column with np.nan
         if they are more than 4 orders of magnitude from the average order of magnitude of the
@@ -205,7 +225,7 @@ class FeaturesDashboard:
         outlier_log = []  # Initialize a list to store the log information
 
         # Iterate through each group determined by 'Suite'
-        for suite, group_df in df.groupby("Suite"):
+        for suite, group_df in self.features_df.groupby("Suite"):
             for column in group_df.select_dtypes(include=[np.number]).columns:
 
                 if column.endswith("_std"):  # Skip columns ending with "_std"
@@ -226,15 +246,13 @@ class FeaturesDashboard:
                             # Log the column name, the Suite value, the value in the "Name" column, and the outlier value
                             outlier_log.append((column, suite, row["Name"], value))
                             # Replace the outlier with np.nan in the original dataframe
-                            df.at[index, column] = np.nan
+                            self.features_df.at[index, column] = np.nan
 
         # Optionally, print the log information
         for log_entry in outlier_log:
             print(
                 f"Column: {log_entry[0]}, Suite: {log_entry[1]}, Name: {log_entry[2]}, Outlier Value: {log_entry[3]}"
             )
-
-        return df
 
     def save_features_collated_csv(self):
         """
@@ -881,14 +899,19 @@ class FeaturesDashboard:
         plt.show()
 
     def run_pca(self):
+
         scaler = StandardScaler()
-        features_scaled = scaler.fit_transform(
+        self.features_scaled = scaler.fit_transform(
             self.get_numerical_data_from_features_df().dropna()
+        )
+
+        print(
+            f"Removed {len(self.features_df) - len(self.features_scaled)} rows containing NaN."
         )
 
         # Applying PCA
         self.pca = PCA()
-        self.pca.fit(features_scaled)
+        self.pca.fit(self.features_scaled)
 
         # Find ideal number of PCs.
         minimum_expl_variance = 0.8
@@ -922,6 +945,13 @@ class FeaturesDashboard:
             print("Please run PCA first using run_pca method.")
             return
 
+        # Determine how much of the variance is explained by the chosen number of components.
+        expl_variance = np.cumsum(self.pca.explained_variance_ratio_)[n_components]
+
+        print(
+            f"Using {n_components} components explains {expl_variance*100:.2f}% of the variance"
+        )
+
         # Creating a DataFrame for the PCA loadings
         loadings = pd.DataFrame(
             self.pca.components_[:n_components].T,
@@ -935,4 +965,44 @@ class FeaturesDashboard:
         plt.title("PCA Feature Loadings")
         plt.xlabel("Principal Components")
         plt.ylabel("Features")
+        plt.show()
+
+    def visualise_3d_pca(self):
+
+        if self.pca is None:
+            print("Please run PCA first using run_pca method.")
+            return
+
+        # Use the PCA results from the run_pca method
+        pca_transformed = self.pca.transform(self.features_scaled)
+
+        # Create a DataFrame for the first three PCs
+        pca_df = pd.DataFrame(
+            data=pca_transformed[:, :3], columns=["PC1", "PC2", "PC3"]
+        )
+
+        # Assuming 'Suite' is a column in self.features_df
+        pca_df["Suite"] = self.features_df["Suite"].values
+
+        # Plotting
+        fig = plt.figure(figsize=(10, 8))
+        ax = fig.add_subplot(111, projection="3d")
+
+        # Iterate over each unique Suite value to plot them in different colors
+        for suite in pca_df["Suite"].unique():
+            subset = pca_df[pca_df["Suite"] == suite]
+            ax.scatter(
+                subset["PC1"],
+                subset["PC2"],
+                subset["PC3"],
+                s=50,
+                alpha=0.5,
+                label=suite,
+            )
+
+        ax.set_xlabel("PC1")
+        ax.set_ylabel("PC2")
+        ax.set_zlabel("PC3")
+        ax.set_title("3D PCA Plot")
+        ax.legend(title="Suite")
         plt.show()
