@@ -5,6 +5,8 @@ import seaborn as sns
 import numpy as np
 import shutil
 from matplotlib.backends.backend_pdf import PdfPages
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
 
 
 def remove_sd_cols(df, suffix="_std"):
@@ -104,6 +106,29 @@ class FeaturesDashboard:
         self.features_df = self.replace_outliers_with_nan(
             self.get_landscape_features_df(give_sd=True)
         )
+
+        # Models/results objects.
+        self.pca = None
+
+    def get_numerical_data_from_features_df(self):
+
+        df = self.get_landscape_features_df(give_sd=False)
+
+        # Filter out the specific columns you don't want to keep
+        filtered_columns = [
+            col for col in df.columns if col not in ["D", "Suite", "Date", "Name"]
+        ]
+
+        return df[filtered_columns]
+
+    def get_feature_names(self):
+
+        df = self.get_numerical_data_from_features_df()
+
+        # Remove "_mean" from the remaining column names
+        names = [col.replace("_mean", "") for col in df.columns]
+
+        return names
 
     def get_suite_for_problem(self, problem_name):
         """
@@ -525,15 +550,7 @@ class FeaturesDashboard:
         if method not in ["pearson", "spearman"]:
             raise ValueError("Method must be either 'pearson' or 'spearman'")
 
-        # Select only numeric columns
-        numeric_df = df.select_dtypes(include=[np.number])
-        filtered_columns = [
-            col for col in numeric_df.columns if not col.endswith("_std") and col != "D"
-        ]
-        numeric_df = numeric_df[filtered_columns]
-
-        # Remove '_mean' from the column labels
-        numeric_df.columns = [col.replace("_mean", "") for col in numeric_df.columns]
+        numeric_df = self.get_numerical_data_from_features_df()
 
         # Calculate the correlation matrix
         correlation_matrix = numeric_df.corr(method=method)
@@ -861,4 +878,61 @@ class FeaturesDashboard:
         plt.tight_layout(
             rect=[0, 0.03, 1, 0.95]
         )  # Adjust layout to make room for the main title
+        plt.show()
+
+    def run_pca(self):
+        scaler = StandardScaler()
+        features_scaled = scaler.fit_transform(
+            self.get_numerical_data_from_features_df().dropna()
+        )
+
+        # Applying PCA
+        self.pca = PCA()
+        self.pca.fit(features_scaled)
+
+        # Find ideal number of PCs.
+        minimum_expl_variance = 0.8
+        expl_variance = np.cumsum(self.pca.explained_variance_ratio_)
+        num_pcs = int(np.argwhere(minimum_expl_variance < expl_variance)[0] + 1)
+
+        print(
+            f"We need {num_pcs} PCs to explain {minimum_expl_variance*100}% of the variance"
+        )
+
+        return num_pcs
+
+    def plot_scree_plot(self):
+        if self.pca is None:
+            print("Please run PCA first using run_pca method.")
+            return
+
+        plt.figure(figsize=(10, 6))
+        plt.plot(
+            range(1, len(self.pca.explained_variance_ratio_) + 1),
+            np.cumsum(self.pca.explained_variance_ratio_),
+        )
+        plt.xlabel("Number of Components")
+        plt.ylabel("Cumulative Explained Variance")
+        plt.title("Scree Plot")
+        plt.grid(True)
+        plt.show()
+
+    def plot_pca_loadings(self, n_components):
+        if self.pca is None:
+            print("Please run PCA first using run_pca method.")
+            return
+
+        # Creating a DataFrame for the PCA loadings
+        loadings = pd.DataFrame(
+            self.pca.components_[:n_components].T,
+            columns=[f"PC{i+1}" for i in range(n_components)],
+            index=self.get_numerical_data_from_features_df().columns,
+        )
+
+        # Plotting the heatmap
+        plt.figure(figsize=(36, 24))
+        sns.heatmap(loadings, annot=False, cmap="coolwarm", center=0)
+        plt.title("PCA Feature Loadings")
+        plt.xlabel("Principal Components")
+        plt.ylabel("Features")
         plt.show()
