@@ -111,7 +111,7 @@ class FeaturesDashboard:
 
     def get_numerical_data_from_features_df(self):
 
-        df = self.get_landscape_features_df(give_sd=False)
+        df = self.features_df
 
         # Filter out the specific columns you don't want to keep
         filtered_columns = [
@@ -122,20 +122,27 @@ class FeaturesDashboard:
 
     def plot_missingness(self, show_only_nans=False):
         # Create a DataFrame indicating where NaNs are located (True for NaN, False for non-NaN)
-        missingness = self.features_df.isnull()
+        missingness = self.get_numerical_data_from_features_df().isnull()
+
+        row_has_nan = missingness.any(axis=1)
 
         # Filter columns to show only those that contain at least one NaN value if the flag is set
         if show_only_nans:
-            missingness = missingness.loc[:, missingness.any()]
+            missingness = missingness.loc[row_has_nan, missingness.any(axis=0)]
+            ytick_lab = self.features_df.loc[row_has_nan, "Name"].values
+        else:
+            ytick_lab = self.features_df["Name"].values
 
         # Plotting the heatmap
         plt.figure(figsize=(36, 24))
-        sns.heatmap(
+        ax = sns.heatmap(
             missingness,
             cbar=False,
-            yticklabels=self.features_df["Name"].values,
+            yticklabels=ytick_lab,
             cmap="coolwarm",
         )
+        if show_only_nans:
+            ax.set_xticklabels(ax.get_xticklabels(), fontsize=24)
         plt.title("Missingness Plot")
         plt.xlabel("Features")
         plt.ylabel("Observations")
@@ -222,10 +229,11 @@ class FeaturesDashboard:
         if they are more than 4 orders of magnitude from the average order of magnitude of the
         rest of the points in the grouped column, and logs the column name, Suite, Name value, and the outlier value.
         """
+        df = self.get_landscape_features_df(give_sd=False)
         outlier_log = []  # Initialize a list to store the log information
 
         # Iterate through each group determined by 'Suite'
-        for suite, group_df in self.features_df.groupby("Suite"):
+        for suite, group_df in df.groupby("Suite"):
             for column in group_df.select_dtypes(include=[np.number]).columns:
 
                 if column.endswith("_std"):  # Skip columns ending with "_std"
@@ -246,13 +254,16 @@ class FeaturesDashboard:
                             # Log the column name, the Suite value, the value in the "Name" column, and the outlier value
                             outlier_log.append((column, suite, row["Name"], value))
                             # Replace the outlier with np.nan in the original dataframe
-                            self.features_df.at[index, column] = np.nan
+                            df.at[index, column] = np.nan
 
         # Optionally, print the log information
         for log_entry in outlier_log:
             print(
                 f"Column: {log_entry[0]}, Suite: {log_entry[1]}, Name: {log_entry[2]}, Outlier Value: {log_entry[3]}"
             )
+
+        # Save back
+        self.features_df = df
 
     def save_features_collated_csv(self):
         """
