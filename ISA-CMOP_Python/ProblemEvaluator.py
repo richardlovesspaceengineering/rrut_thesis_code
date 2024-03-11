@@ -936,7 +936,9 @@ class ProblemEvaluator:
         return global_multiple_analysis
 
     @handle_ctrl_c
-    def eval_single_sample_aw_features(self, i, pre_sampler, problem, awGenerator):
+    def eval_single_sample_aw_features(
+        self, i, pre_sampler, problem, awGenerator, eval_pops_parallel
+    ):
         aw_single_sample_analyses_list = []
 
         # Loop over each of the walks within this sample.
@@ -946,6 +948,15 @@ class ProblemEvaluator:
                 i + 1, self.num_samples
             )
         )
+
+        if eval_pops_parallel:
+
+            if self.check_if_aerofoil():
+                num_processes = self.num_processes_parallel_seed
+            elif self.check_if_modact():
+                num_processes = 1  # run populations in series for modact.
+        else:
+            num_processes = 1
 
         # Load in the pre-generated LHS sample as a starting point.
         pop_global = self.get_global_pop(pre_sampler, problem, i + 1, eval_fronts=False)
@@ -963,7 +974,7 @@ class ProblemEvaluator:
                 distributed_sample[j, :],
                 constrained_ranks=True,
                 return_pop=True,
-                num_processes=1,
+                num_processes=num_processes,
             )
             neighbours = awGenerator.generate_neighbours_for_walk(walk)
             print(
@@ -980,7 +991,7 @@ class ProblemEvaluator:
                 neighbours,
                 eval_fronts=False,
                 adaptive_walk=True,
-                num_processes=1,
+                num_processes=num_processes,
             )
 
             aw_analysis = AdaptiveWalkAnalysis(
@@ -1062,6 +1073,7 @@ class ProblemEvaluator:
                         repeat(pre_sampler),
                         repeat(problem),
                         repeat(awGenerator),
+                        repeat(False),
                     ),
                 )
 
@@ -1079,10 +1091,7 @@ class ProblemEvaluator:
             for i in range(self.num_samples):
                 start_time_seed = time.time()
                 aw_single_sample_analyses_list = self.eval_single_sample_aw_features(
-                    i,
-                    pre_sampler,
-                    problem,
-                    awGenerator,
+                    i, pre_sampler, problem, awGenerator, eval_pops_parallel=True
                 )
                 aw_single_sample = Analysis.concatenate_single_analyses(
                     aw_single_sample_analyses_list
@@ -1151,16 +1160,16 @@ class ProblemEvaluator:
         # eval_pops_parallel = True
 
         # RW Analysis.
-        # print(
-        #     " \n ~~~~~~~~~~~~ RW Analysis for "
-        #     + self.instance_name
-        #     + " ~~~~~~~~~~~~ \n"
-        # )
+        print(
+            " \n ~~~~~~~~~~~~ RW Analysis for "
+            + self.instance_name
+            + " ~~~~~~~~~~~~ \n"
+        )
 
-        # rw_features = self.do_random_walk_analysis(
-        #     self.instance, pre_sampler, eval_pops_parallel=eval_pops_parallel
-        # )
-        # rw_features.export_unaggregated_features(self.instance_name, "rw", save_arrays)
+        rw_features = self.do_random_walk_analysis(
+            self.instance, pre_sampler, eval_pops_parallel=eval_pops_parallel
+        )
+        rw_features.export_unaggregated_features(self.instance_name, "rw", save_arrays)
 
         # Global Analysis.
         print(
@@ -1182,7 +1191,9 @@ class ProblemEvaluator:
             + self.instance_name
             + " ~~~~~~~~~~~~ \n"
         )
-        aw_features = self.do_adaptive_walk_analysis(self.instance, pre_sampler)
+        aw_features = self.do_adaptive_walk_analysis(
+            self.instance, pre_sampler, eval_pops_parallel=eval_pops_parallel
+        )
         aw_features.export_unaggregated_features(self.instance_name, "aw", save_arrays)
 
         # Overall landscape analysis - putting it all together.
