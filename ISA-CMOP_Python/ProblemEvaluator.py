@@ -1164,24 +1164,24 @@ class ProblemEvaluator:
             + " ~~~~~~~~~~~~ \n"
         )
 
-        rw_features = self.do_random_walk_analysis(
-            self.instance, pre_sampler, eval_pops_parallel=eval_pops_parallel
-        )
-        rw_features.export_unaggregated_features(self.instance_name, "rw", save_arrays)
+        # rw_features = self.do_random_walk_analysis(
+        #     self.instance, pre_sampler, eval_pops_parallel=eval_pops_parallel
+        # )
+        # rw_features.export_unaggregated_features(self.instance_name, "rw", save_arrays)
 
-        # Global Analysis.
-        print(
-            " \n ~~~~~~~~~~~~ Global Analysis for "
-            + self.instance_name
-            + " ~~~~~~~~~~~~ \n"
-        )
+        # # Global Analysis.
+        # print(
+        #     " \n ~~~~~~~~~~~~ Global Analysis for "
+        #     + self.instance_name
+        #     + " ~~~~~~~~~~~~ \n"
+        # )
 
-        global_features = self.do_global_analysis(
-            self.instance, pre_sampler, eval_pops_parallel=eval_pops_parallel
-        )
-        global_features.export_unaggregated_features(
-            self.instance_name, "glob", save_arrays
-        )
+        # global_features = self.do_global_analysis(
+        #     self.instance, pre_sampler, eval_pops_parallel=eval_pops_parallel
+        # )
+        # global_features.export_unaggregated_features(
+        #     self.instance_name, "glob", save_arrays
+        # )
 
         # Adaptive Walk Analysis. Always do in series since we need evaluations of one point to get to the next.
         print(
