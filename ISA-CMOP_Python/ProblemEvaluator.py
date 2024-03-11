@@ -1190,7 +1190,7 @@ class ProblemEvaluator:
             + " ~~~~~~~~~~~~ \n"
         )
         aw_features = self.do_adaptive_walk_analysis(
-            self.instance, pre_sampler, eval_pops_parallel=eval_pops_parallel
+            self.instance, pre_sampler, eval_pops_parallel=False
         )
         aw_features.export_unaggregated_features(self.instance_name, "aw", save_arrays)
 
