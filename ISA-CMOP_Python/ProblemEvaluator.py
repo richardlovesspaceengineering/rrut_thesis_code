@@ -936,9 +936,7 @@ class ProblemEvaluator:
         return global_multiple_analysis
 
     @handle_ctrl_c
-    def eval_single_sample_aw_features(
-        self, i, pre_sampler, problem, awGenerator, eval_pops_parallel=False
-    ):
+    def eval_single_sample_aw_features(self, i, pre_sampler, problem, awGenerator):
         aw_single_sample_analyses_list = []
 
         # Loop over each of the walks within this sample.
@@ -949,15 +947,12 @@ class ProblemEvaluator:
             )
         )
 
-        if eval_pops_parallel:
-            num_processes = self.num_processes_parallel_seed
-        else:
-            if self.check_if_modact_or_aerofoil():
-                # Even when evaluating features of aerofoils/modact in parallel, we still want to use multiprocessing for neighbours evaluation.
-                num_processes = 10
+        if self.check_if_modact_or_aerofoil():
+            # Even when evaluating features of aerofoils/modact in parallel, we still want to use multiprocessing for neighbours evaluation. We are using less samples so there will be more cores available.
+            num_processes = 10
 
-            else:
-                num_processes = 1
+        else:
+            num_processes = 1
 
         # Load in the pre-generated LHS sample as a starting point.
         pop_global = self.get_global_pop(pre_sampler, problem, i + 1, eval_fronts=False)
@@ -1074,7 +1069,6 @@ class ProblemEvaluator:
                         repeat(pre_sampler),
                         repeat(problem),
                         repeat(awGenerator),
-                        repeat(False),
                     ),
                 )
 
@@ -1096,7 +1090,6 @@ class ProblemEvaluator:
                     pre_sampler,
                     problem,
                     awGenerator,
-                    eval_pops_parallel=eval_pops_parallel,
                 )
                 aw_single_sample = Analysis.concatenate_single_analyses(
                     aw_single_sample_analyses_list
@@ -1196,9 +1189,7 @@ class ProblemEvaluator:
             + self.instance_name
             + " ~~~~~~~~~~~~ \n"
         )
-        aw_features = self.do_adaptive_walk_analysis(
-            self.instance, pre_sampler, eval_pops_parallel=eval_pops_parallel
-        )
+        aw_features = self.do_adaptive_walk_analysis(self.instance, pre_sampler)
         aw_features.export_unaggregated_features(self.instance_name, "aw", save_arrays)
 
         # Overall landscape analysis - putting it all together.
