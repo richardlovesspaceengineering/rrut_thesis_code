@@ -950,11 +950,7 @@ class ProblemEvaluator:
         )
 
         if eval_pops_parallel:
-
-            if self.check_if_aerofoil():
-                num_processes = self.num_processes_parallel_seed
-            elif self.check_if_modact():
-                num_processes = 1  # run populations in series for modact.
+            num_processes = self.num_processes_parallel_seed
         else:
             num_processes = 1
 
@@ -1146,18 +1142,23 @@ class ProblemEvaluator:
 
         self.send_initialisation_email(f"STARTED RUN OF {self.instance_name}.")
 
-        if self.check_if_modact_or_aerofoil():
+        if self.check_if_aerofoil():
             eval_pops_parallel = True
+            eval_aw_pops_parallel = True
             print(
-                "RW and Global populations will be evaluated in parallel (1 individual per core)."
+                "RW, Global and AW populations will be evaluated in parallel (1 individual per core)."
             )
+        elif self.check_if_modact():
+            eval_pops_parallel = True
+            eval_aw_pops_parallel = True
         else:
             eval_pops_parallel = False
+            eval_aw_pops_parallel = False
             print(
-                "RW and Global populations will be evaluated in series (1 features run per core)."
+                "RW, Global and AW populations will be evaluated in series (1 features run per core)."
             )
 
-        # eval_pops_parallel = True
+        # Run quick check to see if populations exist already.
 
         # RW Analysis.
         print(
@@ -1192,7 +1193,7 @@ class ProblemEvaluator:
             + " ~~~~~~~~~~~~ \n"
         )
         aw_features = self.do_adaptive_walk_analysis(
-            self.instance, pre_sampler, eval_pops_parallel=eval_pops_parallel
+            self.instance, pre_sampler, eval_pops_parallel=eval_aw_pops_parallel
         )
         aw_features.export_unaggregated_features(self.instance_name, "aw", save_arrays)
 
