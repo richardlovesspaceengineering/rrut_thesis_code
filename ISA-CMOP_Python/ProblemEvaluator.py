@@ -947,13 +947,6 @@ class ProblemEvaluator:
             )
         )
 
-        if self.check_if_modact_or_aerofoil():
-            # Even when evaluating features of aerofoils/modact in parallel, we still want to use multiprocessing for neighbours evaluation. We are using less samples so there will be more cores available.
-            num_processes = 10
-
-        else:
-            num_processes = 1
-
         # Load in the pre-generated LHS sample as a starting point.
         pop_global = self.get_global_pop(pre_sampler, problem, i + 1, eval_fronts=False)
         pop_global_clean, _ = pop_global.remove_nan_inf_rows("global")
@@ -987,7 +980,7 @@ class ProblemEvaluator:
                 neighbours,
                 eval_fronts=False,
                 adaptive_walk=True,
-                num_processes=num_processes,
+                num_processes=1,
             )
 
             aw_analysis = AdaptiveWalkAnalysis(
