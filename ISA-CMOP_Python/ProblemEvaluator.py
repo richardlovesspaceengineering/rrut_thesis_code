@@ -1145,18 +1145,16 @@ class ProblemEvaluator:
         if self.check_if_aerofoil():
             eval_pops_parallel = True
             eval_aw_pops_parallel = True
-            print(
-                "RW, Global and AW populations will be evaluated in parallel (1 individual per core)."
-            )
         elif self.check_if_modact():
             eval_pops_parallel = True
-            eval_aw_pops_parallel = True
+            eval_aw_pops_parallel = False
         else:
             eval_pops_parallel = False
             eval_aw_pops_parallel = False
-            print(
-                "RW, Global and AW populations will be evaluated in series (1 features run per core)."
-            )
+
+        print(
+            f"Evaluation parameters: RW/Global evaluating seeds in parallel is {eval_pops_parallel}, AW evaluating seeds in parallel is {eval_aw_pops_parallel}"
+        )
 
         # Run quick check to see if populations exist already.
 
