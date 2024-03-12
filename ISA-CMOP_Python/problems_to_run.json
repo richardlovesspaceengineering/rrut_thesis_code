@@ -15,7 +15,6 @@
     "MW14_d30": "false"
   },
   "eval": {
-    "ICAS2024Test_d10": "false",
     "CTP1_d5": "false",
     "CTP2_d5": "false",
     "CTP3_d5": "false",
@@ -251,13 +250,13 @@
     "CT3_d20": "false",
     "CT4_d20": "false",
     "CTSE1_d20": "false",
-    "CTSE2_d20": "true",
-    "CTSE3_d20": "true",
-    "CTSE4_d20": "true",
-    "CTSEI1_d20": "true",
-    "CTSEI2_d20": "true",
-    "CTSEI3_d20": "true",
-    "CTSEI4_d20": "true"
-
+    "CTSE2_d20": "false",
+    "CTSE3_d20": "false",
+    "CTSE4_d20": "false",
+    "CTSEI1_d20": "false",
+    "CTSEI2_d20": "false",
+    "CTSEI3_d20": "false",
+    "CTSEI4_d20": "true",
+    "ICAS2024Test_d10": "true"
   }
 }
