@@ -10,6 +10,7 @@ from sklearn.preprocessing import StandardScaler
 from mpl_toolkits.mplot3d import Axes3D
 from pandas.plotting import parallel_coordinates
 from sklearn.preprocessing import MinMaxScaler
+from matplotlib.colors import LinearSegmentedColormap
 
 
 def remove_sd_cols(df, suffix="_std"):
@@ -150,12 +151,15 @@ class FeaturesDashboard:
         plt.ylabel("Observations")
         plt.show()
 
-    def get_feature_names(self):
+    def get_feature_names(self, shortened=True):
 
         df = self.get_numerical_data_from_features_df()
 
         # Remove "_mean" from the remaining column names
-        names = [col.replace("_mean", "") for col in df.columns]
+        if shortened:
+            names = [col.replace("_mean", "") for col in df.columns]
+        else:
+            names = [col for col in df.columns]
 
         return names
 
@@ -1079,4 +1083,67 @@ class FeaturesDashboard:
         plt.ylabel("Values")
         plt.xticks(rotation=90)  # Rotate x-axis labels for better readability
         plt.grid(True)
+        plt.show()
+
+    def plot_coverage_heatmap(self, target_suite, analysis_type, features=None):
+        """
+        Calculate and plot the coverage heatmap.
+
+        :param target_suite: The suite to compare all other suites against. If None, compare against the entire dataset.
+        :param analysis_type: The type of analysis to filter features.
+        :param features: The features to include in the coverage calculation.
+        """
+
+        df = self.get_features_for_analysis_type(
+            self.features_df, analysis_type
+        ).dropna()
+
+        if features:
+            features = [
+                f"{f}_mean" if f"{f}_mean" in df.columns else f for f in features
+            ]
+        else:
+            features = [col for col in df.columns if col not in ["Name", "D", "Suite"]]
+
+        # Normalize the features
+        scaler = MinMaxScaler()
+        df[features] = scaler.fit_transform(df[features])
+
+        # Initialize a DataFrame to store coverage values
+        suites = df["Suite"].unique()
+        if target_suite is not None:
+            suites = suites[suites != target_suite]  # Exclude the target suite
+        coverage_values = pd.DataFrame(index=features, columns=suites)
+
+        # Calculate coverage for each feature against the target suite for each non-target suite
+        for suite in suites:
+            for feature in features:
+                # Determine target values based on the target_suite
+                if target_suite is None:
+                    target_values = df[df["Suite"] != suite][feature]
+                else:
+                    target_values = df[df["Suite"] == target_suite][feature]
+
+                suite_values = df[df["Suite"] == suite][feature]
+
+                # Calculate distances and coverage
+                distances = [min(abs(value - target_values)) for value in suite_values]
+
+                # Store coverage as 1 minus the mean of distances
+                coverage_values.at[feature, suite] = 1 - np.mean(distances)
+
+        # Plotting the coverage heatmap
+        plt.figure(figsize=(24, 16))
+        cmap = LinearSegmentedColormap.from_list(
+            "custom_blue", ["blue", "white"], N=256
+        )
+        sns.heatmap(
+            coverage_values.astype(float), annot=False, cmap=cmap, vmin=0, vmax=1
+        )
+        plt.title(
+            f"Coverage Heatmap for {analysis_type} features. Relative to {'all suites' if target_suite is None else target_suite}"
+        )
+        plt.xlabel("Suites")
+        plt.ylabel("Features")
+        plt.xticks(rotation=45)  # Rotate x-axis labels for better readability
         plt.show()
