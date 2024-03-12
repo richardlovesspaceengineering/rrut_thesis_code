@@ -68,7 +68,7 @@ class PreSampler:
         else:
             pops_dir = "../temp_pops"
 
-        dirs_to_create = ["global", "rw"]
+        dirs_to_create = ["global", "rw", "aw"]
         print(
             f"Starting the creation process for population directories for problem: {problem_name} in mode: {self.mode}"
         )
@@ -91,6 +91,8 @@ class PreSampler:
                 self.global_pop_dir = dir_path
             elif dir_name == "rw":
                 self.rw_pop_dir = dir_path
+            elif dir_name == "aw":
+                self.aw_pop_dir = dir_path
 
         print(
             f"Population directories setup complete.\nGlobal population directory: {self.global_pop_dir}\nRW population directory: {self.rw_pop_dir}"
@@ -372,11 +374,19 @@ class PreSampler:
         return True
 
     def save_walk_neig_population(
-        self, pop_walk, pop_neighbours_list, sample_number, walk_ind_number
+        self,
+        pop_walk,
+        pop_neighbours_list,
+        sample_number,
+        walk_ind_number,
+        is_adaptive=False,
     ):
 
         # Path for the specific sample directory within the "rw" directory
-        sample_dir_path = os.path.join(self.rw_pop_dir, f"sample{sample_number}")
+        if is_adaptive:
+            sample_dir_path = os.path.join(self.aw_pop_dir, f"sample{sample_number}")
+        else:
+            sample_dir_path = os.path.join(self.rw_pop_dir, f"sample{sample_number}")
 
         # Ensure the sample directory exists
         if not os.path.exists(sample_dir_path):
@@ -403,9 +413,14 @@ class PreSampler:
             f"Saved walk population and individual neighbours for sample {sample_number}, walk {walk_ind_number} in {sample_dir_path}."
         )
 
-    def load_walk_neig_population(self, sample_number, walk_ind_number):
+    def load_walk_neig_population(
+        self, sample_number, walk_ind_number, is_adaptive=False
+    ):
         # Path for the specific sample directory within the "rw" directory
-        sample_dir_path = os.path.join(self.rw_pop_dir, f"sample{sample_number}")
+        if is_adaptive:
+            sample_dir_path = os.path.join(self.aw_pop_dir, f"sample{sample_number}")
+        else:
+            sample_dir_path = os.path.join(self.rw_pop_dir, f"sample{sample_number}")
 
         # Define the file path for the walk population within the sample directory
         walk_file_path = os.path.join(

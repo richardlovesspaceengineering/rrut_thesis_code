@@ -601,6 +601,30 @@ class ProblemEvaluator:
         )
         return normalisation_values
 
+    def evaluate_ranks_for_walk_pop(
+        self, pre_sampler, sample_number, walk_number, pop_walk, pop_neighbours_list
+    ):
+        need_to_resave = False
+
+        if not pop_walk.is_ranks_evaluated():
+            pop_walk.evaluate_fronts(show_time=True)
+            need_to_resave = True
+
+        for (
+            pop_neighbourhood
+        ) in pop_neighbours_list:  # Only evaluate fronts within neighbourhoods
+            if not pop_neighbourhood.is_ranks_evaluated():
+                pop_neighbourhood.evaluate_fronts(show_time=False)
+                need_to_resave = True
+
+        # Save again to save us having to re-evaluate the fronts.
+        if need_to_resave:
+            pre_sampler.save_walk_neig_population(
+                pop_walk, pop_neighbours_list, sample_number, walk_number
+            )
+
+        return pop_walk, pop_neighbours_list
+
     def get_rw_pop(
         self,
         pre_sampler,
@@ -617,33 +641,18 @@ class ProblemEvaluator:
         try:
             # Attempt to use pre-generated samples.
             pop_walk, pop_neighbours_list = pre_sampler.load_walk_neig_population(
-                sample_number, walk_number
+                sample_number, walk_number, is_adaptive=False
             )
-
-            # print(pop_walk.extract_obj())
-            # print(pop_walk.extract_cons())
 
             # Evaluate fronts.
             if eval_fronts:
-
-                need_to_resave = False
-
-                if not pop_walk.is_ranks_evaluated():
-                    pop_walk.evaluate_fronts(show_time=True)
-                    need_to_resave = True
-
-                for (
-                    pop_neighbourhood
-                ) in pop_neighbours_list:  # Only evaluate fronts within neighbourhoods
-                    if not pop_neighbourhood.is_ranks_evaluated():
-                        pop_neighbourhood.evaluate_fronts(show_time=False)
-                        need_to_resave = True
-
-                # Save again to save us having to re-evaluate the fronts.
-                if need_to_resave:
-                    pre_sampler.save_walk_neig_population(
-                        pop_walk, pop_neighbours_list, sample_number, walk_number
-                    )
+                pop_walk, pop_neighbours_list = self.evaluate_ranks_for_walk_pop(
+                    pre_sampler,
+                    sample_number,
+                    walk_number,
+                    pop_walk,
+                    pop_neighbours_list,
+                )
 
             # If loading is successful, skip the generation and saving process.
             continue_generation = False
@@ -665,6 +674,86 @@ class ProblemEvaluator:
             )
             pre_sampler.save_walk_neig_population(
                 pop_walk, pop_neighbours_list, sample_number, walk_number
+            )
+
+        return pop_walk, pop_neighbours_list
+
+    def get_aw_pop(
+        self,
+        pre_sampler,
+        problem,
+        sample_number,
+        walk_number,
+        awGenerator,
+        start_point,
+        eval_pops_parallel=False,
+        eval_fronts=False,
+    ):
+
+        if eval_pops_parallel:
+            num_processes = self.num_processes_parallel_seed
+        else:
+            num_processes = 1
+
+        # Flag for whether we should manually generate new populations.
+        continue_generation = True
+
+        try:
+            # Attempt to use pre-generated samples.
+            pop_walk, pop_neighbours_list = pre_sampler.load_walk_neig_population(
+                sample_number, walk_number, is_adaptive=True
+            )
+
+            # Evaluate fronts.
+            if eval_fronts:
+                pop_walk, pop_neighbours_list = self.evaluate_ranks_for_walk_pop(
+                    pre_sampler,
+                    sample_number,
+                    walk_number,
+                    pop_walk,
+                    pop_neighbours_list,
+                )
+
+            # If loading is successful, skip the generation and saving process.
+            continue_generation = False
+        except FileNotFoundError:
+            print(
+                f"Generating AW population for sample {sample_number}, walk {walk_number} as it was not found."
+            )
+
+        if continue_generation:
+
+            # Always best to just use 1 process here since we have to go step by step anyway.
+            walk, pop_walk = awGenerator.do_adaptive_phc_walk_for_starting_point(
+                start_point,
+                constrained_ranks=True,
+                return_pop=True,
+                num_processes=num_processes,
+            )
+            neighbours = awGenerator.generate_neighbours_for_walk(walk)
+            print(
+                "Generated AW {} of {} (for sample {}). Length: {}".format(
+                    walk_number + 1,
+                    self.num_walks_aw,
+                    sample_number,
+                    walk.shape[0],
+                )
+            )
+
+            # Now evaluate neighbours using parallel evaluation.
+            pop_neighbours_list = self.generate_neig_populations(
+                problem,
+                neighbours,
+                eval_fronts=False,
+                adaptive_walk=True,
+                num_processes=num_processes,
+            )
+            pre_sampler.save_walk_neig_population(
+                pop_walk,
+                pop_neighbours_list,
+                sample_number,
+                walk_number,
+                is_adaptive=True,
             )
 
         return pop_walk, pop_neighbours_list
@@ -942,17 +1031,6 @@ class ProblemEvaluator:
         aw_single_sample_analyses_list = []
 
         # Loop over each of the walks within this sample.
-        sample_start_time = time.time()
-        print(
-            "\nEvaluating features for AW sample {} out of {}...".format(
-                i + 1, self.num_samples
-            )
-        )
-
-        if eval_pops_parallel:
-            num_processes = self.num_processes_parallel_seed
-        else:
-            num_processes = 1
 
         # Load in the pre-generated LHS sample as a starting point.
         pop_global = self.get_global_pop(pre_sampler, problem, i + 1, eval_fronts=False)
@@ -960,34 +1038,16 @@ class ProblemEvaluator:
         distributed_sample = pop_global_clean.extract_var()
 
         for j in range(self.num_walks_aw):
-            # Initialise AdaptiveWalkAnalysis evaluator. Do at every iteration or existing list entries get overwritten.
 
-            # Generate the adaptive walk sample.
-            start_time = time.time()
-
-            # Always best to just use 1 process here since we have to go step by step anyway.
-            walk, pop_walk = awGenerator.do_adaptive_phc_walk_for_starting_point(
-                distributed_sample[j, :],
-                constrained_ranks=True,
-                return_pop=True,
-                num_processes=num_processes,
-            )
-            neighbours = awGenerator.generate_neighbours_for_walk(walk)
-            print(
-                "Generated AW {} of {} (for this sample). Length: {}".format(
-                    j + 1,
-                    self.num_walks_aw,
-                    walk.shape[0],
-                )
-            )
-
-            # Now evaluate neighbours using parallel evaluation.
-            pop_neighbours_list = self.generate_neig_populations(
+            pop_walk, pop_neighbours_list = self.get_aw_pop(
+                pre_sampler,
                 problem,
-                neighbours,
+                i + 1,
+                j + 1,
+                awGenerator,
+                distributed_sample[j, :],
+                eval_pops_parallel=eval_pops_parallel,
                 eval_fronts=False,
-                adaptive_walk=True,
-                num_processes=num_processes,
             )
 
             aw_analysis = AdaptiveWalkAnalysis(
@@ -996,26 +1056,10 @@ class ProblemEvaluator:
                 self.global_normalisation_values,
                 self.results_dir,
             )
-            end_time = time.time()
-            elapsed_time = end_time - start_time
-            print(
-                "Evaluated population {} of {} in {:.2f} seconds.".format(
-                    j + 1, self.num_walks_aw, elapsed_time
-                )
-            )
 
             # Pass to Analysis class for evaluation.
-            start_time = time.time()
             aw_analysis.eval_features()
-            end_time = time.time()  # Record the end time
-            elapsed_time = end_time - start_time
 
-            # Print to log for each walk within the sample.
-            print(
-                "Evaluated AW features for walk {} out of {} in {:.2f} seconds.\n".format(
-                    j + 1, self.num_walks_aw, elapsed_time
-                )
-            )
             aw_analysis.clear_for_storage()
             aw_single_sample_analyses_list.append(aw_analysis)
 
