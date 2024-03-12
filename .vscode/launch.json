@@ -1,7 +1,4 @@
 {
-  // Use IntelliSense to learn about possible attributes.
-  // Hover to view descriptions of existing attributes.
-  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
     {
@@ -16,23 +13,19 @@
         "name": "Python: Run Single Problem",
         "type": "python",
         "request": "launch",
-        "program": "C:/Users/richa/Documents/Thesis/rrut_thesis_code/ISA-CMOP_Python/runner.py",
-        // "program": "/Users/richardrutherford/Documents/Thesis Code/rrut_thesis_code/ISA-CMOP_Python/runner.py",
+        "program": "/home/kj66/Documents/Richard/rrut_thesis_code/ISA-CMOP_Python/runner.py",
         "args": [
-            // "ICAS2024Test", //problem
-            // "MW1",
             "LIRCMOP5",
-            "5", // dimension
-            "3", // num samples
-            "debug", // mode
-            "true", // save results
+            "5",
+            "3",
+            "debug",
+            "true",
             "instance_results",
             "temp_pops", 
-            "3", // num cores
+            "3",
         ],
         "console": "integratedTerminal",
-        // "cwd": "/Users/richardrutherford/Documents/Thesis Code/rrut_thesis_code/ISA-CMOP_Python",
-        "cwd": "C:/Users/richa/Documents/Thesis/rrut_thesis_code/ISA-CMOP_Python",
+        "cwd": "/home/kj66/Documents/Richard/rrut_thesis_code/ISA-CMOP_Python",
         "justMyCode": false
     }
     

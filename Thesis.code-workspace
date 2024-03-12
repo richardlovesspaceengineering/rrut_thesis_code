@@ -6,13 +6,13 @@
 ],
   "settings": {
     "workbench.colorTheme": "Night Owl (No Italics)",
-    "python.defaultInterpreterPath": "/Users/richardrutherford/anaconda3/envs/thesis_env_py3.8/bin/python",
+    "python.defaultInterpreterPath": "/home/kj66/Documents/Richard/venv/bin/python3",
     "[python]": {
       "editor.defaultFormatter": "ms-python.black-formatter",
       "editor.formatOnSave": true,
     },
     "notebook.formatOnSave.enabled": true,
-    "python.analysis.extraPaths": ["C:/Users/richa/Documents/Thesis/AirfoilBenchmarkSuite/"],
+    // "python.analysis.extraPaths": ["C:/Users/richa/Documents/Thesis/AirfoilBenchmarkSuite/"],
     "black-formatter.interpreter": []
   }
 }
