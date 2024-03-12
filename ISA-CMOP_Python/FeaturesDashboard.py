@@ -8,6 +8,8 @@ from matplotlib.backends.backend_pdf import PdfPages
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from mpl_toolkits.mplot3d import Axes3D
+from pandas.plotting import parallel_coordinates
+from sklearn.preprocessing import MinMaxScaler
 
 
 def remove_sd_cols(df, suffix="_std"):
@@ -1016,4 +1018,65 @@ class FeaturesDashboard:
         ax.set_zlabel("PC3")
         ax.set_title("3D PCA Plot")
         ax.legend(title="Suite")
+        plt.show()
+
+    def plot_parallel_coordinates(
+        self,
+        class_column="Suite",
+        features=None,
+        suite_names=None,
+        dims=None,
+        colormap="Set1",
+    ):
+        """
+        Generate a parallel coordinates plot.
+
+        :param class_column: The column name in df to use for coloring the lines in the plot. Default is 'Suite'.
+        :param features: A list of column names to include in the plot. If None, all numeric columns are included.
+        :param suite_names: Suites to filter by (not used in this snippet but assumed to be part of your filtering logic).
+        :param dims: Dimensions to filter by (not used in this snippet but assumed to be part of your filtering logic).
+        :param colormap: The colormap to use for different classes.
+        """
+
+        df_filtered = self.filter_df_by_suite_and_dim(
+            suite_names=suite_names, dims=dims
+        )
+
+        if features:
+            # Append "_mean" to each feature if it's not already there and ensure the feature exists in the DataFrame
+            cols = [
+                f"{f}_mean" if f"{f}_mean" in df_filtered.columns else f
+                for f in features
+            ]
+        else:
+            # If no features specified, use all numeric columns
+            cols = df_filtered.select_dtypes(include=[np.number]).columns.tolist()
+
+        # Ensure "D" and "Suite" are included for plotting but not normalized
+        cols = list(set(cols + [class_column]))
+        features_to_normalize = [col for col in cols if col not in ["D", "Suite"]]
+
+        # Normalize the features
+        scaler = MinMaxScaler()
+        df_filtered[features_to_normalize] = scaler.fit_transform(
+            df_filtered[features_to_normalize]
+        )
+
+        # Create a subset DataFrame with the selected features and class_column
+        data_to_plot = df_filtered[cols]
+
+        # Check if the class_column exists
+        if class_column not in data_to_plot.columns:
+            raise ValueError(
+                f"The specified class_column '{class_column}' does not exist in the DataFrame."
+            )
+
+        # Generate the parallel coordinates plot
+        plt.figure(figsize=(12, 9))
+        parallel_coordinates(data_to_plot, class_column, colormap=colormap, alpha=0.5)
+        plt.title("Parallel Coordinates Plot")
+        plt.xlabel("Features")
+        plt.ylabel("Values")
+        plt.xticks(rotation=90)  # Rotate x-axis labels for better readability
+        plt.grid(True)
         plt.show()
