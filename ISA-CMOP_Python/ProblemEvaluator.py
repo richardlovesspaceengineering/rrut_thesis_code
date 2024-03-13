@@ -29,6 +29,7 @@ from features.Analysis import Analysis, MultipleAnalysis
 import multiprocessing
 import signal
 from itertools import repeat
+import matlab.engine
 
 import smtplib
 
@@ -119,6 +120,9 @@ class ProblemEvaluator:
 
     def check_if_lircmop(self):
         return "lircmop" in self.instance_name.lower()
+
+    def check_if_platemo(self):
+        return self.instance_name.lower().startswith(("cf", "sdc", "rwcmop"))
 
     def initialize_number_of_samples(self):
         n_var = self.instance.n_var
@@ -259,7 +263,7 @@ class ProblemEvaluator:
 
     def get_bounds(self, problem):
 
-        if "pymoo" in getattr(problem, "__module__"):
+        if "pymoo" in getattr(problem, "__module__") or self.check_if_platemo():
             x_lower = problem.xl
             x_upper = problem.xu
         else:
@@ -381,7 +385,7 @@ class ProblemEvaluator:
         adaptive_walk=False,
     ):
 
-        if eval_pops_parallel:
+        if eval_pops_parallel and not self.check_if_platemo():
             num_processes = self.num_processes_parallel_seed
         else:
             num_processes = 1
@@ -416,7 +420,7 @@ class ProblemEvaluator:
         self, problem, global_sample, eval_pops_parallel=False, eval_fronts=True
     ):
 
-        if eval_pops_parallel:
+        if eval_pops_parallel and not self.check_if_platemo():
             num_processes = self.num_processes_parallel_seed
         else:
             num_processes = 1
@@ -445,7 +449,7 @@ class ProblemEvaluator:
 
         try:
             # Attempting to use pre-evaluated populations.
-            pop_global = pre_sampler.load_global_population(sample_number)
+            pop_global = pre_sampler.load_global_population(problem, sample_number)
 
             # Evaluate fronts.
             if eval_fronts and not pop_global.is_ranks_evaluated():
@@ -641,7 +645,7 @@ class ProblemEvaluator:
         try:
             # Attempt to use pre-generated samples.
             pop_walk, pop_neighbours_list = pre_sampler.load_walk_neig_population(
-                sample_number, walk_number, is_adaptive=False
+                problem, sample_number, walk_number, is_adaptive=False
             )
 
             # Evaluate fronts.
@@ -690,7 +694,7 @@ class ProblemEvaluator:
         eval_fronts=False,
     ):
 
-        if eval_pops_parallel:
+        if eval_pops_parallel and not self.check_if_platemo():
             num_processes = self.num_processes_parallel_seed
         else:
             num_processes = 1
@@ -701,7 +705,7 @@ class ProblemEvaluator:
         try:
             # Attempt to use pre-generated samples.
             pop_walk, pop_neighbours_list = pre_sampler.load_walk_neig_population(
-                sample_number, walk_number, is_adaptive=True
+                problem, sample_number, walk_number, is_adaptive=True
             )
 
             # Evaluate fronts.
@@ -844,7 +848,10 @@ class ProblemEvaluator:
                         )
         else:
 
-            print("Running seeds in parallel.")
+            if not self.check_if_platemo():
+                print("Running seeds in parallel.")
+            else:
+                print("Running MATLAB from Python does not support parallelisation.")
 
             # Evaluate populations in parallel
             init_pool()  # set some global variables for ctrl + c handling
@@ -890,6 +897,11 @@ class ProblemEvaluator:
 
         rw_single_sample_analyses_list = []
 
+        # MATLAB engines are not serializable - we need to initialise the MATLAB engine in each subprocess for multiprocessing.
+        if self.check_if_platemo():
+            eng = matlab.engine.start_matlab()
+            self.instance.start_matlab_session(eng)
+
         # Loop over each of the walks within this sample.
 
         for j in range(self.num_walks_rw):
@@ -906,6 +918,9 @@ class ProblemEvaluator:
             rw_analysis.clear_for_storage()
 
             rw_single_sample_analyses_list.append(rw_analysis)
+
+        if self.check_if_platemo():
+            self.instance.end_matlab_session()
 
         return rw_single_sample_analyses_list
 
@@ -1171,7 +1186,8 @@ class ProblemEvaluator:
         self.initialize_number_of_cores()
 
         # Initialise PF text file.
-        self.initialise_pf(self.instance)
+        if not self.check_if_platemo():
+            self.initialise_pf(self.instance)
 
         return pre_sampler
 
@@ -1186,7 +1202,8 @@ class ProblemEvaluator:
 
         self.send_initialisation_email(f"STARTED RUN OF {self.instance_name}.")
 
-        if self.check_if_aerofoil():
+        # MATLAB engine does not support multiprocessing.
+        if self.check_if_aerofoil() or self.check_if_platemo():
             eval_pops_parallel = True
             eval_aw_pops_parallel = True
         elif self.check_if_modact():
@@ -1238,6 +1255,10 @@ class ProblemEvaluator:
             self.instance, pre_sampler, eval_pops_parallel=eval_aw_pops_parallel
         )
         aw_features.export_unaggregated_features(self.instance_name, "aw", save_arrays)
+
+        # Close MATLAB session.
+        if self.check_if_platemo():
+            self.instance.end_matlab_session()
 
         # Overall landscape analysis - putting it all together.
         landscape = LandscapeAnalysis(global_features, rw_features, aw_features)

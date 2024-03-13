@@ -11,6 +11,7 @@ import os
 import sys
 import shutil
 import pickle
+from optimisation.model.population import Population
 
 
 class PreSampler:
@@ -297,19 +298,20 @@ class PreSampler:
             os.makedirs(self.global_pop_dir, exist_ok=True)
 
         # Define the path for the file to save the global population
-        file_path = os.path.join(self.global_pop_dir, f"pop_global_{sample_number}.pkl")
+        file_path = os.path.join(self.global_pop_dir, f"pop_global_{sample_number}.npz")
 
         # Save the `pop_global` object to the file
-        with open(file_path, "wb") as file:
-            pickle.dump(pop_global, file)
+        # with open(file_path, "wb") as file:
+        #     pickle.dump(pop_global, file)
+        pop_global.save_population_attributes(file_path)
 
         print_with_timestamp(
             f"Saved global population and individual neighbours for sample {sample_number} in {file_path}."
         )
 
-    def load_global_population(self, sample_number):
+    def load_global_population(self, problem, sample_number):
         # Path for the file from which to load the global population
-        file_path = os.path.join(self.global_pop_dir, f"pop_global_{sample_number}.pkl")
+        file_path = os.path.join(self.global_pop_dir, f"pop_global_{sample_number}.npz")
 
         # Check if the file exists
         if not os.path.exists(file_path):
@@ -318,8 +320,9 @@ class PreSampler:
             )
 
         # Load and return the `pop_global` object from the file
-        with open(file_path, "rb") as file:
-            pop_global = pickle.load(file)
+        # with open(file_path, "rb") as file:
+        #     pop_global = pickle.load(file)
+        pop_global = Population.from_saved_attributes(file_path, problem)
 
         print_with_timestamp(
             f"Global population for sample {sample_number} loaded from {file_path}. Length: {len(pop_global)}"
@@ -394,27 +397,29 @@ class PreSampler:
 
         # Define the file path for the walk population within the sample directory
         walk_file_path = os.path.join(
-            sample_dir_path, f"pop_walk_{walk_ind_number}.pkl"
+            sample_dir_path, f"pop_walk_{walk_ind_number}.npz"
         )
 
         # Save the `pop_walk` object to its file
-        with open(walk_file_path, "wb") as file:
-            pickle.dump(pop_walk, file)
+        # with open(walk_file_path, "wb") as file:
+        #     pickle.dump(pop_walk, file)
+        pop_walk.save_population_attributes(walk_file_path)
 
         # Save each item in the `pop_neighbours_list` to its own file
         for i, neighbour in enumerate(pop_neighbours_list):
             neighbour_file_path = os.path.join(
-                sample_dir_path, f"neighbour_{walk_ind_number}_{i}.pkl"
+                sample_dir_path, f"neighbour_{walk_ind_number}_{i}.npz"
             )
-            with open(neighbour_file_path, "wb") as file:
-                pickle.dump(neighbour, file)
+            # with open(neighbour_file_path, "wb") as file:
+            #     pickle.dump(neighbour, file)
+            neighbour.save_population_attributes(neighbour_file_path)
 
         print_with_timestamp(
             f"Saved walk population and individual neighbours for sample {sample_number}, walk {walk_ind_number} in {sample_dir_path}."
         )
 
     def load_walk_neig_population(
-        self, sample_number, walk_ind_number, is_adaptive=False
+        self, problem, sample_number, walk_ind_number, is_adaptive=False
     ):
         # Path for the specific sample directory within the "rw" directory
         if is_adaptive:
@@ -424,7 +429,7 @@ class PreSampler:
 
         # Define the file path for the walk population within the sample directory
         walk_file_path = os.path.join(
-            sample_dir_path, f"pop_walk_{walk_ind_number}.pkl"
+            sample_dir_path, f"pop_walk_{walk_ind_number}.npz"
         )
 
         # Check if the walk file exists and raise an error if not
@@ -434,8 +439,9 @@ class PreSampler:
             )
 
         # Load the `pop_walk` object from its file
-        with open(walk_file_path, "rb") as file:
-            pop_walk = pickle.load(file)
+        # with open(walk_file_path, "rb") as file:
+        #     pop_walk = pickle.load(file)
+        pop_walk = Population.from_saved_attributes(walk_file_path, problem)
 
         # Initialize an empty list to hold the neighbours
         pop_neighbours_list = []
@@ -450,15 +456,18 @@ class PreSampler:
         # Compute the number of neighbour files dynamically
         number_of_neighbours_files = len(neighbours_files)
 
-        # Assuming file names are in the format "neighbour_{walk_ind_number}_{index}.pkl", sort and load in numeric order so that steps and neighbours agree.
+        # Assuming file names are in the format "neighbour_{walk_ind_number}_{index}.npz", sort and load in numeric order so that steps and neighbours agree.
 
         for i in range(number_of_neighbours_files):
-            neighbour_file_str = f"neighbour_{walk_ind_number}_{i}.pkl"
+            neighbour_file_str = f"neighbour_{walk_ind_number}_{i}.npz"
             neighbour_file_path = os.path.join(sample_dir_path, neighbour_file_str)
             if os.path.exists(neighbour_file_path):
-                with open(neighbour_file_path, "rb") as file:
-                    neighbour = pickle.load(file)
-                    pop_neighbours_list.append(neighbour)
+                # with open(neighbour_file_path, "rb") as file:
+                #     neighbour = pickle.load(file)
+                neighbour = Population.from_saved_attributes(
+                    neighbour_file_path, problem
+                )
+                pop_neighbours_list.append(neighbour)
 
         print_with_timestamp(
             f"Loaded walk and individual neighbours for sample {sample_number}, walk {walk_ind_number} from {sample_dir_path}."
@@ -487,10 +496,10 @@ class PreSampler:
             # Loop through each of the walks (there are n of them per sample)
             for walk_ind_number in range(1, self.dim + 1):
                 walk_file_path = os.path.join(
-                    sample_dir_path, f"pop_walk_{walk_ind_number}.pkl"
+                    sample_dir_path, f"pop_walk_{walk_ind_number}.npz"
                 )
                 neighbours_file_path = os.path.join(
-                    sample_dir_path, f"pop_neighbours_list_{walk_ind_number}.pkl"
+                    sample_dir_path, f"pop_neighbours_list_{walk_ind_number}.npz"
                 )
 
                 # Check 3: Walk and neighbours files exist

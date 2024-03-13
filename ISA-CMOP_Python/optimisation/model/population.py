@@ -477,3 +477,58 @@ class Population(np.ndarray):
 
     def write_pf_to_csv(self, filename):
         np.savetxt(filename, self.extract_pf())
+
+    def save_population_attributes(self, file_path):
+        """
+        Save the population's variables, objectives, ranks, and constraint violations to a numpy file.
+
+        Parameters:
+        - sample_number: The identifier for the sample, used in naming the saved file.
+        - directory: The directory where the file will be saved. Defaults to "./population_data".
+        """
+
+        # Extract attributes
+        var = self.extract_var()
+        obj = self.extract_obj()
+        cons = self.extract_cons()
+        rank = self.extract_rank()
+        cv = self.extract_cv()
+
+        # Save the attributes to a numpy file
+        np.savez(file_path, var=var, obj=obj, cons=cons, rank=rank, cv=cv)
+
+    @classmethod
+    def from_saved_attributes(cls, file_path, problem):
+        """
+        Create a new Population instance from saved variables, objectives, ranks, and constraint violations.
+
+        Parameters:
+        - file_path: Path to the .npz file containing the saved attributes.
+        - problem: The problem instance associated with the population. It's necessary for creating Individual instances.
+
+        Returns:
+        - A new Population instance with individuals having attributes set as per the saved data.
+        """
+
+        # Load the attributes from the .npz file
+        data = np.load(file_path)
+        var = data["var"]
+        obj = data["obj"]
+        cons = data["cons"]
+        rank = data["rank"]
+        cv = data["cv"]
+
+        # Initialize a new Population instance with the appropriate size
+        new_population = cls(problem, n_individuals=var.shape[0])
+
+        # Assign the loaded attributes to the individuals in the new population
+        for i, individual in enumerate(new_population):
+
+            # Saving values
+            individual.var = var[i]
+            individual.obj = obj[i]
+            individual.cons = cons[i]
+            individual.rank = rank[i]
+            individual.cv = cv[i]
+
+        return new_population

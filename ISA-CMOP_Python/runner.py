@@ -7,9 +7,11 @@ from PreSampler import PreSampler
 # Import the get_problem method from pymoo.problems
 from pymoo.problems import get_problem
 import cases.LIRCMOP_setup
+from cases.PLATEMO_setup import PlatEMOSetup
 from pathlib import Path
 import numpy as np
 import socket
+import matlab.engine
 
 
 def append_aerofoil_path():
@@ -74,6 +76,10 @@ def generate_suite_structure(benchmark_problem_names, dimensions):
     return {"suites": suite_structure}
 
 
+def generate_platemo_instance(problem_name, n_var):
+    problem_name = problem_name
+
+
 # Function to generate a single problem instance
 def generate_instance(problem_name, n_var):
     problem_name = problem_name.lower()
@@ -112,6 +118,14 @@ def generate_instance(problem_name, n_var):
         problem.n_constr = problem.n_con
         problem.xl = problem.lb
         problem.xu = problem.ub
+
+    elif problem_name.startswith(("cf", "sdc", "rwcmop")):
+
+        # Instantiate
+        problem = PlatEMOSetup(problem_name, n_var)
+
+        # Will create problem during evaluation since MATLAB engines cannot be chunked.
+        # problem = PlatEMOEmptySetup(problem_name, n_var)
 
     else:
 
