@@ -1428,10 +1428,10 @@ class ProblemEvaluator:
             pop_walks = pop_walks[walk_size:]
 
             pop_neighbours_list = []
-            for _ in range(neighbour_size):
-                pop_neighbour = pop_neighbours[:walk_size]
+            for _ in range(walk_size):
+                pop_neighbour = pop_neighbours[:neighbour_size]
                 pop_neighbours_list.append(pop_neighbour)
-                pop_neighbours = pop_neighbours[walk_size:]
+                pop_neighbours = pop_neighbours[neighbour_size:]
 
             pre_sampler.save_walk_neig_population(
                 pop_walk,
