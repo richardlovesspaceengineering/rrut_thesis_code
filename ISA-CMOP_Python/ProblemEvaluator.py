@@ -262,17 +262,7 @@ class ProblemEvaluator:
         pop = Population(problem, n_individuals=1)
 
     def get_bounds(self, problem):
-
-        if "pymoo" in getattr(problem, "__module__") or self.check_if_platemo():
-            x_lower = problem.xl
-            x_upper = problem.xu
-        else:
-            # Aerofoils
-            x_lower = problem.lb
-            x_upper = problem.ub
-        # Bounds of the decision variables.
-
-        return x_lower, x_upper
+        return problem.xl, problem.xu
 
     def rescale_pregen_sample(self, x, problem):
         # TODO: check the rescaling is working correctly.
@@ -897,11 +887,6 @@ class ProblemEvaluator:
 
         rw_single_sample_analyses_list = []
 
-        # MATLAB engines are not serializable - we need to initialise the MATLAB engine in each subprocess for multiprocessing.
-        if self.check_if_platemo():
-            eng = matlab.engine.start_matlab()
-            self.instance.start_matlab_session(eng)
-
         # Loop over each of the walks within this sample.
 
         for j in range(self.num_walks_rw):
@@ -919,9 +904,6 @@ class ProblemEvaluator:
 
             rw_single_sample_analyses_list.append(rw_analysis)
 
-        if self.check_if_platemo():
-            self.instance.end_matlab_session()
-
         return rw_single_sample_analyses_list
 
     def do_random_walk_analysis(self, problem, pre_sampler, eval_pops_parallel=False):
@@ -930,6 +912,10 @@ class ProblemEvaluator:
         )
 
         rw_multiple_samples_analyses_list = []
+
+        # Cannot pickle MATLAB objects for multiprocessing. Remove them temporarily.
+        if self.check_if_platemo():
+            matlab_prob, matlab_engine = problem.pop_matlab_objects()
 
         start_time = time.time()
 
@@ -955,6 +941,10 @@ class ProblemEvaluator:
                     rw_single_sample_analyses_list
                 )
                 rw_multiple_samples_analyses_list.append(rw_single_sample)
+
+        # Re-insert matlab objects now that multiprocessing is done.
+        if self.check_if_platemo():
+            problem.insert_matlab_objects(matlab_prob, matlab_engine)
 
         # Concatenate analyses across samples.
         rw_analysis_all_samples = MultipleAnalysis(
@@ -1000,6 +990,10 @@ class ProblemEvaluator:
 
         global_multiple_analyses_list = []
 
+        # Cannot pickle MATLAB objects for multiprocessing. Remove them temporarily.
+        if self.check_if_platemo():
+            matlab_prob, matlab_engine = problem.pop_matlab_objects()
+
         with multiprocessing.Pool(
             self.num_processes_global_eval, initializer=init_pool
         ) as pool:
@@ -1020,6 +1014,10 @@ class ProblemEvaluator:
 
             for i, global_analysis in enumerate(results):
                 global_multiple_analyses_list.append(global_analysis)
+
+        # Re-insert matlab objects now that multiprocessing is done.
+        if self.check_if_platemo():
+            problem.insert_matlab_objects(matlab_prob, matlab_engine)
 
         # Concatenate analyses across samples.
         global_multiple_analysis = MultipleAnalysis(
@@ -1065,6 +1063,10 @@ class ProblemEvaluator:
                 eval_fronts=False,
             )
 
+            # Cannot pickle MATLAB objects for multiprocessing. Remove them temporarily.
+            if self.check_if_platemo():
+                matlab_prob, matlab_engine = problem.pop_matlab_objects()
+
             aw_analysis = AdaptiveWalkAnalysis(
                 pop_walk,
                 pop_neighbours_list,
@@ -1077,6 +1079,10 @@ class ProblemEvaluator:
 
             aw_analysis.clear_for_storage()
             aw_single_sample_analyses_list.append(aw_analysis)
+
+            # Re-insert matlab objects now that multiprocessing is done.
+            if self.check_if_platemo():
+                problem.insert_matlab_objects(matlab_prob, matlab_engine)
 
         return aw_single_sample_analyses_list
 

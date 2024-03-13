@@ -492,10 +492,19 @@ class Population(np.ndarray):
         obj = self.extract_obj()
         cons = self.extract_cons()
         rank = self.extract_rank()
+        rank_uncons = self.extract_uncons_rank()
         cv = self.extract_cv()
 
         # Save the attributes to a numpy file
-        np.savez(file_path, var=var, obj=obj, cons=cons, rank=rank, cv=cv)
+        np.savez(
+            file_path,
+            var=var,
+            obj=obj,
+            cons=cons,
+            rank=rank,
+            rank_uncons=rank_uncons,
+            cv=cv,
+        )
 
     @classmethod
     def from_saved_attributes(cls, file_path, problem):
@@ -516,6 +525,7 @@ class Population(np.ndarray):
         obj = data["obj"]
         cons = data["cons"]
         rank = data["rank"]
+        rank_uncons = data["rank_uncons"]
         cv = data["cv"]
 
         # Initialize a new Population instance with the appropriate size
@@ -529,6 +539,7 @@ class Population(np.ndarray):
             individual.obj = obj[i]
             individual.cons = cons[i]
             individual.rank = rank[i]
+            individual.rank_uncons = rank_uncons[i]
             individual.cv = cv[i]
 
         return new_population

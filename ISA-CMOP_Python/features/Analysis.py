@@ -117,15 +117,8 @@ class Analysis:
 
     @staticmethod
     def generate_bounds_from_problem(problem):
-        if "pymoo" in getattr(problem, "__module__"):
-            x_lower = problem.xl
-            x_upper = problem.xu
-        else:
-            # Aerofoils
-            x_lower = problem.lb
-            x_upper = problem.ub
-        # Bounds of the decision variables.
-
+        x_lower = problem.xl
+        x_upper = problem.xu
         bounds = np.vstack((x_lower, x_upper))
         return bounds
 
