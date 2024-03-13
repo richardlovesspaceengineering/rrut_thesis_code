@@ -127,7 +127,7 @@ class ProblemEvaluator:
     def initialize_number_of_samples(self):
         n_var = self.instance.n_var
 
-        if self.check_if_modact_or_aerofoil():
+        if self.check_if_modact_or_aerofoil() or self.check_if_platemo():
             self.num_samples = min(self.num_samples_user_input, 10)
 
             # Number of independent random walks within a single RW sample.
@@ -1223,7 +1223,41 @@ class ProblemEvaluator:
             f"Evaluation parameters: RW/Global evaluating seeds in parallel is {eval_pops_parallel}, AW evaluating seeds in parallel is {eval_aw_pops_parallel}"
         )
 
-        # Run quick check to see if populations exist already.
+        # For PlatEMO - Combine arrays and evaluate everything first.
+        if self.check_if_platemo():
+
+            print(
+                "Since this is a PlatEMO instance, we will evaluated all RW and Global seeds first to speed up calculations."
+            )
+
+            # RWs
+            for i in range(self.num_samples):
+                st = time.time()
+                self.evaluate_and_save_all_walks_in_sample(
+                    i + 1,
+                    self.instance,
+                    eval_fronts=False,
+                    num_processes=1,
+                    pre_sampler=pre_sampler,
+                )
+                et = time.time()
+
+                self.send_update_email(
+                    f"{self.instance_name} finished RW seed {i+1}/{self.num_samples} in {et - st:.2f} seconds."
+                )
+
+            # Global samples
+            st = time.time()
+            self.evaluate_and_save_all_global_samples(
+                self.instance,
+                eval_fronts=False,
+                num_processes=1,
+                pre_sampler=pre_sampler,
+            )
+            et = time.time()
+            self.send_update_email(
+                f"{self.instance_name} finished all global seeds/{self.num_samples} in {et - st:.2f} seconds."
+            )
 
         # RW Analysis.
         print(
@@ -1319,6 +1353,145 @@ class ProblemEvaluator:
 
         # Write the combined DataFrame back to the CSV file
         combined_df.to_csv(existing_csv, index=False)
+
+    def evaluate_and_save_all_walks_in_sample(
+        self, sample_number, problem, eval_fronts, num_processes, pre_sampler
+    ):
+        """
+        Load all walks and neighbors, concatenate them, evaluate in one go,
+        and then split and save the results.
+
+        Parameters:
+        - sample_number: The identifier for the sample.
+        - problem: The problem instance associated with the population.
+        - eval_fronts: Boolean indicating whether to evaluate fronts.
+        - num_processes: Number of processes to use for evaluation.
+        """
+
+        if pre_sampler.check_rw_preeval_pops_for_sample(
+            sample_number, self.num_walks_rw
+        ):
+            print(f"All walks and neighbours for sample number {sample_number} exist.")
+            return
+
+        init_pool()
+
+        # Initialize lists to hold all walks and neighbors
+        all_walks = []
+        all_neighbours = []
+
+        # Load the saved walks and neighbours
+        sample_folder = os.path.join(
+            pre_sampler.rw_samples_dir, f"sample{sample_number}"
+        )
+
+        for ind_walk_number in range(self.num_walks_rw):
+            file_path = os.path.join(
+                sample_folder, f"walk_neighbours_{ind_walk_number + 1}.npz"
+            )
+            if os.path.exists(file_path):
+                data = np.load(file_path)
+                all_walks.extend(data["walk"])
+                # Assuming neighbours are stored as a list of arrays, one for each step
+                for neighbour in data["neighbours"]:
+                    all_neighbours.extend(neighbour)
+            else:
+                print(f"File not found: {file_path}")
+                continue
+
+        # Concatenate all walks and neighbours for evaluation
+        concatenated_array = np.concatenate([all_walks, all_neighbours])
+
+        print(f"Evaluating array of size {len(concatenated_array)}.")
+
+        # Evaluate the concatenated array
+        # Placeholder for evaluation, replace with your evaluation logic
+        pop_total = Population(problem, n_individuals=len(concatenated_array))
+        pop_total.evaluate(
+            self.rescale_pregen_sample(concatenated_array, problem),
+            eval_fronts=eval_fronts,
+            num_processes=num_processes,
+            show_msg=True,
+        )
+
+        # Split the evaluated array back into individual walks and neighbours
+        num_walk_points = len(all_walks)
+        pop_walks = pop_total[:num_walk_points]
+        pop_neighbours = pop_total[num_walk_points:]
+
+        # Save the evaluated walks and neighbours
+        for ind_walk_number in range(self.num_walks_rw):
+            walk_size = pre_sampler.num_steps_rw
+            neighbour_size = pre_sampler.neighbourhood_size_rw
+
+            pop_walk = pop_walks[:walk_size]
+            pop_walks = pop_walks[walk_size:]
+
+            pop_neighbours_list = []
+            for _ in range(neighbour_size):
+                pop_neighbour = pop_neighbours[:walk_size]
+                pop_neighbours_list.append(pop_neighbour)
+                pop_neighbours = pop_neighbours[walk_size:]
+
+            pre_sampler.save_walk_neig_population(
+                pop_walk,
+                pop_neighbours_list,
+                sample_number,
+                ind_walk_number,
+                is_adaptive=False,
+            )
+
+    def evaluate_and_save_all_global_samples(
+        self, problem, eval_fronts, num_processes, pre_sampler
+    ):
+        """
+        Load all global samples, concatenate them, evaluate in one go, and then save the results.
+
+        Parameters:
+        - problem: The problem instance associated with the population.
+        - eval_fronts: Boolean indicating whether to evaluate fronts.
+        - num_processes: Number of processes to use for evaluation.
+        """
+
+        if pre_sampler.check_global_preeval_pops():
+            print(f"All global populations exist.")
+            return
+
+        init_pool()
+
+        # Initialize a list to hold all global samples
+        all_global_samples = []
+
+        # Load the saved global samples
+        for sample_number in range(1, self.num_samples + 1):
+            global_sample = pre_sampler.read_global_sample(sample_number)
+            all_global_samples.append(global_sample)
+
+        # Concatenate all global samples for evaluation
+        concatenated_array = np.concatenate(all_global_samples)
+
+        print(f"Evaluating array of size {len(concatenated_array)}.")
+
+        # Evaluate the concatenated array
+        # Placeholder for evaluation, replace with your evaluation logic
+        pop_total = Population(problem, n_individuals=len(concatenated_array))
+        pop_total.evaluate(
+            self.rescale_pregen_sample(concatenated_array, problem),
+            eval_fronts=eval_fronts,
+            num_processes=num_processes,
+            show_msg=True,
+        )
+
+        # Split the evaluated array back into individual samples and save them
+        start_idx = 0
+        for sample_number, global_sample in enumerate(all_global_samples, start=1):
+            end_idx = start_idx + len(global_sample)
+            population = pop_total[start_idx:end_idx]
+
+            # Save the evaluated population
+            pre_sampler.save_global_population(population, sample_number)
+
+            start_idx = end_idx
 
 
 if __name__ == "__main__":
