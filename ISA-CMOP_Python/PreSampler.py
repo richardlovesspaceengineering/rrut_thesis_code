@@ -35,7 +35,7 @@ class PreSampler:
             self.iterations_glob = self.num_points_glob  # not relevant for lhs scipy.
         elif self.mode == "debug":
             self.neighbourhood_size_rw = 5
-            self.num_steps_rw = 5
+            self.num_steps_rw = 3
             self.step_size_rw = 0.1  # 10% of the range of the instance domain
 
             # Experimental setup of Liefooghe2021 for global.
@@ -493,7 +493,7 @@ class PreSampler:
             return False
 
         # Loop through each of the walks (there are n of them per sample)
-        for walk_ind_number in range(max_walk_number):
+        for walk_ind_number in range(1, max_walk_number + 1):
 
             # Just look at walks because they are always saved in tandem with neighbours.
             walk_file_path = os.path.join(

@@ -58,12 +58,12 @@ class RandomWalkAnalysis(Analysis):
         # Loop over each solution in the walk.
         for i in range(var.shape[0]):
             # Extract neighbours for this point and append.
-            try:
-                pop_neighbourhood = copy.deepcopy(pop_neighbours_new[i])
-            except IndexError:
-                print(f"var.shape: {var.shape}")
-                print(f"i: {i}")
-                print(f"len(pop_neigbours_new): {len(pop_neighbours_new)}")
+            # try:
+            pop_neighbourhood = copy.deepcopy(pop_neighbours_new[i])
+            # except IndexError:
+            #     print(f"var.shape: {var.shape}")
+            #     print(f"i: {i}")
+            #     print(f"len(pop_neigbours_new): {len(pop_neighbours_new)}")
             pop_neighbourhood, _ = pop_neighbourhood.remove_nan_inf_rows("neig")
 
             # Save to list.

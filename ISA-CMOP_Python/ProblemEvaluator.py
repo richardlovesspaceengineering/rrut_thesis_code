@@ -1256,7 +1256,7 @@ class ProblemEvaluator:
             )
             et = time.time()
             self.send_update_email(
-                f"{self.instance_name} finished all global seeds/{self.num_samples} in {et - st:.2f} seconds."
+                f"{self.instance_name} finished all global seeds in {et - st:.2f} seconds."
             )
 
         # RW Analysis.
@@ -1437,7 +1437,7 @@ class ProblemEvaluator:
                 pop_walk,
                 pop_neighbours_list,
                 sample_number,
-                ind_walk_number,
+                ind_walk_number + 1,
                 is_adaptive=False,
             )
 
