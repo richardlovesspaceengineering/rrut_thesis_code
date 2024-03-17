@@ -15,10 +15,10 @@
         "request": "launch",
         "program": "/home/kj66/Documents/Richard/rrut_thesis_code/ISA-CMOP_Python/runner.py",
         "args": [
-            "MW1",
+            "CF8",
             "5",
             "3",
-            "eval",
+            "debug",
             "true",
             "instance_results",
             "temp_pops", 

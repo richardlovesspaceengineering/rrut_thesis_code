@@ -49,6 +49,7 @@ class FeaturesDashboard:
         self.suites_problems_dict = {
             "MW": [f"MW{x}" for x in range(1, 15, 1)],
             "CTP": [f"CTP{x}" for x in range(1, 9, 1)],
+            "CF": [f"CF{x}" for x in range(1, 11, 1)],
             "DASCMOP": [f"DASCMOP{x}" for x in range(1, 10, 1)],
             "LIRCMOP": [f"LIRCMOP{x}" for x in range(1, 15, 1)],
             "DCDTLZ": [
@@ -112,7 +113,7 @@ class FeaturesDashboard:
         # Models/results objects.
         self.pca = None
 
-    def get_numerical_data_from_features_df(self):
+    def get_numerical_data_from_features_df(self, give_sd=False):
 
         df = self.features_df
 
@@ -120,6 +121,10 @@ class FeaturesDashboard:
         filtered_columns = [
             col for col in df.columns if col not in ["D", "Suite", "Date", "Name"]
         ]
+        if not give_sd:
+            filtered_columns = [
+                col for col in filtered_columns if not col.endswith("_std")
+            ]
 
         return df[filtered_columns]
 

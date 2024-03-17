@@ -78,7 +78,7 @@ clean_temp_pops_dir() {
 
     # Find and print top-level directories not containing 'ICAS', not starting with 'CS' or 'CT' (excluding 'CTP')
     echo "Directories to be removed from $dir_to_clean:"
-    local dirs_to_remove=$(find "$dir_to_clean" -mindepth 1 -maxdepth 1 -type d ! -name '*ICAS*' ! -name 'CS*' ! -name 'CT*' -o -name 'CTP*' | tr '\\' '/')
+    local dirs_to_remove=$(find "$dir_to_clean" -mindepth 1 -maxdepth 1 -type d ! -name '*ICAS*' ! -name '*CF*' ! -name 'CS*' ! -name 'CT*' -o -name 'CTP*' | tr '\\' '/')
     if [ -z "$dirs_to_remove" ]; then
         echo "None"
     else
@@ -113,7 +113,7 @@ function ctrl_c() {
     echo "Terminating program..." | tee -a "$log_file"
 
     # Clean up temp_pops dir, excluding directories with 'ICAS' in the name
-    # clean_temp_pops_dir "$temp_pops_dir"
+    clean_temp_pops_dir "$temp_pops_dir"
 
     # Clean up temp dir
     rm -rf "$temp_dir"
@@ -165,9 +165,9 @@ jq -r "$jq_filter" $config_file | while read line; do
 
         # Clean up, etc.
         echo "Cleaning temp_pops directory for next run (other than ICAS)..." | tee -a "$log_file"
-        # clean_temp_pops_dir "$temp_pops_dir"
-        # echo "temp_pops directory cleaned." | tee -a "$log_file"
-        echo "Currently not cleaning directories."
+        clean_temp_pops_dir "$temp_pops_dir"
+        echo "temp_pops directory cleaned." | tee -a "$log_file"
+        # echo "Currently not cleaning directories."
 
 
         # Update the JSON to mark this problem-dimension as false, indicating it's been run, only if mode is "eval"
@@ -184,8 +184,8 @@ done
 
 # At the end of the program, clean up temp_pops_dir except ICAS directories
 # clean_temp_pops_dir "$temp_pops_dir"
-# echo "Final cleanup of temp_pops directory, excluding ICAS folders." | tee -a "$log_file"
-echo "Currently not cleaning directories."
+echo "Final cleanup of temp_pops directory, excluding ICAS folders." | tee -a "$log_file"
+# echo "Currently not cleaning directories."
 
 # Clean up temp dir
 rm -rf "$temp_dir"

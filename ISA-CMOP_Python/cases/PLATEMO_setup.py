@@ -48,7 +48,7 @@ class PlatEMOSetup(Setup):
 
         # Check if the file already exists
         if not os.path.exists(file_path):
-            pf = np.array(self.matlab_engine.GetOptimum(self.prob, n_points))
+            pf = np.array(self.matlab_engine.GetOptimum(self.prob, float(n_points)))
             np.savetxt(file_path, pf)
             print(f"Generated PF for {self.problem_name}")
         else:
