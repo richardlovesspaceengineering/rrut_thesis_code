@@ -11,6 +11,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from pandas.plotting import parallel_coordinates
 from sklearn.preprocessing import MinMaxScaler
 from matplotlib.colors import LinearSegmentedColormap
+from sklearn.manifold import TSNE
 
 
 def remove_sd_cols(df, suffix="_std"):
@@ -108,7 +109,7 @@ class FeaturesDashboard:
         # Collate all results into one folder.
         self.wipe_features_directory()
         self.copy_directory_contents()
-        self.features_df = self.get_landscape_features_df(give_sd=True)
+        self.features_df = self.get_landscape_features_df(give_sd=False)
 
         # Models/results objects.
         self.pca = None
@@ -1176,4 +1177,105 @@ class FeaturesDashboard:
         plt.xlabel("Suites")
         plt.ylabel("Features")
         plt.xticks(rotation=45)  # Rotate x-axis labels for better readability
+        plt.show()
+
+    def plot_radviz(
+        self,
+        class_column="Suite",
+        features=None,
+        suite_names=None,
+        dims=None,
+        colormap="Set1",
+    ):
+        """
+        Generate a RadViz plot.
+
+        :param class_column: The column name in df to use for coloring the lines in the plot. Default is 'Suite'.
+        :param features: A list of column names to include in the plot. If None, all numeric columns are included.
+        :param suite_names: Suites to filter by (not used in this snippet but assumed to be part of your filtering logic).
+        :param dims: Dimensions to filter by (not used in this snippet but assumed to be part of your filtering logic).
+        :param colormap: The colormap to use for different classes.
+        """
+
+        df_filtered = self.filter_df_by_suite_and_dim(
+            suite_names=suite_names, dims=dims
+        )
+
+        if features:
+            # Append "_mean" to each feature if it's not already there and ensure the feature exists in the DataFrame
+            cols = [f if f in df_filtered.columns else f for f in features]
+        else:
+            # If no features specified, use all numeric columns
+            cols = df_filtered.select_dtypes(include=[np.number]).columns.tolist()
+
+        # Further filtering.
+        cols = [c for c in cols if not df_filtered[c].nunique() == 1]
+
+        cols.append("Suite")
+
+        # Ensure "D" and "Suite" are included for plotting but not normalized
+        # cols = list(set(cols + [class_column]))
+        # features_to_normalize = [col for col in cols if col not in ["D", "Suite"]]
+
+        # # Normalize the features
+        # scaler = StandardScaler()
+        # df_filtered[features_to_normalize] = scaler.fit_transform(
+        #     df_filtered[features_to_normalize]
+        # )
+
+        # Create a subset DataFrame with the selected features and class_column
+        data_to_plot = df_filtered[cols]
+
+        # Check if the class_column exists
+        if class_column not in data_to_plot.columns:
+            raise ValueError(
+                f"The specified class_column '{class_column}' does not exist in the DataFrame."
+            )
+
+        # Generate the parallel coordinates plot
+        plt.figure(figsize=(12, 9))
+        pd.plotting.radviz(data_to_plot, "Suite", colormap=colormap, s=2)
+        plt.title("RadViz Plot")
+        # plt.grid(True)
+        plt.show()
+
+    def plot_tSNE(
+        self,
+        class_column="Suite",
+        features=None,
+        suite_names=None,
+        dims=None,
+        colormap="Set1",
+    ):
+        df_filtered = self.filter_df_by_suite_and_dim(
+            suite_names=suite_names, dims=dims
+        ).dropna()
+
+        if features:
+            # Append "_mean" to each feature if it's not already there and ensure the feature exists in the DataFrame
+            cols = [f if f in df_filtered.columns else f for f in features]
+        else:
+            # If no features specified, use all numeric columns
+            cols = df_filtered.select_dtypes(include=[np.number]).columns.tolist()
+
+        # Further filtering.
+        cols = [c for c in cols if not df_filtered[c].nunique() == 1]
+        # cols.remove("D")
+
+        # Using the same data as before
+        tsne = TSNE(n_components=2, random_state=0)
+        tsne_results = tsne.fit_transform(df_filtered[cols])
+
+        # Plotting the t-SNE results
+        plt.figure(figsize=(8, 6))
+        for suite in df_filtered["Suite"].unique():
+            indices = df_filtered["Suite"] == suite
+            plt.scatter(
+                tsne_results[indices, 0], tsne_results[indices, 1], s=6, label=suite
+            )
+        plt.title("$t$-SNE")
+        plt.xlabel("Component 1")
+        plt.ylabel("Component 2")
+        plt.grid()
+        plt.legend()
         plt.show()

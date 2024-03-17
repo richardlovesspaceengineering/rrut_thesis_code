@@ -78,7 +78,7 @@ clean_temp_pops_dir() {
 
     # Find and print top-level directories not containing 'ICAS', not starting with 'CS' or 'CT' (excluding 'CTP')
     echo "Directories to be removed from $dir_to_clean:"
-    local dirs_to_remove=$(find "$dir_to_clean" -mindepth 1 -maxdepth 1 -type d ! -name '*ICAS*' ! -name '*CF*' ! -name 'CS*' ! -name 'CT*' -o -name 'CTP*' | tr '\\' '/')
+    local dirs_to_remove=$(find "$dir_to_clean" -mindepth 1 -maxdepth 1 -type d ! -name '*ICAS*' ! -name '*RWMOP*' ! -name '*CF*' ! -name 'CS*' ! -name 'CT*' -o -name 'CTP*' | tr '\\' '/')
     if [ -z "$dirs_to_remove" ]; then
         echo "None"
     else
@@ -90,7 +90,7 @@ clean_temp_pops_dir() {
 
     # Find and print top-level directories that are being kept
     echo "Directories being kept in $dir_to_clean:"
-    local dirs_kept=$(find "$dir_to_clean" -mindepth 1 -maxdepth 1 -type d \( -name '*ICAS*' -o -name 'CS*' -o -name 'CT*' ! -name 'CTP*' \) | tr '\\' '/')
+    local dirs_kept=$(find "$dir_to_clean" -mindepth 1 -maxdepth 1 -type d | tr '\\' '/')
     if [ -z "$dirs_kept" ]; then
         echo "None"
     else

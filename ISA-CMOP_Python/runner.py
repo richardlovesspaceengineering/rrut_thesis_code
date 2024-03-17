@@ -127,8 +127,7 @@ def generate_instance(problem_name, n_var):
         else:
             problem = RWCMOPSetup(problem_name)
 
-        # Will create problem during evaluation since MATLAB engines cannot be chunked.
-        # problem = PlatEMOEmptySetup(problem_name, n_var)
+        n_var = problem.n_var
 
     else:
 
@@ -139,9 +138,7 @@ def generate_instance(problem_name, n_var):
 
     problem.problem_name = problem_name.upper()
 
-    instance_string = (
-        f"{problem_name.upper()}_d{n_var}" if n_var else f"{problem_name.upper()}"
-    )
+    instance_string = f"{problem_name.upper()}_d{n_var}"
     return problem, instance_string
 
 
