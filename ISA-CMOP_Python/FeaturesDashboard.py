@@ -1127,7 +1127,7 @@ class FeaturesDashboard:
                 suite_values = df[df["Suite"] == suite][feature]
 
                 # Calculate distances and coverage
-                distances = [min(abs(value - target_values)) for value in suite_values]
+                distances = [min(abs(value - suite_values)) for value in target_values]
 
                 # Store coverage as 1 minus the mean of distances
                 coverage_values.at[feature, suite] = 1 - np.mean(distances)
@@ -1138,7 +1138,7 @@ class FeaturesDashboard:
             "custom_blue", ["blue", "white"], N=256
         )
         sns.heatmap(
-            coverage_values.astype(float), annot=False, cmap=cmap, vmin=0, vmax=1
+            coverage_values.astype(float), annot=False, cmap=cmap, vmin=0.6, vmax=1
         )
         plt.title(
             f"Coverage Heatmap for {analysis_type} features. Relative to {'all suites' if target_suite is None else target_suite}"
