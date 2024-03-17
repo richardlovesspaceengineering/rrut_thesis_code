@@ -7,7 +7,7 @@ from PreSampler import PreSampler
 # Import the get_problem method from pymoo.problems
 from pymoo.problems import get_problem
 import cases.LIRCMOP_setup
-from cases.PLATEMO_setup import PlatEMOSetup
+from cases.PLATEMO_setup import PlatEMOSetup, RWCMOPSetup
 from pathlib import Path
 import numpy as np
 import socket
@@ -119,10 +119,13 @@ def generate_instance(problem_name, n_var):
         problem.xl = problem.lb
         problem.xu = problem.ub
 
-    elif problem_name.startswith(("cf", "sdc", "rwcmop")):
+    elif problem_name.startswith(("cf", "sdc", "rwmop")):
 
         # Instantiate
-        problem = PlatEMOSetup(problem_name, n_var)
+        if n_var:
+            problem = PlatEMOSetup(problem_name, n_var)
+        else:
+            problem = RWCMOPSetup(problem_name)
 
         # Will create problem during evaluation since MATLAB engines cannot be chunked.
         # problem = PlatEMOEmptySetup(problem_name, n_var)
@@ -136,7 +139,9 @@ def generate_instance(problem_name, n_var):
 
     problem.problem_name = problem_name.upper()
 
-    instance_string = f"{problem_name.upper()}_d{n_var}"
+    instance_string = (
+        f"{problem_name.upper()}_d{n_var}" if n_var else f"{problem_name.upper()}"
+    )
     return problem, instance_string
 
 
@@ -148,7 +153,10 @@ def main():
         return
 
     problem_name = sys.argv[1].replace(",", "")
-    n_var = int(sys.argv[2])
+    if sys.argv[2]:
+        n_var = int(sys.argv[2])
+    else:
+        n_var = None
     num_samples = int(sys.argv[3])
     mode = sys.argv[4].replace(",", "")
     results_dir = str(sys.argv[6])

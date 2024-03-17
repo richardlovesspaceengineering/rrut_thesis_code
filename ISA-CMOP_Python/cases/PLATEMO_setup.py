@@ -16,7 +16,11 @@ class PlatEMOSetup(Setup):
         self.generate_pareto_front()
 
         # Save attributes.
-        self.n_var = n_var
+        if n_var:
+            self.n_var = n_var
+        else:
+            self.n_var = int(self.get_attribute_from_matlab_object(self.prob, "D"))
+
         self.n_obj = int(self.get_attribute_from_matlab_object(self.prob, "M"))
         self.n_ieq_constr = 1  # only constraint violation is output
         self.n_constr = self.n_ieq_constr  # only constraint violation is output
@@ -27,7 +31,11 @@ class PlatEMOSetup(Setup):
     def initialize_matlab_objects(self, n_var):
         # Instantiate the MATLAB object for the problem.
         problem_function = getattr(self.matlab_engine, self.problem_name)
-        self.prob = problem_function("D", n_var)
+
+        if n_var:
+            self.prob = problem_function("D", n_var)
+        else:
+            self.prob = problem_function()
 
     def insert_matlab_objects(self, matlab_prob, matlab_engine):
         self.matlab_engine = matlab_engine
@@ -88,3 +96,15 @@ class PlatEMOSetup(Setup):
             nargout=0,
         )
         self.is_matlab_on = True
+
+
+class RWCMOPSetup(PlatEMOSetup):
+
+    def __init__(self, problem_name):
+        super().__init__(problem_name, None)
+
+    def generate_pareto_front(self, n_points=1000):
+        print("No PF exists for RWMOPs.")
+
+    def _calc_pareto_front(self):
+        return None

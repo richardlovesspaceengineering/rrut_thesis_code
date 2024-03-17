@@ -149,6 +149,10 @@ class GlobalAnalysis(Analysis):
         """
         Properties of the estimated (and normalised) Pareto-Set (PS) and Pareto-Front (PF). Includes global maximum, global mean and mean IQR of distances across the PS/PF.
         """
+
+        if not self.pop.extract_pf():
+            return (np.nan,) * 8  # this function returns 14 values.
+
         # Extract normalisation values.
         var_lb, var_ub, obj_lb, obj_ub, cv_lb, cv_ub = super().extract_norm_values(
             norm_method
@@ -157,9 +161,6 @@ class GlobalAnalysis(Analysis):
         obj = Analysis.apply_normalisation(self.pop.extract_obj(), obj_lb, obj_ub)
         var = Analysis.apply_normalisation(self.pop.extract_var(), var_lb, var_ub)
         cv = Analysis.apply_normalisation(self.pop.extract_cv(), cv_lb, cv_ub)
-        # pf = Analysis.apply_normalisation(
-        #     self.pop.extract_pf(max_points=1000), obj_lb, obj_ub
-        # )
 
         # Compute IGD between normalised PF and cloud of points formed by this sample.
         IGDind = IGD(

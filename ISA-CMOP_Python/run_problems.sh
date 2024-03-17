@@ -156,12 +156,17 @@ jq -r "$jq_filter" $config_file | while read line; do
     # Extract problem name and dimension
     problem=$(echo $problem_dim | sed -E 's/_d[0-9]+//')
     dim=$(echo $problem_dim | grep -oE '_d[0-9]+' | sed 's/_d//')
+
+    # Check if dimension is empty and handle accordingly
+    if [ -z "$dim" ]; then
+        echo "No dimension specified for $problem."
+    fi
     
     if [[ "$should_run" == "true" ]]; then
-        echo -e "\nRunning problem: $problem, dimension: $dim" | tee -a "$log_file"
+        echo -e "\nRunning problem: $problem, dimension: ${dim:-[none]}" | tee -a "$log_file"
         
-        # Your existing code to run the problem
-        "$PYTHON_SCRIPT" -u "$run_dir" "$problem" "$dim" "$num_samples" "$mode" "$save_feature_arrays" "$results_dir" "$temp_pops_dir" "$num_cores" 2>&1 | tee -a "$log_file"
+        # Your existing code to run the problem, handling the case where dim might be empty
+        "$PYTHON_SCRIPT" -u "$run_dir" "$problem" "${dim:-}" "$num_samples" "$mode" "$save_feature_arrays" "$results_dir" "$temp_pops_dir" "$num_cores" 2>&1 | tee -a "$log_file"
 
         # Clean up, etc.
         echo "Cleaning temp_pops directory for next run (other than ICAS)..." | tee -a "$log_file"
@@ -177,9 +182,10 @@ jq -r "$jq_filter" $config_file | while read line; do
         # fi
 
     else
-        echo "Skipping problem: $problem, dimension: $dim as per config."
+        echo "Skipping problem: $problem, dimension: ${dim:-[none]} as per config."
     fi
 done
+
 
 
 # At the end of the program, clean up temp_pops_dir except ICAS directories

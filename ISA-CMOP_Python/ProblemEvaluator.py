@@ -122,7 +122,7 @@ class ProblemEvaluator:
         return "lircmop" in self.instance_name.lower()
 
     def check_if_platemo(self):
-        return self.instance_name.lower().startswith(("cf", "sdc", "rwcmop"))
+        return self.instance_name.lower().startswith(("cf", "sdc", "rwmop"))
 
     def initialize_number_of_samples(self):
         n_var = self.instance.n_var
@@ -131,8 +131,12 @@ class ProblemEvaluator:
             self.num_samples = min(self.num_samples_user_input, 10)
 
             # Number of independent random walks within a single RW sample.
-            self.num_walks_rw = int(n_var / 2)
-            self.num_walks_aw = int(5 * n_var)
+            if self.check_if_aerofoil() or n_var >= 10:
+                self.num_walks_rw = int(n_var / 2)
+                self.num_walks_aw = int(5 * n_var)
+            else:
+                self.num_walks_rw = int(n_var)
+                self.num_walks_aw = int(10 * n_var)
         else:
             self.num_samples = self.num_samples_user_input
             self.num_walks_rw = self.instance.n_var
@@ -235,6 +239,7 @@ class ProblemEvaluator:
         cores_summary = textwrap.dedent(
             f"""
         Summary of sampling:
+        - Dim: {self.instance.n_var}
         - Number of samples: {self.num_samples}
         - Number of independent RWs within each sample: {self.num_walks_rw}    
         - Number of independent AWs within each sample: {self.num_walks_aw}    
@@ -289,8 +294,9 @@ class ProblemEvaluator:
 
         # Also consider the PF in the objectives case.
         if which_variable == "obj":
-            fmin = np.minimum(fmin, np.min(PF, axis=0))
-            fmax = np.maximum(fmax, np.max(PF, axis=0))
+            if PF:
+                fmin = np.minimum(fmin, np.min(PF, axis=0))
+                fmax = np.maximum(fmax, np.max(PF, axis=0))
         elif which_variable == "cv":
             fmin = 0  # only dilate CV values.
 
@@ -1386,18 +1392,13 @@ class ProblemEvaluator:
         )
 
         for ind_walk_number in range(self.num_walks_rw):
-            file_path = os.path.join(
-                sample_folder, f"walk_neighbours_{ind_walk_number + 1}.npz"
+            walk, neighbours = pre_sampler.read_walk_neighbours(
+                sample_number, ind_walk_number
             )
-            if os.path.exists(file_path):
-                data = np.load(file_path)
-                all_walks.extend(data["walk"])
-                # Assuming neighbours are stored as a list of arrays, one for each step
-                for neighbour in data["neighbours"]:
-                    all_neighbours.extend(neighbour)
-            else:
-                print(f"File not found: {file_path}")
-                continue
+            all_walks.extend(walk)
+            # Assuming neighbours are stored as a list of arrays, one for each step
+            for neighbour in neighbours:
+                all_neighbours.extend(neighbour)
 
         # Concatenate all walks and neighbours for evaluation
         concatenated_array = np.concatenate([all_walks, all_neighbours])
