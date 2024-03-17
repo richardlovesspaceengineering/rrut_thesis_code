@@ -123,6 +123,31 @@ class FeaturesDashboard:
 
         return df[filtered_columns]
 
+    def compare_results_dict_to_df(self):
+        """
+        This method checks if the keys of the dictionary exist in the specified column of the dataframe.
+
+        :param keys_dict: Dictionary whose keys will be checked.
+        :param dataframe: DataFrame where the column is located.
+        :param column_name: The name of the column to search for the keys.
+        :return: A dictionary with the keys and a boolean value indicating if the key was found in the column.
+        """
+
+        # Initialize a result dictionary
+        result = {}
+
+        # Iterate through the dictionary keys
+        for instance in self.results_dict.keys():
+            # Check if the key is in the self.features_df column
+            found = instance in self.features_df["Name"].values
+            result[instance] = found
+
+            # If the key is not found, print it
+            if not found:
+                print(f"Missing data for {instance}")
+
+        return result
+
     def plot_missingness(self, show_only_nans=False):
         # Create a DataFrame indicating where NaNs are located (True for NaN, False for non-NaN)
         missingness = self.get_numerical_data_from_features_df().isnull()
