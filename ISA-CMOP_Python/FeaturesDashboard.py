@@ -53,6 +53,7 @@ class FeaturesDashboard:
             "CF": [f"CF{x}" for x in range(1, 11, 1)],
             "DASCMOP": [f"DASCMOP{x}" for x in range(1, 10, 1)],
             "LIRCMOP": [f"LIRCMOP{x}" for x in range(1, 15, 1)],
+            "RWMOP": [f"RWMOP{x}" for x in range(1, 51, 1)],
             "DCDTLZ": [
                 "DC1DTLZ1",
                 "DC1DTLZ3",
