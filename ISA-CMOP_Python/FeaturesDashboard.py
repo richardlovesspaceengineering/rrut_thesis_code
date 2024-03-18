@@ -197,11 +197,15 @@ class FeaturesDashboard:
 
         return result
 
-    def plot_missingness(self, show_only_nans=False):
+    def plot_missingness(self, show_only_nans=False, show_ignored_features=True):
         # Create a DataFrame indicating where NaNs are located (True for NaN, False for non-NaN)
-        missingness = FeaturesDashboard.get_numerical_data_from_df(
-            self.features_df
-        ).isnull()
+
+        if not show_ignored_features:
+            df = self.ignore_specified_features(self.features_df)
+        else:
+            df = self.features_df
+
+        missingness = FeaturesDashboard.get_numerical_data_from_df(df).isnull()
 
         row_has_nan = missingness.any(axis=1)
 

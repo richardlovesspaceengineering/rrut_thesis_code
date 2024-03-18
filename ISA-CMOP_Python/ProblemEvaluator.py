@@ -132,8 +132,8 @@ class ProblemEvaluator:
 
             # Number of independent random walks within a single RW sample.
             if self.check_if_aerofoil() or n_var >= 10:
-                self.num_walks_rw = int(n_var / 2)
-                self.num_walks_aw = int(5 * n_var)
+                self.num_walks_rw = int(n_var / 4)
+                self.num_walks_aw = int(2 * n_var)
             else:
                 self.num_walks_rw = int(n_var)
                 self.num_walks_aw = int(10 * n_var)

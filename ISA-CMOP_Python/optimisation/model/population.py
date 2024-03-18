@@ -257,6 +257,7 @@ class Population(np.ndarray):
 
         for i, individual in enumerate(individuals):
             individuals[i] = self.evaluate_individual(individual, var_array[i, :])
+            print(f"Evaluated individual {i + 1} of {len(var_array)}.")
 
         return individuals
 
