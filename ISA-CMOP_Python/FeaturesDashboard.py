@@ -114,13 +114,18 @@ class FeaturesDashboard:
         # Models/results objects.
         self.pca = None
 
-    def get_numerical_data_from_features_df(self, give_sd=False):
+    def get_numerical_data_from_features_df(
+        self, columns_to_remove=None, give_sd=False
+    ):
 
         df = self.features_df
 
         # Filter out the specific columns you don't want to keep
         filtered_columns = [
-            col for col in df.columns if col not in ["D", "Suite", "Date", "Name"]
+            col
+            for col in df.columns
+            if col not in ["D", "Suite", "Date", "Name"]
+            and col not in columns_to_remove
         ]
         if not give_sd:
             filtered_columns = [
@@ -128,6 +133,23 @@ class FeaturesDashboard:
             ]
 
         return df[filtered_columns]
+
+    def replace_nan_with_value(self, column, value):
+        """
+        Replace all NaN values in a specific column of self.features_df with a user-specified value.
+
+        :param column: The column in which to replace NaN values.
+        :param value: The value to replace NaNs with.
+        """
+        if column not in self.features_df.columns:
+            print(f"Column '{column}' does not exist in the DataFrame.")
+            return
+
+        if self.features_df[column].isna().sum() == 0:
+            print(f"There are no NaN values in column '{column}'.")
+        else:
+            self.features_df[column].fillna(value, inplace=True)
+            print(f"NaN values in column '{column}' have been replaced with '{value}'.")
 
     def compare_results_dict_to_df(self):
         """
@@ -176,7 +198,7 @@ class FeaturesDashboard:
             cmap="coolwarm",
         )
         if show_only_nans:
-            ax.set_xticklabels(ax.get_xticklabels(), fontsize=24)
+            ax.set_xticklabels(ax.get_xticklabels(), fontsize=24, rotation=90)
         plt.title("Missingness Plot")
         plt.xlabel("Features")
         plt.ylabel("Observations")
@@ -1263,7 +1285,7 @@ class FeaturesDashboard:
         # cols.remove("D")
 
         # Using the same data as before
-        tsne = TSNE(n_components=2, random_state=0)
+        tsne = TSNE(n_components=2, random_state=0, perplexity=30)
         tsne_results = tsne.fit_transform(df_filtered[cols])
 
         # Plotting the t-SNE results
