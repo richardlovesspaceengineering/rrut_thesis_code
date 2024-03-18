@@ -113,7 +113,7 @@ class ProblemEvaluator:
 
     def check_if_aerofoil(self):
         instance_name_lower = self.instance_name.lower()
-        return "icas" in instance_name_lower
+        return instance_name_lower.startswith("xa")
 
     def check_if_modact_or_aerofoil(self):
         return self.check_if_aerofoil() or self.check_if_modact()
@@ -580,10 +580,6 @@ class ProblemEvaluator:
 
                 end_time = time.time()
 
-                self.send_update_email(
-                    f"{self.instance_name} finished Global seed {i+1}/{self.num_samples} in {end_time - start_time:.2f} seconds."
-                )
-
         normalisation_values = self.compute_norm_values_from_maxmin_arrays(
             min_values_array,
             max_values_array,
@@ -864,10 +860,6 @@ class ProblemEvaluator:
                         (max_values_array[var], max_values[var])
                     )
                 end_time = time.time()
-
-                self.send_update_email(
-                    f"{self.instance_name} finished RW seed {i+1}/{self.num_samples} in {end_time - start_time:.2f} seconds."
-                )
 
         normalisation_values = self.compute_norm_values_from_maxmin_arrays(
             min_values_array,
@@ -1230,26 +1222,25 @@ class ProblemEvaluator:
         )
 
         # For PlatEMO - Combine arrays and evaluate everything first.
-        if self.check_if_platemo():
+        if self.check_if_platemo() or self.check_if_aerofoil():
 
             print(
-                "Since this is a PlatEMO instance, we will evaluated all RW and Global seeds first to speed up calculations."
+                "Since this is a slow to evaluate instance, we will evaluated all RW and Global seeds first to speed up calculations."
             )
+
+            if self.check_if_aerofoil():
+                num_processes = self.num_processes_parallel_seed
+            else:
+                num_processes = 1
 
             # RWs
             for i in range(self.num_samples):
-                st = time.time()
                 self.evaluate_and_save_all_walks_in_sample(
                     i + 1,
                     self.instance,
                     eval_fronts=False,
-                    num_processes=1,
+                    num_processes=num_processes,
                     pre_sampler=pre_sampler,
-                )
-                et = time.time()
-
-                self.send_update_email(
-                    f"{self.instance_name} finished RW seed {i+1}/{self.num_samples} in {et - st:.2f} seconds."
                 )
 
             # Global samples
@@ -1257,12 +1248,8 @@ class ProblemEvaluator:
             self.evaluate_and_save_all_global_samples(
                 self.instance,
                 eval_fronts=False,
-                num_processes=1,
+                num_processes=num_processes,
                 pre_sampler=pre_sampler,
-            )
-            et = time.time()
-            self.send_update_email(
-                f"{self.instance_name} finished all global seeds in {et - st:.2f} seconds."
             )
 
         # RW Analysis.
@@ -1382,6 +1369,8 @@ class ProblemEvaluator:
 
         init_pool()
 
+        st = time.time()
+
         # Initialize lists to hold all walks and neighbors
         all_walks = []
         all_neighbours = []
@@ -1441,6 +1430,11 @@ class ProblemEvaluator:
                 ind_walk_number + 1,
                 is_adaptive=False,
             )
+        et = time.time()
+
+        self.send_update_email(
+            f"{self.instance_name} finished RW seed {sample_number + 1}/{self.num_samples} in {et - st:.2f} seconds."
+        )
 
     def evaluate_and_save_all_global_samples(
         self, problem, eval_fronts, num_processes, pre_sampler
@@ -1459,6 +1453,8 @@ class ProblemEvaluator:
             return
 
         init_pool()
+
+        st = time.time()
 
         # Initialize a list to hold all global samples
         all_global_samples = []
@@ -1493,6 +1489,11 @@ class ProblemEvaluator:
             pre_sampler.save_global_population(population, sample_number)
 
             start_idx = end_idx
+
+        et = time.time()
+        self.send_update_email(
+            f"{self.instance_name} finished all global seeds in {et - st:.2f} seconds."
+        )
 
 
 if __name__ == "__main__":

@@ -107,12 +107,17 @@ def generate_instance(problem_name, n_var):
         problem.xl = problem.lb
         problem.xu = problem.ub
 
-    elif problem_name == "icas2024test":
+    elif problem_name.startswith("xa"):
         append_aerofoil_path()
 
-        from test_problems.icas2024 import ICAS2024Test
+        from test_problems.xairfoil import get_problem as get_problem_airfoil
 
-        problem = ICAS2024Test(n_dim=n_var, solver="xfoil", impute_values=False)
+        problem = get_problem_airfoil(
+            instance=problem_name.upper(),
+            dimension=n_var,
+            solver="xfoil",
+            impute_values=False,
+        )
 
         # Helps with downstream naming issues
         problem.n_constr = problem.n_con

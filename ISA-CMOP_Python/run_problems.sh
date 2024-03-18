@@ -76,9 +76,9 @@ clean_temp_pops_dir() {
         dir_to_clean=$(cygpath -w "$dir_to_clean" | tr '\\' '/')
     fi
 
-    # Find and print top-level directories not containing 'ICAS', not starting with 'CS' or 'CT' (excluding 'CTP')
+    # Find and print top-level directories not containing 'XA', not starting with 'CS' or 'CT' (excluding 'CTP')
     echo "Directories to be removed from $dir_to_clean:"
-    local dirs_to_remove=$(find "$dir_to_clean" -mindepth 1 -maxdepth 1 -type d ! -name '*ICAS*' ! -name '*RWMOP*' ! -name '*CF*' ! -name 'CS*' ! -name 'CT*' -o -name 'CTP*' | tr '\\' '/')
+    local dirs_to_remove=$(find "$dir_to_clean" -mindepth 1 -maxdepth 1 -type d ! -name '*XA*' ! -name '*RWMOP*' ! -name '*CF*' ! -name 'CS*' ! -name 'CT*' -o -name 'CTP*' | tr '\\' '/')
     if [ -z "$dirs_to_remove" ]; then
         echo "None"
     else
@@ -112,7 +112,7 @@ trap ctrl_c INT
 function ctrl_c() {
     echo "Terminating program..." | tee -a "$log_file"
 
-    # Clean up temp_pops dir, excluding directories with 'ICAS' in the name
+    # Clean up temp_pops dir, excluding directories with 'XA' in the name
     clean_temp_pops_dir "$temp_pops_dir"
 
     # Clean up temp dir
@@ -169,7 +169,7 @@ jq -r "$jq_filter" $config_file | while read line; do
         "$PYTHON_SCRIPT" -u "$run_dir" "$problem" "${dim:-}" "$num_samples" "$mode" "$save_feature_arrays" "$results_dir" "$temp_pops_dir" "$num_cores" 2>&1 | tee -a "$log_file"
 
         # Clean up, etc.
-        echo "Cleaning temp_pops directory for next run (other than ICAS)..." | tee -a "$log_file"
+        echo "Cleaning temp_pops directory for next run (other than XA)..." | tee -a "$log_file"
         clean_temp_pops_dir "$temp_pops_dir"
         echo "temp_pops directory cleaned." | tee -a "$log_file"
         # echo "Currently not cleaning directories."
@@ -188,9 +188,9 @@ done
 
 
 
-# At the end of the program, clean up temp_pops_dir except ICAS directories
+# At the end of the program, clean up temp_pops_dir except XA directories
 # clean_temp_pops_dir "$temp_pops_dir"
-echo "Final cleanup of temp_pops directory, excluding ICAS folders." | tee -a "$log_file"
+echo "Final cleanup of temp_pops directory, excluding XA folders." | tee -a "$log_file"
 # echo "Currently not cleaning directories."
 
 # Clean up temp dir

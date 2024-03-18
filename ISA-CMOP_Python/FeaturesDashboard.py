@@ -114,19 +114,16 @@ class FeaturesDashboard:
 
         # Models/results objects.
         self.pca = None
+        self.features_to_ignore = None
 
-    def get_numerical_data_from_features_df(
-        self, columns_to_remove=None, give_sd=False
-    ):
+    @staticmethod
+    def get_numerical_data_from_df(df, give_sd=False):
 
-        df = self.features_df
+        # Check if features_to_ignore is provided, if not, initialize it as an empty list
 
         # Filter out the specific columns you don't want to keep
         filtered_columns = [
-            col
-            for col in df.columns
-            if col not in ["D", "Suite", "Date", "Name"]
-            and col not in columns_to_remove
+            col for col in df.columns if col not in ["D", "Suite", "Date", "Name"]
         ]
         if not give_sd:
             filtered_columns = [
@@ -134,6 +131,29 @@ class FeaturesDashboard:
             ]
 
         return df[filtered_columns]
+
+    @staticmethod
+    def custom_drop_na(df):
+
+        # Calculate the initial length of the dataframe
+        initial_length = len(df)
+
+        # Find rows with NaNs and store their 'Name'
+        rows_with_nans = df[df.isnull().any(axis=1)]["Name"]
+
+        # Drop rows with NaNs
+        df_clean = df.dropna()
+
+        # Calculate the number of dropped rows
+        num_dropped_rows = initial_length - len(df_clean)
+
+        # Display the names of the dropped rows, number of dropped rows, and initial length
+        print("Dropped instances:")
+        print(rows_with_nans.to_list())
+        print(f"Initial length of the dataframe: {initial_length}")
+        print(f"Total number of dropped instances: {num_dropped_rows}")
+
+        return df_clean
 
     def replace_nan_with_value(self, column, value):
         """
@@ -179,7 +199,9 @@ class FeaturesDashboard:
 
     def plot_missingness(self, show_only_nans=False):
         # Create a DataFrame indicating where NaNs are located (True for NaN, False for non-NaN)
-        missingness = self.get_numerical_data_from_features_df().isnull()
+        missingness = FeaturesDashboard.get_numerical_data_from_df(
+            self.features_df
+        ).isnull()
 
         row_has_nan = missingness.any(axis=1)
 
@@ -207,7 +229,7 @@ class FeaturesDashboard:
 
     def get_feature_names(self, shortened=True):
 
-        df = self.get_numerical_data_from_features_df()
+        df = FeaturesDashboard.get_numerical_data_from_df(self.features_df)
 
         # Remove "_mean" from the remaining column names
         if shortened:
@@ -470,6 +492,16 @@ class FeaturesDashboard:
 
         return df
 
+    def set_features_to_ignore(self, features_to_ignore):
+        self.features_to_ignore = features_to_ignore
+
+    def ignore_specified_features(self, df):
+        if self.features_to_ignore:
+            return df[[col for col in df.columns if col not in self.features_to_ignore]]
+        else:
+            print("No features to ignore have been set as attributes of the instance.")
+            return df
+
     @staticmethod
     def get_features_for_analysis_type(df, analysis_type):
         """
@@ -557,7 +589,7 @@ class FeaturesDashboard:
 
         # Use the filtering method to get the filtered DataFrame based on suite names and dimensions
         df_filtered = self.filter_df_by_suite_and_dim(
-            suite_names=suite_names, dims=dims
+            self.features_df, suite_names=suite_names, dims=dims
         )
 
         global_min, global_max = self.compute_global_maxmin_for_plot(
@@ -631,7 +663,13 @@ class FeaturesDashboard:
         min_corr_magnitude=0,
     ):
 
-        df = self.filter_df_by_suite_and_dim(suite_names=suite_names, dims=dims)
+        df = self.custom_drop_na(
+            self.filter_df_by_suite_and_dim(
+                self.ignore_specified_features(self.features_df),
+                suite_names=suite_names,
+                dims=dims,
+            )
+        )
 
         if analysis_type:
             df = FeaturesDashboard.get_features_for_analysis_type(df, analysis_type)
@@ -639,7 +677,7 @@ class FeaturesDashboard:
         if method not in ["pearson", "spearman"]:
             raise ValueError("Method must be either 'pearson' or 'spearman'")
 
-        numeric_df = self.get_numerical_data_from_features_df()
+        numeric_df = FeaturesDashboard.get_numerical_data_from_df(df)
 
         # Calculate the correlation matrix
         correlation_matrix = numeric_df.corr(method=method)
@@ -660,7 +698,11 @@ class FeaturesDashboard:
         :param n: Number of top correlation pairs to return.
         """
         correlation_matrix = self.get_correlation_matrix(
-            analysis_type, dims, suite_names, method, min_corr_magnitude
+            analysis_type,
+            dims,
+            suite_names,
+            method,
+            min_corr_magnitude,
         )
 
         au_corr = correlation_matrix.unstack()
@@ -695,7 +737,11 @@ class FeaturesDashboard:
         """
 
         correlation_matrix = self.get_correlation_matrix(
-            analysis_type, dims, suite_names, method, min_corr_magnitude
+            analysis_type,
+            dims,
+            suite_names,
+            method,
+            min_corr_magnitude,
         )
 
         # Generate a heatmap
@@ -754,8 +800,9 @@ class FeaturesDashboard:
             dims = [5, 10, 20, 30]  # Default dimensions if none provided
 
         # Use the filtering method to get the filtered DataFrame based on suite names and dimensions
+        df = self.features_df
         df_filtered = self.filter_df_by_suite_and_dim(
-            suite_names=suite_names, dims=dims
+            df, suite_names=suite_names, dims=dims
         )
 
         global_min, global_max = self.compute_global_maxmin_for_plot(
@@ -845,7 +892,8 @@ class FeaturesDashboard:
         ]
         self.plot_multiple_features_across_suites(feature_names)
 
-    def filter_df_by_suite_and_dim(self, suite_names=None, dims=None):
+    @staticmethod
+    def filter_df_by_suite_and_dim(df, suite_names=None, dims=None):
         """
         Filters the features DataFrame based on specified suite names and dimensions.
         :param suite_names: List of suite names to filter by. If None, no suite-based filtering is applied.
@@ -853,7 +901,7 @@ class FeaturesDashboard:
         :return: A filtered DataFrame based on the specified suite names and dimensions.
         """
         # Start with the full DataFrame
-        df_filtered = self.features_df.copy()
+        df_filtered = df.copy()
 
         # Filter by suite if suite_names is specified
         if suite_names:
@@ -882,7 +930,9 @@ class FeaturesDashboard:
         if not dims:
             dims = [5, 10, 20, 30]
 
-        filtered_df = self.filter_df_by_suite_and_dim(suite_names, dims)
+        filtered_df = self.filter_df_by_suite_and_dim(
+            self.features_df, suite_names, dims
+        )
 
         if color_by not in ["dimension", "suite"]:
             raise ValueError("color_by must be either 'dimension' or 'suite'.")
@@ -971,13 +1021,11 @@ class FeaturesDashboard:
 
     def run_pca(self):
 
+        df = self.custom_drop_na(self.ignore_specified_features(self.features_df))
+
         scaler = StandardScaler()
         self.features_scaled = scaler.fit_transform(
-            self.get_numerical_data_from_features_df().dropna()
-        )
-
-        print(
-            f"Removed {len(self.features_df) - len(self.features_scaled)} rows containing NaN."
+            FeaturesDashboard.get_numerical_data_from_df(df)
         )
 
         # Applying PCA
@@ -1016,6 +1064,10 @@ class FeaturesDashboard:
             print("Please run PCA first using run_pca method.")
             return
 
+        df = self.get_numerical_data_from_df(
+            self.custom_drop_na(self.ignore_specified_features(self.features_df))
+        )
+
         # Determine how much of the variance is explained by the chosen number of components.
         expl_variance = np.cumsum(self.pca.explained_variance_ratio_)[n_components]
 
@@ -1027,7 +1079,7 @@ class FeaturesDashboard:
         loadings = pd.DataFrame(
             self.pca.components_[:n_components].T,
             columns=[f"PC{i+1}" for i in range(n_components)],
-            index=self.get_numerical_data_from_features_df().columns,
+            index=df.columns,
         )
 
         # Plotting the heatmap
@@ -1097,7 +1149,7 @@ class FeaturesDashboard:
         """
 
         df_filtered = self.filter_df_by_suite_and_dim(
-            suite_names=suite_names, dims=dims
+            self.features_df, suite_names=suite_names, dims=dims
         )
 
         if features:
@@ -1139,7 +1191,13 @@ class FeaturesDashboard:
         plt.grid(True)
         plt.show()
 
-    def plot_coverage_heatmap(self, target_suite, analysis_type, features=None):
+    def plot_coverage_heatmap(
+        self,
+        target_suite,
+        analysis_type,
+        features=None,
+        features_to_ignore=None,
+    ):
         """
         Calculate and plot the coverage heatmap.
 
@@ -1148,20 +1206,27 @@ class FeaturesDashboard:
         :param features: The features to include in the coverage calculation.
         """
 
-        df = self.get_features_for_analysis_type(
+        df = FeaturesDashboard.get_features_for_analysis_type(
             self.features_df, analysis_type
-        ).dropna()
+        )
+
+        # Remove the columns to ignore right at the beginning
+        if features_to_ignore:
+            df = df[[col for col in df.columns if col not in features_to_ignore]]
 
         if features:
             features = [
                 f"{f}_mean" if f"{f}_mean" in df.columns else f for f in features
             ]
         else:
-            features = [col for col in df.columns if col not in ["Name", "D", "Suite"]]
+            features = [
+                col for col in df.columns if col not in ["Name", "D", "Date", "Suite"]
+            ]
 
-        # Normalize the features
+        # Normalize the features. Drop any NaNs
+        df = self.custom_drop_na(df)
         scaler = MinMaxScaler()
-        df[features] = scaler.fit_transform(df[features])
+        df.loc[:, features] = scaler.fit_transform(df[features])
 
         # Initialize a DataFrame to store coverage values
         suites = df["Suite"].unique()
@@ -1221,7 +1286,9 @@ class FeaturesDashboard:
         """
 
         df_filtered = self.filter_df_by_suite_and_dim(
-            suite_names=suite_names, dims=dims
+            self.ignore_specified_features(self.features_df),
+            suite_names=suite_names,
+            dims=dims,
         )
 
         if features:
@@ -1270,9 +1337,13 @@ class FeaturesDashboard:
         dims=None,
         colormap="Set1",
     ):
-        df_filtered = self.filter_df_by_suite_and_dim(
-            suite_names=suite_names, dims=dims
-        ).dropna()
+        df_filtered = self.custom_drop_na(
+            self.filter_df_by_suite_and_dim(
+                self.ignore_specified_features(self.features_df),
+                suite_names=suite_names,
+                dims=dims,
+            )
+        )
 
         if features:
             # Append "_mean" to each feature if it's not already there and ensure the feature exists in the DataFrame
