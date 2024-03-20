@@ -15,16 +15,21 @@ from optimisation.model.population import Population
 
 
 class PreSampler:
-    def __init__(self, dim, num_samples, mode):
+    def __init__(self, dim, num_samples, mode, is_aerofoil):
         self.dim = dim
         self.num_samples = num_samples
         self.mode = mode
+        self.is_aerofoil = is_aerofoil
         self.save_experimental_setup()
 
     def save_experimental_setup(self):
         if self.mode == "eval":
             # Alsouly's experimental setup for RWs.
-            self.neighbourhood_size_rw = 2 * self.dim + 1
+            if self.is_aerofoil:
+                self.neighbourhood_size_rw = self.dim
+            else:
+                self.neighbourhood_size_rw = 2 * self.dim + 1
+
             self.num_steps_rw = 1000
             self.step_size_rw = 0.01  # 1% of the range of the instance domain
 
@@ -44,7 +49,12 @@ class PreSampler:
 
     def create_pregen_sample_dir(self):
         base_dir = "../pregen_samples"
-        mode_dir = os.path.join(base_dir, self.mode)  # "eval" or "debug" based on mode
+
+        if self.is_aerofoil:
+            mode_dir = os.path.join(base_dir, "airfoil", self.mode)
+        else:
+            mode_dir = os.path.join(base_dir, self.mode)
+
         rw_dir = os.path.join(mode_dir, "rw")
         global_dir = os.path.join(mode_dir, "global")
 

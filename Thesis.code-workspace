@@ -13,6 +13,14 @@
     },
     "notebook.formatOnSave.enabled": true,
     // "python.analysis.extraPaths": ["C:/Users/richa/Documents/Thesis/AirfoilBenchmarkSuite/"],
-    "black-formatter.interpreter": []
+    "black-formatter.interpreter": [],
+    "files.watcherExclude": {
+        "**/.git/objects/**": true,
+        "**/.git/subtree-cache/**": true,
+        "**/node_modules/*/**": true,
+        "**/.hg/store/**": true,
+        "**/temp_pops/**": true,
+        "**/pregen_samples/**": true,
+    }
   }
 }

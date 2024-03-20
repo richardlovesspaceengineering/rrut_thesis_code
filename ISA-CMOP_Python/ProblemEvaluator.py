@@ -132,7 +132,7 @@ class ProblemEvaluator:
 
             # Number of independent random walks within a single RW sample.
             if self.check_if_aerofoil() or n_var >= 10:
-                self.num_walks_rw = int(n_var / 4)
+                self.num_walks_rw = int(n_var / 3)
                 self.num_walks_aw = int(2 * n_var)
             else:
                 self.num_walks_rw = int(n_var)
@@ -234,17 +234,19 @@ class ProblemEvaluator:
 
         self.num_processes_aw = self.num_processes_global_eval
 
-    def send_initialisation_email(self, header):
+    def send_initialisation_email(self, header, pre_sampler):
         # Summarize the core allocation
         cores_summary = textwrap.dedent(
             f"""
         Summary of sampling:
         - Dim: {self.instance.n_var}
         - Number of samples: {self.num_samples}
-        - Number of independent RWs within each sample: {self.num_walks_rw}    
-        - Number of independent AWs within each sample: {self.num_walks_aw}    
+        - Number of independent RWs within each sample: {self.num_walks_rw}.
+        - Number of independent AWs within each sample: {self.num_walks_aw}.
+        - Neighbourhood size: {pre_sampler.neighbourhood_size_rw}.       
         
         Summary of cores allocation (have taken the minimum of self.num_samples and num_cores except for larger-dimension global cases):
+        Parallel eval will use {self.num_processes_parallel_seed}.
         RW processes will use {self.num_processes_rw_norm} cores for normalisation, {self.num_processes_rw_eval} cores for evaluation.
         Global processes will use {self.num_processes_global_norm} cores for normalisation, {self.num_processes_global_eval} cores for evaluation.
         AW processes will use {self.num_processes_aw} cores.
@@ -259,7 +261,8 @@ class ProblemEvaluator:
         self.send_update_email(header, body=full_summary)
 
     def create_pre_sampler(self):
-        return PreSampler(self.instance.n_var, self.num_samples, self.mode)
+        is_aerofoil = self.check_if_aerofoil()
+        return PreSampler(self.instance.n_var, self.num_samples, self.mode, is_aerofoil)
 
     def initialise_pf(self, problem):
         # Pymoo requires creation of a population to initialise PF.
@@ -1090,7 +1093,8 @@ class ProblemEvaluator:
 
         if self.mode == "eval":
             # Experimental setup of Alsouly
-            neighbourhood_size = 2 * n_var + 1
+            neighbourhood_size = pre_sampler.neighbourhood_size_rw
+
             max_steps = 500
             step_size = 0.01  # 1% of the range of the instance domain
 
@@ -1204,7 +1208,9 @@ class ProblemEvaluator:
 
         pre_sampler = self.initialize_evaluator(temp_pops_dir)
 
-        self.send_initialisation_email(f"STARTED RUN OF {self.instance_name}.")
+        self.send_initialisation_email(
+            f"STARTED RUN OF {self.instance_name}.", pre_sampler
+        )
 
         # MATLAB engine does not support multiprocessing.
         if self.check_if_aerofoil() or self.check_if_platemo():
@@ -1244,7 +1250,6 @@ class ProblemEvaluator:
                 )
 
             # Global samples
-            st = time.time()
             self.evaluate_and_save_all_global_samples(
                 self.instance,
                 eval_fronts=False,
@@ -1376,9 +1381,6 @@ class ProblemEvaluator:
         all_neighbours = []
 
         # Load the saved walks and neighbours
-        sample_folder = os.path.join(
-            pre_sampler.rw_samples_dir, f"sample{sample_number}"
-        )
 
         for ind_walk_number in range(self.num_walks_rw):
             walk, neighbours = pre_sampler.read_walk_neighbours(

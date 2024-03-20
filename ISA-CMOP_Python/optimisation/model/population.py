@@ -298,41 +298,43 @@ class Population(np.ndarray):
                     processes=num_processes, initializer=init_pool
                 ) as pool:
 
-                    # if self[0].problem.problem_name.lower().startswith(("xa")):
+                    if self[0].problem.problem_name.lower().startswith(("xa")):
 
-                    #     # Parallel processing
-                    #     results = pool.starmap(
-                    #         self.evaluate_individual,
-                    #         [(self[i], var_array[i, :]) for i in range(len(self))],
-                    #     )
+                        # Parallel processing
+                        results = pool.starmap(
+                            self.evaluate_individual,
+                            [(self[i], var_array[i, :]) for i in range(len(self))],
+                        )
 
-                    #     # Merge back
-                    #     for i, result in enumerate(results):
-                    #         self[i] = result
-                    # else:
-                    print("Using chunked evaluation...")
-                    # Split var_array into chunks
-                    var_array_chunks = np.array_split(var_array, num_processes)
+                        # Merge back
+                        for i, result in enumerate(results):
+                            self[i] = result
+                    else:
+                        print("Using chunked evaluation...")
+                        # Split var_array into chunks
+                        var_array_chunks = np.array_split(var_array, num_processes)
 
-                    # Split self into chunks; since self is a list, we use array_split from numpy and then convert each chunk back to a list
-                    self_chunks = np.array_split(self, num_processes)
+                        # Split self into chunks; since self is a list, we use array_split from numpy and then convert each chunk back to a list
+                        self_chunks = np.array_split(self, num_processes)
 
-                    # Create a list of tuples where each tuple contains a chunk of self and the corresponding chunk of var_array
-                    # Here, each chunk is zipped together since they are of equal length
-                    args = [
-                        (self_chunk, var_chunk)
-                        for self_chunk, var_chunk in zip(self_chunks, var_array_chunks)
-                    ]
+                        # Create a list of tuples where each tuple contains a chunk of self and the corresponding chunk of var_array
+                        # Here, each chunk is zipped together since they are of equal length
+                        args = [
+                            (self_chunk, var_chunk)
+                            for self_chunk, var_chunk in zip(
+                                self_chunks, var_array_chunks
+                            )
+                        ]
 
-                    # Use pool.starmap to parallelize
-                    results = pool.starmap(self.evaluate_chunks, args)
+                        # Use pool.starmap to parallelize
+                        results = pool.starmap(self.evaluate_chunks, args)
 
-                    # Instead of self = Population.merge_multiple(*results)
-                    merged_population = Population.merge_multiple(*results)
+                        # Instead of self = Population.merge_multiple(*results)
+                        merged_population = Population.merge_multiple(*results)
 
-                    # Update the original population with the merged results
-                    for i in range(len(merged_population)):
-                        self[i] = merged_population[i]
+                        # Update the original population with the merged results
+                        for i in range(len(merged_population)):
+                            self[i] = merged_population[i]
 
             else:
                 for i in range(len(self)):
