@@ -1354,20 +1354,30 @@ class FeaturesDashboard:
                 # Store coverage as 1 minus the mean of distances
                 coverage_values.at[feature, suite] = 1 - np.mean(distances)
 
+        # Remove the mean from names.
+        coverage_values.index = coverage_values.index.str.replace("_mean", "")
+
         # Plotting the coverage heatmap
         plt.figure(figsize=(24, 16))
         cmap = LinearSegmentedColormap.from_list(
             "custom_blue", ["blue", "white"], N=256
         )
         sns.heatmap(
-            coverage_values.astype(float), annot=False, cmap=cmap, vmin=0.6, vmax=1
+            coverage_values.astype(float),
+            annot=False,
+            cmap=cmap,
+            vmin=0.6,
+            vmax=1,
+            square=True,
         )
         plt.title(
             f"Coverage Heatmap for {analysis_type} features. Relative to {'all suites' if target_suite is None else target_suite}"
         )
         plt.xlabel("Suites")
         plt.ylabel("Features")
-        plt.xticks(rotation=45)  # Rotate x-axis labels for better readability
+        plt.xticks(
+            rotation=45, fontsize=10
+        )  # Rotate x-axis labels for better readability
         plt.show()
 
     def plot_radviz(
