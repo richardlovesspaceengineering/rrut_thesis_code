@@ -12,6 +12,7 @@ from pandas.plotting import parallel_coordinates
 from sklearn.preprocessing import MinMaxScaler
 from matplotlib.colors import LinearSegmentedColormap
 from sklearn.manifold import TSNE
+from scipy.stats import zscore
 
 
 def remove_sd_cols(df, suffix="_std"):
@@ -1095,6 +1096,9 @@ class FeaturesDashboard:
         if features is None:
             features = df.select_dtypes(include=[np.number]).columns.tolist()
 
+            # Apply z-score normalization
+            df[features] = df[features].apply(zscore)
+
         n_features = len(features)
 
         # Calculate grid size for plotting
@@ -1357,8 +1361,11 @@ class FeaturesDashboard:
         # Remove the mean from names.
         coverage_values.index = coverage_values.index.str.replace("_mean", "")
 
-        # Plotting the coverage heatmap
-        plt.figure(figsize=(24, 16))
+        # Determine optimal figure size based on the number of features and suites
+        fig_width = max(12, len(suites) * 1.2)
+        fig_height = max(8, len(features) * 0.4)
+
+        plt.figure(figsize=(fig_width, fig_height))
         cmap = LinearSegmentedColormap.from_list(
             "custom_blue", ["blue", "white"], N=256
         )
@@ -1366,6 +1373,7 @@ class FeaturesDashboard:
             coverage_values.astype(float),
             annot=False,
             cmap=cmap,
+            cbar_kws={"shrink": 0.5},
             vmin=0.6,
             vmax=1,
             square=True,
@@ -1378,6 +1386,7 @@ class FeaturesDashboard:
         plt.xticks(
             rotation=45, fontsize=10
         )  # Rotate x-axis labels for better readability
+        plt.tight_layout()
         plt.show()
 
     def plot_radviz(
