@@ -1166,35 +1166,181 @@ class FeaturesDashboard:
         plt.grid(True)
         plt.show()
 
-    def plot_pca_loadings(self, n_components):
-        if self.pca is None:
-            print("Please run PCA first using run_pca method.")
-            return
-
+    def get_pca_loadings(self, n_components, analysis_type=None, pct=True):
         df = self.get_numerical_data_from_df(
             self.custom_drop_na(self.ignore_specified_features(self.features_df))
         )
 
+        if analysis_type:
+            df = self.get_features_for_analysis_type(df, analysis_type=analysis_type)
+
         # Determine how much of the variance is explained by the chosen number of components.
-        expl_variance = np.cumsum(self.pca.explained_variance_ratio_)[n_components]
+        expl_variance = np.cumsum(self.pca.explained_variance_ratio_)[n_components - 1]
 
         print(
-            f"Using {n_components} components explains {expl_variance*100:.2f}% of the variance"
+            f"Using {n_components} components explains {expl_variance*100:.2f}% of the variance."
         )
 
-        # Creating a DataFrame for the PCA loadings
-        loadings = pd.DataFrame(
-            self.pca.components_[:n_components].T,
-            columns=[f"PC{i+1}" for i in range(n_components)],
-            index=df.columns,
+        # Adjust the index in loadings DataFrame to match the filtered features
+        if analysis_type:
+            # Ensure the components correspond to the filtered features
+            component_indices = [
+                df.columns.get_loc(c)
+                for c in df.columns
+                if c in self.features_df.columns
+            ]
+            loadings = pd.DataFrame(
+                self.pca.components_[
+                    :n_components, component_indices
+                ].T,  # Slice components for filtered features
+                columns=[f"PC{i+1}" for i in range(n_components)],
+                index=df.columns,
+            )
+        else:
+            loadings = pd.DataFrame(
+                self.pca.components_[:n_components].T,
+                columns=[f"PC{i+1}" for i in range(n_components)],
+                index=df.columns,
+            )
+
+        loadings.index = loadings.index.str.replace("_mean", "")
+
+        # Normalize loadings to percentage
+        if pct:
+            loadings = loadings.apply(lambda x: abs(x) / abs(x).sum(), axis=0) * 100
+
+        print(
+            f"There are {len(loadings.index)} features that have been kept in the PCA."
         )
 
-        # Plotting the heatmap
-        plt.figure(figsize=(36, 24))
-        sns.heatmap(loadings, annot=False, cmap="coolwarm", center=0)
-        plt.title("PCA Feature Loadings")
-        plt.xlabel("Principal Components")
-        plt.ylabel("Features")
+        return loadings
+
+    def plot_pca_loadings(self, n_components, top_features=None, analysis_type=None):
+        if self.pca is None:
+            print("Please run PCA first using the run_pca method.")
+            return
+
+        loadings = self.get_pca_loadings(
+            n_components=n_components, analysis_type=analysis_type
+        ).apply(
+            lambda x: x.abs()
+        )  # Take the absolute value
+
+        # Creating a series of subplots - one for each principal component
+        fig, axes = plt.subplots(
+            n_components, 1, figsize=(10, n_components * 5), squeeze=False
+        )
+
+        # Plotting the bar chart for each component's loadings
+        for i, ax in enumerate(axes.flat):
+            if top_features is not None:
+                # Sort by absolute loadings and take top N for each component
+                loadings_sorted = (
+                    loadings[f"PC{i+1}"].sort_values(ascending=False).head(top_features)
+                )
+            else:
+                loadings_sorted = loadings[f"PC{i+1}"].sort_values(ascending=False)
+
+            if top_features:
+                loadings_sorted = loadings_sorted.head(top_features)
+
+            loadings_sorted.plot(kind="bar", ax=ax)
+            ax.axhline(y=100 / len(loadings[f"PC{i+1}"]), color="r", linestyle="--")
+            ax.set_title(f"Loadings for PC{i+1}")
+            ax.set_ylabel("Absolute Loading Value")
+            ax.set_xlabel("Features")
+
+        plt.tight_layout()
+        plt.show()
+
+    def plot_stacked_pca_loadings(
+        self, n_components, top_features=None, analysis_type=None
+    ):
+        if self.pca is None:
+            print("Please run PCA first using the run_pca method.")
+            return
+
+        loadings = self.get_pca_loadings(
+            n_components=n_components, analysis_type=analysis_type
+        ).apply(
+            lambda x: x.abs()
+        )  # Take the absolute value
+
+        # Sort the features based on their maximum contribution across all components
+        loadings["max_loading"] = loadings.sum(axis=1)
+        loadings = loadings.sort_values("max_loading", ascending=False).drop(
+            "max_loading", axis=1
+        )
+
+        if top_features:
+            loadings = loadings.head(top_features)
+
+        # Creating the stacked bar chart
+        loadings.plot(kind="bar", stacked=True, figsize=(10, 6))
+        plt.title(
+            f"Stacked PCA Loadings for Top {top_features} Features"
+            if top_features
+            else "Stacked PCA Loadings"
+        )
+        plt.ylabel("Absolute Loading Value")
+        plt.xlabel("Features")
+        plt.legend(title="Principal Components")
+
+        plt.tight_layout()
+        plt.show()
+
+    def plot_total_contribution(
+        self, n_components, top_features=None, analysis_type=None
+    ):
+        if self.pca is None:
+            print("Please run PCA first using the run_pca method.")
+            return
+
+        if n_components > len(self.pca.explained_variance_ratio_):
+            print("Number of components exceeds the total available components")
+            return
+
+        loadings = self.get_pca_loadings(
+            n_components=n_components, analysis_type=analysis_type
+        ).apply(
+            lambda x: x.abs()
+        )  # Take the absolute value
+
+        eigenvalues = self.pca.explained_variance_[:n_components]
+
+        # Calculate the total contribution for each feature across n components
+        total_contributions = loadings.apply(
+            lambda x: (x * eigenvalues).sum() / eigenvalues.sum(), axis=1
+        )
+
+        # Calculate the expected average contribution (uniform distribution)
+        num_variables = len(loadings.index)
+        expected_contribution = (
+            sum([1 / num_variables * eig for eig in eigenvalues])
+            / sum(eigenvalues)
+            * 100
+        )
+
+        # Sort the contributions in descending order
+        total_contributions = total_contributions.sort_values(ascending=False)
+
+        # If top_features is specified, only show the top N features
+        if top_features is not None:
+            total_contributions = total_contributions.head(top_features)
+
+        # Plotting the total contributions
+        total_contributions.plot(kind="bar", figsize=(10, 6))
+        plt.axhline(
+            y=expected_contribution,
+            color="r",
+        )
+        plt.title(
+            f"Total Contribution to the First {n_components} Principal Components"
+        )
+        plt.ylabel("Total Contribution")
+        plt.xlabel("Features")
+
+        plt.tight_layout()
         plt.show()
 
     def visualise_3d_pca(self):
