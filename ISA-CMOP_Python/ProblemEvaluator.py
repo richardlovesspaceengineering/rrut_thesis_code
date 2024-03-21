@@ -1439,7 +1439,7 @@ class ProblemEvaluator:
         et = time.time()
 
         self.send_update_email(
-            f"{self.instance_name} finished RW seed {sample_number + 1}/{self.num_samples} in {et - st:.2f} seconds."
+            f"{self.instance_name} finished RW seed {sample_number}/{self.num_samples} in {et - st:.2f} seconds."
         )
 
     def evaluate_and_save_all_global_samples(
