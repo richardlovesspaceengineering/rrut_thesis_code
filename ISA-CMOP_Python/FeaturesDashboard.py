@@ -114,7 +114,7 @@ class FeaturesDashboard:
 
         # Models/results objects.
         self.pca = None
-        self.features_to_ignore = None
+        self.features_to_ignore = []
 
     @staticmethod
     def get_numerical_data_from_df(df, give_sd=False):
@@ -496,8 +496,18 @@ class FeaturesDashboard:
 
         return df
 
-    def set_features_to_ignore(self, features_to_ignore):
-        self.features_to_ignore = features_to_ignore
+    def append_to_features_to_ignore(self, features_to_ignore):
+
+        # Check if features_to_ignore is neither None nor an empty list
+        if features_to_ignore:
+            # Convert to list if it's a single element
+            if not isinstance(features_to_ignore, list):
+                features_to_ignore = [features_to_ignore]
+
+            # Append each feature only if it's not already in the list
+            for feature in features_to_ignore:
+                if feature not in self.features_to_ignore:
+                    self.features_to_ignore.append(feature)
 
     def ignore_specified_features(self, df):
         if self.features_to_ignore:
@@ -661,15 +671,21 @@ class FeaturesDashboard:
     def get_correlation_matrix(
         self,
         analysis_type=None,
+        ignore_features=True,
         dims=None,
         suite_names=None,
         method="pearson",
         min_corr_magnitude=0,
     ):
 
+        if ignore_features:
+            df = self.ignore_specified_features(self.features_df)
+        else:
+            df = self.features_df
+
         df = self.custom_drop_na(
             self.filter_df_by_suite_and_dim(
-                self.ignore_specified_features(self.features_df),
+                df,
                 suite_names=suite_names,
                 dims=dims,
             )
@@ -686,11 +702,16 @@ class FeaturesDashboard:
         # Calculate the correlation matrix
         correlation_matrix = numeric_df.corr(method=method)
 
+        # Remove the word mean from each string.
+        correlation_matrix.columns = correlation_matrix.columns.str.replace("_mean", "")
+        correlation_matrix.index = correlation_matrix.index.str.replace("_mean", "")
+
         return correlation_matrix[correlation_matrix.abs() > min_corr_magnitude]
 
     def get_top_correlation_pairs(
         self,
         min_corr_magnitude,
+        ignore_features=False,
         analysis_type=None,
         dims=None,
         suite_names=None,
@@ -703,6 +724,7 @@ class FeaturesDashboard:
         """
         correlation_matrix = self.get_correlation_matrix(
             analysis_type,
+            ignore_features,
             dims,
             suite_names,
             method,
@@ -723,12 +745,88 @@ class FeaturesDashboard:
 
         # Convert to DataFrame for a nicer display
         au_corr_df = au_corr.reset_index()
-        au_corr_df.columns = ["Variable 1", "Variable 2", "Correlation"]
+        au_corr_df.columns = ["Variable 1", "Variable 2", "Overall"]
+
+        # Get a list of all suites if not provided
+        if not suite_names:
+            suite_names = self.suites_problems_dict.keys()
+
+        # Iterate over each suite and calculate correlation for top pairs
+        for suite in suite_names:
+            suite_corr_matrix = self.get_correlation_matrix(
+                analysis_type,
+                ignore_features,
+                dims,
+                [suite],  # Pass the current suite name
+                method,
+                min_corr_magnitude=0,
+            )
+            # Add a column for each suite's correlation
+            au_corr_df[suite] = au_corr_df.apply(
+                lambda row: suite_corr_matrix.loc[row["Variable 1"], row["Variable 2"]],
+                axis=1,
+            )
+
         return au_corr_df
+
+    def plot_top_correlation_heatmap(self, min_corr_magnitude):
+        """
+        Plots a heatmap where rows are Variable 1/Variable 2 pairs and columns are 'Overall' and each suite.
+
+        :param au_corr_df: A pandas DataFrame containing the correlation data,
+                        with Variable 1, Variable 2, Overall Correlation, and Suite Correlations.
+        """
+        au_corr_df = self.get_top_correlation_pairs(
+            min_corr_magnitude=min_corr_magnitude, ignore_features=True
+        )
+
+        # Creating a new column that combines Variable 1 and Variable 2 for labeling purposes
+        au_corr_df["Variable Pair"] = au_corr_df[["Variable 1", "Variable 2"]].apply(
+            lambda x: " / ".join(x), axis=1
+        )
+
+        # Setting this new column as the index
+        au_corr_df = au_corr_df.set_index("Variable Pair")
+
+        # Dropping the original Variable 1 and Variable 2 columns
+        au_corr_df = au_corr_df.drop(["Variable 1", "Variable 2"], axis=1)
+
+        # Transpose the dataframe for better visualization, if necessary
+        # au_corr_df = au_corr_df.T
+
+        # Set the size of the plot
+        if min_corr_magnitude >= 0.95:
+            plt.figure(figsize=(18, 12))
+        else:
+            plt.figure(figsize=(36, 24))
+
+        # Plot the heatmap
+        ax = sns.heatmap(
+            au_corr_df,
+            annot=False,  # Annotate the cells with correlation values
+            cmap="coolwarm",  # Color map to use for the heatmap
+            vmin=-1,  # Setting the scale minimum to -1
+            vmax=1,  # Setting the scale maximum to 1
+            square=True,  # Ensuring each cell is square-shaped
+            linewidths=0.5,
+        )  # Setting the width of the lines that will divide each cell
+
+        # Adjust the plot
+        plt.xticks(
+            rotation=45, ha="right", fontsize=10
+        )  # Rotate the x-axis labels for better readability
+        plt.yticks(
+            rotation=0, fontsize=10
+        )  # Ensure the y-axis labels are horizontal for readability
+        plt.tight_layout()  # Adjust the layout to make sure there's no overlap
+
+        # Show the plot
+        plt.show()
 
     def plot_correlation_heatmap(
         self,
         analysis_type=None,
+        ignore_features=False,
         dims=None,
         suite_names=None,
         method="pearson",
@@ -742,6 +840,7 @@ class FeaturesDashboard:
 
         correlation_matrix = self.get_correlation_matrix(
             analysis_type,
+            ignore_features,
             dims,
             suite_names,
             method,
@@ -1335,12 +1434,13 @@ class FeaturesDashboard:
 
     def plot_tSNE(
         self,
-        class_column="Suite",
+        analysis_type=None,
         features=None,
         suite_names=None,
         dims=None,
         colormap="Set1",
     ):
+
         df_filtered = self.custom_drop_na(
             self.filter_df_by_suite_and_dim(
                 self.ignore_specified_features(self.features_df),
@@ -1348,6 +1448,11 @@ class FeaturesDashboard:
                 dims=dims,
             )
         )
+
+        if analysis_type:
+            df_filtered = self.get_features_for_analysis_type(
+                df_filtered, analysis_type=analysis_type
+            )
 
         if features:
             # Append "_mean" to each feature if it's not already there and ensure the feature exists in the DataFrame

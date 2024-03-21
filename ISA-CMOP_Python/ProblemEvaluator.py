@@ -199,7 +199,11 @@ class ProblemEvaluator:
             }
 
             if self.check_if_aerofoil():
-                self.num_processes_parallel_seed = 64  # max cores
+                if "4" in self.instance_name:
+                    # XA4 runs too slow.
+                    self.num_processes_parallel_seed = 32
+                else:
+                    self.num_processes_parallel_seed = 64  # max cores
             else:
                 # TODO: experiment with optimal value for ModAct
                 self.num_processes_parallel_seed = 24  # max cores
