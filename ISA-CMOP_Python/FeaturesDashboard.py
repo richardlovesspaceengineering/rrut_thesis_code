@@ -320,8 +320,8 @@ class FeaturesDashboard:
     def replace_outliers_with_nan(self):
         """
         Replaces values in the numerical columns of df grouped by the "Suite" column with np.nan
-        if they are more than 4 orders of magnitude greater than the average order of magnitude of the
-        rest of the points in the grouped column, and logs the column name, Suite, Name value, and the outlier value.
+        if their orders of magnitude are outside the 1.75 * IQR range of the orders of magnitude
+        of the rest of the points in the grouped column, and logs the column name, Suite, Name value, and the outlier value.
         """
         df = self.get_landscape_features_df(give_sd=False)
         outlier_log = []  # Initialize a list to store the log information
@@ -333,27 +333,31 @@ class FeaturesDashboard:
                 if column.endswith("_std"):  # Skip columns ending with "_std"
                     continue
 
-                # Calculate the average order of magnitude for the column, excluding zero to avoid log(0)
+                # Calculate the orders of magnitude for the column, excluding zero to avoid log(0)
                 valid_values = group_df[group_df[column] != 0][column].abs()
                 if not valid_values.empty:
-                    avg_order_magnitude = np.log10(valid_values).mean()
+                    orders_of_magnitude = np.log10(valid_values)
 
-                    if avg_order_magnitude < 0:
+                    if orders_of_magnitude.max() < 2:
                         continue
 
-                    # Define the bounds based on the average order of magnitude
-                    upper_bound = 10 ** (
-                        avg_order_magnitude + 2
-                    )  # Adjusted to 4 orders of magnitude
+                    # Calculate IQR for the orders of magnitude
+                    Q1, Q3 = np.percentile(orders_of_magnitude, [25, 75])
+                    IQR = Q3 - Q1
+
+                    # Define the bounds based on the IQR
+                    upper_bound = Q3 + 3 * IQR
 
                     # Iterate over each row in the group to check for outliers and log necessary information
                     for index, row in group_df.iterrows():
                         value = row[column]
-                        if (value != 0) and (abs(value) > upper_bound):
-                            # Log the column name, the Suite value, the value in the "Name" column, and the outlier value
-                            outlier_log.append((column, suite, row["Name"], value))
-                            # Replace the outlier with np.nan in the original dataframe
-                            df.at[index, column] = np.nan
+                        if value != 0:
+                            order_of_magnitude = np.log10(abs(value))
+                            if order_of_magnitude > upper_bound:
+                                # Log the column name, the Suite value, the value in the "Name" column, and the outlier value
+                                outlier_log.append((column, suite, row["Name"], value))
+                                # Replace the outlier with np.nan in the original dataframe
+                                df.at[index, column] = np.nan
 
         # Optionally, print the log information
         for log_entry in outlier_log:
