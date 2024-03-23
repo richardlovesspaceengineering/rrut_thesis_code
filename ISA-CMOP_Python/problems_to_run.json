@@ -18,7 +18,8 @@
   },
   "eval": {
     "XA2_d15": "false",
-    "XA4_d10": "true",
+    "XA4_d10": "false",
+    "XA7_d10": "true",
     "RWMOP1": "false",
     "RWMOP2": "false",
     "RWMOP3": "false",

@@ -13,6 +13,7 @@ from sklearn.preprocessing import MinMaxScaler
 from matplotlib.colors import LinearSegmentedColormap
 from sklearn.manifold import TSNE
 from scipy.stats import zscore
+import simpsom as sps
 
 
 def remove_sd_cols(df, suffix="_std"):
@@ -90,6 +91,12 @@ class FeaturesDashboard:
                 "CTSEI4",
             ],
         }
+
+        self.analytical_problems = [
+            f
+            for f in self.suites_problems_dict.keys()
+            if f not in ["MODAct", "RWMOP", "XA"]
+        ]
 
         # Process the results_dict to populate features_path_list
         missing_folders = []
@@ -712,7 +719,8 @@ class FeaturesDashboard:
     def get_top_correlation_pairs(
         self,
         min_corr_magnitude,
-        ignore_features=False,
+        filtered_err_pct=None,
+        ignore_features=True,
         analysis_type=None,
         dims=None,
         suite_names=None,
@@ -768,18 +776,41 @@ class FeaturesDashboard:
                 axis=1,
             )
 
+        # We only want to consider correlations that are consistent across the suites.
+        if filtered_err_pct:
+            # Define a filter function for rows
+            def filter_row(row):
+                overall_corr = row["Overall"]
+                # Compare suite-specific correlation with overall correlation
+                return all(
+                    abs(overall_corr - row[suite]) / abs(overall_corr) * 100
+                    <= filtered_err_pct
+                    for suite in suite_names
+                )
+
+            # Apply the filter function to each row
+            au_corr_df = au_corr_df[au_corr_df.apply(filter_row, axis=1)]
+
         return au_corr_df
 
-    def plot_top_correlation_heatmap(self, min_corr_magnitude):
+    def plot_top_correlation_heatmap(
+        self, min_corr_magnitude, show_only_where_suites=False, filtered_err_pct=None
+    ):
         """
         Plots a heatmap where rows are Variable 1/Variable 2 pairs and columns are 'Overall' and each suite.
 
         :param au_corr_df: A pandas DataFrame containing the correlation data,
                         with Variable 1, Variable 2, Overall Correlation, and Suite Correlations.
         """
-        au_corr_df = self.get_top_correlation_pairs(
-            min_corr_magnitude=min_corr_magnitude, ignore_features=True
-        )
+
+        if not show_only_where_suites:
+            au_corr_df = self.get_top_correlation_pairs(
+                min_corr_magnitude=min_corr_magnitude,
+                ignore_features=True,
+                filtered_err_pct=filtered_err_pct,
+            )
+        else:
+            au_corr_df = self.get_filtered_correlation_pairs
 
         # Creating a new column that combines Variable 1 and Variable 2 for labeling purposes
         au_corr_df["Variable Pair"] = au_corr_df[["Variable 1", "Variable 2"]].apply(
@@ -796,7 +827,9 @@ class FeaturesDashboard:
         # au_corr_df = au_corr_df.T
 
         # Set the size of the plot
-        if min_corr_magnitude >= 0.95:
+        if filtered_err_pct:
+            plt.figure(figsize=(8, 6))
+        elif min_corr_magnitude >= 0.95:
             plt.figure(figsize=(18, 12))
         else:
             plt.figure(figsize=(36, 24))
@@ -824,10 +857,30 @@ class FeaturesDashboard:
         # Show the plot
         plt.show()
 
+    def count_feature_occurrences_in_top_corr(self, au_corr_df):
+        """
+        Count how many times each feature name appears in the 'Variable 1' and 'Variable 2' columns
+        and return a dictionary with feature names as keys and counts as values.
+
+        :param au_corr_df: A pandas DataFrame containing the correlation data,
+                        with 'Variable 1' and 'Variable 2' columns.
+        :return: A dictionary with feature names as keys and their counts as values.
+        """
+        # Combine counts from 'Variable 1' and 'Variable 2'
+        var1_counts = au_corr_df["Variable 1"].value_counts()
+        var2_counts = au_corr_df["Variable 2"].value_counts()
+
+        # Combine the counts from both columns
+        combined_counts = (
+            var1_counts.add(var2_counts, fill_value=0).astype(int).to_dict()
+        )
+
+        return combined_counts
+
     def plot_correlation_heatmap(
         self,
         analysis_type=None,
-        ignore_features=False,
+        ignore_features=True,
         dims=None,
         suite_names=None,
         method="pearson",
@@ -1330,10 +1383,7 @@ class FeaturesDashboard:
 
         # Plotting the total contributions
         total_contributions.plot(kind="bar", figsize=(10, 6))
-        plt.axhline(
-            y=expected_contribution,
-            color="r",
-        )
+        plt.axhline(y=expected_contribution, color="r", linestyle="--")
         plt.title(
             f"Total Contribution to the First {n_components} Principal Components"
         )
@@ -1386,6 +1436,7 @@ class FeaturesDashboard:
     def plot_parallel_coordinates(
         self,
         class_column="Suite",
+        separate_rw_analytical=False,
         features=None,
         suite_names=None,
         dims=None,
@@ -1406,66 +1457,55 @@ class FeaturesDashboard:
         )
 
         if features:
-            # Append "_mean" to each feature if it's not already there and ensure the feature exists in the DataFrame
             cols = [
                 f"{f}_mean" if f"{f}_mean" in df_filtered.columns else f
                 for f in features
             ]
         else:
-            # If no features specified, use all numeric columns
             cols = df_filtered.select_dtypes(include=[np.number]).columns.tolist()
 
-        # Ensure "D" and "Suite" are included for plotting but not normalized
         cols = list(set(cols + [class_column]))
         features_to_normalize = [col for col in cols if col not in ["D", "Suite"]]
 
-        # Normalize the features
         scaler = MinMaxScaler()
         df_filtered[features_to_normalize] = scaler.fit_transform(
             df_filtered[features_to_normalize]
         )
 
-        # Create a subset DataFrame with the selected features and class_column
+        # Label suites as "Analytical" if they are in self.analytical_problems
+        if separate_rw_analytical:
+            df_filtered["Suite"] = df_filtered["Suite"].apply(
+                lambda suite: (
+                    "Analytical" if suite in self.analytical_problems else suite
+                )
+            )
+
         data_to_plot = df_filtered[cols]
 
-        # Check if the class_column exists
         if class_column not in data_to_plot.columns:
             raise ValueError(
                 f"The specified class_column '{class_column}' does not exist in the DataFrame."
             )
 
-        # Generate the parallel coordinates plot
         plt.figure(figsize=(12, 9))
-        parallel_coordinates(data_to_plot, class_column, colormap=colormap, alpha=0.5)
+        parallel_coordinates(data_to_plot, class_column, colormap=colormap, alpha=0.8)
         plt.title("Parallel Coordinates Plot")
         plt.xlabel("Features")
         plt.ylabel("Values")
-        plt.xticks(rotation=90)  # Rotate x-axis labels for better readability
+        plt.xticks(rotation=90)
         plt.grid(True)
         plt.show()
 
-    def plot_coverage_heatmap(
-        self,
-        target_suite,
-        analysis_type,
-        features=None,
-        features_to_ignore=None,
+    def get_feature_coverage(
+        self, target_suite, analysis_type, features=None, ignore_features=True
     ):
-        """
-        Calculate and plot the coverage heatmap.
-
-        :param target_suite: The suite to compare all other suites against. If None, compare against the entire dataset.
-        :param analysis_type: The type of analysis to filter features.
-        :param features: The features to include in the coverage calculation.
-        """
-
         df = FeaturesDashboard.get_features_for_analysis_type(
             self.features_df, analysis_type
         )
 
         # Remove the columns to ignore right at the beginning
-        if features_to_ignore:
-            df = df[[col for col in df.columns if col not in features_to_ignore]]
+        if ignore_features:
+            df = self.ignore_specified_features(df)
 
         if features:
             features = [
@@ -1507,6 +1547,53 @@ class FeaturesDashboard:
         # Remove the mean from names.
         coverage_values.index = coverage_values.index.str.replace("_mean", "")
 
+        return coverage_values
+
+    def get_poor_coverage_features(self, coverage_values, top_features=None):
+        """
+        Identify the top features with poor coverage and generate a parallel coordinates plot for them.
+
+        :param coverage_values: The DataFrame containing coverage values.
+        :param top_features: The number of features to consider with the lowest coverage. If None, all features are considered.
+        """
+        # Find the mean coverage across all suites for each feature
+        coverage_values["mean_coverage"] = coverage_values.mean(axis=1)
+
+        # Sort the features by their mean coverage
+        sorted_features = coverage_values.sort_values(
+            by="mean_coverage", ascending=True
+        )
+
+        # If top_features is specified, select the top N features with the lowest coverage
+        if top_features is not None:
+            sorted_features = sorted_features.head(top_features)
+
+        # Extract the feature names
+        features_to_plot = sorted_features.index.tolist()
+
+        return features_to_plot
+
+    def plot_coverage_heatmap(
+        self, target_suite, analysis_type, features=None, ignore_features=True
+    ):
+        """
+        Calculate and plot the coverage heatmap.
+
+        :param target_suite: The suite to compare all other suites against. If None, compare against the entire dataset.
+        :param analysis_type: The type of analysis to filter features.
+        :param features: The features to include in the coverage calculation.
+        """
+
+        coverage_values = self.get_feature_coverage(
+            target_suite=target_suite,
+            analysis_type=analysis_type,
+            features=features,
+            ignore_features=ignore_features,
+        )
+
+        suites = coverage_values.columns
+        features = coverage_values.index
+
         # Determine optimal figure size based on the number of features and suites
         fig_width = max(12, len(suites) * 1.2)
         fig_height = max(8, len(features) * 0.4)
@@ -1542,6 +1629,7 @@ class FeaturesDashboard:
         suite_names=None,
         dims=None,
         colormap="Set1",
+        use_analytical_problems=False,
     ):
         """
         Generate a RadViz plot.
@@ -1581,6 +1669,11 @@ class FeaturesDashboard:
         #     df_filtered[features_to_normalize]
         # )
 
+        if use_analytical_problems:
+            df_filtered["Suite"] = df_filtered["Suite"].apply(
+                lambda x: "Analytical" if x in self.analytical_problems else x
+            )
+
         # Create a subset DataFrame with the selected features and class_column
         data_to_plot = df_filtered[cols]
 
@@ -1604,8 +1697,8 @@ class FeaturesDashboard:
         suite_names=None,
         dims=None,
         colormap="Set1",
+        use_analytical_problems=False,
     ):
-
         df_filtered = self.custom_drop_na(
             self.filter_df_by_suite_and_dim(
                 self.ignore_specified_features(self.features_df),
@@ -1616,34 +1709,97 @@ class FeaturesDashboard:
 
         if analysis_type:
             df_filtered = self.get_features_for_analysis_type(
-                df_filtered, analysis_type=analysis_type
+                df_filtered, analysis_type
             )
 
         if features:
-            # Append "_mean" to each feature if it's not already there and ensure the feature exists in the DataFrame
             cols = [f if f in df_filtered.columns else f for f in features]
         else:
-            # If no features specified, use all numeric columns
             cols = df_filtered.select_dtypes(include=[np.number]).columns.tolist()
 
-        # Further filtering.
         cols = [c for c in cols if not df_filtered[c].nunique() == 1]
-        # cols.remove("D")
 
-        # Using the same data as before
+        if use_analytical_problems:
+            df_filtered["Suite"] = df_filtered["Suite"].apply(
+                lambda x: "Analytical" if x in self.analytical_problems else x
+            )
+
         tsne = TSNE(n_components=2, random_state=0, perplexity=30)
         tsne_results = tsne.fit_transform(df_filtered[cols])
 
-        # Plotting the t-SNE results
         plt.figure(figsize=(8, 6))
-        for suite in df_filtered["Suite"].unique():
+        unique_suites = df_filtered["Suite"].unique()
+        for suite in unique_suites:
             indices = df_filtered["Suite"] == suite
             plt.scatter(
                 tsne_results[indices, 0], tsne_results[indices, 1], s=6, label=suite
             )
+
         plt.title("$t$-SNE")
         plt.xlabel("Component 1")
         plt.ylabel("Component 2")
         plt.grid()
         plt.legend()
+        plt.show()
+
+    def plot_som(
+        self,
+        analysis_type=None,
+        features=None,
+        suite_names=None,
+        dims=None,
+        colormap="Set1",
+        use_analytical_problems=False,
+        net_size=10,  # Network size for SimpSOM
+    ):
+        df_filtered = self.custom_drop_na(
+            self.filter_df_by_suite_and_dim(
+                self.ignore_specified_features(self.features_df),
+                suite_names=suite_names,
+                dims=dims,
+            )
+        )
+
+        if analysis_type:
+            df_filtered = self.get_features_for_analysis_type(
+                df_filtered, analysis_type
+            )
+
+        if features:
+            cols = [f if f in df_filtered.columns else f for f in features]
+        else:
+            cols = df_filtered.select_dtypes(include=[np.number]).columns.tolist()
+
+        cols = [c for c in cols if not df_filtered[c].nunique() == 1]
+
+        if use_analytical_problems:
+            df_filtered["Suite"] = df_filtered["Suite"].apply(
+                lambda x: "Analytical" if x in self.analytical_problems else x
+            )
+
+        # Normalize the features
+        data = df_filtered[cols].values
+        data = (data - np.mean(data, axis=0)) / np.std(data, axis=0)
+
+        # Initialize and train the SOM
+        net = sps.SOMNet(net_size, net_size, data, PBC=True)
+        net.train(train_algo="batch", start_learning_rate=0.01)
+
+        # Project the data onto the SOM
+        proj = net.project(data)
+
+        _ = net.plot_map_by_feature(feature=100, show=True, print_out=True)
+
+        # Plotting
+        plt.figure(figsize=(8, 8))
+        # for i, (x, y) in enumerate(proj):
+        #     plt.text(
+        #         x,
+        #         y,
+        #         df_filtered["Suite"].iloc[i],
+        #         color=plt.cm.get_cmap(colormap)(i / len(df_filtered)),
+        #         fontdict={"weight": "bold", "size": 9},
+        #     )
+
+        plt.title("SOM Projection")
         plt.show()
