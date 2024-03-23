@@ -320,7 +320,7 @@ class FeaturesDashboard:
     def replace_outliers_with_nan(self):
         """
         Replaces values in the numerical columns of df grouped by the "Suite" column with np.nan
-        if they are more than 4 orders of magnitude from the average order of magnitude of the
+        if they are more than 4 orders of magnitude greater than the average order of magnitude of the
         rest of the points in the grouped column, and logs the column name, Suite, Name value, and the outlier value.
         """
         df = self.get_landscape_features_df(give_sd=False)
@@ -338,8 +338,13 @@ class FeaturesDashboard:
                 if not valid_values.empty:
                     avg_order_magnitude = np.log10(valid_values).mean()
 
+                    if avg_order_magnitude < 0:
+                        continue
+
                     # Define the bounds based on the average order of magnitude
-                    upper_bound = 10 ** (avg_order_magnitude + 4)
+                    upper_bound = 10 ** (
+                        avg_order_magnitude + 2
+                    )  # Adjusted to 4 orders of magnitude
 
                     # Iterate over each row in the group to check for outliers and log necessary information
                     for index, row in group_df.iterrows():
