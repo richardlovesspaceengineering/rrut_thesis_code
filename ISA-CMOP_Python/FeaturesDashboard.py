@@ -14,6 +14,7 @@ from matplotlib.colors import LinearSegmentedColormap
 from sklearn.manifold import TSNE
 from scipy.stats import zscore
 import simpsom as sps
+import umap
 
 
 def remove_sd_cols(df, suffix="_std"):
@@ -1193,11 +1194,15 @@ class FeaturesDashboard:
         )  # Adjust layout to make room for the main title
         plt.show()
 
-    def run_pca(self):
+    def run_pca(self, scaler_type="StandardScaler"):
 
         df = self.custom_drop_na(self.ignore_specified_features(self.features_df))
 
-        scaler = StandardScaler()
+        # Scale the features based on the specified scaler_type
+        if scaler_type == "MinMaxScaler":
+            scaler = MinMaxScaler()
+        elif scaler_type == "StandardScaler":
+            scaler = StandardScaler()
         self.features_scaled = scaler.fit_transform(
             FeaturesDashboard.get_numerical_data_from_df(df)
         )
@@ -1745,6 +1750,7 @@ class FeaturesDashboard:
         features=None,
         suite_names=None,
         dims=None,
+        scaler_type="MinMaxScaler",
         colormap="Set1",
         use_analytical_problems=False,
     ):
@@ -1773,6 +1779,14 @@ class FeaturesDashboard:
                 lambda x: "Analytical" if x in self.analytical_problems else x
             )
 
+        # Scale the features based on the specified scaler_type
+        if scaler_type == "MinMaxScaler":
+            scaler = MinMaxScaler()
+            df_filtered[cols] = scaler.fit_transform(df_filtered[cols])
+        elif scaler_type == "StandardScaler":
+            scaler = StandardScaler()
+            df_filtered[cols] = scaler.fit_transform(df_filtered[cols])
+
         print(f"This t-SNE plot has considered {len(cols)} features.")
 
         tsne = TSNE(n_components=2, random_state=0, perplexity=30)
@@ -1787,6 +1801,81 @@ class FeaturesDashboard:
             )
 
         plt.title("$t$-SNE")
+        plt.xlabel("Component 1")
+        plt.ylabel("Component 2")
+        plt.grid()
+        plt.legend()
+        plt.show()
+
+    def plot_UMAP(
+        self,
+        analysis_type=None,
+        features=None,
+        suite_names=None,
+        dims=None,
+        scaler_type="MinMaxScaler",
+        colormap="Set1",
+        use_analytical_problems=False,
+        n_neighbors=15,
+        min_dist=0.1,
+        random_state=42,
+    ):
+        df_filtered = self.custom_drop_na(
+            self.filter_df_by_suite_and_dim(
+                self.ignore_specified_features(self.features_df),
+                suite_names=suite_names,
+                dims=dims,
+            )
+        )
+
+        if analysis_type:
+            df_filtered = self.get_features_for_analysis_type(
+                df_filtered, analysis_type
+            )
+
+        if features:
+            cols = [f if f in df_filtered.columns else f for f in features]
+        else:
+            cols = df_filtered.select_dtypes(include=[np.number]).columns.tolist()
+
+        cols = [c for c in cols if not df_filtered[c].nunique() == 1]
+
+        if use_analytical_problems:
+            df_filtered["Suite"] = df_filtered["Suite"].apply(
+                lambda x: "Analytical" if x in self.analytical_problems else x
+            )
+
+        print(f"This UMAP plot has considered {len(cols)} features.")
+
+        # Scale the features based on the specified scaler_type
+        if scaler_type == "MinMaxScaler":
+            scaler = MinMaxScaler()
+            df_filtered[cols] = scaler.fit_transform(df_filtered[cols])
+        elif scaler_type == "StandardScaler":
+            scaler = StandardScaler()
+            df_filtered[cols] = scaler.fit_transform(df_filtered[cols])
+
+        umap_model = umap.UMAP(
+            n_neighbors=n_neighbors,
+            min_dist=min_dist,
+            n_components=2,
+            random_state=random_state,
+        )
+        umap_results = umap_model.fit_transform(df_filtered[cols])
+
+        plt.figure(figsize=(8, 6))
+        unique_suites = df_filtered["Suite"].unique()
+        for suite in unique_suites:
+            indices = df_filtered["Suite"] == suite
+            plt.scatter(
+                umap_results[indices, 0],
+                umap_results[indices, 1],
+                s=6,
+                label=suite,
+                alpha=0.5,
+            )
+
+        plt.title("UMAP")
         plt.xlabel("Component 1")
         plt.ylabel("Component 2")
         plt.grid()
