@@ -239,9 +239,12 @@ class FeaturesDashboard:
         plt.ylabel("Observations")
         plt.show()
 
-    def get_feature_names(self, shortened=True):
+    def get_feature_names(self, shortened=True, ignore_features=False):
 
         df = FeaturesDashboard.get_numerical_data_from_df(self.features_df)
+
+        if ignore_features:
+            df = self.ignore_specified_features(df=df)
 
         # Remove "_mean" from the remaining column names
         if shortened:
@@ -524,7 +527,9 @@ class FeaturesDashboard:
             # Append each feature only if it's not already in the list
             for feature in features_to_ignore:
                 if feature not in self.features_to_ignore:
-                    self.features_to_ignore.append(feature)
+                    self.features_to_ignore.append(
+                        feature + "_mean" if "_mean" not in feature else feature
+                    )
 
     def ignore_specified_features(self, df):
         if self.features_to_ignore:
@@ -1351,8 +1356,8 @@ class FeaturesDashboard:
         plt.tight_layout()
         plt.show()
 
-    def plot_total_contribution(
-        self, n_components, top_features=None, analysis_type=None
+    def get_total_pca_contribution(
+        self, n_components, top_features=None, analysis_type=None, worst=False
     ):
         if self.pca is None:
             print("Please run PCA first using the run_pca method.")
@@ -1375,6 +1380,37 @@ class FeaturesDashboard:
             lambda x: (x * eigenvalues).sum() / eigenvalues.sum(), axis=1
         )
 
+        # Sort the contributions in descending order
+        total_contributions = total_contributions.sort_values(ascending=False)
+
+        # If top_features is specified, only show the top N features
+        if top_features is not None:
+
+            if worst:
+                total_contributions = total_contributions.tail(top_features)
+            else:
+                total_contributions = total_contributions.head(top_features)
+
+        return total_contributions
+
+    def plot_total_contribution(
+        self, n_components, top_features=None, analysis_type=None
+    ):
+
+        eigenvalues = self.pca.explained_variance_[:n_components]
+
+        total_contributions = self.get_total_pca_contribution(
+            n_components=n_components,
+            top_features=top_features,
+            analysis_type=analysis_type,
+        )
+
+        loadings = self.get_pca_loadings(
+            n_components=n_components, analysis_type=analysis_type
+        ).apply(
+            lambda x: x.abs()
+        )  # Take the absolute value
+
         # Calculate the expected average contribution (uniform distribution)
         num_variables = len(loadings.index)
         expected_contribution = (
@@ -1382,13 +1418,6 @@ class FeaturesDashboard:
             / sum(eigenvalues)
             * 100
         )
-
-        # Sort the contributions in descending order
-        total_contributions = total_contributions.sort_values(ascending=False)
-
-        # If top_features is specified, only show the top N features
-        if top_features is not None:
-            total_contributions = total_contributions.head(top_features)
 
         # Plotting the total contributions
         total_contributions.plot(kind="bar", figsize=(10, 6))
@@ -1506,11 +1535,13 @@ class FeaturesDashboard:
         plt.show()
 
     def get_feature_coverage(
-        self, target_suite, analysis_type, features=None, ignore_features=True
+        self, target_suite=None, analysis_type=None, features=None, ignore_features=True
     ):
-        df = FeaturesDashboard.get_features_for_analysis_type(
-            self.features_df, analysis_type
-        )
+
+        df = self.features_df
+
+        if analysis_type:
+            df = FeaturesDashboard.get_features_for_analysis_type(df, analysis_type)
 
         # Remove the columns to ignore right at the beginning
         if ignore_features:
@@ -1558,7 +1589,9 @@ class FeaturesDashboard:
 
         return coverage_values
 
-    def get_poor_coverage_features(self, coverage_values, top_features=None):
+    def get_top_coverage_features(
+        self, coverage_values, worst=True, top_features=None, aslist=True
+    ):
         """
         Identify the top features with poor coverage and generate a parallel coordinates plot for them.
 
@@ -1575,15 +1608,22 @@ class FeaturesDashboard:
 
         # If top_features is specified, select the top N features with the lowest coverage
         if top_features is not None:
-            sorted_features = sorted_features.head(top_features)
 
-        # Extract the feature names
-        features_to_plot = sorted_features.index.tolist()
+            if worst:
+                sorted_features = sorted_features.head(top_features)
+            else:
+                sorted_features = sorted_features.tail(top_features)
 
-        return features_to_plot
+        if not aslist:
+            return sorted_features
+        else:
+            # Extract the feature names
+            features_to_plot = sorted_features.index.tolist()
+
+            return features_to_plot
 
     def plot_coverage_heatmap(
-        self, target_suite, analysis_type, features=None, ignore_features=True
+        self, target_suite=None, analysis_type=None, features=None, ignore_features=True
     ):
         """
         Calculate and plot the coverage heatmap.
@@ -1732,6 +1772,8 @@ class FeaturesDashboard:
             df_filtered["Suite"] = df_filtered["Suite"].apply(
                 lambda x: "Analytical" if x in self.analytical_problems else x
             )
+
+        print(f"This t-SNE plot has considered {len(cols)} features.")
 
         tsne = TSNE(n_components=2, random_state=0, perplexity=30)
         tsne_results = tsne.fit_transform(df_filtered[cols])
