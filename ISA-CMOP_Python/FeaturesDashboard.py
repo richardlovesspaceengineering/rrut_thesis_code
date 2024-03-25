@@ -1999,7 +1999,7 @@ class FeaturesDashboard:
         print(classification_report(y_test, y_pred))
         print("Accuracy Score:", accuracy_score(y_test, y_pred))
 
-    def get_feature_importances(self, top_features=None):
+    def get_feature_importances(self, top_features=None, worst=False):
         """
         Get a DataFrame of feature importances from the trained Random Forest model.
 
@@ -2018,7 +2018,11 @@ class FeaturesDashboard:
         ).sort_values(by="Importance", ascending=False)
 
         if top_features is not None:
-            return feature_importances.head(top_features)
+            
+            if worst:
+                return feature_importances.tail(top_features)
+            else:
+                return feature_importances.head(top_features)
 
         return feature_importances
 
