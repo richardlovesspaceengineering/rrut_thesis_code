@@ -15,6 +15,9 @@ from sklearn.manifold import TSNE
 from scipy.stats import zscore
 import simpsom as sps
 import umap
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report, accuracy_score
 
 
 def remove_sd_cols(df, suffix="_std"):
@@ -1682,6 +1685,7 @@ class FeaturesDashboard:
         features=None,
         suite_names=None,
         dims=None,
+        scaler_type="MinMaxScaler",
         colormap="Set1",
         use_analytical_problems=False,
     ):
@@ -1695,10 +1699,12 @@ class FeaturesDashboard:
         :param colormap: The colormap to use for different classes.
         """
 
-        df_filtered = self.filter_df_by_suite_and_dim(
-            self.ignore_specified_features(self.features_df),
-            suite_names=suite_names,
-            dims=dims,
+        df_filtered = self.custom_drop_na(
+            self.filter_df_by_suite_and_dim(
+                self.ignore_specified_features(self.features_df),
+                suite_names=suite_names,
+                dims=dims,
+            )
         )
 
         if features:
@@ -1713,15 +1719,12 @@ class FeaturesDashboard:
 
         cols.append("Suite")
 
-        # Ensure "D" and "Suite" are included for plotting but not normalized
-        # cols = list(set(cols + [class_column]))
-        # features_to_normalize = [col for col in cols if col not in ["D", "Suite"]]
-
-        # # Normalize the features
-        # scaler = StandardScaler()
-        # df_filtered[features_to_normalize] = scaler.fit_transform(
-        #     df_filtered[features_to_normalize]
-        # )
+        # if scaler_type == "MinMaxScaler":
+        #     scaler = MinMaxScaler()
+        #     df_filtered[cols] = scaler.fit_transform(df_filtered[cols])
+        # elif scaler_type == "StandardScaler":
+        #     scaler = StandardScaler()
+        #     df_filtered[cols] = scaler.fit_transform(df_filtered[cols])
 
         if use_analytical_problems:
             df_filtered["Suite"] = df_filtered["Suite"].apply(
@@ -1741,7 +1744,6 @@ class FeaturesDashboard:
         plt.figure(figsize=(12, 9))
         pd.plotting.radviz(data_to_plot, "Suite", colormap=colormap, s=2)
         plt.title("RadViz Plot")
-        # plt.grid(True)
         plt.show()
 
     def plot_tSNE(
@@ -1942,4 +1944,101 @@ class FeaturesDashboard:
         #     )
 
         plt.title("SOM Projection")
+        plt.show()
+
+    def train_random_forest(self, test_size=0.3, random_state=42):
+        """
+        Train a Random Forest classifier to predict 'Suite' from the features.
+
+        :param test_size: Fraction of the dataset to be used as test data.
+        :param random_state: Seed used by the random number generator.
+        """
+
+        # Ensure that 'Suite' is one of the columns in the dataframe
+        if "Suite" not in self.features_df.columns:
+            raise ValueError("DataFrame must contain 'Suite' column")
+
+        # Splitting the data into features and target variable
+        df_filtered = self.custom_drop_na(
+            self.filter_df_by_suite_and_dim(
+                self.ignore_specified_features(self.features_df),
+                suite_names=None,
+                dims=None,
+            )
+        )
+
+        X = self.get_numerical_data_from_df(df_filtered)
+        y = df_filtered["Suite"]
+
+        print(f"This RF model training has considered {len(X.columns)} features.")
+
+        # Splitting the dataset into training and testing sets
+
+        if test_size == 0:
+            X_train = X
+            X_test = X
+            y_train = y
+            y_test = y
+            print("CAREFUL: all metrics are given on the full training set!")
+        else:
+            X_train, X_test, y_train, y_test = train_test_split(
+                X, y, test_size=test_size, random_state=random_state
+            )
+
+        # Initializing the Random Forest classifier
+        self.classifier = RandomForestClassifier(random_state=random_state)
+
+        # Training the classifier
+        self.classifier.fit(X_train, y_train)
+
+        # Making predictions on the test set
+        y_pred = self.classifier.predict(X_test)
+
+        # Evaluating the classifier
+        print("Classification Report:")
+        print(classification_report(y_test, y_pred))
+        print("Accuracy Score:", accuracy_score(y_test, y_pred))
+
+    def get_feature_importances(self, top_features=None):
+        """
+        Get a DataFrame of feature importances from the trained Random Forest model.
+
+        :param n: Number of top features to return. If None, returns all features.
+        :return: A DataFrame with feature importances.
+        """
+        if self.classifier is None:
+            raise ValueError(
+                "The classifier has not been trained yet. Call train_random_forest first."
+            )
+
+        importances = self.classifier.feature_importances_
+        feature_names = self.get_feature_names(ignore_features=True)
+        feature_importances = pd.DataFrame(
+            importances, index=feature_names, columns=["Importance"]
+        ).sort_values(by="Importance", ascending=False)
+
+        if top_features is not None:
+            return feature_importances.head(top_features)
+
+        return feature_importances
+
+    def plot_feature_importances(self, feature_importances_df):
+        """
+        Plot the feature importances in descending order.
+
+        :param feature_importances_df: A DataFrame containing the feature importances.
+        """
+        # Sort the DataFrame if it's not sorted already
+        feature_importances_df = feature_importances_df.sort_values(
+            by="Importance", ascending=False
+        )
+
+        # Plotting
+        plt.figure(figsize=(10, 6))
+        sns.barplot(
+            x="Importance", y=feature_importances_df.index, data=feature_importances_df
+        )
+        plt.title("Feature Importances")
+        plt.xlabel("Importance")
+        plt.ylabel("Features")
         plt.show()
