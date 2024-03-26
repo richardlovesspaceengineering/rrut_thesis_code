@@ -1252,64 +1252,93 @@ class ProblemEvaluator:
             )
 
             if self.check_if_aerofoil():
+                running_rw = False
+                running_aw = False
+            else:
+                running_rw = True
+                running_aw = True
+
+            running_glob = True
+
+            if self.check_if_aerofoil():
                 num_processes = self.num_processes_parallel_seed
             else:
                 num_processes = 1
 
             # RWs
-            for i in range(self.num_samples):
-                self.evaluate_and_save_all_walks_in_sample(
-                    i + 1,
+            if running_rw:
+                for i in range(self.num_samples):
+                    self.evaluate_and_save_all_walks_in_sample(
+                        i + 1,
+                        self.instance,
+                        eval_fronts=False,
+                        num_processes=num_processes,
+                        pre_sampler=pre_sampler,
+                    )
+
+            if running_glob:
+                # Global samples
+                self.evaluate_and_save_all_global_samples(
                     self.instance,
                     eval_fronts=False,
                     num_processes=num_processes,
                     pre_sampler=pre_sampler,
                 )
 
-            # Global samples
-            self.evaluate_and_save_all_global_samples(
-                self.instance,
-                eval_fronts=False,
-                num_processes=num_processes,
-                pre_sampler=pre_sampler,
+        # RW Analysis.
+
+        if running_rw:
+            print(
+                " \n ~~~~~~~~~~~~ RW Analysis for "
+                + self.instance_name
+                + " ~~~~~~~~~~~~ \n"
             )
 
-        # RW Analysis.
-        print(
-            " \n ~~~~~~~~~~~~ RW Analysis for "
-            + self.instance_name
-            + " ~~~~~~~~~~~~ \n"
-        )
-
-        rw_features = self.do_random_walk_analysis(
-            self.instance, pre_sampler, eval_pops_parallel=eval_pops_parallel
-        )
-        rw_features.export_unaggregated_features(self.instance_name, "rw", save_arrays)
+            rw_features = self.do_random_walk_analysis(
+                self.instance, pre_sampler, eval_pops_parallel=eval_pops_parallel
+            )
+            rw_features.export_unaggregated_features(
+                self.instance_name, "rw", save_arrays
+            )
+        else:
+            print("\nRW Analysis has been DEACTIVATED FOR THIS RUN. \n")
+            rw_features = None
 
         # Global Analysis.
-        print(
-            " \n ~~~~~~~~~~~~ Global Analysis for "
-            + self.instance_name
-            + " ~~~~~~~~~~~~ \n"
-        )
 
-        global_features = self.do_global_analysis(
-            self.instance, pre_sampler, eval_pops_parallel=eval_pops_parallel
-        )
-        global_features.export_unaggregated_features(
-            self.instance_name, "glob", save_arrays
-        )
+        if running_glob:
+            print(
+                " \n ~~~~~~~~~~~~ Global Analysis for "
+                + self.instance_name
+                + " ~~~~~~~~~~~~ \n"
+            )
+
+            global_features = self.do_global_analysis(
+                self.instance, pre_sampler, eval_pops_parallel=eval_pops_parallel
+            )
+            global_features.export_unaggregated_features(
+                self.instance_name, "glob", save_arrays
+            )
+        else:
+            print("\nGlobal Analysis has been DEACTIVATED FOR THIS RUN. \n")
+            global_features = None
 
         # Adaptive Walk Analysis. Always do in series since we need evaluations of one point to get to the next.
-        print(
-            " \n ~~~~~~~~~~~~ AW Analysis for "
-            + self.instance_name
-            + " ~~~~~~~~~~~~ \n"
-        )
-        aw_features = self.do_adaptive_walk_analysis(
-            self.instance, pre_sampler, eval_pops_parallel=eval_aw_pops_parallel
-        )
-        aw_features.export_unaggregated_features(self.instance_name, "aw", save_arrays)
+        if running_aw:
+            print(
+                " \n ~~~~~~~~~~~~ AW Analysis for "
+                + self.instance_name
+                + " ~~~~~~~~~~~~ \n"
+            )
+            aw_features = self.do_adaptive_walk_analysis(
+                self.instance, pre_sampler, eval_pops_parallel=eval_aw_pops_parallel
+            )
+            aw_features.export_unaggregated_features(
+                self.instance_name, "aw", save_arrays
+            )
+        else:
+            print("\nAW Analysis has been DEACTIVATED FOR THIS RUN. \n")
+            aw_features = None
 
         # Close MATLAB session.
         if self.check_if_platemo():
