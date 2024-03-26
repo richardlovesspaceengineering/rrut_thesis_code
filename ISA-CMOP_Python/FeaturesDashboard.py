@@ -13,7 +13,6 @@ from sklearn.preprocessing import MinMaxScaler
 from matplotlib.colors import LinearSegmentedColormap
 from sklearn.manifold import TSNE
 from scipy.stats import zscore
-import simpsom as sps
 import umap
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
@@ -243,12 +242,17 @@ class FeaturesDashboard:
         plt.ylabel("Observations")
         plt.show()
 
-    def get_feature_names(self, shortened=True, ignore_features=False):
+    def get_feature_names(
+        self, shortened=True, ignore_features=False, analysis_type=None
+    ):
 
         df = FeaturesDashboard.get_numerical_data_from_df(self.features_df)
 
         if ignore_features:
             df = self.ignore_specified_features(df=df)
+
+        if analysis_type:
+            df = self.get_features_for_analysis_type(df, analysis_type=analysis_type)
 
         # Remove "_mean" from the remaining column names
         if shortened:
@@ -330,7 +334,7 @@ class FeaturesDashboard:
         if their orders of magnitude are outside the 1.75 * IQR range of the orders of magnitude
         of the rest of the points in the grouped column, and logs the column name, Suite, Name value, and the outlier value.
         """
-        df = self.get_landscape_features_df(give_sd=False)
+        df = self.features_df
         outlier_log = []  # Initialize a list to store the log information
 
         # Iterate through each group determined by 'Suite'
@@ -541,6 +545,11 @@ class FeaturesDashboard:
         else:
             print("No features to ignore have been set as attributes of the instance.")
             return df
+
+    def set_dashboard_analysis_type(self, analysis_type):
+        self.features_df = self.get_features_for_analysis_type(
+            self.features_df, analysis_type=analysis_type
+        )
 
     @staticmethod
     def get_features_for_analysis_type(df, analysis_type):
@@ -1755,6 +1764,7 @@ class FeaturesDashboard:
         scaler_type="MinMaxScaler",
         colormap="Set1",
         use_analytical_problems=False,
+        perplexities=[15, 30, 100],  # Add perplexities as an optional argument
     ):
         df_filtered = self.custom_drop_na(
             self.filter_df_by_suite_and_dim(
@@ -1781,7 +1791,7 @@ class FeaturesDashboard:
                 lambda x: "Analytical" if x in self.analytical_problems else x
             )
 
-        # Scale the features based on the specified scaler_type
+        # Scale the features
         if scaler_type == "MinMaxScaler":
             scaler = MinMaxScaler()
             df_filtered[cols] = scaler.fit_transform(df_filtered[cols])
@@ -1791,22 +1801,49 @@ class FeaturesDashboard:
 
         print(f"This t-SNE plot has considered {len(cols)} features.")
 
-        tsne = TSNE(n_components=2, random_state=0, perplexity=30)
-        tsne_results = tsne.fit_transform(df_filtered[cols])
+        # Check if a list of perplexities is provided
+        if perplexities is None:
+            perplexities = [30]  # Use a default value if none provided
 
-        plt.figure(figsize=(8, 6))
-        unique_suites = df_filtered["Suite"].unique()
-        for suite in unique_suites:
-            indices = df_filtered["Suite"] == suite
-            plt.scatter(
-                tsne_results[indices, 0], tsne_results[indices, 1], s=6, label=suite
-            )
+        # Determine the layout of the subplots
+        n_perplexities = len(perplexities)
+        cols_subplots = 3  # You can adjust this based on your preference
+        rows_subplots = np.ceil(n_perplexities / cols_subplots).astype(int)
 
-        plt.title("$t$-SNE")
-        plt.xlabel("Component 1")
-        plt.ylabel("Component 2")
-        plt.grid()
-        plt.legend()
+        fig, axes = plt.subplots(
+            rows_subplots, cols_subplots, figsize=(cols_subplots * 5, rows_subplots * 4)
+        )
+        axes = axes.flatten()
+
+        handles = []  # To store legend handles
+        labels = []  # To store unique labels
+
+        for index, perplexity in enumerate(perplexities):
+            tsne = TSNE(n_components=2, random_state=0, perplexity=perplexity)
+            tsne_results = tsne.fit_transform(df_filtered[cols])
+
+            unique_suites = df_filtered["Suite"].unique()
+            for suite in unique_suites:
+                indices = df_filtered["Suite"] == suite
+                scatter = axes[index].scatter(
+                    tsne_results[indices, 0], tsne_results[indices, 1], s=6, label=suite
+                )
+
+                if suite not in labels:
+                    labels.append(suite)
+                    handles.append(scatter)
+
+            axes[index].set_title(f"$t$-SNE with perplexity = {perplexity}")
+            axes[index].set_xlabel("Component 1")
+            axes[index].set_ylabel("Component 2")
+            axes[index].grid()
+
+        fig.legend(
+            handles, labels, loc="upper center", ncol=3, bbox_to_anchor=(0.5, 1.2)
+        )
+
+        # Adjust layout
+        plt.tight_layout()
         plt.show()
 
     def plot_UMAP(
@@ -1884,67 +1921,67 @@ class FeaturesDashboard:
         plt.legend()
         plt.show()
 
-    def plot_som(
-        self,
-        analysis_type=None,
-        features=None,
-        suite_names=None,
-        dims=None,
-        colormap="Set1",
-        use_analytical_problems=False,
-        net_size=10,  # Network size for SimpSOM
-    ):
-        df_filtered = self.custom_drop_na(
-            self.filter_df_by_suite_and_dim(
-                self.ignore_specified_features(self.features_df),
-                suite_names=suite_names,
-                dims=dims,
-            )
-        )
+    # def plot_som(
+    #     self,
+    #     analysis_type=None,
+    #     features=None,
+    #     suite_names=None,
+    #     dims=None,
+    #     colormap="Set1",
+    #     use_analytical_problems=False,
+    #     net_size=10,  # Network size for SimpSOM
+    # ):
+    #     df_filtered = self.custom_drop_na(
+    #         self.filter_df_by_suite_and_dim(
+    #             self.ignore_specified_features(self.features_df),
+    #             suite_names=suite_names,
+    #             dims=dims,
+    #         )
+    #     )
 
-        if analysis_type:
-            df_filtered = self.get_features_for_analysis_type(
-                df_filtered, analysis_type
-            )
+    #     if analysis_type:
+    #         df_filtered = self.get_features_for_analysis_type(
+    #             df_filtered, analysis_type
+    #         )
 
-        if features:
-            cols = [f if f in df_filtered.columns else f for f in features]
-        else:
-            cols = df_filtered.select_dtypes(include=[np.number]).columns.tolist()
+    #     if features:
+    #         cols = [f if f in df_filtered.columns else f for f in features]
+    #     else:
+    #         cols = df_filtered.select_dtypes(include=[np.number]).columns.tolist()
 
-        cols = [c for c in cols if not df_filtered[c].nunique() == 1]
+    #     cols = [c for c in cols if not df_filtered[c].nunique() == 1]
 
-        if use_analytical_problems:
-            df_filtered["Suite"] = df_filtered["Suite"].apply(
-                lambda x: "Analytical" if x in self.analytical_problems else x
-            )
+    #     if use_analytical_problems:
+    #         df_filtered["Suite"] = df_filtered["Suite"].apply(
+    #             lambda x: "Analytical" if x in self.analytical_problems else x
+    #         )
 
-        # Normalize the features
-        data = df_filtered[cols].values
-        data = (data - np.mean(data, axis=0)) / np.std(data, axis=0)
+    #     # Normalize the features
+    #     data = df_filtered[cols].values
+    #     data = (data - np.mean(data, axis=0)) / np.std(data, axis=0)
 
-        # Initialize and train the SOM
-        net = sps.SOMNet(net_size, net_size, data, PBC=True)
-        net.train(train_algo="batch", start_learning_rate=0.01)
+    #     # Initialize and train the SOM
+    #     net = sps.SOMNet(net_size, net_size, data, PBC=True)
+    #     net.train(train_algo="batch", start_learning_rate=0.01)
 
-        # Project the data onto the SOM
-        proj = net.project(data)
+    #     # Project the data onto the SOM
+    #     proj = net.project(data)
 
-        _ = net.plot_map_by_feature(feature=100, show=True, print_out=True)
+    #     _ = net.plot_map_by_feature(feature=100, show=True, print_out=True)
 
-        # Plotting
-        plt.figure(figsize=(8, 8))
-        # for i, (x, y) in enumerate(proj):
-        #     plt.text(
-        #         x,
-        #         y,
-        #         df_filtered["Suite"].iloc[i],
-        #         color=plt.cm.get_cmap(colormap)(i / len(df_filtered)),
-        #         fontdict={"weight": "bold", "size": 9},
-        #     )
+    #     # Plotting
+    #     plt.figure(figsize=(8, 8))
+    #     # for i, (x, y) in enumerate(proj):
+    #     #     plt.text(
+    #     #         x,
+    #     #         y,
+    #     #         df_filtered["Suite"].iloc[i],
+    #     #         color=plt.cm.get_cmap(colormap)(i / len(df_filtered)),
+    #     #         fontdict={"weight": "bold", "size": 9},
+    #     #     )
 
-        plt.title("SOM Projection")
-        plt.show()
+    #     plt.title("SOM Projection")
+    #     plt.show()
 
     def train_random_forest(self, test_size=0.3, random_state=42):
         """
@@ -2018,7 +2055,7 @@ class FeaturesDashboard:
         ).sort_values(by="Importance", ascending=False)
 
         if top_features is not None:
-            
+
             if worst:
                 return feature_importances.tail(top_features)
             else:
