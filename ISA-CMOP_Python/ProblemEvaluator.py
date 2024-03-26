@@ -29,6 +29,7 @@ from features.Analysis import Analysis, MultipleAnalysis
 import multiprocessing
 import signal
 from itertools import repeat
+
 import matlab.engine
 
 import smtplib
@@ -311,7 +312,7 @@ class ProblemEvaluator:
 
         # Also consider the PF in the objectives case.
         if which_variable == "obj":
-            if PF:
+            if PF is not None:
                 fmin = np.minimum(fmin, np.min(PF, axis=0))
                 fmax = np.maximum(fmax, np.max(PF, axis=0))
         elif which_variable == "cv":
@@ -1229,6 +1230,15 @@ class ProblemEvaluator:
             f"STARTED RUN OF {self.instance_name}.", pre_sampler
         )
 
+        if self.check_if_aerofoil():
+            running_rw = False
+            running_aw = False
+        else:
+            running_rw = True
+            running_aw = True
+
+        running_glob = True
+
         # MATLAB engine does not support multiprocessing.
         if self.check_if_aerofoil() or self.check_if_platemo():
             eval_pops_parallel = True
@@ -1250,15 +1260,6 @@ class ProblemEvaluator:
             print(
                 "Since this is a slow to evaluate instance, we will evaluated all RW and Global seeds first to speed up calculations."
             )
-
-            if self.check_if_aerofoil():
-                running_rw = False
-                running_aw = False
-            else:
-                running_rw = True
-                running_aw = True
-
-            running_glob = True
 
             if self.check_if_aerofoil():
                 num_processes = self.num_processes_parallel_seed

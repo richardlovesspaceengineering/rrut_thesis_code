@@ -160,7 +160,7 @@ class GlobalAnalysis(Analysis):
         cv = Analysis.apply_normalisation(self.pop.extract_cv(), cv_lb, cv_ub)
 
         # Compute IGD between normalised PF and cloud of points formed by this sample.
-        if self.pop.extract_pf():
+        if self.pop.extract_pf() is not None:
             IGDind = IGD(
                 Analysis.apply_normalisation(
                     self.pop.extract_pf(max_points=1e3), obj_lb, obj_ub
@@ -172,7 +172,7 @@ class GlobalAnalysis(Analysis):
 
         # Initialise binary tree for nearest neighbour lookup on normalised PF.
 
-        if self.pop.extract_pf():
+        if self.pop.extract_pf() is not None:
 
             tree = cKDTree(obj)
 

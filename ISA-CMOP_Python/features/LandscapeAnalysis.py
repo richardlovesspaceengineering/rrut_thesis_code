@@ -37,7 +37,10 @@ class LandscapeAnalysis:
     def combine_all_feature_dicts(self):
         new_dict = self.feature_arrays
         for suffix, a in self.analyses.items():
-            new_dict = self.append_to_features_dict(new_dict, a.feature_arrays, suffix)
+            if a:
+                new_dict = self.append_to_features_dict(
+                    new_dict, a.feature_arrays, suffix
+                )
 
         # Save
         self.feature_arrays = new_dict
