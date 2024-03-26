@@ -163,33 +163,41 @@ class GlobalAnalysis(Analysis):
         cv = Analysis.apply_normalisation(self.pop.extract_cv(), cv_lb, cv_ub)
 
         # Compute IGD between normalised PF and cloud of points formed by this sample.
-        IGDind = IGD(
-            Analysis.apply_normalisation(
-                self.pop.extract_pf(max_points=1e3), obj_lb, obj_ub
+        if self.pop.extract_pf():
+            IGDind = IGD(
+                Analysis.apply_normalisation(
+                    self.pop.extract_pf(max_points=1e3), obj_lb, obj_ub
+                )
             )
-        )
-        PFd = IGDind(obj)
+            PFd = IGDind(obj)
+        else:
+            PFd = np.nan
 
         # Initialise binary tree for nearest neighbour lookup on normalised PF.
-        tree = cKDTree(obj)
 
-        # Query the tree to find the nearest neighbours in obj for each point on the PF.
-        num_nearest = min(len(self.pop), 20)
-        dstances, indices = tree.query(
-            Analysis.apply_normalisation(
-                self.pop.extract_pf(max_points=1e4), obj_lb, obj_ub
-            ),
-            k=num_nearest,
-            workers=-1,
-        )  # use parallel processing
+        if self.pop.extract_pf():
 
-        # For each point in the Pareto front, average the CV of the nearest neighbours to the PF in the sample.
-        avg_cv_neighbours = []
-        for i in range(indices.shape[0]):
-            avg_cv_neighbours.append(np.mean(cv[indices[i, :]]))
+            tree = cKDTree(obj)
 
-        # Compute global average
-        PFCV = np.mean(avg_cv_neighbours)
+            # Query the tree to find the nearest neighbours in obj for each point on the PF.
+            num_nearest = min(len(self.pop), 20)
+            dstances, indices = tree.query(
+                Analysis.apply_normalisation(
+                    self.pop.extract_pf(max_points=1e4), obj_lb, obj_ub
+                ),
+                k=num_nearest,
+                workers=-1,
+            )  # use parallel processing
+
+            # For each point in the Pareto front, average the CV of the nearest neighbours to the PF in the sample.
+            avg_cv_neighbours = []
+            for i in range(indices.shape[0]):
+                avg_cv_neighbours.append(np.mean(cv[indices[i, :]]))
+
+            # Compute global average
+            PFCV = np.mean(avg_cv_neighbours)
+        else:
+            PFCV = np.nan
 
         # Initialize metrics.
         PS_dist_max = np.nan
