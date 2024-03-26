@@ -150,9 +150,6 @@ class GlobalAnalysis(Analysis):
         Properties of the estimated (and normalised) Pareto-Set (PS) and Pareto-Front (PF). Includes global maximum, global mean and mean IQR of distances across the PS/PF.
         """
 
-        if not self.pop.extract_pf():
-            return (np.nan,) * 8  # this function returns 14 values.
-
         # Extract normalisation values.
         var_lb, var_ub, obj_lb, obj_ub, cv_lb, cv_ub = super().extract_norm_values(
             norm_method

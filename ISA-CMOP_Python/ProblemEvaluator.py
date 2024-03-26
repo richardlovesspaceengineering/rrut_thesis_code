@@ -202,6 +202,8 @@ class ProblemEvaluator:
                 if "4" in self.instance_name:
                     # XA4 runs too slow.
                     self.num_processes_parallel_seed = 32
+                elif "5" in self.instance_name:
+                    self.num_processes_parallel_seed = 32
                 else:
                     self.num_processes_parallel_seed = 64  # max cores
             else:
@@ -212,6 +214,7 @@ class ProblemEvaluator:
         dim_key = f"{self.instance.n_var}d"  # Assuming self.dim is an integer or string that matches the keys in the dictionary
 
         # Check if the current dimension has a specified number of processes. Just check one dictionary since they all have the same keys.
+
         if dim_key in self.num_processes_global_norm_dict:
             # Update num_processes based on the dictionary entry
             self.num_processes_global_norm = min(
@@ -226,6 +229,7 @@ class ProblemEvaluator:
             self.num_processes_rw_eval = min(
                 self.num_processes_rw_eval_dict[dim_key], self.num_samples
             )
+
         else:
             self.num_processes_global_norm = min(
                 self.num_cores_user_input, self.num_samples
@@ -235,6 +239,12 @@ class ProblemEvaluator:
                 self.num_cores_user_input, self.num_samples
             )
             self.num_processes_rw_eval = self.num_processes_rw_norm
+
+        if self.check_if_aerofoil() and "7" in self.instance_name:
+
+            # XA7 has 16 constraints and can be tough to properly evaluate.
+            self.num_processes_rw_eval = 2
+            self.num_processes_global_eval = 2
 
         self.num_processes_aw = self.num_processes_global_eval
 
@@ -608,6 +618,9 @@ class ProblemEvaluator:
         self, pre_sampler, sample_number, walk_number, pop_walk, pop_neighbours_list
     ):
         need_to_resave = False
+
+        # print(pop_walk.extract_cons().shape)
+        # print(pop_walk.extract_obj().shape)
 
         if not pop_walk.is_ranks_evaluated():
             pop_walk.evaluate_fronts(show_time=True)
