@@ -19,6 +19,9 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, accuracy_score
 import matplotlib.patches as mpatches  # For custom legend
 import matplotlib.lines as mlines  # For custom legend lines
+import warnings
+
+warnings.simplefilter(action="ignore", category=FutureWarning)
 
 
 def remove_sd_cols(df, suffix="_std"):
@@ -554,6 +557,16 @@ class FeaturesDashboard:
                     self.features_to_ignore.append(
                         feature + "_mean" if "_mean" not in feature else feature
                     )
+
+    def use_these_features_only(self, features_to_keep):
+        for feature in self.get_feature_names():
+            if (
+                feature not in self.features_to_ignore
+                and feature not in features_to_keep
+            ):
+                self.features_to_ignore.append(
+                    feature + "_mean" if "_mean" not in feature else feature
+                )
 
     def ignore_specified_features(self, df):
         if self.features_to_ignore:
@@ -1984,6 +1997,7 @@ class FeaturesDashboard:
                 n_neighbors=n_neighbor,
                 min_dist=min_dist,
                 n_components=2,
+                n_jobs=1,
                 random_state=random_state,
             )
             umap_results = umap_model.fit_transform(df_filtered[cols])
@@ -2116,3 +2130,42 @@ class FeaturesDashboard:
         plt.xlabel("Importance")
         plt.ylabel("Features")
         plt.show()
+
+    @staticmethod
+    def generate_scatterplot_matrix(df, columns=None, color_by=None, show=False):
+        """
+        Generate a scatterplot matrix with correlation coefficients on the upper half.
+
+        :param df: DataFrame containing the data.
+        :param columns: List of columns to consider for the plot. If None, all columns are used.
+        """
+        if columns is not None:
+
+            if color_by is not None and color_by not in columns:
+                columns.append(color_by)
+
+            df = df[columns]
+        # else:
+        #     # Select only numerical columns if no columns specified
+        #     # df = df.select_dtypes(include=[np.number])
+
+        # Initialize the pairplot
+        g = sns.pairplot(df, hue=color_by)
+
+        # Loop through the upper matrix to annotate with correlation coefficients
+        df_num = df.select_dtypes(include=[np.number])
+        for i, j in zip(*np.triu_indices_from(g.axes, 1)):
+            corr_value = df_num.corr().iloc[i, j]
+            g.axes[i, j].annotate(
+                f"{corr_value:.2f}",
+                (0.5, 0.5),
+                xycoords="axes fraction",
+                ha="center",
+                va="center",
+                fontsize=24,
+            )
+
+        if show:
+            plt.show()
+
+        return g
