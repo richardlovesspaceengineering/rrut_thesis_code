@@ -466,11 +466,11 @@ class ProblemEvaluator:
             pop_global = pre_sampler.load_global_population(problem, sample_number)
 
             # Evaluate fronts.
-            if eval_fronts and not pop_global.is_ranks_evaluated():
-                pop_global.evaluate_fronts(show_time=True)
+            #if eval_fronts and not pop_global.is_ranks_evaluated():
+            pop_global.evaluate_fronts(show_time=True)
 
-                # Save again to save us having to re-evaluate the fronts.
-                pre_sampler.save_global_population(pop_global, sample_number)
+            # Save again to save us having to re-evaluate the fronts.
+            pre_sampler.save_global_population(pop_global, sample_number)
 
             # If loading is successful, no need to generate a new population.
             continue_generation = False
@@ -1066,7 +1066,7 @@ class ProblemEvaluator:
 
         # Load in the pre-generated LHS sample as a starting point.
         pop_global = self.get_global_pop(pre_sampler, problem, i + 1, eval_fronts=False)
-        pop_global_clean, _ = pop_global.remove_nan_inf_rows("global")
+        pop_global_clean, _ = pop_global.remove_nan_inf_rows()
         distributed_sample = pop_global_clean.extract_var()
 
         for j in range(self.num_walks_aw):

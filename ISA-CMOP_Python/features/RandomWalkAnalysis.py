@@ -43,7 +43,7 @@ class RandomWalkAnalysis(Analysis):
 
     def preprocess_nans_on_walks(self):
         # Remove any steps and corresponding neighbours if they contain infs or nans.
-        pop_walk_new, num_rows_removed = self.pop_walk.remove_nan_inf_rows("walk")
+        pop_walk_new, _ = self.pop_walk.remove_nan_inf_rows()
         removal_idx = self.pop_walk.get_nan_inf_idx()
         pop_neighbours_new = [
             n for i, n in enumerate(self.pop_neighbours_list) if i not in removal_idx
@@ -64,7 +64,7 @@ class RandomWalkAnalysis(Analysis):
             #     print(f"var.shape: {var.shape}")
             #     print(f"i: {i}")
             #     print(f"len(pop_neigbours_new): {len(pop_neighbours_new)}")
-            pop_neighbourhood, _ = pop_neighbourhood.remove_nan_inf_rows("neig")
+            pop_neighbourhood, _ = pop_neighbourhood.remove_nan_inf_rows()
 
             # Save to list.
             pop_neighbours_checked.append(pop_neighbourhood)

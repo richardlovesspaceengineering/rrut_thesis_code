@@ -5,7 +5,7 @@
     }
 ],
   "settings": {
-    "workbench.colorTheme": "Night Owl (No Italics)",
+    "workbench.colorTheme": "Dracula",
     "python.defaultInterpreterPath": "/home/kj66/Documents/Richard/venv/bin/python3",
     "[python]": {
       "editor.defaultFormatter": "ms-python.black-formatter",

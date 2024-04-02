@@ -64,7 +64,7 @@ class AdaptiveWalk(RandomWalk):
             )
 
             # Remove any NaNs before moving on.
-            pop_potential_next_clean, _ = pop_potential_next.remove_nan_inf_rows("neig")
+            pop_potential_next_clean, _ = pop_potential_next.remove_nan_inf_rows()
 
             # If there are only NaNs around
             if len(pop_potential_next_clean) == 0:

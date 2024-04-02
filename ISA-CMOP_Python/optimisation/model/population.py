@@ -56,7 +56,7 @@ class Population(np.ndarray):
 
         return result
 
-    def remove_nan_inf_rows(self, pop_type):
+    def remove_nan_inf_rows(self):
         """
         pop_type is "neig" or "walk" or "global"
         """
@@ -189,52 +189,62 @@ class Population(np.ndarray):
         """
         Place each individual on a front.
         """
-        obj_array = self.extract_obj()
+
+        # CANNOT FEED NANS to NDSORT! Will result in infinite loop.
+        new_pop, _ = self.remove_nan_inf_rows()
+        nan_inf_idx = self.get_nan_inf_idx()
+
+        obj_array = new_pop.extract_obj()
 
         if constrained:
-            cons_val = self.extract_cv()
+            cons_val = new_pop.extract_cv()
         else:
             cons_val = None
 
-        fronts = NonDominatedSorting().do(
+        _, ranks = NonDominatedSorting().do(
             obj_array,
             cons_val=cons_val,
             n_stop_if_ranked=obj_array.shape[0],
-            return_rank=False,
+            return_rank=True,
         )
 
-        return fronts
+        return ranks
 
     def eval_rank_and_crowding(self):
         """
         Evaluate the rank and crowding of each individual within the population.
         """
 
-        # Constrained fronts.
-        fronts_cons = self.eval_fronts(constrained=True)
+        ranks = self.eval_fronts(constrained=True)
+        nan_inf_idx = self.get_nan_inf_idx()
 
-        # Cycle through fronts
-        for k, front in enumerate(fronts_cons):
-            # Calculate crowding distance of the front
+        rank_ctr = 0
+        for i in range(len(self)):
 
-            # LEFT OUT TO SPEED UP COMPUTATION
-            # front_crowding_distance = calculate_crowding_distance(obj_array[front, :])
+            # Ensures ranks get saved to correct individual
+            if i not in nan_inf_idx:
+                self[i].rank = ranks[rank_ctr] + 1  # start counting at 1.
+                rank_ctr += 1
+            else:
+                self[i].rank = np.nan
 
-            # Save rank and crowding to the individuals
-            for j, i in enumerate(front):
-                self[i].rank = k + 1  # lowest rank is 1
-                # self[i].crowding_distance = front_crowding_distance[j]
-                self[i].crowding_distance = None
+            self[i].crowding_distance = None
 
     def eval_unconstrained_rank(self):
         # Unconstrained fronts.
-        fronts_uncons = self.eval_fronts(constrained=False)
+        ranks_uncons = self.eval_fronts(constrained=False)
+        nan_inf_idx = self.get_nan_inf_idx()
 
-        # Cycle through fronts
-        for k, front in enumerate(fronts_uncons):
-            # Save to the individuals
-            for j, i in enumerate(front):
-                self[i].rank_uncons = k + 1  # lowest rank is 1
+        rank_ctr = 0
+        for i in range(len(self)):
+            # Ensures ranks get saved to correct individual
+            if i not in nan_inf_idx:
+                self[i].rank_uncons = ranks_uncons[rank_ctr] + 1  # start counting at 1.
+                rank_ctr += 1
+            else:
+                self[i].rank = np.nan
+
+            self[i].crowding_distance = None
 
     def evaluate_individual(self, individual, var_array):
         """
