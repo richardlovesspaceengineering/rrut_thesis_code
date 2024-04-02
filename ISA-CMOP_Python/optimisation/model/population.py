@@ -454,10 +454,12 @@ class Population(np.ndarray):
     def get_nan_inf_idx(self):
         # Extract evaluated population values.
         obj = self.extract_obj()
+        cv = self.extract_cv()
 
         # Find indices of rows with NaN or infinity in the objective array
         nan_inf_idx = np.logical_or(
-            np.isnan(obj).any(axis=1), np.isinf(obj).any(axis=1)
+            np.logical_or(np.isnan(obj).any(axis=1), np.isinf(obj).any(axis=1)),
+            np.logical_or(np.isnan(cv).any(axis=1), np.isinf(cv).any(axis=1)),
         )
 
         return np.where(nan_inf_idx)[0]

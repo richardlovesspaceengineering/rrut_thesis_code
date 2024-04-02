@@ -241,11 +241,11 @@ class ProblemEvaluator:
             )
             self.num_processes_rw_eval = self.num_processes_rw_norm
 
-        if self.check_if_aerofoil():
+        # if self.check_if_aerofoil():
 
-            # XA7 has 16 constraints and can be tough to properly evaluate.
-            self.num_processes_rw_eval = min(self.num_processes_rw_eval, 2)
-            self.num_processes_global_eval = min(self.num_processes_global_eval, 2)
+        #     # XA7 has 16 constraints and can be tough to properly evaluate.
+        #     self.num_processes_rw_eval = min(self.num_processes_rw_eval, 2)
+        #     self.num_processes_global_eval = min(self.num_processes_global_eval, 2)
 
         self.num_processes_aw = self.num_processes_global_eval
 
@@ -466,11 +466,11 @@ class ProblemEvaluator:
             pop_global = pre_sampler.load_global_population(problem, sample_number)
 
             # Evaluate fronts.
-            #if eval_fronts and not pop_global.is_ranks_evaluated():
-            pop_global.evaluate_fronts(show_time=True)
+            if eval_fronts and not pop_global.is_ranks_evaluated():
+                pop_global.evaluate_fronts(show_time=True)
 
-            # Save again to save us having to re-evaluate the fronts.
-            pre_sampler.save_global_population(pop_global, sample_number)
+                # Save again to save us having to re-evaluate the fronts.
+                pre_sampler.save_global_population(pop_global, sample_number)
 
             # If loading is successful, no need to generate a new population.
             continue_generation = False

@@ -17,7 +17,7 @@
         // "program": "C:/Users/richa/Documents/Thesis/rrut_thesis_code/ISA-CMOP_Python/runner.py",
         // "program": "/Users/richardrutherford/Documents/Thesis Code/rrut_thesis_code/ISA-CMOP_Python2/runner.py",
         "args": [
-            "XA8",
+            "XA3",
             "10",
             "1",
             "eval",
