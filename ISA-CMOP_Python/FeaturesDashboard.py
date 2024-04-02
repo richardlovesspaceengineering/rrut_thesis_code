@@ -558,7 +558,12 @@ class FeaturesDashboard:
                         feature + "_mean" if "_mean" not in feature else feature
                     )
 
-    def use_these_features_only(self, features_to_keep):
+    def use_these_features_only(self, features_to_keep, use_pre_ignored=True):
+        names_tracker = features_to_keep
+
+        if not use_pre_ignored:
+            self.features_to_ignore = []
+
         for feature in self.get_feature_names():
             if (
                 feature not in self.features_to_ignore
@@ -567,6 +572,14 @@ class FeaturesDashboard:
                 self.features_to_ignore.append(
                     feature + "_mean" if "_mean" not in feature else feature
                 )
+            else:
+                names_tracker.remove(feature)
+                
+        if len(names_tracker) == 0:
+            print("All specified features have been considered")
+        else:
+            print("The following features were not added: ")
+            print(names_tracker)
 
     def ignore_specified_features(self, df):
         if self.features_to_ignore:
