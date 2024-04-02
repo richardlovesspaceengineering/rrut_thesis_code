@@ -206,7 +206,7 @@ class ProblemEvaluator:
                 elif "5" in self.instance_name:
                     self.num_processes_parallel_seed = 32
                 else:
-                    self.num_processes_parallel_seed = 64  # max cores
+                    self.num_processes_parallel_seed = 32  # max cores
             else:
                 # TODO: experiment with optimal value for ModAct
                 self.num_processes_parallel_seed = 24  # max cores
@@ -241,11 +241,11 @@ class ProblemEvaluator:
             )
             self.num_processes_rw_eval = self.num_processes_rw_norm
 
-        if self.check_if_aerofoil() and "7" in self.instance_name:
+        if self.check_if_aerofoil():
 
             # XA7 has 16 constraints and can be tough to properly evaluate.
-            self.num_processes_rw_eval = 2
-            self.num_processes_global_eval = 2
+            self.num_processes_rw_eval = min(self.num_processes_rw_eval, 2)
+            self.num_processes_global_eval = min(self.num_processes_global_eval, 2)
 
         self.num_processes_aw = self.num_processes_global_eval
 
