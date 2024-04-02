@@ -17,6 +17,8 @@ import umap
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, accuracy_score
+import matplotlib.patches as mpatches  # For custom legend
+import matplotlib.lines as mlines  # For custom legend lines
 
 
 def remove_sd_cols(df, suffix="_std"):
@@ -93,7 +95,9 @@ class FeaturesDashboard:
                 "CTSEI3",
                 "CTSEI4",
             ],
+            "XA": [f"XA{x}" for x in range(2, 9, 1)],
         }
+        self.suite_color_map = self.generate_suite_colors()
 
         self.analytical_problems = [
             f
@@ -126,6 +130,18 @@ class FeaturesDashboard:
         # Models/results objects.
         self.pca = None
         self.features_to_ignore = []
+
+    def generate_suite_colors(self, cmap="Set1"):
+        # Get a list of unique suites
+        suites = list(self.suites_problems_dict.keys())
+
+        # Generate a color for each suite
+        colormap = plt.cm.get_cmap(
+            cmap, len(suites)
+        )  # Using 'tab20' colormap which has 20 unique colors
+        suite_colors = {suite: colormap(i) for i, suite in enumerate(suites)}
+
+        return suite_colors
 
     @staticmethod
     def get_numerical_data_from_df(df, give_sd=False):
@@ -1755,16 +1771,13 @@ class FeaturesDashboard:
         plt.title("RadViz Plot")
         plt.show()
 
-    def plot_tSNE(
+    def get_filtered_df_for_dimension_reduced_plot(
         self,
         analysis_type=None,
         features=None,
         suite_names=None,
         dims=None,
-        scaler_type="MinMaxScaler",
-        colormap="Set1",
         use_analytical_problems=False,
-        perplexities=[15, 30, 100],  # Add perplexities as an optional argument
     ):
         df_filtered = self.custom_drop_na(
             self.filter_df_by_suite_and_dim(
@@ -1791,59 +1804,143 @@ class FeaturesDashboard:
                 lambda x: "Analytical" if x in self.analytical_problems else x
             )
 
+        # No need to include dimension in scaling.
+        cols.remove("D")
+
+        print(f"This dataframe contains {len(cols)} features.")
+
+        return df_filtered, cols
+
+    def get_dimension_markers(self, df, special_d_values=[10, 20, 30]):
+        # Map 'D' values to markers
+        markers = ["X", "s", "^"]  # One marker for each special D value
+        marker_dict = {
+            d: markers[i] if d in special_d_values else "o"
+            for i, d in enumerate(
+                special_d_values
+                + [d for d in df["D"].unique() if d not in special_d_values]
+            )
+        }
+        unique_d_values = df["D"].unique()
+
+        return marker_dict, unique_d_values
+
+    def apply_feature_scaling(self, df, cols, scaler_type):
         # Scale the features
         if scaler_type == "MinMaxScaler":
             scaler = MinMaxScaler()
-            df_filtered[cols] = scaler.fit_transform(df_filtered[cols])
+            df[cols] = scaler.fit_transform(df[cols])
         elif scaler_type == "StandardScaler":
             scaler = StandardScaler()
-            df_filtered[cols] = scaler.fit_transform(df_filtered[cols])
+            df[cols] = scaler.fit_transform(df[cols])
 
-        print(f"This t-SNE plot has considered {len(cols)} features.")
+        return df
 
-        # Check if a list of perplexities is provided
-        if perplexities is None:
-            perplexities = [30]  # Use a default value if none provided
-
-        # Determine the layout of the subplots
-        n_perplexities = len(perplexities)
-        cols_subplots = 3  # You can adjust this based on your preference
-        rows_subplots = np.ceil(n_perplexities / cols_subplots).astype(int)
-
-        fig, axes = plt.subplots(
-            rows_subplots, cols_subplots, figsize=(cols_subplots * 5, rows_subplots * 4)
+    def create_custom_legend_for_suite_and_dimension(
+        self, fig, df, marker_dict, special_d_values=[10, 20, 30]
+    ):
+        suite_patches = [
+            mpatches.Patch(color=self.suite_color_map[suite], label=suite)
+            for suite in df["Suite"].unique()
+        ]
+        # Use fig.legend() to place the legend relative to the figure
+        suite_legend = fig.legend(
+            handles=suite_patches,
+            loc="upper center",
+            ncol=3,
+            bbox_to_anchor=(0.5, 1.1),
+            title="Suites",
         )
-        axes = axes.flatten()
 
-        handles = []  # To store legend handles
-        labels = []  # To store unique labels
+        # Create legend for dimensions
+        dim_patches = [
+            mlines.Line2D(
+                [],
+                [],
+                color="black",
+                marker=marker_dict[d],
+                linestyle="None",
+                markersize=5,
+                label=d,
+            )
+            for d in special_d_values
+        ]
+        # Use fig.legend() again to place the second legend relative to the figure
+        dim_legend = fig.legend(
+            handles=dim_patches,
+            loc="lower center",
+            ncol=3,
+            bbox_to_anchor=(0.5, -0.05),
+            title="Dimensions",
+        )
 
-        for index, perplexity in enumerate(perplexities):
+    def plot_tSNE(
+        self,
+        analysis_type=None,
+        features=None,
+        suite_names=None,
+        dims=None,
+        scaler_type="MinMaxScaler",
+        colormap="Set1",
+        use_analytical_problems=False,
+        perplexities=[10, 30, 60],  # Add perplexities as an optional argument
+    ):
+
+        # Extract required data.
+        df_filtered, cols = self.get_filtered_df_for_dimension_reduced_plot(
+            analysis_type=analysis_type,
+            features=features,
+            suite_names=suite_names,
+            dims=dims,
+            use_analytical_problems=use_analytical_problems,
+        )
+
+        # We will use different markers for each dimension.
+        marker_dict, unique_d_values = self.get_dimension_markers(df=df_filtered)
+
+        # Apply feature scaling
+        df_filtered = self.apply_feature_scaling(
+            df=df_filtered, cols=cols, scaler_type=scaler_type
+        )
+
+        # Now make plot axes.
+        fig, axes = plt.subplots(
+            1, len(perplexities), figsize=(5 * len(perplexities), 5)
+        )
+
+        if len(perplexities) == 1:  # Adjust if only one subplot
+            axes = [axes]
+
+        for ax, perplexity in zip(axes, perplexities):
             tsne = TSNE(n_components=2, random_state=0, perplexity=perplexity)
             tsne_results = tsne.fit_transform(df_filtered[cols])
 
-            unique_suites = df_filtered["Suite"].unique()
-            for suite in unique_suites:
-                indices = df_filtered["Suite"] == suite
-                scatter = axes[index].scatter(
-                    tsne_results[indices, 0], tsne_results[indices, 1], s=6, label=suite
-                )
+            for suite in df_filtered["Suite"].unique():
+                for d_value in unique_d_values:
+                    indices = (df_filtered["Suite"] == suite) & (
+                        df_filtered["D"] == d_value
+                    )
+                    ax.scatter(
+                        tsne_results[indices, 0],
+                        tsne_results[indices, 1],
+                        color=self.suite_color_map[suite],
+                        s=6,
+                        marker=marker_dict[d_value],
+                    )
 
-                if suite not in labels:
-                    labels.append(suite)
-                    handles.append(scatter)
+            ax.set_title(f"$t$-SNE with perplexity = {perplexity}")
+            ax.set_xlabel("Component 1")
+            ax.set_ylabel("Component 2")
+            ax.grid()
 
-            axes[index].set_title(f"$t$-SNE with perplexity = {perplexity}")
-            axes[index].set_xlabel("Component 1")
-            axes[index].set_ylabel("Component 2")
-            axes[index].grid()
-
-        fig.legend(
-            handles, labels, loc="upper center", ncol=3, bbox_to_anchor=(0.5, 1.2)
+        # Create legend for suites and dimensions.
+        self.create_custom_legend_for_suite_and_dimension(
+            fig=fig, df=df_filtered, marker_dict=marker_dict
         )
 
-        # Adjust layout
         plt.tight_layout()
+        # Adjust the layout to make space for the top legend
+        plt.subplots_adjust(top=0.85, bottom=0.15)
         plt.show()
 
     def plot_UMAP(
@@ -1855,133 +1952,69 @@ class FeaturesDashboard:
         scaler_type="MinMaxScaler",
         colormap="Set1",
         use_analytical_problems=False,
-        n_neighbors=15,
+        n_neighbors=[15, 30, 60],
         min_dist=0.1,
         random_state=42,
     ):
-        df_filtered = self.custom_drop_na(
-            self.filter_df_by_suite_and_dim(
-                self.ignore_specified_features(self.features_df),
-                suite_names=suite_names,
-                dims=dims,
-            )
+        # Extract required data.
+        df_filtered, cols = self.get_filtered_df_for_dimension_reduced_plot(
+            analysis_type=analysis_type,
+            features=features,
+            suite_names=suite_names,
+            dims=dims,
+            use_analytical_problems=use_analytical_problems,
         )
 
-        if analysis_type:
-            df_filtered = self.get_features_for_analysis_type(
-                df_filtered, analysis_type
-            )
+        # We will use different markers for each dimension.
+        marker_dict, unique_d_values = self.get_dimension_markers(df=df_filtered)
 
-        if features:
-            cols = [f if f in df_filtered.columns else f for f in features]
-        else:
-            cols = df_filtered.select_dtypes(include=[np.number]).columns.tolist()
-
-        cols = [c for c in cols if not df_filtered[c].nunique() == 1]
-
-        if use_analytical_problems:
-            df_filtered["Suite"] = df_filtered["Suite"].apply(
-                lambda x: "Analytical" if x in self.analytical_problems else x
-            )
-
-        print(f"This UMAP plot has considered {len(cols)} features.")
-
-        # Scale the features based on the specified scaler_type
-        if scaler_type == "MinMaxScaler":
-            scaler = MinMaxScaler()
-            df_filtered[cols] = scaler.fit_transform(df_filtered[cols])
-        elif scaler_type == "StandardScaler":
-            scaler = StandardScaler()
-            df_filtered[cols] = scaler.fit_transform(df_filtered[cols])
-
-        umap_model = umap.UMAP(
-            n_neighbors=n_neighbors,
-            min_dist=min_dist,
-            n_components=2,
-            random_state=random_state,
+        # Apply feature scaling
+        df_filtered = self.apply_feature_scaling(
+            df=df_filtered, cols=cols, scaler_type=scaler_type
         )
-        umap_results = umap_model.fit_transform(df_filtered[cols])
 
-        plt.figure(figsize=(8, 6))
-        unique_suites = df_filtered["Suite"].unique()
-        for suite in unique_suites:
-            indices = df_filtered["Suite"] == suite
-            plt.scatter(
-                umap_results[indices, 0],
-                umap_results[indices, 1],
-                s=6,
-                label=suite,
-                alpha=0.5,
+        # Now make plot axes.
+        fig, axes = plt.subplots(1, len(n_neighbors), figsize=(5 * len(n_neighbors), 5))
+
+        if len(n_neighbors) == 1:  # Adjust if only one subplot
+            axes = [axes]
+
+        for ax, n_neighbor in zip(axes, n_neighbors):
+            umap_model = umap.UMAP(
+                n_neighbors=n_neighbor,
+                min_dist=min_dist,
+                n_components=2,
+                random_state=random_state,
             )
+            umap_results = umap_model.fit_transform(df_filtered[cols])
 
-        plt.title("UMAP")
-        plt.xlabel("Component 1")
-        plt.ylabel("Component 2")
-        plt.grid()
-        plt.legend()
+            for suite in df_filtered["Suite"].unique():
+                for d_value in unique_d_values:
+                    indices = (df_filtered["Suite"] == suite) & (
+                        df_filtered["D"] == d_value
+                    )
+                    ax.scatter(
+                        umap_results[indices, 0],
+                        umap_results[indices, 1],
+                        color=self.suite_color_map[suite],
+                        s=6,
+                        marker=marker_dict[d_value],
+                    )
+
+            ax.set_title(f"UMAP with n_neighbors = {n_neighbor}")
+            ax.set_xlabel("Component 1")
+            ax.set_ylabel("Component 2")
+            ax.grid()
+
+        # Create legend for suites and dimensions.
+        self.create_custom_legend_for_suite_and_dimension(
+            fig=fig, df=df_filtered, marker_dict=marker_dict
+        )
+
+        plt.tight_layout()
+        # Adjust the layout to make space for the top legend
+        plt.subplots_adjust(top=0.85, bottom=0.15)
         plt.show()
-
-    # def plot_som(
-    #     self,
-    #     analysis_type=None,
-    #     features=None,
-    #     suite_names=None,
-    #     dims=None,
-    #     colormap="Set1",
-    #     use_analytical_problems=False,
-    #     net_size=10,  # Network size for SimpSOM
-    # ):
-    #     df_filtered = self.custom_drop_na(
-    #         self.filter_df_by_suite_and_dim(
-    #             self.ignore_specified_features(self.features_df),
-    #             suite_names=suite_names,
-    #             dims=dims,
-    #         )
-    #     )
-
-    #     if analysis_type:
-    #         df_filtered = self.get_features_for_analysis_type(
-    #             df_filtered, analysis_type
-    #         )
-
-    #     if features:
-    #         cols = [f if f in df_filtered.columns else f for f in features]
-    #     else:
-    #         cols = df_filtered.select_dtypes(include=[np.number]).columns.tolist()
-
-    #     cols = [c for c in cols if not df_filtered[c].nunique() == 1]
-
-    #     if use_analytical_problems:
-    #         df_filtered["Suite"] = df_filtered["Suite"].apply(
-    #             lambda x: "Analytical" if x in self.analytical_problems else x
-    #         )
-
-    #     # Normalize the features
-    #     data = df_filtered[cols].values
-    #     data = (data - np.mean(data, axis=0)) / np.std(data, axis=0)
-
-    #     # Initialize and train the SOM
-    #     net = sps.SOMNet(net_size, net_size, data, PBC=True)
-    #     net.train(train_algo="batch", start_learning_rate=0.01)
-
-    #     # Project the data onto the SOM
-    #     proj = net.project(data)
-
-    #     _ = net.plot_map_by_feature(feature=100, show=True, print_out=True)
-
-    #     # Plotting
-    #     plt.figure(figsize=(8, 8))
-    #     # for i, (x, y) in enumerate(proj):
-    #     #     plt.text(
-    #     #         x,
-    #     #         y,
-    #     #         df_filtered["Suite"].iloc[i],
-    #     #         color=plt.cm.get_cmap(colormap)(i / len(df_filtered)),
-    #     #         fontdict={"weight": "bold", "size": 9},
-    #     #     )
-
-    #     plt.title("SOM Projection")
-    #     plt.show()
 
     def train_random_forest(self, test_size=0.3, random_state=42):
         """
