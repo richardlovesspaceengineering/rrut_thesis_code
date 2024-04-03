@@ -1838,9 +1838,9 @@ class FeaturesDashboard:
 
         return df_filtered, cols
 
-    def get_dimension_markers(self, df, special_d_values=[10, 20, 30]):
+    def get_dimension_markers(self, df, special_d_values=[5, 10, 20, 30]):
         # Map 'D' values to markers
-        markers = ["X", "s", "^"]  # One marker for each special D value
+        markers = ["D", "X", "s", "^"]  # One marker for each special D value
         marker_dict = {
             d: markers[i] if d in special_d_values else "o"
             for i, d in enumerate(
@@ -1867,7 +1867,7 @@ class FeaturesDashboard:
         self,
         fig,
         marker_dict,
-        special_d_values=[10, 20, 30],
+        special_d_values=[5, 10, 20, 30],
         bottom_box_anchor=-0.05,
     ):
         # Create legend for dimensions
@@ -1878,7 +1878,7 @@ class FeaturesDashboard:
                 color="black",
                 marker=marker_dict[d],
                 linestyle="None",
-                markersize=5,
+                markersize=8,
                 label=d,
             )
             for d in special_d_values
@@ -1887,7 +1887,7 @@ class FeaturesDashboard:
         dim_legend = fig.legend(
             handles=dim_patches,
             loc="lower center",
-            ncol=3,
+            ncol=4,
             bbox_to_anchor=(0.5, bottom_box_anchor),
             title="Dimensions",
         )
