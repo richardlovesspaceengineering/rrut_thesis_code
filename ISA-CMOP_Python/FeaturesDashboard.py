@@ -7,7 +7,6 @@ import shutil
 from matplotlib.backends.backend_pdf import PdfPages
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
-from mpl_toolkits.mplot3d import Axes3D
 from pandas.plotting import parallel_coordinates
 from sklearn.preprocessing import MinMaxScaler
 from matplotlib.colors import LinearSegmentedColormap
@@ -20,6 +19,7 @@ from sklearn.metrics import classification_report, accuracy_score
 import matplotlib.patches as mpatches  # For custom legend
 import matplotlib.lines as mlines  # For custom legend lines
 import warnings
+import copy
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
@@ -98,7 +98,7 @@ class FeaturesDashboard:
                 "CTSEI3",
                 "CTSEI4",
             ],
-            "XA": [f"XA{x}" for x in range(2, 9, 1)],
+            # "XA": [f"XA{x}" for x in range(2, 9, 1)],
         }
         self.suite_color_map = self.generate_suite_colors()
 
@@ -559,7 +559,7 @@ class FeaturesDashboard:
                     )
 
     def use_these_features_only(self, features_to_keep, use_pre_ignored=True):
-        names_tracker = features_to_keep
+        names_tracker = copy.deepcopy(features_to_keep)
 
         if not use_pre_ignored:
             self.features_to_ignore = []
@@ -574,7 +574,7 @@ class FeaturesDashboard:
                 )
             else:
                 names_tracker.remove(feature)
-                
+
         if len(names_tracker) == 0:
             print("All specified features have been considered")
         else:
@@ -660,43 +660,43 @@ class FeaturesDashboard:
         :param dims: A list of dimensions to plot.
         :param suite_names: Optional. A list of benchmark suite names to filter the features by.
         """
-        plt.figure(figsize=(15, 6))
         feature_name_with_mean = feature_name + "_mean"
 
-        # Define colors for different suites.
-        dim_colors = {
-            5: "#1f77b4",
-            10: "#ff7f0e",
-            20: "#2ca02c",
-            30: "#d62728",
-        }
-        marker_type = "o"
-
         if not suite_names:
-            suite_names = self.suites_problems_dict.keys()
-
-        if not dims:
-            dims = [5, 10, 20, 30]  # Default dimensions if none provided
+            suite_names = list(self.suites_problems_dict.keys())
 
         # Use the filtering method to get the filtered DataFrame based on suite names and dimensions
-        df_filtered = self.filter_df_by_suite_and_dim(
-            self.features_df, suite_names=suite_names, dims=dims
+        df_filtered, cols = self.get_filtered_df_for_dimension_reduced_plot(
+            analysis_type=None,
+            features=[feature_name_with_mean],
+            suite_names=suite_names,
+            dims=None,
+            use_analytical_problems=False,
         )
+
+        # Define markers for different dimensions.
+        marker_dict, unique_d_values = self.get_dimension_markers(df=df_filtered)
 
         global_min, global_max = self.compute_global_maxmin_for_plot(
             df_filtered, feature_name_with_mean
         )
 
-        for i, suite_name in enumerate(suite_names, start=1):
-            ax = plt.subplot(1, len(suite_names), i)
+        fig, axes = plt.subplots(1, len(suite_names), figsize=(15, 6), sharey=True)
+
+        for i, ax in enumerate(axes):
+            suite_name = suite_names[i]
             df_suite_filtered = df_filtered[df_filtered["Suite"] == suite_name]
 
             # Plot a single violin plot for the combined data
             if not df_suite_filtered.empty:
-                sns.violinplot(
+                vp = sns.violinplot(
+                    ax=ax,
                     y=df_suite_filtered[feature_name_with_mean],
-                    color="lightgrey",
+                    color=self.suite_color_map[suite_name],
                 )
+
+                # Reduce transparency
+                plt.setp(vp.collections, alpha=0.4)
 
                 # Overlay sample size.
                 num_points = df_suite_filtered.shape[0]
@@ -712,36 +712,36 @@ class FeaturesDashboard:
                 )
 
                 # Overlay points for each suite.
-                for dim in dims:
+                for dim in unique_d_values:
                     df_suite_dim_filtered = df_suite_filtered[
                         df_suite_filtered["D"] == dim
                     ]
                     if not df_suite_dim_filtered.empty:
                         sns.stripplot(
+                            ax=ax,
                             y=df_suite_dim_filtered[feature_name_with_mean],
-                            color=dim_colors.get(
-                                dim, "gray"
-                            ),  # Default to gray if suite not in colors
-                            marker=marker_type,
-                            label=f"{dim}D",
+                            color=self.suite_color_map[
+                                suite_name
+                            ],  # Default to gray if suite not in colors
+                            marker=marker_dict[dim],
                             size=5,
-                            alpha=0.5,
+                            alpha=0.8,
                             jitter=True,
                         )
 
-            plt.title(f"{suite_name}")
-            plt.ylabel(feature_name_with_mean if i == 1 else "")
-            plt.xlabel("")
-
-            if i == 1:
-                plt.legend()
-            else:
-                ax.legend().remove()
-
+            ax.set_title(f"{suite_name}")
+            ax.set_ylabel(feature_name_with_mean[:-5] if i == 0 else "")
+            ax.set_xlabel("")
             ax.set_ylim(global_min, global_max)
 
-        plt.suptitle(feature_name_with_mean)
+        # Adjust the layout to make space for the top legend
+        # plt.subplots_adjust(top=0.85, bottom=0.15)
         plt.tight_layout()
+
+        # Add legend after applying tight layout.
+        self.create_custom_legend_for_dimension(
+            fig=fig, marker_dict=marker_dict, bottom_box_anchor=-0.1
+        )
         if show_plot:
             plt.show()
 
@@ -1831,7 +1831,8 @@ class FeaturesDashboard:
             )
 
         # No need to include dimension in scaling.
-        cols.remove("D")
+        if "D" in cols:
+            cols.remove("D")
 
         print(f"This dataframe contains {len(cols)} features.")
 
@@ -1862,22 +1863,13 @@ class FeaturesDashboard:
 
         return df
 
-    def create_custom_legend_for_suite_and_dimension(
-        self, fig, df, marker_dict, special_d_values=[10, 20, 30]
+    def create_custom_legend_for_dimension(
+        self,
+        fig,
+        marker_dict,
+        special_d_values=[10, 20, 30],
+        bottom_box_anchor=-0.05,
     ):
-        suite_patches = [
-            mpatches.Patch(color=self.suite_color_map[suite], label=suite)
-            for suite in df["Suite"].unique()
-        ]
-        # Use fig.legend() to place the legend relative to the figure
-        suite_legend = fig.legend(
-            handles=suite_patches,
-            loc="upper center",
-            ncol=3,
-            bbox_to_anchor=(0.5, 1.1),
-            title="Suites",
-        )
-
         # Create legend for dimensions
         dim_patches = [
             mlines.Line2D(
@@ -1896,8 +1888,27 @@ class FeaturesDashboard:
             handles=dim_patches,
             loc="lower center",
             ncol=3,
-            bbox_to_anchor=(0.5, -0.05),
+            bbox_to_anchor=(0.5, bottom_box_anchor),
             title="Dimensions",
+        )
+
+    def create_custom_legend_for_suite(
+        self,
+        fig,
+        df,
+        top_box_anchor=1.1,
+    ):
+        suite_patches = [
+            mpatches.Patch(color=self.suite_color_map[suite], label=suite)
+            for suite in df["Suite"].unique()
+        ]
+        # Use fig.legend() to place the legend relative to the figure
+        suite_legend = fig.legend(
+            handles=suite_patches,
+            loc="upper center",
+            ncol=3,
+            bbox_to_anchor=(0.5, top_box_anchor),
+            title="Suites",
         )
 
     def plot_tSNE(
@@ -1955,14 +1966,15 @@ class FeaturesDashboard:
                     )
 
             ax.set_title(f"$t$-SNE with perplexity = {perplexity}")
-            ax.set_xlabel("Component 1")
-            ax.set_ylabel("Component 2")
             ax.grid()
 
-        # Create legend for suites and dimensions.
-        self.create_custom_legend_for_suite_and_dimension(
-            fig=fig, df=df_filtered, marker_dict=marker_dict
-        )
+        # Avoid repeated axis labels
+        axes[np.floor(len(axes) / 2).astype(int)].set_xlabel("Component 1 [--]")
+        axes[0].set_ylabel("Component 2 [--]")
+
+        # Create legend for suites and dimensions
+        self.create_custom_legend_for_dimension(fig=fig, marker_dict=marker_dict)
+        self.create_custom_legend_for_suite(fig=fig, df=df_filtered)
 
         plt.tight_layout()
         # Adjust the layout to make space for the top legend
@@ -2029,14 +2041,15 @@ class FeaturesDashboard:
                     )
 
             ax.set_title(f"UMAP with n_neighbors = {n_neighbor}")
-            ax.set_xlabel("Component 1")
-            ax.set_ylabel("Component 2")
             ax.grid()
 
+        # Avoid repeated axis labels
+        axes[np.floor(len(axes) / 2).astype(int)].set_xlabel("Component 1 [--]")
+        axes[0].set_ylabel("Component 2 [--]")
+
         # Create legend for suites and dimensions.
-        self.create_custom_legend_for_suite_and_dimension(
-            fig=fig, df=df_filtered, marker_dict=marker_dict
-        )
+        self.create_custom_legend_for_dimension(fig=fig, marker_dict=marker_dict)
+        self.create_custom_legend_for_suite(fig=fig, df=df_filtered)
 
         plt.tight_layout()
         # Adjust the layout to make space for the top legend
