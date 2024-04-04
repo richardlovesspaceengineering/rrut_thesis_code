@@ -593,6 +593,13 @@ class FeaturesDashboard:
             self.features_df, analysis_type=analysis_type
         )
 
+    def set_dashboard_dimensionality(self, d):
+
+        if not isinstance(d, list):
+            d = [d]
+
+        self.features_df = self.filter_df_by_suite_and_dim(self.features_df, dims=d)
+
     @staticmethod
     def get_features_for_analysis_type(df, analysis_type):
         """
@@ -1248,6 +1255,16 @@ class FeaturesDashboard:
         )  # Adjust layout to make room for the main title
         plt.show()
 
+    def calc_n_principal_compons_for_var(self, minimum_expl_variance):
+        # Find number of PCs required to explain a percentage of the variance (given as decimal)
+        expl_variance = np.cumsum(self.pca.explained_variance_ratio_)
+        num_pcs = int(np.argwhere(minimum_expl_variance < expl_variance)[0] + 1)
+
+        print(
+            f"We need {num_pcs} PCs to explain {minimum_expl_variance*100}% of the variance"
+        )
+        return num_pcs
+
     def run_pca(self, scaler_type="StandardScaler"):
 
         df = self.custom_drop_na(self.ignore_specified_features(self.features_df))
@@ -1265,14 +1282,7 @@ class FeaturesDashboard:
         self.pca = PCA()
         self.pca.fit(self.features_scaled)
 
-        # Find ideal number of PCs.
-        minimum_expl_variance = 0.8
-        expl_variance = np.cumsum(self.pca.explained_variance_ratio_)
-        num_pcs = int(np.argwhere(minimum_expl_variance < expl_variance)[0] + 1)
-
-        print(
-            f"We need {num_pcs} PCs to explain {minimum_expl_variance*100}% of the variance"
-        )
+        num_pcs = self.calc_n_principal_compons_for_var(minimum_expl_variance=0.8)
 
         return num_pcs
 
@@ -2195,3 +2205,62 @@ class FeaturesDashboard:
             plt.show()
 
         return g
+
+    def rank_each_feature(
+        self,
+        pca_var_expl=[0.7, 0.8, 0.9],
+        rf_test_sizes=[0, 0.2, 0.5],
+        coverage_suites=[None],
+    ):
+
+        # Initialise dataframe.
+        feature_ranks = pd.DataFrame(index=self.get_feature_names(ignore_features=True))
+
+        # Get sampling type.
+        feature_ranks["Type"] = feature_ranks.index.to_series().apply(
+            lambda x: (
+                "Global"
+                if "_glob" in x
+                else ("RW" if "_rw" in x else ("AW" if "_aw" in x else "Other"))
+            )
+        )
+
+        # Coverage rankings.
+        for s in coverage_suites:
+            coverages = self.get_feature_coverage(target_suite=s)
+            coverages["mean_coverage"] = coverages.mean(axis=1)
+            feature_ranks[f"Coverage_{s}"] = coverages["mean_coverage"].rank(
+                ascending=True
+            )
+
+        # PCA rankings. Need to rerun PCA quickly.
+        self.run_pca()
+        for var in pca_var_expl:
+            num_pcs = self.calc_n_principal_compons_for_var(minimum_expl_variance=var)
+            best_pca_cont = self.get_total_pca_contribution(
+                n_components=num_pcs, top_features=None, worst=False
+            )
+            feature_ranks[f"PCAVar{var*100:.0f}"] = best_pca_cont.rank(ascending=False)
+
+        # RF classification model feature importance rankings.
+        for t in rf_test_sizes:
+            self.train_random_forest(test_size=t)
+            best_rf_cont = self.get_feature_importances(top_features=None)
+            feature_ranks[f"RFTest{t*100:.0f}"] = best_rf_cont.rank(ascending=False)
+
+        # Compute means for each method.
+        col_names = ["Coverage", "PCA", "RF"]
+        for c in col_names:
+            cols = feature_ranks.columns[feature_ranks.columns.str.contains(c)]
+            feature_ranks[f"{c}Mean"] = feature_ranks[cols].mean(axis=1)
+
+        # Calculate overall mean rank.
+        feature_ranks["MeanRank"] = feature_ranks[[c + "Mean" for c in col_names]].mean(
+            axis=1
+        )
+
+        # Calculate overall ranks.
+        feature_ranks["RankOfRanks"] = feature_ranks["MeanRank"].rank(ascending=True)
+        feature_ranks = feature_ranks.sort_values(by="RankOfRanks", ascending=True)
+
+        return feature_ranks
