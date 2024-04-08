@@ -20,6 +20,7 @@ import matplotlib.patches as mpatches  # For custom legend
 import matplotlib.lines as mlines  # For custom legend lines
 import warnings
 import copy
+from cycler import cycler
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
@@ -44,7 +45,7 @@ def get_df_from_filepath(filepath, give_sd):
 
 
 class FeaturesDashboard:
-    def __init__(self, results_dict, new_save_path):
+    def __init__(self, results_dict, new_save_path, report_mode):
         """
         Initialize the FeaturesDashboard with a dictionary mapping problem names to lists of result storage folders.
         :param results_dict: Dictionary where keys are problem names and values are lists of storage folder names.
@@ -52,6 +53,11 @@ class FeaturesDashboard:
         """
         self.results_dict = results_dict
         self.new_save_path = new_save_path
+        self.report_mode = report_mode
+
+        # can be altered by the set_dashboard_analysis_type method
+        self.analysis_type = "all"
+
         # Initialize features_path_list as an empty list
         self.features_path_list = []
         # Base directory where instance results are stored
@@ -98,9 +104,8 @@ class FeaturesDashboard:
                 "CTSEI3",
                 "CTSEI4",
             ],
-            # "XA": [f"XA{x}" for x in range(2, 9, 1)],
+            "XA": [f"XA{x}" for x in range(2, 9, 1)],
         }
-        self.suite_color_map = self.generate_suite_colors()
 
         self.analytical_problems = [
             f
@@ -134,17 +139,94 @@ class FeaturesDashboard:
         self.pca = None
         self.features_to_ignore = []
 
-    def generate_suite_colors(self, cmap="Set1"):
-        # Get a list of unique suites
-        suites = list(self.suites_problems_dict.keys())
+        # Generate suite colours using custom colour palette.
+        self.apply_custom_colors()
+        self.suite_color_map = self.generate_suite_colors()
 
-        # Generate a color for each suite
-        colormap = plt.cm.get_cmap(
-            cmap, len(suites)
-        )  # Using 'tab20' colormap which has 20 unique colors
-        suite_colors = {suite: colormap(i) for i, suite in enumerate(suites)}
+    def generate_suite_colors(self):
+
+        # Get a list of unique suites
+        suites = list(self.get_suite_names(ignore_aerofoils=False))
+
+        # Get the color cycle from the current matplotlib style
+        colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
+
+        # Assign colors to suites, cycling through the color list if necessary
+        suite_colors = {
+            suite: colors[i + 1 % len(colors)] for i, suite in enumerate(suites)
+        }
 
         return suite_colors
+
+    def get_suite_names(self, ignore_aerofoils=False):
+
+        suite_names = list(self.suites_problems_dict.keys())
+
+        if ignore_aerofoils:
+            suite_names.remove("XA")
+
+        return suite_names
+
+    def check_dashboard_is_global_only_for_aerofoils(self, ignore_aerofoils):
+        if self.analysis_type == "glob" and not ignore_aerofoils:
+            print("Aerofoils are being considered for this global only feature set.")
+        elif self.analysis_type != "glob" and not ignore_aerofoils:
+            print(
+                f"Aerofoils have been specified for consideration, but the dataset for {self.analysis_type} samples is being considered. Restrict to global features only."
+            )
+        elif ignore_aerofoils:
+            print(
+                f"Aerofoils are being ignored for analysis type: {self.analysis_type}."
+            )
+
+    def define_plot_sizes(self):
+
+        self.plt_width_full = 6.3
+
+    def apply_custom_colors(self):
+        plt.rc(
+            "axes",
+            prop_cycle=cycler(
+                "color",
+                [
+                    "#000000",
+                    "#2394d6",
+                    "#dc3220",
+                    "#ffc20a",
+                    "#994f00",
+                    "#3c69e1",
+                    "#8bc34a",
+                    "#7d2e8d",
+                    "#e66100",
+                    "#595959",
+                    "#0e0354",
+                ],
+            ),
+        )
+
+    def apply_custom_matplotlib_style(self, fontsize=12, legendfontsize=10):
+        # Line settings
+        plt.rc("lines", linewidth=2.25, markersize=10)
+
+        # Axes settings
+        plt.rc(
+            "axes",
+            linewidth=1.75,
+            labelsize=fontsize,
+            titlesize=fontsize,
+        )
+
+        # Tick settings
+        plt.rc("xtick", labelsize=fontsize)
+        plt.rc("ytick", labelsize=fontsize)
+
+        # Legend settings
+        plt.rc("legend", fontsize=legendfontsize)
+
+        # Text settings
+        if self.report_mode:
+            plt.rc("text", usetex=True)
+            plt.rc("font", family="serif", serif=["Computer Modern"])
 
     @staticmethod
     def get_numerical_data_from_df(df, give_sd=False):
@@ -592,6 +674,7 @@ class FeaturesDashboard:
         self.features_df = self.get_features_for_analysis_type(
             self.features_df, analysis_type=analysis_type
         )
+        self.analysis_type = analysis_type
 
     def set_dashboard_dimensionality(self, d):
 
@@ -658,7 +741,12 @@ class FeaturesDashboard:
         return global_min, global_max
 
     def plot_feature_across_suites(
-        self, feature_name, suite_names=None, dims=None, show_plot=True
+        self,
+        feature_name,
+        suite_names=None,
+        dims=None,
+        show_plot=True,
+        ignore_aerofoils=True,
     ):
         """
         Generates a 1xN grid of violin plots for a specified feature across different suites, with points overlaying the violin plots.
@@ -667,18 +755,26 @@ class FeaturesDashboard:
         :param dims: A list of dimensions to plot.
         :param suite_names: Optional. A list of benchmark suite names to filter the features by.
         """
+
+        # Check data compatibility.
+        self.check_dashboard_is_global_only_for_aerofoils(
+            ignore_aerofoils=ignore_aerofoils
+        )
+
+        # Get plot style ready.
+        self.apply_custom_matplotlib_style()
+
         feature_name_with_mean = feature_name + "_mean"
 
         if not suite_names:
-            suite_names = list(self.suites_problems_dict.keys())
+            suite_names = self.get_suite_names(ignore_aerofoils=ignore_aerofoils)
 
         # Use the filtering method to get the filtered DataFrame based on suite names and dimensions
-        df_filtered, cols = self.get_filtered_df_for_dimension_reduced_plot(
-            analysis_type=None,
-            features=[feature_name_with_mean],
+        df_filtered = self.filter_df_by_suite_and_dim(
+            self.features_df,
             suite_names=suite_names,
-            dims=None,
-            use_analytical_problems=False,
+            dims=dims,
+            ignore_aerofoils=ignore_aerofoils,
         )
 
         # Define markers for different dimensions.
@@ -688,7 +784,7 @@ class FeaturesDashboard:
             df_filtered, feature_name_with_mean
         )
 
-        fig, axes = plt.subplots(1, len(suite_names), figsize=(15, 6), sharey=True)
+        fig, axes = plt.subplots(1, len(suite_names), figsize=(15, 4), sharey=True)
 
         for i, ax in enumerate(axes):
             suite_name = suite_names[i]
@@ -708,14 +804,14 @@ class FeaturesDashboard:
                 # Overlay sample size.
                 num_points = df_suite_filtered.shape[0]
                 ax.text(
+                    0.925,
                     0.95,
-                    0.95,
-                    f"n={num_points}",  # Position inside the subplot, top right corner
+                    rf"$n={num_points}$",  # Position inside the subplot, top right corner
                     verticalalignment="top",
                     horizontalalignment="right",
                     transform=ax.transAxes,  # Coordinate system relative to the axes
                     color="black",
-                    fontsize=10,
+                    fontsize=8,
                 )
 
                 # Overlay points for each suite.
@@ -731,13 +827,16 @@ class FeaturesDashboard:
                                 suite_name
                             ],  # Default to gray if suite not in colors
                             marker=marker_dict[dim],
-                            size=5,
-                            alpha=0.8,
+                            size=4,
+                            alpha=0.9,
                             jitter=True,
                         )
 
+            ax.grid(False)
             ax.set_title(f"{suite_name}")
-            ax.set_ylabel(feature_name_with_mean[:-5] if i == 0 else "")
+            ax.set_ylabel(
+                r"\texttt{" + feature_name_with_mean[:-5] + "}" if i == 0 else ""
+            )
             ax.set_xlabel("")
             ax.set_ylim(global_min, global_max)
 
@@ -748,6 +847,11 @@ class FeaturesDashboard:
         # Add legend after applying tight layout.
         self.create_custom_legend_for_dimension(
             fig=fig, marker_dict=marker_dict, bottom_box_anchor=-0.1
+        )
+        plt.savefig(
+            "../../rrut_thesis_report/Figures/test.pdf",
+            format="pdf",
+            bbox_inches="tight",
         )
         if show_plot:
             plt.show()
@@ -801,12 +905,19 @@ class FeaturesDashboard:
         dims=None,
         suite_names=None,
         method="pearson",
+        ignore_aerofoils=True,
     ):
         """
         Returns the top n correlation pairs from the correlation matrix, sorted by absolute correlation value.
 
         :param n: Number of top correlation pairs to return.
         """
+
+        # Check data compatibility.
+        self.check_dashboard_is_global_only_for_aerofoils(
+            ignore_aerofoils=ignore_aerofoils
+        )
+
         correlation_matrix = self.get_correlation_matrix(
             analysis_type,
             ignore_features,
@@ -832,9 +943,9 @@ class FeaturesDashboard:
         au_corr_df = au_corr.reset_index()
         au_corr_df.columns = ["Variable 1", "Variable 2", "Overall"]
 
-        # Get a list of all suites if not provided
+        # Get a list of all suites if not provided.
         if not suite_names:
-            suite_names = self.suites_problems_dict.keys()
+            suite_names = self.get_suite_names(ignore_aerofoils=ignore_aerofoils)
 
         # Iterate over each suite and calculate correlation for top pairs
         for suite in suite_names:
@@ -1027,7 +1138,7 @@ class FeaturesDashboard:
         marker_type = "o"
 
         if not suite_names:
-            suite_names = self.suites_problems_dict.keys()
+            suite_names = self.get_suite_names(ignore_aerofoils=False)
 
         if not dims:
             dims = [5, 10, 20, 30]  # Default dimensions if none provided
@@ -1125,8 +1236,9 @@ class FeaturesDashboard:
         ]
         self.plot_multiple_features_across_suites(feature_names)
 
-    @staticmethod
-    def filter_df_by_suite_and_dim(df, suite_names=None, dims=None):
+    def filter_df_by_suite_and_dim(
+        self, df, suite_names=None, dims=None, ignore_aerofoils=True
+    ):
         """
         Filters the features DataFrame based on specified suite names and dimensions.
         :param suite_names: List of suite names to filter by. If None, no suite-based filtering is applied.
@@ -1139,6 +1251,10 @@ class FeaturesDashboard:
         # Filter by suite if suite_names is specified
         if suite_names:
             df_filtered = df_filtered[df_filtered["Suite"].isin(suite_names)]
+
+        # Always remove aerofoils unless we are looking at global features.
+        if ignore_aerofoils:
+            df_filtered = df_filtered[df_filtered["Suite"] != "XA"]
 
         # Filter by dimension if dims is specified
         if dims:
@@ -1158,7 +1274,7 @@ class FeaturesDashboard:
         feature_y = feature_y + "_mean"
 
         if not suite_names:
-            suite_names = self.suites_problems_dict.keys()
+            suite_names = self.get_suite_names(ignore_aerofoils=False)
 
         if not dims:
             dims = [5, 10, 20, 30]
@@ -1604,8 +1720,18 @@ class FeaturesDashboard:
         plt.show()
 
     def get_feature_coverage(
-        self, target_suite=None, analysis_type=None, features=None, ignore_features=True
+        self,
+        target_suite=None,
+        analysis_type=None,
+        features=None,
+        ignore_features=True,
+        ignore_aerofoils=True,
     ):
+
+        # Check data compatibility.
+        self.check_dashboard_is_global_only_for_aerofoils(
+            ignore_aerofoils=ignore_aerofoils
+        )
 
         df = self.features_df
 
@@ -1625,16 +1751,25 @@ class FeaturesDashboard:
                 col for col in df.columns if col not in ["Name", "D", "Date", "Suite"]
             ]
 
+        # Initialize a DataFrame to store coverage values
+        suites = list(
+            set(df["Suite"].unique()).intersection(
+                set(self.get_suite_names(ignore_aerofoils=ignore_aerofoils))
+            )
+        )
+        if target_suite is not None:
+            # Exclude the target suite
+            suites = [s for s in suites if s != target_suite]
+        coverage_values = pd.DataFrame(index=features, columns=suites)
+
         # Normalize the features. Drop any NaNs
-        df = self.custom_drop_na(df)
+        df = self.custom_drop_na(
+            self.filter_df_by_suite_and_dim(
+                df, suite_names=suites, dims=None, ignore_aerofoils=ignore_aerofoils
+            )
+        )
         scaler = MinMaxScaler()
         df.loc[:, features] = scaler.fit_transform(df[features])
-
-        # Initialize a DataFrame to store coverage values
-        suites = df["Suite"].unique()
-        if target_suite is not None:
-            suites = suites[suites != target_suite]  # Exclude the target suite
-        coverage_values = pd.DataFrame(index=features, columns=suites)
 
         # Calculate coverage for each feature against the target suite for each non-target suite
         for suite in suites:
@@ -1659,7 +1794,11 @@ class FeaturesDashboard:
         return coverage_values
 
     def get_top_coverage_features(
-        self, coverage_values, worst=True, top_features=None, aslist=True
+        self,
+        coverage_values,
+        worst=True,
+        top_features=None,
+        aslist=True,
     ):
         """
         Identify the top features with poor coverage and generate a parallel coordinates plot for them.
@@ -1692,7 +1831,12 @@ class FeaturesDashboard:
             return features_to_plot
 
     def plot_coverage_heatmap(
-        self, target_suite=None, analysis_type=None, features=None, ignore_features=True
+        self,
+        target_suite=None,
+        analysis_type=None,
+        features=None,
+        ignore_features=True,
+        ignore_aerofoils=True,
     ):
         """
         Calculate and plot the coverage heatmap.
@@ -1707,6 +1851,7 @@ class FeaturesDashboard:
             analysis_type=analysis_type,
             features=features,
             ignore_features=ignore_features,
+            ignore_aerofoils=ignore_aerofoils,
         )
 
         suites = coverage_values.columns
@@ -1814,12 +1959,15 @@ class FeaturesDashboard:
         suite_names=None,
         dims=None,
         use_analytical_problems=False,
+        ignore_aerofoils=True,
     ):
+
         df_filtered = self.custom_drop_na(
             self.filter_df_by_suite_and_dim(
                 self.ignore_specified_features(self.features_df),
                 suite_names=suite_names,
                 dims=dims,
+                ignore_aerofoils=ignore_aerofoils,
             )
         )
 
@@ -1833,7 +1981,12 @@ class FeaturesDashboard:
         else:
             cols = df_filtered.select_dtypes(include=[np.number]).columns.tolist()
 
-        cols = [c for c in cols if not df_filtered[c].nunique() == 1]
+        # Remove solver-crash related features from consideration to not affect the results; also remove constant columns.
+        cols = [
+            c
+            for c in cols
+            if "scr" not in c and "ncr" not in c and not df_filtered[c].nunique() == 1
+        ]
 
         if use_analytical_problems:
             df_filtered["Suite"] = df_filtered["Suite"].apply(
@@ -1878,7 +2031,7 @@ class FeaturesDashboard:
         fig,
         marker_dict,
         special_d_values=[5, 10, 20, 30],
-        bottom_box_anchor=-0.05,
+        bottom_box_anchor=-0.1,
     ):
         # Create legend for dimensions
         dim_patches = [
@@ -1888,7 +2041,7 @@ class FeaturesDashboard:
                 color="black",
                 marker=marker_dict[d],
                 linestyle="None",
-                markersize=8,
+                markersize=6,
                 label=d,
             )
             for d in special_d_values
@@ -1903,23 +2056,40 @@ class FeaturesDashboard:
         )
 
     def create_custom_legend_for_suite(
-        self,
-        fig,
-        df,
-        top_box_anchor=1.1,
+        self, fig, df, top_box_anchor=1.15, ignore_aerofoils=True
     ):
+
+        suites = [
+            s
+            for s in self.get_suite_names(ignore_aerofoils=False)
+            if s in df["Suite"].unique()
+        ]
+        if ignore_aerofoils:
+            suites = [s for s in suites if s != "XA"]
+            ncol = 3
+        else:
+            top_box_anchor = top_box_anchor - 0.075
+            ncol = 5
+
         suite_patches = [
             mpatches.Patch(color=self.suite_color_map[suite], label=suite)
-            for suite in df["Suite"].unique()
+            for suite in suites
         ]
+
         # Use fig.legend() to place the legend relative to the figure
         suite_legend = fig.legend(
             handles=suite_patches,
             loc="upper center",
-            ncol=3,
+            ncol=ncol,
             bbox_to_anchor=(0.5, top_box_anchor),
             title="Suites",
         )
+
+    def apply_custom_grid(self, ax):
+        # Grid
+        ax.grid(True, which="major", linestyle="-", linewidth=0.75, zorder=0)
+        ax.minorticks_on()
+        ax.grid(True, which="minor", linestyle="--", linewidth=0.15, zorder=0)
 
     def plot_tSNE(
         self,
@@ -1928,10 +2098,18 @@ class FeaturesDashboard:
         suite_names=None,
         dims=None,
         scaler_type="MinMaxScaler",
-        colormap="Set1",
         use_analytical_problems=False,
+        ignore_aerofoils=True,
         perplexities=[10, 30, 60],  # Add perplexities as an optional argument
     ):
+
+        # Check data compatibility.
+        self.check_dashboard_is_global_only_for_aerofoils(
+            ignore_aerofoils=ignore_aerofoils
+        )
+
+        # Get plot style ready.
+        self.apply_custom_matplotlib_style()
 
         # Extract required data.
         df_filtered, cols = self.get_filtered_df_for_dimension_reduced_plot(
@@ -1940,6 +2118,7 @@ class FeaturesDashboard:
             suite_names=suite_names,
             dims=dims,
             use_analytical_problems=use_analytical_problems,
+            ignore_aerofoils=ignore_aerofoils,
         )
 
         # We will use different markers for each dimension.
@@ -1973,10 +2152,11 @@ class FeaturesDashboard:
                         color=self.suite_color_map[suite],
                         s=6,
                         marker=marker_dict[d_value],
+                        zorder=3,  # renders on top of grid
                     )
 
             ax.set_title(f"$t$-SNE with perplexity = {perplexity}")
-            ax.grid()
+            self.apply_custom_grid(ax=ax)
 
         # Avoid repeated axis labels
         axes[np.floor(len(axes) / 2).astype(int)].set_xlabel("Component 1 [--]")
@@ -1984,7 +2164,9 @@ class FeaturesDashboard:
 
         # Create legend for suites and dimensions
         self.create_custom_legend_for_dimension(fig=fig, marker_dict=marker_dict)
-        self.create_custom_legend_for_suite(fig=fig, df=df_filtered)
+        self.create_custom_legend_for_suite(
+            fig=fig, df=df_filtered, ignore_aerofoils=ignore_aerofoils
+        )
 
         plt.tight_layout()
         # Adjust the layout to make space for the top legend
@@ -2001,9 +2183,20 @@ class FeaturesDashboard:
         colormap="Set1",
         use_analytical_problems=False,
         n_neighbors=[15, 30, 60],
-        min_dist=0.1,
+        min_dist=0.2,
         random_state=42,
+        ignore_aerofoils=True,
+        train_with_aerofoils=False,
     ):
+
+        # Get plot style ready.
+        self.apply_custom_matplotlib_style()
+
+        # Check data compatibility.
+        self.check_dashboard_is_global_only_for_aerofoils(
+            ignore_aerofoils=ignore_aerofoils
+        )
+
         # Extract required data.
         df_filtered, cols = self.get_filtered_df_for_dimension_reduced_plot(
             analysis_type=analysis_type,
@@ -2011,6 +2204,7 @@ class FeaturesDashboard:
             suite_names=suite_names,
             dims=dims,
             use_analytical_problems=use_analytical_problems,
+            ignore_aerofoils=ignore_aerofoils,
         )
 
         # We will use different markers for each dimension.
@@ -2035,7 +2229,16 @@ class FeaturesDashboard:
                 n_jobs=1,
                 random_state=random_state,
             )
-            umap_results = umap_model.fit_transform(df_filtered[cols])
+
+            # Fit UMAP to data without aerofoils.
+
+            if not train_with_aerofoils and self.analysis_type == "glob":
+                umap_model.fit(df_filtered.loc[df_filtered["Suite"] != "XA", cols])
+
+                # Show results for all suites.
+                umap_results = umap_model.transform(df_filtered[cols])
+            else:
+                umap_results = umap_model.fit_transform(df_filtered[cols])
 
             for suite in df_filtered["Suite"].unique():
                 for d_value in unique_d_values:
@@ -2048,10 +2251,15 @@ class FeaturesDashboard:
                         color=self.suite_color_map[suite],
                         s=6,
                         marker=marker_dict[d_value],
+                        zorder=3,  # renders on top of grid
                     )
 
             ax.set_title(f"UMAP with n_neighbors = {n_neighbor}")
-            ax.grid()
+
+            # Grid
+            ax.grid(True, which="major", linestyle="-", linewidth=0.75)
+            ax.minorticks_on()
+            ax.grid(True, which="minor", linestyle="--", linewidth=0.15)
 
         # Avoid repeated axis labels
         axes[np.floor(len(axes) / 2).astype(int)].set_xlabel("Component 1 [--]")
@@ -2059,20 +2267,29 @@ class FeaturesDashboard:
 
         # Create legend for suites and dimensions.
         self.create_custom_legend_for_dimension(fig=fig, marker_dict=marker_dict)
-        self.create_custom_legend_for_suite(fig=fig, df=df_filtered)
+        self.create_custom_legend_for_suite(
+            fig=fig, df=df_filtered, ignore_aerofoils=ignore_aerofoils
+        )
 
         plt.tight_layout()
         # Adjust the layout to make space for the top legend
         plt.subplots_adjust(top=0.85, bottom=0.15)
         plt.show()
 
-    def train_random_forest(self, test_size=0.3, random_state=42):
+    def train_random_forest(
+        self, test_size=0.3, random_state=42, ignore_aerofoils=True
+    ):
         """
         Train a Random Forest classifier to predict 'Suite' from the features.
 
         :param test_size: Fraction of the dataset to be used as test data.
         :param random_state: Seed used by the random number generator.
         """
+
+        # Check data compatibility.
+        self.check_dashboard_is_global_only_for_aerofoils(
+            ignore_aerofoils=ignore_aerofoils
+        )
 
         # Ensure that 'Suite' is one of the columns in the dataframe
         if "Suite" not in self.features_df.columns:
@@ -2084,6 +2301,7 @@ class FeaturesDashboard:
                 self.ignore_specified_features(self.features_df),
                 suite_names=None,
                 dims=None,
+                ignore_aerofoils=ignore_aerofoils,
             )
         )
 
@@ -2227,6 +2445,7 @@ class FeaturesDashboard:
 
         # Coverage rankings.
         for s in coverage_suites:
+            print(s)
             coverages = self.get_feature_coverage(target_suite=s)
             coverages["mean_coverage"] = coverages.mean(axis=1)
             feature_ranks[f"Coverage_{s}"] = coverages["mean_coverage"].rank(
