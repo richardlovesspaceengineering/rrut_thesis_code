@@ -21,6 +21,7 @@ import matplotlib.lines as mlines  # For custom legend lines
 import warnings
 import copy
 from cycler import cycler
+from matplotlib.colors import ListedColormap
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
@@ -1660,10 +1661,11 @@ class FeaturesDashboard:
         self,
         class_column="Suite",
         separate_rw_analytical=False,
+        suite_in_focus=None,
         features=None,
         suite_names=None,
         dims=None,
-        colormap="Set1",
+        ignore_features=True,
     ):
         """
         Generate a parallel coordinates plot.
@@ -1679,6 +1681,9 @@ class FeaturesDashboard:
             self.features_df, suite_names=suite_names, dims=dims
         )
 
+        if ignore_features:
+            df_filtered = self.ignore_specified_features(df_filtered)
+
         if features:
             cols = [
                 f"{f}_mean" if f"{f}_mean" in df_filtered.columns else f
@@ -1688,7 +1693,10 @@ class FeaturesDashboard:
             cols = df_filtered.select_dtypes(include=[np.number]).columns.tolist()
 
         cols = list(set(cols + [class_column]))
-        features_to_normalize = [col for col in cols if col not in ["D", "Suite"]]
+
+        if "D" in cols:
+            cols.remove("D")  # no need to consider dimension
+        features_to_normalize = [col for col in cols if col not in ["Suite"]]
 
         scaler = MinMaxScaler()
         df_filtered[features_to_normalize] = scaler.fit_transform(
@@ -1705,13 +1713,56 @@ class FeaturesDashboard:
 
         data_to_plot = df_filtered[cols]
 
+        # Create a colormap object from the suite colors
+        unique_suites = self.get_suite_names(ignore_aerofoils=False)
+        suite_colors = [self.suite_color_map[suite] for suite in unique_suites]
+
+        # Create a categorical type based on the custom order - this helps in sorting the DataFrame
+        data_to_plot.loc[:, "Suite"] = pd.Categorical(
+            data_to_plot["Suite"], categories=unique_suites, ordered=True
+        )
+
+        # Sort the DataFrame by 'Suite' to ensure it follows the custom order
+        data_to_plot = data_to_plot.sort_values("Suite")
+
+        # Sort the DataFrame to ensure the suite_in_focus is at the end
+        if suite_in_focus is not None:
+            # Create a boolean series to determine if each row is in the suite_in_focus
+            is_suite_in_focus = data_to_plot["Suite"] == suite_in_focus
+
+            # Split the DataFrame into two: one for the suite_in_focus and one for the others
+            df_suite_in_focus = data_to_plot[is_suite_in_focus]
+            df_others = data_to_plot[~is_suite_in_focus]
+
+            # Concatenate the DataFrames, placing the suite_in_focus at the end
+            data_to_plot = pd.concat([df_others, df_suite_in_focus])
+
+            # Update suite_colors to have the suite_in_focus color last
+            suite_colors = [
+                (
+                    "grey"
+                    if suite != suite_in_focus
+                    else self.suite_color_map[suite_in_focus]
+                )
+                for suite in unique_suites
+            ]
+            suite_colors.sort(key=lambda x: x == self.suite_color_map[suite_in_focus])
+
+        # Create a colormap with the updated colors
+        colormap = ListedColormap(suite_colors)
+
         if class_column not in data_to_plot.columns:
             raise ValueError(
                 f"The specified class_column '{class_column}' does not exist in the DataFrame."
             )
 
         plt.figure(figsize=(12, 9))
-        parallel_coordinates(data_to_plot, class_column, colormap=colormap, alpha=0.8)
+        parallel_coordinates(
+            data_to_plot,
+            class_column,
+            colormap=colormap,
+            alpha=0.8,
+        )
         plt.title("Parallel Coordinates Plot")
         plt.xlabel("Features")
         plt.ylabel("Values")
@@ -1765,7 +1816,7 @@ class FeaturesDashboard:
         # Normalize the features. Drop any NaNs
         df = self.custom_drop_na(
             self.filter_df_by_suite_and_dim(
-                df, suite_names=suites, dims=None, ignore_aerofoils=ignore_aerofoils
+                df, suite_names=None, dims=None, ignore_aerofoils=ignore_aerofoils
             )
         )
         scaler = MinMaxScaler()
@@ -1862,9 +1913,15 @@ class FeaturesDashboard:
         fig_height = max(8, len(features) * 0.4)
 
         plt.figure(figsize=(fig_width, fig_height))
-        cmap = LinearSegmentedColormap.from_list(
-            "custom_blue", ["blue", "white"], N=256
-        )
+
+        if target_suite is None:
+            cmap = LinearSegmentedColormap.from_list(
+                "custom_blue", ["blue", "white"], N=256
+            )
+        else:
+            cmap = LinearSegmentedColormap.from_list(
+                "custom", [self.suite_color_map[target_suite], "white"], N=256
+            )
         sns.heatmap(
             coverage_values.astype(float),
             annot=False,
@@ -2482,4 +2539,4 @@ class FeaturesDashboard:
         feature_ranks["RankOfRanks"] = feature_ranks["MeanRank"].rank(ascending=True)
         feature_ranks = feature_ranks.sort_values(by="RankOfRanks", ascending=True)
 
-        return feature_ranks
+        return feature_ranksD
