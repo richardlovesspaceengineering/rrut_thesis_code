@@ -22,6 +22,7 @@ import warnings
 import copy
 from cycler import cycler
 from matplotlib.colors import ListedColormap
+import re
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
@@ -1264,12 +1265,27 @@ class FeaturesDashboard:
         return df_filtered
 
     def plot_features_comparison(
-        self, feature_x, feature_y, color_by="dimension", suite_names=None, dims=None
+        self,
+        feature_x,
+        feature_y,
+        suite_names=None,
+        dims=None,
+        ignore_aerofoils=True,
+        use_analytical_problems=False,
+        figsize=(10, 6),
     ):
         """
         Plots two features against each other, with point colors corresponding to either dimension or suite.
         Allows specifying suite names and dimensions for slicing the data before plotting.
         """
+
+        # Get plot style ready.
+        self.apply_custom_matplotlib_style()
+
+        # Check data compatibility.
+        self.check_dashboard_is_global_only_for_aerofoils(
+            ignore_aerofoils=ignore_aerofoils
+        )
 
         feature_x = feature_x + "_mean"
         feature_y = feature_y + "_mean"
@@ -1277,50 +1293,62 @@ class FeaturesDashboard:
         if not suite_names:
             suite_names = self.get_suite_names(ignore_aerofoils=False)
 
-        if not dims:
-            dims = [5, 10, 20, 30]
-
-        filtered_df = self.filter_df_by_suite_and_dim(
-            self.features_df, suite_names, dims
+        # Extract required data.
+        df_filtered, cols = self.get_filtered_df_for_dimension_reduced_plot(
+            analysis_type=None,
+            features=[feature_x, feature_y],
+            suite_names=suite_names,
+            dims=dims,
+            use_analytical_problems=use_analytical_problems,
+            ignore_aerofoils=ignore_aerofoils,
         )
 
-        if color_by not in ["dimension", "suite"]:
-            raise ValueError("color_by must be either 'dimension' or 'suite'.")
-
-        # Setup color mapping
-        if color_by == "dimension":
-            color_by = "D"
-            unique_values = filtered_df["D"].unique()
-            palette = sns.color_palette("hsv", len(unique_values))
-            color_map = dict(zip(unique_values, palette))
-            hue_order = sorted(unique_values)
-        else:  # color_by == 'suite'
-            color_by = "Suite"
-            unique_values = filtered_df["Suite"].unique()
-            palette = sns.color_palette("coolwarm", len(unique_values))
-            color_map = dict(zip(unique_values, palette))
-            hue_order = sorted(unique_values)
+        # We will use different markers for each dimension.
+        marker_dict, unique_d_values = self.get_dimension_markers(df=df_filtered)
 
         # Plotting
-        plt.figure(figsize=(10, 6))
-        sns.scatterplot(
-            data=filtered_df,
-            x=feature_x,
-            y=feature_y,
-            hue=color_by,
-            palette=color_map,
-            hue_order=hue_order,
-            s=50,
-            alpha=0.7,
-            edgecolor="none",
-        )
+        fig, ax = plt.subplots(figsize=figsize)
+
+        for suite in df_filtered["Suite"].unique():
+            for d_value in unique_d_values:
+                indices = (df_filtered["Suite"] == suite) & (
+                    df_filtered["D"] == d_value
+                )
+                x_values = df_filtered[indices][feature_x]
+                y_values = df_filtered[indices][feature_y]
+                names = df_filtered[indices]["Name"]
+
+                sc = ax.scatter(
+                    x_values,
+                    y_values,
+                    color=self.suite_color_map[suite],
+                    s=20,
+                    marker=marker_dict[d_value],
+                    zorder=3,  # renders on top of grid
+                )
+
+                # Annotate each point with the number extracted from the "Name" column
+                for i, txt in enumerate(names):
+                    num = re.search(r"(\d+)_", txt).group(1)
+                    ax.annotate(
+                        num,
+                        (x_values.iloc[i], y_values.iloc[i]),
+                        textcoords="offset points",
+                        xytext=(0, 5),
+                        ha="center",
+                    )
+
         plt.title(f"{feature_y} vs. {feature_x}")
         plt.xlabel(feature_x)
         plt.ylabel(feature_y)
-        plt.legend(
-            title=color_by.capitalize(), bbox_to_anchor=(1.05, 1), loc="upper left"
+        self.create_custom_legend_for_dimension(fig=fig, marker_dict=marker_dict)
+        self.create_custom_legend_for_suite(
+            fig=fig, df=df_filtered, ignore_aerofoils=ignore_aerofoils
         )
         plt.tight_layout()
+
+        # Adjust the layout to make space for the top legend
+        # plt.subplots_adjust(top=1, bottom=0)
         plt.show()
 
     def plot_problem_features(
@@ -2017,6 +2045,7 @@ class FeaturesDashboard:
         dims=None,
         use_analytical_problems=False,
         ignore_aerofoils=True,
+        ignore_scr=True,
     ):
 
         df_filtered = self.custom_drop_na(
@@ -2039,11 +2068,15 @@ class FeaturesDashboard:
             cols = df_filtered.select_dtypes(include=[np.number]).columns.tolist()
 
         # Remove solver-crash related features from consideration to not affect the results; also remove constant columns.
-        cols = [
-            c
-            for c in cols
-            if "scr" not in c and "ncr" not in c and not df_filtered[c].nunique() == 1
-        ]
+
+        if ignore_scr:
+            cols = [
+                c
+                for c in cols
+                if "scr" not in c
+                and "ncr" not in c
+                and not df_filtered[c].nunique() == 1
+            ]
 
         if use_analytical_problems:
             df_filtered["Suite"] = df_filtered["Suite"].apply(
