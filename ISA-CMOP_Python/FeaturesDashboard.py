@@ -1273,6 +1273,9 @@ class FeaturesDashboard:
         ignore_aerofoils=True,
         use_analytical_problems=False,
         figsize=(10, 6),
+        text_annotations_for_suites=None,
+        zoom_to_suite=None,
+        zoom_margin=0.2,
     ):
         """
         Plots two features against each other, with point colors corresponding to either dimension or suite.
@@ -1301,6 +1304,8 @@ class FeaturesDashboard:
             dims=dims,
             use_analytical_problems=use_analytical_problems,
             ignore_aerofoils=ignore_aerofoils,
+            ignore_scr=False,
+            ignore_features=False,
         )
 
         # We will use different markers for each dimension.
@@ -1308,6 +1313,9 @@ class FeaturesDashboard:
 
         # Plotting
         fig, ax = plt.subplots(figsize=figsize)
+
+        # Bounds for zooming initialisation.
+        min_x, max_x, min_y, max_y = np.inf, -np.inf, np.inf, -np.inf
 
         for suite in df_filtered["Suite"].unique():
             for d_value in unique_d_values:
@@ -1327,16 +1335,43 @@ class FeaturesDashboard:
                     zorder=3,  # renders on top of grid
                 )
 
-                # Annotate each point with the number extracted from the "Name" column
-                for i, txt in enumerate(names):
-                    num = re.search(r"(\d+)_", txt).group(1)
-                    ax.annotate(
-                        num,
-                        (x_values.iloc[i], y_values.iloc[i]),
-                        textcoords="offset points",
-                        xytext=(0, 5),
-                        ha="center",
-                    )
+                # Check if this is the suite to zoom into
+                if (
+                    zoom_to_suite is not None
+                    and suite == zoom_to_suite
+                    and len(names) > 0
+                ):
+                    min_x = min(min_x, x_values.min())
+                    max_x = max(max_x, x_values.max())
+                    min_y = min(min_y, y_values.min())
+                    max_y = max(max_y, y_values.max())
+
+                # Annotate each point with the extracted number
+                if text_annotations_for_suites is not None:
+                    if suite in text_annotations_for_suites:
+                        for i, txt in enumerate(names):
+                            num = re.search(r"([^\d]+)(\d+)_", txt).group(2)
+                            ax.annotate(
+                                num,
+                                (x_values[i], y_values[i]),
+                                textcoords="offset points",
+                                xytext=(0, 5),
+                                ha="center",
+                            )
+
+        if zoom_to_suite is not None:
+            # Set the zoom into the suite
+            ax.set_xlim(
+                min_x - zoom_margin * (max_x - min_x),
+                max_x + zoom_margin * (max_x - min_x),
+            )  # Add a margin
+            ax.set_ylim(
+                min_y - zoom_margin * (max_y - min_y),
+                max_y + zoom_margin * (max_y - min_y),
+            )
+
+        # Grid
+        self.apply_custom_grid(ax=ax)
 
         plt.title(f"{feature_y} vs. {feature_x}")
         plt.xlabel(feature_x)
@@ -1768,7 +1803,7 @@ class FeaturesDashboard:
             # Update suite_colors to have the suite_in_focus color last
             suite_colors = [
                 (
-                    "grey"
+                    "#9e9b9b"
                     if suite != suite_in_focus
                     else self.suite_color_map[suite_in_focus]
                 )
@@ -1784,16 +1819,26 @@ class FeaturesDashboard:
                 f"The specified class_column '{class_column}' does not exist in the DataFrame."
             )
 
-        plt.figure(figsize=(12, 9))
+        fig, ax = plt.subplots(figsize=(12, 9))
+        self.apply_custom_matplotlib_style()
         parallel_coordinates(
             data_to_plot,
             class_column,
             colormap=colormap,
             alpha=0.8,
+            ax=ax,
+            linewidth=plt.rcParams["lines.linewidth"],
         )
-        plt.title("Parallel Coordinates Plot")
+
+        if suite_in_focus is None:
+            title_text = "Parallel Coordinates Plot"
+        else:
+            ax.legend_.remove()
+            title_text = suite_in_focus
+
+        plt.title(title_text)
         plt.xlabel("Features")
-        plt.ylabel("Values")
+        plt.ylabel("Normalised Values")
         plt.xticks(rotation=90)
         plt.grid(True)
         plt.show()
@@ -2045,17 +2090,24 @@ class FeaturesDashboard:
         dims=None,
         use_analytical_problems=False,
         ignore_aerofoils=True,
+        ignore_features=True,
         ignore_scr=True,
     ):
 
-        df_filtered = self.custom_drop_na(
-            self.filter_df_by_suite_and_dim(
-                self.ignore_specified_features(self.features_df),
-                suite_names=suite_names,
-                dims=dims,
-                ignore_aerofoils=ignore_aerofoils,
-            )
+        df = self.features_df
+
+        if ignore_features:
+            df = self.ignore_specified_features(df)
+
+        df_filtered = self.filter_df_by_suite_and_dim(
+            df,
+            suite_names=suite_names,
+            dims=dims,
+            ignore_aerofoils=ignore_aerofoils,
         )
+
+        if ignore_features:
+            df_filtered = self.custom_drop_na(df_filtered)
 
         if analysis_type:
             df_filtered = self.get_features_for_analysis_type(
@@ -2191,6 +2243,9 @@ class FeaturesDashboard:
         use_analytical_problems=False,
         ignore_aerofoils=True,
         perplexities=[10, 30, 60],  # Add perplexities as an optional argument
+        text_annotations_for_suites=None,
+        zoom_to_suite=None,
+        zoom_margin=0.2,
     ):
 
         # Check data compatibility.
@@ -2231,19 +2286,61 @@ class FeaturesDashboard:
             tsne = TSNE(n_components=2, random_state=0, perplexity=perplexity)
             tsne_results = tsne.fit_transform(df_filtered[cols])
 
+            # Bounds for zooming initialisation.
+            min_x, max_x, min_y, max_y = np.inf, -np.inf, np.inf, -np.inf
+
             for suite in df_filtered["Suite"].unique():
                 for d_value in unique_d_values:
                     indices = (df_filtered["Suite"] == suite) & (
                         df_filtered["D"] == d_value
                     )
-                    ax.scatter(
-                        tsne_results[indices, 0],
-                        tsne_results[indices, 1],
+                    x_values = tsne_results[indices, 0]
+                    y_values = tsne_results[indices, 1]
+                    names = df_filtered[indices]["Name"]
+
+                    sc = ax.scatter(
+                        x_values,
+                        y_values,
                         color=self.suite_color_map[suite],
                         s=6,
                         marker=marker_dict[d_value],
                         zorder=3,  # renders on top of grid
                     )
+
+                    # Check if this is the suite to zoom into
+                    if (
+                        zoom_to_suite is not None
+                        and suite == zoom_to_suite
+                        and len(names) > 0
+                    ):
+                        min_x = min(min_x, x_values.min())
+                        max_x = max(max_x, x_values.max())
+                        min_y = min(min_y, y_values.min())
+                        max_y = max(max_y, y_values.max())
+
+                    # Annotate each point with the extracted number
+                    if text_annotations_for_suites is not None:
+                        if suite in text_annotations_for_suites:
+                            for i, txt in enumerate(names):
+                                num = re.search(r"([^\d]+)(\d+)_", txt).group(2)
+                                ax.annotate(
+                                    num,
+                                    (x_values[i], y_values[i]),
+                                    textcoords="offset points",
+                                    xytext=(0, 5),
+                                    ha="center",
+                                )
+
+            if zoom_to_suite is not None:
+                # Set the zoom into the suite
+                ax.set_xlim(
+                    min_x - zoom_margin * (max_x - min_x),
+                    max_x + zoom_margin * (max_x - min_x),
+                )  # Add a margin
+                ax.set_ylim(
+                    min_y - zoom_margin * (max_y - min_y),
+                    max_y + zoom_margin * (max_y - min_y),
+                )
 
             ax.set_title(f"$t$-SNE with perplexity = {perplexity}")
             self.apply_custom_grid(ax=ax)
@@ -2270,13 +2367,15 @@ class FeaturesDashboard:
         suite_names=None,
         dims=None,
         scaler_type="MinMaxScaler",
-        colormap="Set1",
         use_analytical_problems=False,
         n_neighbors=[15, 30, 60],
         min_dist=0.2,
         random_state=42,
         ignore_aerofoils=True,
         train_with_aerofoils=False,
+        text_annotations_for_suites=None,
+        zoom_to_suite=None,
+        zoom_margin=0.2,
     ):
 
         # Get plot style ready.
@@ -2320,9 +2419,8 @@ class FeaturesDashboard:
                 random_state=random_state,
             )
 
-            # Fit UMAP to data without aerofoils.
-
             if not train_with_aerofoils and self.analysis_type == "glob":
+                # Fit UMAP to data without aerofoils.
                 umap_model.fit(df_filtered.loc[df_filtered["Suite"] != "XA", cols])
 
                 # Show results for all suites.
@@ -2330,19 +2428,61 @@ class FeaturesDashboard:
             else:
                 umap_results = umap_model.fit_transform(df_filtered[cols])
 
+            # Bounds for zooming initialisation.
+            min_x, max_x, min_y, max_y = np.inf, -np.inf, np.inf, -np.inf
+
             for suite in df_filtered["Suite"].unique():
                 for d_value in unique_d_values:
                     indices = (df_filtered["Suite"] == suite) & (
                         df_filtered["D"] == d_value
                     )
-                    ax.scatter(
-                        umap_results[indices, 0],
-                        umap_results[indices, 1],
+                    x_values = umap_results[indices, 0]
+                    y_values = umap_results[indices, 1]
+                    names = df_filtered[indices]["Name"]
+
+                    sc = ax.scatter(
+                        x_values,
+                        y_values,
                         color=self.suite_color_map[suite],
                         s=6,
                         marker=marker_dict[d_value],
                         zorder=3,  # renders on top of grid
                     )
+
+                    # Check if this is the suite to zoom into
+                    if (
+                        zoom_to_suite is not None
+                        and suite == zoom_to_suite
+                        and len(names) > 0
+                    ):
+                        min_x = min(min_x, x_values.min())
+                        max_x = max(max_x, x_values.max())
+                        min_y = min(min_y, y_values.min())
+                        max_y = max(max_y, y_values.max())
+
+                    # Annotate each point with the extracted number
+                    if text_annotations_for_suites is not None:
+                        if suite in text_annotations_for_suites:
+                            for i, txt in enumerate(names):
+                                num = re.search(r"([^\d]+)(\d+)_", txt).group(2)
+                                ax.annotate(
+                                    num,
+                                    (x_values[i], y_values[i]),
+                                    textcoords="offset points",
+                                    xytext=(0, 5),
+                                    ha="center",
+                                )
+
+            if zoom_to_suite is not None:
+                # Set the zoom into the suite
+                ax.set_xlim(
+                    min_x - zoom_margin * (max_x - min_x),
+                    max_x + zoom_margin * (max_x - min_x),
+                )  # Add a margin
+                ax.set_ylim(
+                    min_y - zoom_margin * (max_y - min_y),
+                    max_y + zoom_margin * (max_y - min_y),
+                )
 
             ax.set_title(f"UMAP with n_neighbors = {n_neighbor}")
 
@@ -2572,4 +2712,4 @@ class FeaturesDashboard:
         feature_ranks["RankOfRanks"] = feature_ranks["MeanRank"].rank(ascending=True)
         feature_ranks = feature_ranks.sort_values(by="RankOfRanks", ascending=True)
 
-        return feature_ranksD
+        return feature_ranks
