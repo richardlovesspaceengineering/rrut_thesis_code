@@ -1729,6 +1729,7 @@ class FeaturesDashboard:
         suite_names=None,
         dims=None,
         ignore_features=True,
+        ignore_aerofoils=True,
     ):
         """
         Generate a parallel coordinates plot.
@@ -1741,7 +1742,10 @@ class FeaturesDashboard:
         """
 
         df_filtered = self.filter_df_by_suite_and_dim(
-            self.features_df, suite_names=suite_names, dims=dims
+            self.features_df,
+            suite_names=suite_names,
+            dims=dims,
+            ignore_aerofoils=ignore_aerofoils,
         )
 
         if ignore_features:
