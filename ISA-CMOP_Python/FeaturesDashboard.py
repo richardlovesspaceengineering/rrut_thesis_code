@@ -183,32 +183,84 @@ class FeaturesDashboard:
 
     def define_plot_sizes(self):
 
-        self.plt_width_full = 6.3
+        # For landscape plots that will use smaller fontsize.
+        max_width = 6.4
+
+        self.plot_width_landscape_padded = 6
+        self.plot_height_landscape_medium = 3.4
+
+        self.plot_width_landscape_maxwidth = max_width
+        self.plot_height_landscape_large = 4
+
+    @staticmethod
+    def save_figure(
+        filepath, extension=".pdf", base_dir="../../rrut_thesis_report/Figures/"
+    ):
+        # Append base_dir to the filepath
+        filepath = os.path.join(base_dir, filepath)
+
+        # Check if the filepath contains a filename
+        directory, filename = os.path.split(filepath)
+
+        # If no filename is given, use a default filename
+        if not filename:
+            filename = "blank" + extension
+            directory = filepath  # The given filepath is treated as a directory
+        elif not filename.endswith(extension):
+            filename += extension  # Append the extension if not present
+
+        # Create the directory if it doesn't exist
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+
+        # Define the full path for the PDF
+        pdf_path = os.path.join(directory, filename)
+
+        plt.savefig(pdf_path, format="pdf", bbox_inches="tight", pad_inches=0.05)
+
+        print(f"PDF saved at {pdf_path}")
 
     def apply_custom_colors(self):
+
         plt.rc(
             "axes",
             prop_cycle=cycler(
                 "color",
+                # [
+                #     "#000000",
+                #     "#2394d6",
+                #     "#dc3220",
+                #     "#ffc20a",
+                #     "#994f00",
+                #     "#3c69e1",
+                #     "#8bc34a",
+                #     "#7d2e8d",
+                #     "#e66100",
+                #     "#595959",
+                #     "#0e0354",
+                # ], Dries' color palette
                 [
                     "#000000",
-                    "#2394d6",
-                    "#dc3220",
-                    "#ffc20a",
-                    "#994f00",
-                    "#3c69e1",
-                    "#8bc34a",
-                    "#7d2e8d",
-                    "#e66100",
-                    "#595959",
-                    "#0e0354",
-                ],
+                    "#a6cee3",
+                    "#1f78b4",
+                    "#b2df8a",
+                    "#33a02c",
+                    "#fb9a99",
+                    "#e31a1c",
+                    "#fdbf6f",
+                    "#ff7f00",
+                    "#cab2d6",
+                    # "#6a3d9a",
+                    "#0e0354",  # navy
+                ],  # paired
             ),
         )
 
-    def apply_custom_matplotlib_style(self, fontsize=12, legendfontsize=10):
+    def apply_custom_matplotlib_style(
+        self, fontsize=12, legendfontsize=10, linewidth=2.25
+    ):
         # Line settings
-        plt.rc("lines", linewidth=2.25, markersize=10)
+        plt.rc("lines", linewidth=linewidth, markersize=10)
 
         # Axes settings
         plt.rc(
@@ -850,11 +902,7 @@ class FeaturesDashboard:
         self.create_custom_legend_for_dimension(
             fig=fig, marker_dict=marker_dict, bottom_box_anchor=-0.1
         )
-        # plt.savefig(
-        #     "../../rrut_thesis_report/Figures/test.pdf",
-        #     format="pdf",
-        #     bbox_inches="tight",
-        # )
+
         if show_plot:
             plt.show()
 
@@ -1731,6 +1779,8 @@ class FeaturesDashboard:
         dims=None,
         ignore_features=True,
         ignore_aerofoils=True,
+        save_fig=False,
+        filepath=None,
     ):
         """
         Generate a parallel coordinates plot.
@@ -1741,6 +1791,9 @@ class FeaturesDashboard:
         :param dims: Dimensions to filter by (not used in this snippet but assumed to be part of your filtering logic).
         :param colormap: The colormap to use for different classes.
         """
+
+        # Get plot style ready.
+        self.apply_custom_matplotlib_style(fontsize=10, legendfontsize=8)
 
         df_filtered = self.filter_df_by_suite_and_dim(
             self.features_df,
@@ -1824,7 +1877,17 @@ class FeaturesDashboard:
                 f"The specified class_column '{class_column}' does not exist in the DataFrame."
             )
 
-        fig, ax = plt.subplots(figsize=(12, 9))
+        # Remove the suffices from the feature names.
+        data_to_plot.columns = [
+            c.replace("_mean", "") if "_mean" in c else c for c in data_to_plot.columns
+        ]
+
+        fig, ax = plt.subplots(
+            figsize=(
+                self.plot_width_landscape_padded,
+                self.plot_height_landscape_medium,
+            )
+        )
         self.apply_custom_matplotlib_style()
         parallel_coordinates(
             data_to_plot,
@@ -1832,7 +1895,7 @@ class FeaturesDashboard:
             colormap=colormap,
             alpha=0.8,
             ax=ax,
-            linewidth=plt.rcParams["lines.linewidth"],
+            linewidth=1.25,
         )
 
         if suite_in_focus is None:
@@ -1841,11 +1904,44 @@ class FeaturesDashboard:
             ax.legend_.remove()
             title_text = suite_in_focus
 
-        plt.title(title_text)
-        plt.xlabel("Features")
+            # Create custom patches that will be used in the legend
+
+            # Create the legend with the custom patches
+            plt.legend(
+                handles=[
+                    mpatches.Patch(
+                        color=self.suite_color_map[suite_in_focus], label=suite_in_focus
+                    ),
+                    mpatches.Patch(color="grey", alpha=0.8, label="Other"),
+                ]
+            )
+
+            # Make custom legend for parallel coordaintes plot.
+
         plt.ylabel("Normalised Values")
-        plt.xticks(rotation=90)
-        plt.grid(True)
+
+        labels = [item.get_text() for item in ax.get_xticklabels()]
+        formatted_labels = [r"$\texttt{" + label + "}$" for label in labels]
+        ax.set_xticklabels(formatted_labels, rotation=30)
+
+        # custom grid
+        self.apply_custom_grid(ax=ax)
+
+        # saving
+        # self.create_custom_legend_for_suite(
+        #     fig=fig,
+        #     df=df_filtered,
+        #     ignore_aerofoils=ignore_aerofoils,
+        #     top_box_anchor=1.15,
+        # )
+
+        plt.tight_layout()
+
+        if filepath is not None:
+            self.save_figure(filepath=filepath)
+        elif save_fig:
+            raise ValueError("To save a figure, a filepath must be specified.")
+
         plt.show()
 
     def get_feature_coverage(
@@ -2148,9 +2244,11 @@ class FeaturesDashboard:
 
         return df_filtered, cols
 
-    def get_dimension_markers(self, df, special_d_values=[5, 10, 20, 30]):
+    def get_dimension_markers(self, df):
+        special_d_values = [5, 10, 20, 30, "Other"]
+
         # Map 'D' values to markers
-        markers = ["D", "X", "s", "^"]  # One marker for each special D value
+        markers = ["D", "X", "s", "^", "o"]  # One marker for each special D value
         marker_dict = {
             d: markers[i] if d in special_d_values else "o"
             for i, d in enumerate(
@@ -2177,9 +2275,10 @@ class FeaturesDashboard:
         self,
         fig,
         marker_dict,
-        special_d_values=[5, 10, 20, 30],
-        bottom_box_anchor=-0.1,
+        bottom_box_anchor=-0.15,
     ):
+        special_d_values = [5, 10, 20, 30, "Other"]
+
         # Create legend for dimensions
         dim_patches = [
             mlines.Line2D(
@@ -2188,7 +2287,7 @@ class FeaturesDashboard:
                 color="black",
                 marker=marker_dict[d],
                 linestyle="None",
-                markersize=6,
+                markersize=4,
                 label=d,
             )
             for d in special_d_values
@@ -2197,13 +2296,13 @@ class FeaturesDashboard:
         dim_legend = fig.legend(
             handles=dim_patches,
             loc="lower center",
-            ncol=4,
+            ncol=5,
             bbox_to_anchor=(0.5, bottom_box_anchor),
             title="Dimensions",
         )
 
     def create_custom_legend_for_suite(
-        self, fig, df, top_box_anchor=1.15, ignore_aerofoils=True
+        self, fig, df, top_box_anchor=1.2, ignore_aerofoils=True
     ):
 
         suites = [
@@ -2251,6 +2350,8 @@ class FeaturesDashboard:
         text_annotations_for_suites=None,
         zoom_to_suite=None,
         zoom_margin=0.2,
+        save_fig=False,
+        filepath=None,
     ):
 
         # Check data compatibility.
@@ -2259,7 +2360,7 @@ class FeaturesDashboard:
         )
 
         # Get plot style ready.
-        self.apply_custom_matplotlib_style()
+        self.apply_custom_matplotlib_style(fontsize=10, legendfontsize=8)
 
         # Extract required data.
         df_filtered, cols = self.get_filtered_df_for_dimension_reduced_plot(
@@ -2281,7 +2382,12 @@ class FeaturesDashboard:
 
         # Now make plot axes.
         fig, axes = plt.subplots(
-            1, len(perplexities), figsize=(5 * len(perplexities), 5)
+            1,
+            len(perplexities),
+            figsize=(
+                self.plot_width_landscape_padded,
+                self.plot_height_landscape_medium,
+            ),
         )
 
         if len(perplexities) == 1:  # Adjust if only one subplot
@@ -2355,14 +2461,31 @@ class FeaturesDashboard:
         axes[0].set_ylabel("Component 2 [--]")
 
         # Create legend for suites and dimensions
-        self.create_custom_legend_for_dimension(fig=fig, marker_dict=marker_dict)
+        self.create_custom_legend_for_dimension(
+            fig=fig, marker_dict=marker_dict, bottom_box_anchor=-0.125
+        )
         self.create_custom_legend_for_suite(
-            fig=fig, df=df_filtered, ignore_aerofoils=ignore_aerofoils
+            fig=fig,
+            df=df_filtered,
+            ignore_aerofoils=ignore_aerofoils,
+            top_box_anchor=1.15,
         )
 
-        plt.tight_layout()
+        fig.tight_layout()
+
         # Adjust the layout to make space for the top legend
-        plt.subplots_adjust(top=0.85, bottom=0.15)
+        fig.subplots_adjust(top=0.85, bottom=0.15)
+
+        # Resize the figure
+        fig.set_size_inches(
+            self.plot_width_landscape_padded, self.plot_height_landscape_medium
+        )
+
+        if save_fig and filepath is not None:
+            self.save_figure(filepath=filepath)
+        else:
+            raise ValueError("To save a figure, a filepath must be specified.")
+
         plt.show()
 
     def plot_UMAP(
@@ -2381,10 +2504,12 @@ class FeaturesDashboard:
         text_annotations_for_suites=None,
         zoom_to_suite=None,
         zoom_margin=0.2,
+        save_fig=False,
+        filepath=None,
     ):
 
         # Get plot style ready.
-        self.apply_custom_matplotlib_style()
+        self.apply_custom_matplotlib_style(fontsize=10, legendfontsize=8)
 
         # Check data compatibility.
         self.check_dashboard_is_global_only_for_aerofoils(
@@ -2410,7 +2535,14 @@ class FeaturesDashboard:
         )
 
         # Now make plot axes.
-        fig, axes = plt.subplots(1, len(n_neighbors), figsize=(5 * len(n_neighbors), 5))
+        fig, axes = plt.subplots(
+            1,
+            len(n_neighbors),
+            figsize=(
+                self.plot_width_landscape_padded,
+                self.plot_height_landscape_medium,
+            ),
+        )
 
         if len(n_neighbors) == 1:  # Adjust if only one subplot
             axes = [axes]
@@ -2500,15 +2632,32 @@ class FeaturesDashboard:
         axes[np.floor(len(axes) / 2).astype(int)].set_xlabel("Component 1 [--]")
         axes[0].set_ylabel("Component 2 [--]")
 
-        # Create legend for suites and dimensions.
-        self.create_custom_legend_for_dimension(fig=fig, marker_dict=marker_dict)
+        # Create legend for suites and dimensions
+        self.create_custom_legend_for_dimension(
+            fig=fig, marker_dict=marker_dict, bottom_box_anchor=-0.125
+        )
         self.create_custom_legend_for_suite(
-            fig=fig, df=df_filtered, ignore_aerofoils=ignore_aerofoils
+            fig=fig,
+            df=df_filtered,
+            ignore_aerofoils=ignore_aerofoils,
+            top_box_anchor=1.15,
         )
 
-        plt.tight_layout()
+        fig.tight_layout()
+
         # Adjust the layout to make space for the top legend
-        plt.subplots_adjust(top=0.85, bottom=0.15)
+        fig.subplots_adjust(top=0.85, bottom=0.15)
+
+        # Resize the figure
+        fig.set_size_inches(
+            self.plot_width_landscape_padded, self.plot_height_landscape_medium
+        )
+
+        if save_fig and filepath is not None:
+            self.save_figure(filepath=filepath)
+        else:
+            raise ValueError("To save a figure, a filepath must be specified.")
+
         plt.show()
 
     def train_random_forest(
