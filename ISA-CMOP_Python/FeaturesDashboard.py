@@ -850,11 +850,11 @@ class FeaturesDashboard:
         self.create_custom_legend_for_dimension(
             fig=fig, marker_dict=marker_dict, bottom_box_anchor=-0.1
         )
-        plt.savefig(
-            "../../rrut_thesis_report/Figures/test.pdf",
-            format="pdf",
-            bbox_inches="tight",
-        )
+        # plt.savefig(
+        #     "../../rrut_thesis_report/Figures/test.pdf",
+        #     format="pdf",
+        #     bbox_inches="tight",
+        # )
         if show_plot:
             plt.show()
 
@@ -1350,6 +1350,7 @@ class FeaturesDashboard:
                 if text_annotations_for_suites is not None:
                     if suite in text_annotations_for_suites:
                         for i, txt in enumerate(names):
+                            print(txt)
                             num = re.search(r"([^\d]+)(\d+)_", txt).group(2)
                             ax.annotate(
                                 num,
