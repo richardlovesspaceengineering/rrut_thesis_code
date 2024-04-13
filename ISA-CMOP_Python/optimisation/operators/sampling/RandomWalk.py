@@ -79,7 +79,6 @@ class RandomWalk:
         # Simulate the rest of the walk.
         for i in range(1, self.num_steps):
             for j in range(self.dim):
-                # TODO: decide whether we randomly generate the neighbours for this step, then move to there
                 r = np.random.uniform(0, self.step_size_array[j])
                 if starting_zone[j] == 1:
                     r = -r

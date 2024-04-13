@@ -138,12 +138,14 @@ class FeaturesDashboard:
         self.features_df = self.get_landscape_features_df(give_sd=False)
 
         # Models/results objects.
-        self.pca = None
+        pca = None
         self.features_to_ignore = []
 
         # Generate suite colours using custom colour palette.
         self.apply_custom_colors()
         self.suite_color_map = self.generate_suite_colors()
+
+        self.define_plot_sizes()
 
     def generate_suite_colors(self):
 
@@ -184,13 +186,21 @@ class FeaturesDashboard:
     def define_plot_sizes(self):
 
         # For landscape plots that will use smaller fontsize.
-        max_width = 6.4
 
-        self.plot_width_landscape_padded = 6
-        self.plot_height_landscape_medium = 3.4
+        if self.report_mode:
+            max_width = 6.4
 
-        self.plot_width_landscape_maxwidth = max_width
-        self.plot_height_landscape_large = 4
+            self.plot_width_landscape_padded = 6
+            self.plot_height_landscape_medium = 3.4
+
+            self.plot_width_landscape_maxwidth = max_width
+            self.plot_height_landscape_large = 4
+        else:
+            self.plot_width_landscape_padded = 15
+            self.plot_height_landscape_medium = 6
+
+            self.plot_width_landscape_maxwidth = self.plot_width_landscape_padded
+            self.plot_height_landscape_large = self.plot_height_landscape_medium
 
     @staticmethod
     def save_figure(
@@ -1484,9 +1494,9 @@ class FeaturesDashboard:
         )  # Adjust layout to make room for the main title
         plt.show()
 
-    def calc_n_principal_compons_for_var(self, minimum_expl_variance):
+    def calc_n_principal_compons_for_var(self, pca, minimum_expl_variance):
         # Find number of PCs required to explain a percentage of the variance (given as decimal)
-        expl_variance = np.cumsum(self.pca.explained_variance_ratio_)
+        expl_variance = np.cumsum(pca.explained_variance_ratio_)
         num_pcs = int(np.argwhere(minimum_expl_variance < expl_variance)[0] + 1)
 
         print(
@@ -1508,22 +1518,20 @@ class FeaturesDashboard:
         )
 
         # Applying PCA
-        self.pca = PCA()
-        self.pca.fit(self.features_scaled)
+        pca = PCA()
+        pca.fit(self.features_scaled)
 
-        num_pcs = self.calc_n_principal_compons_for_var(minimum_expl_variance=0.8)
+        return pca
 
-        return num_pcs
-
-    def plot_scree_plot(self):
-        if self.pca is None:
+    def plot_scree_plot(self, pca):
+        if pca is None:
             print("Please run PCA first using run_pca method.")
             return
 
         plt.figure(figsize=(10, 6))
         plt.plot(
-            range(1, len(self.pca.explained_variance_ratio_) + 1),
-            np.cumsum(self.pca.explained_variance_ratio_),
+            range(1, len(pca.explained_variance_ratio_) + 1),
+            np.cumsum(pca.explained_variance_ratio_),
         )
         plt.xlabel("Number of Components")
         plt.ylabel("Cumulative Explained Variance")
@@ -1531,7 +1539,7 @@ class FeaturesDashboard:
         plt.grid(True)
         plt.show()
 
-    def get_pca_loadings(self, n_components, analysis_type=None, pct=True):
+    def get_pca_loadings(self, pca, n_components, analysis_type=None, pct=True):
         df = self.get_numerical_data_from_df(
             self.custom_drop_na(self.ignore_specified_features(self.features_df))
         )
@@ -1540,7 +1548,7 @@ class FeaturesDashboard:
             df = self.get_features_for_analysis_type(df, analysis_type=analysis_type)
 
         # Determine how much of the variance is explained by the chosen number of components.
-        expl_variance = np.cumsum(self.pca.explained_variance_ratio_)[n_components - 1]
+        expl_variance = np.cumsum(pca.explained_variance_ratio_)[n_components - 1]
 
         print(
             f"Using {n_components} components explains {expl_variance*100:.2f}% of the variance."
@@ -1555,7 +1563,7 @@ class FeaturesDashboard:
                 if c in self.features_df.columns
             ]
             loadings = pd.DataFrame(
-                self.pca.components_[
+                pca.components_[
                     :n_components, component_indices
                 ].T,  # Slice components for filtered features
                 columns=[f"PC{i+1}" for i in range(n_components)],
@@ -1563,7 +1571,7 @@ class FeaturesDashboard:
             )
         else:
             loadings = pd.DataFrame(
-                self.pca.components_[:n_components].T,
+                pca.components_[:n_components].T,
                 columns=[f"PC{i+1}" for i in range(n_components)],
                 index=df.columns,
             )
@@ -1580,13 +1588,15 @@ class FeaturesDashboard:
 
         return loadings
 
-    def plot_pca_loadings(self, n_components, top_features=None, analysis_type=None):
-        if self.pca is None:
+    def plot_pca_loadings(
+        self, pca, n_components, top_features=None, analysis_type=None
+    ):
+        if pca is None:
             print("Please run PCA first using the run_pca method.")
             return
 
         loadings = self.get_pca_loadings(
-            n_components=n_components, analysis_type=analysis_type
+            pca=pca, n_components=n_components, analysis_type=analysis_type
         ).apply(
             lambda x: x.abs()
         )  # Take the absolute value
@@ -1619,9 +1629,9 @@ class FeaturesDashboard:
         plt.show()
 
     def plot_stacked_pca_loadings(
-        self, n_components, top_features=None, analysis_type=None
+        self, pca, n_components, top_features=None, analysis_type=None
     ):
-        if self.pca is None:
+        if pca is None:
             print("Please run PCA first using the run_pca method.")
             return
 
@@ -1655,23 +1665,23 @@ class FeaturesDashboard:
         plt.show()
 
     def get_total_pca_contribution(
-        self, n_components, top_features=None, analysis_type=None, worst=False
+        self, pca, n_components, top_features=None, analysis_type=None, worst=False
     ):
-        if self.pca is None:
+        if pca is None:
             print("Please run PCA first using the run_pca method.")
             return
 
-        if n_components > len(self.pca.explained_variance_ratio_):
+        if n_components > len(pca.explained_variance_ratio_):
             print("Number of components exceeds the total available components")
             return
 
         loadings = self.get_pca_loadings(
-            n_components=n_components, analysis_type=analysis_type
+            pca=pca, n_components=n_components, analysis_type=analysis_type
         ).apply(
             lambda x: x.abs()
         )  # Take the absolute value
 
-        eigenvalues = self.pca.explained_variance_[:n_components]
+        eigenvalues = pca.explained_variance_[:n_components]
 
         # Calculate the total contribution for each feature across n components
         total_contributions = loadings.apply(
@@ -1692,19 +1702,20 @@ class FeaturesDashboard:
         return total_contributions
 
     def plot_total_contribution(
-        self, n_components, top_features=None, analysis_type=None
+        self, pca, n_components, top_features=None, analysis_type=None
     ):
 
-        eigenvalues = self.pca.explained_variance_[:n_components]
+        eigenvalues = pca.explained_variance_[:n_components]
 
         total_contributions = self.get_total_pca_contribution(
+            pca=pca,
             n_components=n_components,
             top_features=top_features,
             analysis_type=analysis_type,
         )
 
         loadings = self.get_pca_loadings(
-            n_components=n_components, analysis_type=analysis_type
+            pca=pca, n_components=n_components, analysis_type=analysis_type
         ).apply(
             lambda x: x.abs()
         )  # Take the absolute value
@@ -1727,46 +1738,6 @@ class FeaturesDashboard:
         plt.xlabel("Features")
 
         plt.tight_layout()
-        plt.show()
-
-    def visualise_3d_pca(self):
-
-        if self.pca is None:
-            print("Please run PCA first using run_pca method.")
-            return
-
-        # Use the PCA results from the run_pca method
-        pca_transformed = self.pca.transform(self.features_scaled)
-
-        # Create a DataFrame for the first three PCs
-        pca_df = pd.DataFrame(
-            data=pca_transformed[:, :3], columns=["PC1", "PC2", "PC3"]
-        )
-
-        # Assuming 'Suite' is a column in self.features_df
-        pca_df["Suite"] = self.features_df["Suite"].values
-
-        # Plotting
-        fig = plt.figure(figsize=(10, 8))
-        ax = fig.add_subplot(111, projection="3d")
-
-        # Iterate over each unique Suite value to plot them in different colors
-        for suite in pca_df["Suite"].unique():
-            subset = pca_df[pca_df["Suite"] == suite]
-            ax.scatter(
-                subset["PC1"],
-                subset["PC2"],
-                subset["PC3"],
-                s=50,
-                alpha=0.5,
-                label=suite,
-            )
-
-        ax.set_xlabel("PC1")
-        ax.set_ylabel("PC2")
-        ax.set_zlabel("PC3")
-        ax.set_title("3D PCA Plot")
-        ax.legend(title="Suite")
         plt.show()
 
     def plot_parallel_coordinates(
@@ -1793,7 +1764,9 @@ class FeaturesDashboard:
         """
 
         # Get plot style ready.
-        self.apply_custom_matplotlib_style(fontsize=10, legendfontsize=8)
+
+        if self.report_mode:
+            self.apply_custom_matplotlib_style(fontsize=10, legendfontsize=8)
 
         df_filtered = self.filter_df_by_suite_and_dim(
             self.features_df,
@@ -1921,7 +1894,11 @@ class FeaturesDashboard:
         plt.ylabel("Normalised Values")
 
         labels = [item.get_text() for item in ax.get_xticklabels()]
-        formatted_labels = [r"$\texttt{" + label + "}$" for label in labels]
+
+        if self.report_mode:
+            formatted_labels = [r"$\texttt{" + label + "}$" for label in labels]
+        else:
+            formatted_labels = labels
         ax.set_xticklabels(formatted_labels, rotation=30)
 
         # custom grid
@@ -1937,7 +1914,7 @@ class FeaturesDashboard:
 
         plt.tight_layout()
 
-        if filepath is not None:
+        if filepath is not None and self.report_mode:
             self.save_figure(filepath=filepath)
         elif save_fig:
             raise ValueError("To save a figure, a filepath must be specified.")
@@ -2060,6 +2037,7 @@ class FeaturesDashboard:
         target_suite=None,
         analysis_type=None,
         features=None,
+        top_features=None,
         ignore_features=True,
         ignore_aerofoils=True,
     ):
@@ -2078,6 +2056,12 @@ class FeaturesDashboard:
             ignore_features=ignore_features,
             ignore_aerofoils=ignore_aerofoils,
         )
+
+        if top_features is not None:
+            coverage_values = self.get_top_coverage_features(
+                coverage_values=coverage_values, top_features=top_features, aslist=False
+            )
+            coverage_values.drop("mean_coverage", axis=1, inplace=True)
 
         suites = coverage_values.columns
         features = coverage_values.index
@@ -2360,7 +2344,8 @@ class FeaturesDashboard:
         )
 
         # Get plot style ready.
-        self.apply_custom_matplotlib_style(fontsize=10, legendfontsize=8)
+        if self.report_mode:
+            self.apply_custom_matplotlib_style(fontsize=10, legendfontsize=8)
 
         # Extract required data.
         df_filtered, cols = self.get_filtered_df_for_dimension_reduced_plot(
@@ -2481,9 +2466,9 @@ class FeaturesDashboard:
             self.plot_width_landscape_padded, self.plot_height_landscape_medium
         )
 
-        if save_fig and filepath is not None:
+        if filepath is not None and self.report_mode:
             self.save_figure(filepath=filepath)
-        else:
+        elif save_fig:
             raise ValueError("To save a figure, a filepath must be specified.")
 
         plt.show()
@@ -2509,7 +2494,8 @@ class FeaturesDashboard:
     ):
 
         # Get plot style ready.
-        self.apply_custom_matplotlib_style(fontsize=10, legendfontsize=8)
+        if self.report_mode:
+            self.apply_custom_matplotlib_style(fontsize=10, legendfontsize=8)
 
         # Check data compatibility.
         self.check_dashboard_is_global_only_for_aerofoils(
@@ -2653,21 +2639,23 @@ class FeaturesDashboard:
             self.plot_width_landscape_padded, self.plot_height_landscape_medium
         )
 
-        if save_fig and filepath is not None:
+        if filepath is not None and self.report_mode:
             self.save_figure(filepath=filepath)
-        else:
+        elif save_fig:
             raise ValueError("To save a figure, a filepath must be specified.")
-
         plt.show()
 
     def train_random_forest(
-        self, test_size=0.3, random_state=42, ignore_aerofoils=True
+        self, test_size=0.3, random_state=42, ignore_aerofoils=True, suite_in_focus=None
     ):
         """
-        Train a Random Forest classifier to predict 'Suite' from the features.
+        Train a Random Forest classifier to predict 'Suite' or perform binary classification
+        to identify a specific 'suite_in_focus'.
 
         :param test_size: Fraction of the dataset to be used as test data.
         :param random_state: Seed used by the random number generator.
+        :param ignore_aerofoils: Whether to ignore aerofoil suites.
+        :param suite_in_focus: Specify the suite for binary classification. If None, perform multiclass classification.
         """
 
         # Check data compatibility.
@@ -2679,7 +2667,7 @@ class FeaturesDashboard:
         if "Suite" not in self.features_df.columns:
             raise ValueError("DataFrame must contain 'Suite' column")
 
-        # Splitting the data into features and target variable
+        # Filter and preprocess the data
         df_filtered = self.custom_drop_na(
             self.filter_df_by_suite_and_dim(
                 self.ignore_specified_features(self.features_df),
@@ -2692,48 +2680,42 @@ class FeaturesDashboard:
         X = self.get_numerical_data_from_df(df_filtered)
         y = df_filtered["Suite"]
 
+        # Convert the target variable for binary classification if suite_in_focus is specified
+        if suite_in_focus is not None:
+            y = y.apply(lambda x: 1 if x == suite_in_focus else 0)
+
         print(f"This RF model training has considered {len(X.columns)} features.")
 
-        # Splitting the dataset into training and testing sets
+        # Splitting the dataset
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=test_size, random_state=random_state
+        )
 
-        if test_size == 0:
-            X_train = X
-            X_test = X
-            y_train = y
-            y_test = y
-            print("CAREFUL: all metrics are given on the full training set!")
-        else:
-            X_train, X_test, y_train, y_test = train_test_split(
-                X, y, test_size=test_size, random_state=random_state
-            )
+        # Initializing and training the Random Forest classifier
+        classifier = RandomForestClassifier(random_state=random_state)
+        classifier.fit(X_train, y_train)
 
-        # Initializing the Random Forest classifier
-        self.classifier = RandomForestClassifier(random_state=random_state)
-
-        # Training the classifier
-        self.classifier.fit(X_train, y_train)
-
-        # Making predictions on the test set
-        y_pred = self.classifier.predict(X_test)
-
-        # Evaluating the classifier
+        # Making predictions and evaluating the classifier
+        y_pred = classifier.predict(X_test)
         print("Classification Report:")
         print(classification_report(y_test, y_pred))
         print("Accuracy Score:", accuracy_score(y_test, y_pred))
 
-    def get_feature_importances(self, top_features=None, worst=False):
+        return classifier
+
+    def get_feature_importances(self, classifier, top_features=None, worst=False):
         """
         Get a DataFrame of feature importances from the trained Random Forest model.
 
         :param n: Number of top features to return. If None, returns all features.
         :return: A DataFrame with feature importances.
         """
-        if self.classifier is None:
+        if classifier is None:
             raise ValueError(
                 "The classifier has not been trained yet. Call train_random_forest first."
             )
 
-        importances = self.classifier.feature_importances_
+        importances = classifier.feature_importances_
         feature_names = self.get_feature_names(ignore_features=True)
         feature_importances = pd.DataFrame(
             importances, index=feature_names, columns=["Importance"]
@@ -2764,7 +2746,6 @@ class FeaturesDashboard:
         sns.barplot(
             x="Importance", y=feature_importances_df.index, data=feature_importances_df
         )
-        plt.title("Feature Importances")
         plt.xlabel("Importance")
         plt.ylabel("Features")
         plt.show()
@@ -2790,17 +2771,20 @@ class FeaturesDashboard:
         # Initialize the pairplot
         g = sns.pairplot(df, hue=color_by)
 
+        print(len(df))
+
         # Loop through the upper matrix to annotate with correlation coefficients
         df_num = df.select_dtypes(include=[np.number])
         for i, j in zip(*np.triu_indices_from(g.axes, 1)):
             corr_value = df_num.corr().iloc[i, j]
             g.axes[i, j].annotate(
                 f"{corr_value:.2f}",
-                (0.5, 0.5),
+                (0.95, 0.95),
                 xycoords="axes fraction",
                 ha="center",
                 va="center",
-                fontsize=24,
+                color="red",
+                fontsize=20,
             )
 
         if show:
@@ -2811,9 +2795,16 @@ class FeaturesDashboard:
     def rank_each_feature(
         self,
         pca_var_expl=[0.7, 0.8, 0.9],
-        rf_test_sizes=[0, 0.2, 0.5],
-        coverage_suites=[None],
+        rf_suites=None,
+        coverage_suites=None,
+        run_pca=False,
     ):
+
+        if coverage_suites is None:
+            coverage_suites = self.get_suite_names(ignore_aerofoils=True)
+
+        if rf_suites is None:
+            rf_suites = self.get_suite_names(ignore_aerofoils=True)
 
         # Initialise dataframe.
         feature_ranks = pd.DataFrame(index=self.get_feature_names(ignore_features=True))
@@ -2829,30 +2820,40 @@ class FeaturesDashboard:
 
         # Coverage rankings.
         for s in coverage_suites:
-            print(s)
             coverages = self.get_feature_coverage(target_suite=s)
             coverages["mean_coverage"] = coverages.mean(axis=1)
             feature_ranks[f"Coverage_{s}"] = coverages["mean_coverage"].rank(
                 ascending=True
             )
 
-        # PCA rankings. Need to rerun PCA quickly.
-        self.run_pca()
-        for var in pca_var_expl:
-            num_pcs = self.calc_n_principal_compons_for_var(minimum_expl_variance=var)
-            best_pca_cont = self.get_total_pca_contribution(
-                n_components=num_pcs, top_features=None, worst=False
-            )
-            feature_ranks[f"PCAVar{var*100:.0f}"] = best_pca_cont.rank(ascending=False)
+        if run_pca:
+            # PCA rankings. Need to rerun PCA quickly.
+            pca = self.run_pca()
+            for var in pca_var_expl:
+                num_pcs = self.calc_n_principal_compons_for_var(
+                    pca=pca, minimum_expl_variance=var
+                )
+                best_pca_cont = self.get_total_pca_contribution(
+                    pca=pca, n_components=num_pcs, top_features=None, worst=False
+                )
+                feature_ranks[f"PCAVar{var*100:.0f}"] = best_pca_cont.rank(
+                    ascending=False
+                )
 
         # RF classification model feature importance rankings.
-        for t in rf_test_sizes:
-            self.train_random_forest(test_size=t)
-            best_rf_cont = self.get_feature_importances(top_features=None)
-            feature_ranks[f"RFTest{t*100:.0f}"] = best_rf_cont.rank(ascending=False)
+        for s in rf_suites:
+            classifier = self.train_random_forest(suite_in_focus=s, test_size=0.2)
+            best_rf_cont = self.get_feature_importances(
+                classifier=classifier, top_features=None
+            )
+            feature_ranks[f"RF_{s}"] = best_rf_cont.rank(ascending=False)
 
         # Compute means for each method.
-        col_names = ["Coverage", "PCA", "RF"]
+        col_names = ["Coverage", "RF"]
+
+        if run_pca:
+            col_names.append("PCA")
+
         for c in col_names:
             cols = feature_ranks.columns[feature_ranks.columns.str.contains(c)]
             feature_ranks[f"{c}Mean"] = feature_ranks[cols].mean(axis=1)
