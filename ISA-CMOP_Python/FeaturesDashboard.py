@@ -23,6 +23,11 @@ import copy
 from cycler import cycler
 from matplotlib.colors import ListedColormap
 import re
+from optimisation.operators.sampling.RandomWalk import RandomWalk
+from optimisation.operators.sampling.AdaptiveWalk import AdaptiveWalk
+from PreSampler import PreSampler
+from pymoo.problems import get_problem
+from multiprocessing_util import *
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
@@ -157,7 +162,7 @@ class FeaturesDashboard:
 
         # Assign colors to suites, cycling through the color list if necessary
         suite_colors = {
-            suite: colors[i + 1 % len(colors)] for i, suite in enumerate(suites)
+            suite: colors[i % len(colors)] for i, suite in enumerate(suites)
         }
 
         return suite_colors
@@ -190,16 +195,18 @@ class FeaturesDashboard:
         if self.report_mode:
             max_width = 6.4
 
-            self.plot_width_landscape_padded = 6
-            self.plot_height_landscape_medium = 3.4
+            self.plot_width_full = 6
+            self.plot_width_half = 3.3
+            self.plot_height_landscape_medium = 3.3
 
             self.plot_width_landscape_maxwidth = max_width
             self.plot_height_landscape_large = 4
         else:
-            self.plot_width_landscape_padded = 15
+            self.plot_width_full = 15
             self.plot_height_landscape_medium = 6
+            self.plot_width_half = 15 / 2
 
-            self.plot_width_landscape_maxwidth = self.plot_width_landscape_padded
+            self.plot_width_landscape_maxwidth = self.plot_width_full
             self.plot_height_landscape_large = self.plot_height_landscape_medium
 
     @staticmethod
@@ -230,27 +237,12 @@ class FeaturesDashboard:
 
         print(f"PDF saved at {pdf_path}")
 
-    def apply_custom_colors(self):
+    def apply_custom_colors(self, palette="Paired"):
 
-        plt.rc(
-            "axes",
-            prop_cycle=cycler(
-                "color",
-                # [
-                #     "#000000",
-                #     "#2394d6",
-                #     "#dc3220",
-                #     "#ffc20a",
-                #     "#994f00",
-                #     "#3c69e1",
-                #     "#8bc34a",
-                #     "#7d2e8d",
-                #     "#e66100",
-                #     "#595959",
-                #     "#0e0354",
-                # ], Dries' color palette
-                [
-                    "#000000",
+        # fmt: off
+        if palette == "Paired":
+            colors = [
+                    # "#000000",
                     "#a6cee3",
                     "#1f78b4",
                     "#b2df8a",
@@ -262,15 +254,35 @@ class FeaturesDashboard:
                     "#cab2d6",
                     # "#6a3d9a",
                     "#0e0354",  # navy
-                ],  # paired
-            ),
+                ]
+            # paired
+        elif palette == "Dries":
+            colors = [
+                    # "#000000",
+                    "#2394d6",
+                    "#dc3220",
+                    "#ffc20a",
+                    "#994f00",
+                    "#3c69e1",
+                    "#8bc34a",
+                    "#7d2e8d",
+                    "#e66100",
+                    "#595959",
+                    "#0e0354",
+                ]
+            # Dries' color palette
+        # fmt: on
+
+        plt.rc(
+            "axes",
+            prop_cycle=cycler("color", colors),
         )
 
     def apply_custom_matplotlib_style(
-        self, fontsize=12, legendfontsize=10, linewidth=2.25
+        self, fontsize=12, legendfontsize=10, linewidth=1.25, markersize=4
     ):
         # Line settings
-        plt.rc("lines", linewidth=linewidth, markersize=10)
+        plt.rc("lines", linewidth=linewidth, markersize=markersize)
 
         # Axes settings
         plt.rc(
@@ -1504,7 +1516,13 @@ class FeaturesDashboard:
         )
         return num_pcs
 
-    def run_pca(self, scaler_type="StandardScaler"):
+    def run_pca(
+        self,
+        scaler_type="StandardScaler",
+        run_sensitivity_analysis=False,
+        random_seed=1,
+        noise_scale_factor=0.1,
+    ):
 
         df = self.custom_drop_na(self.ignore_specified_features(self.features_df))
 
@@ -1513,13 +1531,25 @@ class FeaturesDashboard:
             scaler = MinMaxScaler()
         elif scaler_type == "StandardScaler":
             scaler = StandardScaler()
-        self.features_scaled = scaler.fit_transform(
+        features_scaled = scaler.fit_transform(
             FeaturesDashboard.get_numerical_data_from_df(df)
         )
 
+        if run_sensitivity_analysis:
+            np.random.seed(random_seed)
+
+            # Calculate standard deviation for each feature
+            stds = np.std(features_scaled, axis=0)
+
+            # Generate and add noise for each feature
+            noise = np.random.normal(
+                0, stds * noise_scale_factor, features_scaled.shape
+            )
+            features_scaled += noise
+
         # Applying PCA
         pca = PCA()
-        pca.fit(self.features_scaled)
+        pca.fit(features_scaled)
 
         return pca
 
@@ -1857,7 +1887,7 @@ class FeaturesDashboard:
 
         fig, ax = plt.subplots(
             figsize=(
-                self.plot_width_landscape_padded,
+                self.plot_width_full,
                 self.plot_height_landscape_medium,
             )
         )
@@ -2233,14 +2263,25 @@ class FeaturesDashboard:
 
         # Map 'D' values to markers
         markers = ["D", "X", "s", "^", "o"]  # One marker for each special D value
-        marker_dict = {
-            d: markers[i] if d in special_d_values else "o"
-            for i, d in enumerate(
-                special_d_values
-                + [d for d in df["D"].unique() if d not in special_d_values]
-            )
-        }
+
+        marker_dict = {}
+
+        for i, d in enumerate(special_d_values):
+            marker_dict[d] = markers[i]
+
         unique_d_values = df["D"].unique()
+        for d in unique_d_values:
+            if d not in marker_dict.keys():
+                marker_dict[d] = "o"
+
+        # marker_dict = {
+        #     d: markers[i] if d in special_d_values else "o"
+        #     for i, d in enumerate(
+        #         special_d_values
+        #         + [d for d in df["D"].unique() if d not in special_d_values]
+        #     )
+        # }
+        # unique_d_values = df["D"].unique()
 
         return marker_dict, unique_d_values
 
@@ -2271,7 +2312,7 @@ class FeaturesDashboard:
                 color="black",
                 marker=marker_dict[d],
                 linestyle="None",
-                markersize=4,
+                markersize=6,
                 label=d,
             )
             for d in special_d_values
@@ -2370,7 +2411,7 @@ class FeaturesDashboard:
             1,
             len(perplexities),
             figsize=(
-                self.plot_width_landscape_padded,
+                self.plot_width_full,
                 self.plot_height_landscape_medium,
             ),
         )
@@ -2462,9 +2503,7 @@ class FeaturesDashboard:
         fig.subplots_adjust(top=0.85, bottom=0.15)
 
         # Resize the figure
-        fig.set_size_inches(
-            self.plot_width_landscape_padded, self.plot_height_landscape_medium
-        )
+        fig.set_size_inches(self.plot_width_full, self.plot_height_landscape_medium)
 
         if filepath is not None and self.report_mode:
             self.save_figure(filepath=filepath)
@@ -2525,7 +2564,7 @@ class FeaturesDashboard:
             1,
             len(n_neighbors),
             figsize=(
-                self.plot_width_landscape_padded,
+                self.plot_width_full,
                 self.plot_height_landscape_medium,
             ),
         )
@@ -2635,9 +2674,7 @@ class FeaturesDashboard:
         fig.subplots_adjust(top=0.85, bottom=0.15)
 
         # Resize the figure
-        fig.set_size_inches(
-            self.plot_width_landscape_padded, self.plot_height_landscape_medium
-        )
+        fig.set_size_inches(self.plot_width_full, self.plot_height_landscape_medium)
 
         if filepath is not None and self.report_mode:
             self.save_figure(filepath=filepath)
@@ -2771,8 +2808,6 @@ class FeaturesDashboard:
         # Initialize the pairplot
         g = sns.pairplot(df, hue=color_by)
 
-        print(len(df))
-
         # Loop through the upper matrix to annotate with correlation coefficients
         df_num = df.select_dtypes(include=[np.number])
         for i, j in zip(*np.triu_indices_from(g.axes, 1)):
@@ -2868,3 +2903,169 @@ class FeaturesDashboard:
         feature_ranks = feature_ranks.sort_values(by="RankOfRanks", ascending=True)
 
         return feature_ranks
+
+    def plot_walk_for_report(self, walk_type, filepath=None, save_fig=False):
+
+        dim = 2
+        num_steps = 100
+        step_size = 0.05
+        neighbourhood_size = 10
+
+        ps = PreSampler(dim, num_samples=1, mode="eval", is_aerofoil=False)
+        rwGenerator = RandomWalk(dim, num_steps, step_size, neighbourhood_size)
+
+        self.apply_custom_matplotlib_style(markersize=3)
+
+        # Generate random walks
+        simple_walk = rwGenerator.do_simple_walk(seed=2)
+        simple_neig = rwGenerator.generate_neighbours_for_walk(simple_walk)
+
+        start_zones = ps.generate_binary_patterns()
+        prog_walk = rwGenerator.do_progressive_walk(
+            starting_zone=start_zones[0], seed=1
+        )
+        prog_neig = rwGenerator.generate_neighbours_for_walk(prog_walk)
+
+        fig, ax = plt.subplots(
+            figsize=(self.plot_width_half, self.plot_height_landscape_medium)
+        )
+
+        prop_cycle = plt.rcParams["axes.prop_cycle"]
+        colors = prop_cycle.by_key()["color"]
+
+        # Adaptive walks.
+        problem_name = "MW3"
+        problem = get_problem(problem_name, n_var=2)
+        problem.problem_name = problem_name.upper()
+        init_pool()
+        awGenerator = AdaptiveWalk(
+            dim=dim,
+            max_steps=num_steps,
+            step_size_pct=step_size,
+            problem=problem,
+            neighbourhood_size=neighbourhood_size,
+        )
+        _, adaptive_walk_pop, next_steps_pop = (
+            awGenerator.do_adaptive_phc_walk_for_starting_point(
+                prog_walk[1, :],
+                constrained_ranks=False,
+                return_pop=True,
+                seed=6,
+                return_potential_next_steps=True,
+            )
+        )
+
+        if walk_type == "random_walks":
+
+            ax.plot(simple_walk[:, 0], simple_walk[:, 1], marker="o", label="Simple RW")
+            ax.plot(
+                prog_walk[:, 0], prog_walk[:, 1], marker="o", label="Progressive RW"
+            )
+            ax.set_xlim([0, 1])
+            ax.set_ylim([0, 1])
+        elif walk_type == "adaptive_walk_dec":
+
+            walk_var = adaptive_walk_pop.extract_var()
+            ax.plot(walk_var[:, 0], walk_var[:, 1], marker="o", label="Adaptive Walk")
+
+            neig_var = next_steps_pop[0].extract_var()
+            ax.scatter(
+                neig_var[:, 0],
+                neig_var[:, 1],
+                color=colors[2],
+                zorder=5,
+                label="First Step Neighbours",
+            )
+
+            neig_var = next_steps_pop[-1].extract_var()
+            ax.scatter(
+                neig_var[:, 0],
+                neig_var[:, 1],
+                zorder=5,
+                color=colors[1],
+                label="Last Step Neighbours",
+            )
+            ax.set_ylim([0, 0.245])
+
+        elif walk_type == "adaptive_walk_obj":
+            obj = adaptive_walk_pop.extract_obj()
+            ax.plot(obj[:, 0], obj[:, 1], marker="o", label="_Adaptive Walk")
+
+            # Show neighbours at each step.
+            # for neig in next_steps_pop:
+            neig_obj = next_steps_pop[0].extract_obj()
+            ax.scatter(
+                neig_obj[:, 0],
+                neig_obj[:, 1],
+                color=colors[2],
+                zorder=5,
+                label="_First Step Neighbours",
+            )
+
+            neig_obj = next_steps_pop[-1].extract_obj()
+            ax.scatter(
+                neig_obj[:, 0],
+                neig_obj[:, 1],
+                zorder=5,
+                color=colors[1],
+                label="_Last Step Neighbours",
+            )
+
+            pf = problem._calc_pareto_front()
+            ax.plot(pf[:, 0], pf[:, 1], label=r"$PF$")
+
+            ax.set_xlim([0, 0.27])
+            ax.set_ylim([0.7, 2.65])
+
+        elif walk_type == "neigs":
+
+            step_num = 2
+            step_x, step_y = simple_walk[step_num, 0], simple_walk[step_num, 1]
+
+            ax.scatter(
+                simple_neig[step_num][:, 0],
+                simple_neig[step_num][:, 1],
+                label="Neighbours",
+            )
+            neig_circle = mpatches.Circle(
+                (step_x, step_y),
+                step_size,
+                facecolor="red",
+                edgecolor="red",
+                alpha=0.1,
+                label="Neighbourhood",
+            )
+            ax.add_patch(neig_circle)
+
+            # Draw lines from the walk step to each neighbor
+            for neighbor in simple_neig[step_num]:
+                ax.plot(
+                    [step_x, neighbor[0]], [step_y, neighbor[1]], "gray", alpha=0.6
+                )  # Lines in gray
+
+            ax.scatter(step_x, step_y, label="Walk Step", zorder=5)
+
+            # Set up plot limits and labels
+            ax.set_aspect("equal")  # Keep the scaling consistent
+            ax.set_xticklabels([])
+            ax.set_yticklabels([])
+
+        # Show plot and apply formatting
+        # Plotting
+
+        if "obj" in walk_type:
+            var_str = "f"
+        else:
+            var_str = "x"
+
+        ax.set_xlabel(rf"${var_str}_1$")
+        ax.set_ylabel(rf"${var_str}_2$")
+        ax.legend()
+        self.apply_custom_grid(ax)
+        plt.tight_layout()
+
+        if filepath is not None and self.report_mode:
+            self.save_figure(filepath=filepath)
+        elif save_fig:
+            raise ValueError("To save a figure, a filepath must be specified.")
+        plt.show()
