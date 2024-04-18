@@ -1958,6 +1958,9 @@ class FeaturesDashboard:
         features=None,
         ignore_features=True,
         ignore_aerofoils=True,
+        run_sensitivity_analysis=False,
+        random_seed=1,
+        noise_scale_factor=0.1,
     ):
 
         # Check data compatibility.
@@ -2002,6 +2005,18 @@ class FeaturesDashboard:
         )
         scaler = MinMaxScaler()
         df.loc[:, features] = scaler.fit_transform(df[features])
+
+        if run_sensitivity_analysis:
+            np.random.seed(random_seed)
+
+            # Calculate standard deviation for each feature
+            stds = np.std(df.loc[:, features], axis=0)
+
+            # Generate and add noise for each feature
+            noise = np.random.normal(
+                0, stds * noise_scale_factor, df.loc[:, features].shape
+            )
+            df.loc[:, features] += noise
 
         # Calculate coverage for each feature against the target suite for each non-target suite
         for suite in suites:
@@ -2683,7 +2698,15 @@ class FeaturesDashboard:
         plt.show()
 
     def train_random_forest(
-        self, test_size=0.3, random_state=42, ignore_aerofoils=True, suite_in_focus=None
+        self,
+        test_size=0.3,
+        random_state=42,
+        ignore_aerofoils=True,
+        suite_in_focus=None,
+        scaler_type="MinMaxScaler",
+        run_sensitivity_analysis=False,
+        random_seed=1,
+        noise_scale_factor=0.1,
     ):
         """
         Train a Random Forest classifier to predict 'Suite' or perform binary classification
@@ -2714,6 +2737,32 @@ class FeaturesDashboard:
             )
         )
 
+        features = [
+            col
+            for col in df_filtered.columns
+            if col not in ["Name", "D", "Date", "Suite"]
+        ]
+
+        # Scale the features based on the specified scaler_type
+        if scaler_type == "MinMaxScaler":
+            scaler = MinMaxScaler()
+        elif scaler_type == "StandardScaler":
+            scaler = StandardScaler()
+        df_filtered.loc[:, features] = scaler.fit_transform(df_filtered[features])
+
+        # Add some noise to numeric columns.
+        if run_sensitivity_analysis:
+            np.random.seed(random_seed)
+
+            # Calculate standard deviation for each feature
+            stds = np.std(df_filtered.loc[:, features], axis=0)
+
+            # Generate and add noise for each feature
+            noise = np.random.normal(
+                0, stds * noise_scale_factor, df_filtered.loc[:, features].shape
+            )
+            df_filtered.loc[:, features] += noise
+
         X = self.get_numerical_data_from_df(df_filtered)
         y = df_filtered["Suite"]
 
@@ -2724,9 +2773,13 @@ class FeaturesDashboard:
         print(f"This RF model training has considered {len(X.columns)} features.")
 
         # Splitting the dataset
-        X_train, X_test, y_train, y_test = train_test_split(
-            X, y, test_size=test_size, random_state=random_state
-        )
+        if test_size != 0:
+            X_train, X_test, y_train, y_test = train_test_split(
+                X, y, test_size=test_size, random_state=random_state
+            )
+        else:
+            X_train, X_test = X, X
+            y_train, y_test = y, y
 
         # Initializing and training the Random Forest classifier
         classifier = RandomForestClassifier(random_state=random_state)
@@ -2827,14 +2880,22 @@ class FeaturesDashboard:
 
         return g
 
+    def normalize_series(self, series):
+        """
+        Normalizes a pandas Series to have a minimum of 0 and maximum of 1.
+        """
+        return (series - series.min()) / (series.max() - series.min())
+
     def rank_each_feature(
         self,
         pca_var_expl=[0.7, 0.8, 0.9],
         rf_suites=None,
         coverage_suites=None,
         run_pca=False,
+        run_sensitivity_analysis=False,
+        random_seed=1,
+        noise_scale_factor=0.1,
     ):
-
         if coverage_suites is None:
             coverage_suites = self.get_suite_names(ignore_aerofoils=True)
 
@@ -2842,10 +2903,12 @@ class FeaturesDashboard:
             rf_suites = self.get_suite_names(ignore_aerofoils=True)
 
         # Initialise dataframe.
-        feature_ranks = pd.DataFrame(index=self.get_feature_names(ignore_features=True))
+        feature_scores = pd.DataFrame(
+            index=self.get_feature_names(ignore_features=True)
+        )
 
         # Get sampling type.
-        feature_ranks["Type"] = feature_ranks.index.to_series().apply(
+        feature_scores["Type"] = feature_scores.index.to_series().apply(
             lambda x: (
                 "Global"
                 if "_glob" in x
@@ -2853,17 +2916,28 @@ class FeaturesDashboard:
             )
         )
 
-        # Coverage rankings.
+        # Coverage normalizations.
         for s in coverage_suites:
-            coverages = self.get_feature_coverage(target_suite=s)
-            coverages["mean_coverage"] = coverages.mean(axis=1)
-            feature_ranks[f"Coverage_{s}"] = coverages["mean_coverage"].rank(
-                ascending=True
+            coverages = self.get_feature_coverage(
+                target_suite=s,
+                run_sensitivity_analysis=run_sensitivity_analysis,
+                random_seed=random_seed,
+                noise_scale_factor=noise_scale_factor,
+            )
+            coverages["mean_coverage"] = np.float64(coverages.mean(axis=1))
+
+            # Low coverage should mean a high score.
+            feature_scores[f"Coverage_{s}"] = 1 - self.normalize_series(
+                coverages["mean_coverage"]
             )
 
         if run_pca:
-            # PCA rankings. Need to rerun PCA quickly.
-            pca = self.run_pca()
+            # PCA normalizations. Need to rerun PCA quickly.
+            pca = self.run_pca(
+                run_sensitivity_analysis=run_sensitivity_analysis,
+                random_seed=random_seed,
+                noise_scale_factor=noise_scale_factor,
+            )
             for var in pca_var_expl:
                 num_pcs = self.calc_n_principal_compons_for_var(
                     pca=pca, minimum_expl_variance=var
@@ -2871,38 +2945,116 @@ class FeaturesDashboard:
                 best_pca_cont = self.get_total_pca_contribution(
                     pca=pca, n_components=num_pcs, top_features=None, worst=False
                 )
-                feature_ranks[f"PCAVar{var*100:.0f}"] = best_pca_cont.rank(
-                    ascending=False
+                feature_scores[f"PCAVar{var*100:.0f}"] = self.normalize_series(
+                    best_pca_cont
                 )
 
-        # RF classification model feature importance rankings.
+        # RF classification model feature importance normalizations.
         for s in rf_suites:
-            classifier = self.train_random_forest(suite_in_focus=s, test_size=0.2)
+            classifier = self.train_random_forest(
+                suite_in_focus=s,
+                test_size=0.4,
+                run_sensitivity_analysis=run_sensitivity_analysis,
+                random_seed=random_seed,
+                noise_scale_factor=noise_scale_factor,
+            )
             best_rf_cont = self.get_feature_importances(
                 classifier=classifier, top_features=None
             )
-            feature_ranks[f"RF_{s}"] = best_rf_cont.rank(ascending=False)
+            feature_scores[f"RF_{s}"] = self.normalize_series(
+                best_rf_cont["Importance"]
+            )
 
         # Compute means for each method.
         col_names = ["Coverage", "RF"]
-
         if run_pca:
             col_names.append("PCA")
 
         for c in col_names:
-            cols = feature_ranks.columns[feature_ranks.columns.str.contains(c)]
-            feature_ranks[f"{c}Mean"] = feature_ranks[cols].mean(axis=1)
+            cols = feature_scores.columns[feature_scores.columns.str.contains(c)]
+            feature_scores[f"{c}Mean"] = feature_scores[cols].mean(axis=1)
 
-        # Calculate overall mean rank.
-        feature_ranks["MeanRank"] = feature_ranks[[c + "Mean" for c in col_names]].mean(
-            axis=1
-        )
+        # Calculate overall mean score.
+        feature_scores["MeanScore"] = feature_scores[
+            [c + "Mean" for c in col_names]
+        ].mean(axis=1)
 
         # Calculate overall ranks.
-        feature_ranks["RankOfRanks"] = feature_ranks["MeanRank"].rank(ascending=True)
-        feature_ranks = feature_ranks.sort_values(by="RankOfRanks", ascending=True)
+        feature_scores["OverallRank"] = feature_scores["MeanScore"].rank(
+            ascending=False
+        )
+        feature_scores = feature_scores.sort_values(by="OverallRank", ascending=True)
 
-        return feature_ranks
+        return feature_scores
+
+    def run_feature_selection_sensitivity_analysis_single(
+        self, non_noisy_feature_scores, seeds=[1, 2, 3], noise_scale_factor=0.1
+    ):
+        """
+        Runs the feature ranking process for multiple random seeds and calculates the average deviation
+        of feature scores across these seeds.
+        """
+        results = []
+        for seed in seeds:
+            print(
+                f"----------- Performing feature selection for SEED {seed} -----------"
+            )
+            result = self.rank_each_feature(
+                random_seed=seed,
+                noise_scale_factor=noise_scale_factor,
+                run_sensitivity_analysis=True,
+            )
+            result.drop("Type", axis=1, inplace=True)
+            results.append(result)
+
+        # Combine results from different seeds
+        combined_results = pd.concat(results, keys=seeds)
+
+        # Compute average scores across seeds
+        mean_scores = combined_results.groupby(level=1).mean()
+
+        # Compute deviations as percentage of non-noisy scores
+        deviations = {}
+
+        # Tolerance for deviation calculation. Small scores have high percentage deviation. We only care about sensitivity of high-scoring features anyway
+        cov_tol = 0.05
+        rf_tol = 0.1
+        for column in mean_scores.columns:
+            if column in non_noisy_feature_scores and column != "Type":
+
+                if "Coverage" in column:
+                    tol = cov_tol
+                else:
+                    tol = rf_tol
+
+                mask = non_noisy_feature_scores[column] >= tol
+                filtered_scores = mean_scores[column][mask]
+                filtered_non_noisy = non_noisy_feature_scores[column][mask]
+
+                deviation = (
+                    np.abs(filtered_scores - filtered_non_noisy) / filtered_non_noisy
+                )
+                deviations[column] = deviation.mean() * 100  # percentage
+
+        return pd.DataFrame(
+            deviations, index=[f"Average Deviation (%) for SD = {noise_scale_factor}"]
+        ).T
+
+    def run_feature_selection_sensitivity_analysis(
+        self, non_noisy_feature_scores, noise_levels=[0.05, 0.1, 0.2]
+    ):
+        """
+        Runs sensitivity analysis for multiple noise levels.
+        """
+        all_deviations = {}
+        for noise_level in noise_levels:
+            print(f"Testing with noise level: {noise_level}")
+            deviations = self.run_feature_selection_sensitivity_analysis_single(
+                non_noisy_feature_scores, noise_scale_factor=noise_level
+            )
+            all_deviations[f"Noise {noise_level}"] = deviations
+
+        return pd.concat(all_deviations, axis=1)
 
     def plot_walk_for_report(self, walk_type, filepath=None, save_fig=False):
 
