@@ -27,6 +27,7 @@ class AdaptiveWalk(RandomWalk):
         num_processes=1,
         return_pop=False,
         seed=None,
+        return_potential_next_steps=False,
     ):
         """
         Simulate a Pareto Hill Climber - walk will move in direction that ensures improvement. If no further improvement is possible, the walk is concluded.
@@ -49,6 +50,10 @@ class AdaptiveWalk(RandomWalk):
         # Continue adaptive walk.
         improving_solutions_exist = True
         step_counter = 0
+
+        if return_potential_next_steps:
+            next_steps = []
+
         while improving_solutions_exist and step_counter <= self.num_steps:
             # Generate neighbours for this step.
             potential_next_steps = self.generate_neighbours_for_step(
@@ -65,6 +70,9 @@ class AdaptiveWalk(RandomWalk):
 
             # Remove any NaNs before moving on.
             pop_potential_next_clean, _ = pop_potential_next.remove_nan_inf_rows()
+
+            if return_potential_next_steps:
+                next_steps.append(pop_potential_next_clean)
 
             # If there are only NaNs around
             if len(pop_potential_next_clean) == 0:
@@ -86,10 +94,19 @@ class AdaptiveWalk(RandomWalk):
             else:
                 ranks = pop_first_step.extract_rank()
 
-            # Take first dominating solution.
+            # Take most dominating solution.
             try:
+                # Create a mask for all elements less than the first element
                 mask = ranks < ranks[0]
-                index_of_true = np.where(mask)[0][0]
+
+                # Check if any value is less than the first element
+                if not mask.any():
+                    index_of_true = None
+                else:
+                    # Apply the mask and find the index of the minimum value in the masked array
+                    min_value_index = ranks[mask].argmin()
+                    # Retrieve the original index of this minimum value from the masked array
+                    index_of_true = np.where(mask)[0][min_value_index]
                 pop_best = pop_first_step.get_single_pop(index_of_true)
                 pop_walk = Population.merge(pop_walk, pop_best)
                 walk[step_counter + 1, :] = pop_best.extract_var()
@@ -99,6 +116,10 @@ class AdaptiveWalk(RandomWalk):
 
         # Trim any remaining rows in the walk array.
         if return_pop:
-            return pop_walk.extract_var(), pop_walk
+
+            if not return_potential_next_steps:
+                return pop_walk.extract_var(), pop_walk
+            else:
+                return pop_walk.extract_var(), pop_walk, next_steps
         else:
             return pop_walk.extract_var()

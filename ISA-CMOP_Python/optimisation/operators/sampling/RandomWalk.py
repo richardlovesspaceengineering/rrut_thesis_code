@@ -79,7 +79,6 @@ class RandomWalk:
         # Simulate the rest of the walk.
         for i in range(1, self.num_steps):
             for j in range(self.dim):
-                # TODO: decide whether we randomly generate the neighbours for this step, then move to there
                 r = np.random.uniform(0, self.step_size_array[j])
                 if starting_zone[j] == 1:
                     r = -r
@@ -140,7 +139,7 @@ class RandomWalk:
         return neighbours
 
     def check_step_size_prop(self):
-        if self.step_size > 0.2:
+        if self.step_size_pct > 0.2:
             message = "Warning: simple RandomWalk may result in an infinite loop for a step size greater than 0.02. Consider using a progressive RW."
             warnings.warn(message)
 
@@ -174,8 +173,8 @@ class RandomWalk:
 
                 # Defines range of step sizes based on neighbourhood_size
                 r = (
-                    (self.bounds[0, i] * self.step_size)
-                    + ((self.bounds[1, i] - self.bounds[0, i]) * self.step_size)
+                    (self.bounds[0, i] * self.step_size_pct)
+                    + ((self.bounds[1, i] - self.bounds[0, i]) * self.step_size_pct)
                 ) * np.random.random()
                 temp = curr[0, i] + r * sign
 
