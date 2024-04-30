@@ -28,6 +28,7 @@ from optimisation.operators.sampling.AdaptiveWalk import AdaptiveWalk
 from PreSampler import PreSampler
 from pymoo.problems import get_problem
 from multiprocessing_util import *
+from mpl_toolkits.mplot3d import Axes3D
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
@@ -385,13 +386,22 @@ class FeaturesDashboard:
 
         return result
 
-    def plot_missingness(self, show_only_nans=False, show_ignored_features=True):
+    def plot_missingness(
+        self, show_only_nans=False, show_ignored_features=True, ignore_aerofoils=True
+    ):
         # Create a DataFrame indicating where NaNs are located (True for NaN, False for non-NaN)
 
+        df_filtered = self.filter_df_by_suite_and_dim(
+            self.features_df,
+            suite_names=None,
+            dims=None,
+            ignore_aerofoils=ignore_aerofoils,
+        )
+
         if not show_ignored_features:
-            df = self.ignore_specified_features(self.features_df)
+            df = self.ignore_specified_features(df_filtered)
         else:
-            df = self.features_df
+            df = df_filtered
 
         missingness = FeaturesDashboard.get_numerical_data_from_df(df).isnull()
 
@@ -400,9 +410,9 @@ class FeaturesDashboard:
         # Filter columns to show only those that contain at least one NaN value if the flag is set
         if show_only_nans:
             missingness = missingness.loc[row_has_nan, missingness.any(axis=0)]
-            ytick_lab = self.features_df.loc[row_has_nan, "Name"].values
+            ytick_lab = df.loc[row_has_nan, "Name"].values
         else:
-            ytick_lab = self.features_df["Name"].values
+            ytick_lab = df["Name"].values
 
         # Plotting the heatmap
         plt.figure(figsize=(36, 24))
@@ -3215,6 +3225,69 @@ class FeaturesDashboard:
         ax.legend()
         self.apply_custom_grid(ax)
         plt.tight_layout()
+
+    def plot_landscape_for_report(
+        self,
+        z_exp,
+        xlim=(-10, 10),
+        ylim=(-10, 10),
+        elev_azi=(30, 30),
+        contour_offset=20,
+        filepath=None,
+        save_fig=False,
+    ):
+
+        xmin, xmax = xlim
+        ymin, ymax = ylim
+
+        self.apply_custom_matplotlib_style()
+
+        # Adjust the grid of x and y values to be between -10 and 10
+        x = np.linspace(xmin, xmax, 200)
+        y = np.linspace(ymin, ymax, 200)
+        x, y = np.meshgrid(x, y)
+
+        # Recalculate z values with the new range
+        z = z_exp(x, y)
+
+        # Create a new 3D plot with the updated range
+        fig = plt.figure(
+            figsize=(self.plot_width_half, self.plot_height_landscape_medium)
+        )
+        ax = fig.add_subplot(111, projection="3d")
+        ax.xaxis.labelpad = -10  # Increase padding for x-axis label if needed
+        ax.yaxis.labelpad = -10  # Increase padding for y-axis label if needed
+        ax.zaxis.labelpad = -10  # Increase padding for z-axis label if needed
+
+        # Plot the surface with the new range
+        surf = ax.plot_surface(x, y, z, cmap="viridis")
+        # Contour plot on the xy plane
+        contour = ax.contour(
+            x, y, z, 15, zdir="z", offset=np.min(z) - contour_offset, cmap="viridis"
+        )
+
+        # Customize the z axis with the updated range
+        # ax.set_zlim(-2, 2)
+
+        # Set viewing angle
+        elev, azim = elev_azi
+        ax.view_init(elev=elev, azim=azim)
+        ax.set_xlabel(r"$x_1$")
+        ax.set_ylabel(r"$x_2$")
+        ax.set_zlabel(r"$f$")
+
+        # Remove axis tick labels by setting them to an empty string
+        ax.set_xticklabels([])
+        ax.set_yticklabels([])
+        ax.set_zticklabels([])
+
+        # Reduce the number of axis ticks by specifying the desired locations
+        num_ticks = 3
+        ax.set_xticks(np.linspace(xmin, xmax, num_ticks))
+        ax.set_yticks(np.linspace(ymin, ymax, num_ticks))
+        plt.tight_layout()
+
+        self.apply_custom_grid(ax=ax)
 
         if filepath is not None and self.report_mode:
             self.save_figure(filepath=filepath)
