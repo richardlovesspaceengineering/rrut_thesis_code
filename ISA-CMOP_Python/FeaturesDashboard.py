@@ -3226,6 +3226,12 @@ class FeaturesDashboard:
         self.apply_custom_grid(ax)
         plt.tight_layout()
 
+        if filepath is not None and self.report_mode:
+            self.save_figure(filepath=filepath)
+        elif save_fig:
+            raise ValueError("To save a figure, a filepath must be specified.")
+        plt.show()
+
     def plot_landscape_for_report(
         self,
         z_exp,
@@ -3233,6 +3239,7 @@ class FeaturesDashboard:
         ylim=(-10, 10),
         elev_azi=(30, 30),
         contour_offset=20,
+        num_contours=15,
         filepath=None,
         save_fig=False,
     ):
@@ -3263,7 +3270,13 @@ class FeaturesDashboard:
         surf = ax.plot_surface(x, y, z, cmap="viridis")
         # Contour plot on the xy plane
         contour = ax.contour(
-            x, y, z, 15, zdir="z", offset=np.min(z) - contour_offset, cmap="viridis"
+            x,
+            y,
+            z,
+            num_contours,
+            zdir="z",
+            offset=np.min(z) - contour_offset,
+            cmap="viridis",
         )
 
         # Customize the z axis with the updated range
