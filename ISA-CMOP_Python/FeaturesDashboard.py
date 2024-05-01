@@ -1874,7 +1874,7 @@ class FeaturesDashboard:
             # Update suite_colors to have the suite_in_focus color last
             suite_colors = [
                 (
-                    "#9e9b9b"
+                    "lightskyblue"
                     if suite != suite_in_focus
                     else self.suite_color_map[suite_in_focus]
                 )
@@ -3244,6 +3244,7 @@ class FeaturesDashboard:
         circle_params=None,
         remove_circles=False,
         show_contour=True,
+        show_2d=False,
         save_fig=False,
     ):
 
@@ -3260,89 +3261,109 @@ class FeaturesDashboard:
         # Recalculate z values with the new range
         z = z_exp(x, y)
 
-        # Create a new 3D plot with the updated range
-        fig = plt.figure(
-            figsize=(self.plot_width_half, self.plot_height_landscape_medium)
-        )
-        ax = fig.add_subplot(111, projection="3d")
-
-        # Calculate minimum z for contour offset
-        min_z = np.min(z)
-
-        # Plot contour first at a lower z offset
-        if show_contour:
-            ax.contour(
-                x,
-                y,
-                z,
-                num_contours,
-                zdir="z",
-                offset=min_z - contour_offset,
-                cmap="viridis",
+        if show_2d:
+            fig, ax = plt.subplots(
+                figsize=(self.plot_width_half, self.plot_height_landscape_medium)
             )
-
-        # Initialize a mask for areas not covered by any circle
-        covered_mask = np.zeros_like(x, dtype=bool)
-
-        # Solid color surface plot configurations
-        if circle_params:
-            for i, (center, radius) in enumerate(circle_params):
-                squared_distances = (x - center[0]) ** 2 + (y - center[1]) ** 2
-                mask = squared_distances < radius**2
-
-                if not remove_circles:
-                    ax.plot_surface(x, y, np.where(mask, z, np.nan), color="salmon")
-                covered_mask |= mask  # Update covered mask
-
-        # Plot the remaining areas not covered by any circle
-        ax.plot_surface(
-            x, y, np.where(~covered_mask, z, np.nan), color="lightgray", shade=True
-        )  # Default area color
-
-        # Contour plot on the xy plane
-        if show_contour:
-            contour = ax.contour(
-                x,
-                y,
+            im = ax.imshow(
                 z,
-                num_contours,
-                zdir="z",
-                offset=np.min(z) - contour_offset,
-                cmap="viridis",
-                zorder=0,
+                extent=(xmin, xmax, ymin, ymax),
+                # origin="lower",
+                interpolation="bilinear",
+                cmap="inferno",
+                aspect="auto",
             )
+            fig.colorbar(im, ax=ax, label=r"$f$")  # Add a colorbar to the 2D plot
 
-        ax.xaxis.labelpad = -10  # Increase padding for x-axis label if needed
-        ax.yaxis.labelpad = -10  # Increase padding for y-axis label if needed
-        ax.zaxis.labelpad = -10  # Increase padding for z-axis label if needed
+            # Overlay circles if provided
+            if circle_params:
 
-        # # Plot the surface with the new range
-        # surf = ax.plot_surface(x, y, z, cmap="viridis")
-        # # Contour plot on the xy plane
-        # contour = ax.contour(
-        #     x,
-        #     y,
-        #     z,
-        #     num_contours,
-        #     zdir="z",
-        #     offset=np.min(z) - contour_offset,
-        #     cmap="viridis",
-        # )
+                if remove_circles:
+                    color = "white"
+                else:
+                    color = "grey"
 
-        # Customize the z axis with the updated range
-        # ax.set_zlim(-2, 2)
+                for center, radius in circle_params:
+                    circle = plt.Circle(
+                        center, radius, color=color, fill=True, linewidth=2
+                    )
+                    ax.add_patch(circle)
 
-        # Set viewing angle
-        elev, azim = elev_azi
-        ax.view_init(elev=elev, azim=azim)
+            ax.set_xlim(xmin, xmax)
+            ax.set_ylim(ymin, ymax)
+
+        else:
+
+            # Create a new 3D plot with the updated range
+            fig = plt.figure(
+                figsize=(self.plot_width_half, self.plot_height_landscape_medium)
+            )
+            ax = fig.add_subplot(111, projection="3d")
+
+            # Calculate minimum z for contour offset
+            min_z = np.min(z)
+
+            # Plot contour first at a lower z offset
+            if show_contour:
+                ax.contour(
+                    x,
+                    y,
+                    z,
+                    num_contours,
+                    zdir="z",
+                    offset=min_z - contour_offset,
+                    cmap="inferno",
+                )
+
+            # Initialize a mask for areas not covered by any circle
+            covered_mask = np.zeros_like(x, dtype=bool)
+
+            # Solid color surface plot configurations
+            if circle_params:
+                for i, (center, radius) in enumerate(circle_params):
+                    squared_distances = (x - center[0]) ** 2 + (y - center[1]) ** 2
+                    mask = squared_distances < radius**2
+
+                    if not remove_circles:
+                        ax.plot_surface(x, y, np.where(mask, z, np.nan), color="grey")
+                    covered_mask |= mask  # Update covered mask
+
+            # Plot the remaining areas not covered by any circle
+            ax.plot_surface(
+                x, y, np.where(~covered_mask, z, np.nan), cmap="inferno", shade=True
+            )  # Default area color
+
+            # Contour plot on the xy plane
+            if show_contour:
+                contour = ax.contour(
+                    x,
+                    y,
+                    z,
+                    num_contours,
+                    zdir="z",
+                    offset=np.min(z) - contour_offset,
+                    cmap="inferno",
+                    zorder=0,
+                )
+
+            ax.xaxis.labelpad = -10  # Increase padding for x-axis label if needed
+            ax.yaxis.labelpad = -10  # Increase padding for y-axis label if needed
+            ax.zaxis.labelpad = -10  # Increase padding for z-axis label if needed
+
+            # Set viewing angle
+            elev, azim = elev_azi
+            ax.view_init(elev=elev, azim=azim)
+
         ax.set_xlabel(r"$x_1$")
         ax.set_ylabel(r"$x_2$")
-        ax.set_zlabel(r"$f$")
 
         # Remove axis tick labels by setting them to an empty string
         ax.set_xticklabels([])
         ax.set_yticklabels([])
-        ax.set_zticklabels([])
+
+        if not show_2d:
+            ax.set_zlabel(r"$f$")
+            ax.set_zticklabels([])
 
         # Reduce the number of axis ticks by specifying the desired locations
         num_ticks = 3
@@ -3350,7 +3371,8 @@ class FeaturesDashboard:
         ax.set_yticks(np.linspace(ymin, ymax, num_ticks))
         plt.tight_layout()
 
-        self.apply_custom_grid(ax=ax)
+        if not show_2d:
+            self.apply_custom_grid(ax=ax)
 
         if filepath is not None and self.report_mode:
             self.save_figure(filepath=filepath)
