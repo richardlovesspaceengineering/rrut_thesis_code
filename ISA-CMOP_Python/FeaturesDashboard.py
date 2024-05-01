@@ -3241,6 +3241,9 @@ class FeaturesDashboard:
         contour_offset=20,
         num_contours=15,
         filepath=None,
+        circle_params=None,
+        remove_circles=False,
+        show_contour=True,
         save_fig=False,
     ):
 
@@ -3250,8 +3253,8 @@ class FeaturesDashboard:
         self.apply_custom_matplotlib_style()
 
         # Adjust the grid of x and y values to be between -10 and 10
-        x = np.linspace(xmin, xmax, 200)
-        y = np.linspace(ymin, ymax, 200)
+        x = np.linspace(xmin, xmax, 400)
+        y = np.linspace(ymin, ymax, 400)
         x, y = np.meshgrid(x, y)
 
         # Recalculate z values with the new range
@@ -3262,22 +3265,69 @@ class FeaturesDashboard:
             figsize=(self.plot_width_half, self.plot_height_landscape_medium)
         )
         ax = fig.add_subplot(111, projection="3d")
+
+        # Calculate minimum z for contour offset
+        min_z = np.min(z)
+
+        # Plot contour first at a lower z offset
+        if show_contour:
+            ax.contour(
+                x,
+                y,
+                z,
+                num_contours,
+                zdir="z",
+                offset=min_z - contour_offset,
+                cmap="viridis",
+            )
+
+        # Initialize a mask for areas not covered by any circle
+        covered_mask = np.zeros_like(x, dtype=bool)
+
+        # Solid color surface plot configurations
+        if circle_params:
+            for i, (center, radius) in enumerate(circle_params):
+                squared_distances = (x - center[0]) ** 2 + (y - center[1]) ** 2
+                mask = squared_distances < radius**2
+
+                if not remove_circles:
+                    ax.plot_surface(x, y, np.where(mask, z, np.nan), color="salmon")
+                covered_mask |= mask  # Update covered mask
+
+        # Plot the remaining areas not covered by any circle
+        ax.plot_surface(
+            x, y, np.where(~covered_mask, z, np.nan), color="lightgray", shade=True
+        )  # Default area color
+
+        # Contour plot on the xy plane
+        if show_contour:
+            contour = ax.contour(
+                x,
+                y,
+                z,
+                num_contours,
+                zdir="z",
+                offset=np.min(z) - contour_offset,
+                cmap="viridis",
+                zorder=0,
+            )
+
         ax.xaxis.labelpad = -10  # Increase padding for x-axis label if needed
         ax.yaxis.labelpad = -10  # Increase padding for y-axis label if needed
         ax.zaxis.labelpad = -10  # Increase padding for z-axis label if needed
 
-        # Plot the surface with the new range
-        surf = ax.plot_surface(x, y, z, cmap="viridis")
-        # Contour plot on the xy plane
-        contour = ax.contour(
-            x,
-            y,
-            z,
-            num_contours,
-            zdir="z",
-            offset=np.min(z) - contour_offset,
-            cmap="viridis",
-        )
+        # # Plot the surface with the new range
+        # surf = ax.plot_surface(x, y, z, cmap="viridis")
+        # # Contour plot on the xy plane
+        # contour = ax.contour(
+        #     x,
+        #     y,
+        #     z,
+        #     num_contours,
+        #     zdir="z",
+        #     offset=np.min(z) - contour_offset,
+        #     cmap="viridis",
+        # )
 
         # Customize the z axis with the updated range
         # ax.set_zlim(-2, 2)
