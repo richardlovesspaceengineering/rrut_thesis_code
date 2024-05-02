@@ -28,6 +28,7 @@ from optimisation.operators.sampling.AdaptiveWalk import AdaptiveWalk
 from PreSampler import PreSampler
 from pymoo.problems import get_problem
 from multiprocessing_util import *
+from mpl_toolkits.mplot3d import Axes3D
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
@@ -385,13 +386,22 @@ class FeaturesDashboard:
 
         return result
 
-    def plot_missingness(self, show_only_nans=False, show_ignored_features=True):
+    def plot_missingness(
+        self, show_only_nans=False, show_ignored_features=True, ignore_aerofoils=True
+    ):
         # Create a DataFrame indicating where NaNs are located (True for NaN, False for non-NaN)
 
+        df_filtered = self.filter_df_by_suite_and_dim(
+            self.features_df,
+            suite_names=None,
+            dims=None,
+            ignore_aerofoils=ignore_aerofoils,
+        )
+
         if not show_ignored_features:
-            df = self.ignore_specified_features(self.features_df)
+            df = self.ignore_specified_features(df_filtered)
         else:
-            df = self.features_df
+            df = df_filtered
 
         missingness = FeaturesDashboard.get_numerical_data_from_df(df).isnull()
 
@@ -400,9 +410,9 @@ class FeaturesDashboard:
         # Filter columns to show only those that contain at least one NaN value if the flag is set
         if show_only_nans:
             missingness = missingness.loc[row_has_nan, missingness.any(axis=0)]
-            ytick_lab = self.features_df.loc[row_has_nan, "Name"].values
+            ytick_lab = df.loc[row_has_nan, "Name"].values
         else:
-            ytick_lab = self.features_df["Name"].values
+            ytick_lab = df["Name"].values
 
         # Plotting the heatmap
         plt.figure(figsize=(36, 24))
@@ -1864,7 +1874,7 @@ class FeaturesDashboard:
             # Update suite_colors to have the suite_in_focus color last
             suite_colors = [
                 (
-                    "#9e9b9b"
+                    "lightskyblue"
                     if suite != suite_in_focus
                     else self.suite_color_map[suite_in_focus]
                 )
@@ -3215,6 +3225,154 @@ class FeaturesDashboard:
         ax.legend()
         self.apply_custom_grid(ax)
         plt.tight_layout()
+
+        if filepath is not None and self.report_mode:
+            self.save_figure(filepath=filepath)
+        elif save_fig:
+            raise ValueError("To save a figure, a filepath must be specified.")
+        plt.show()
+
+    def plot_landscape_for_report(
+        self,
+        z_exp,
+        xlim=(-10, 10),
+        ylim=(-10, 10),
+        elev_azi=(30, 30),
+        contour_offset=20,
+        num_contours=15,
+        filepath=None,
+        circle_params=None,
+        remove_circles=False,
+        show_contour=True,
+        show_2d=False,
+        save_fig=False,
+    ):
+
+        xmin, xmax = xlim
+        ymin, ymax = ylim
+
+        self.apply_custom_matplotlib_style()
+
+        # Adjust the grid of x and y values to be between -10 and 10
+        x = np.linspace(xmin, xmax, 400)
+        y = np.linspace(ymin, ymax, 400)
+        x, y = np.meshgrid(x, y)
+
+        # Recalculate z values with the new range
+        z = z_exp(x, y)
+
+        if show_2d:
+            fig, ax = plt.subplots(
+                figsize=(self.plot_width_half, self.plot_height_landscape_medium)
+            )
+            im = ax.imshow(
+                z,
+                extent=(xmin, xmax, ymin, ymax),
+                # origin="lower",
+                interpolation="bilinear",
+                cmap="inferno",
+                aspect="auto",
+            )
+            fig.colorbar(im, ax=ax, label=r"$f$")  # Add a colorbar to the 2D plot
+
+            # Overlay circles if provided
+            if circle_params:
+
+                if remove_circles:
+                    color = "white"
+                else:
+                    color = "grey"
+
+                for center, radius in circle_params:
+                    circle = plt.Circle(
+                        center, radius, color=color, fill=True, linewidth=2
+                    )
+                    ax.add_patch(circle)
+
+            ax.set_xlim(xmin, xmax)
+            ax.set_ylim(ymin, ymax)
+
+        else:
+
+            # Create a new 3D plot with the updated range
+            fig = plt.figure(
+                figsize=(self.plot_width_half, self.plot_height_landscape_medium)
+            )
+            ax = fig.add_subplot(111, projection="3d")
+
+            # Calculate minimum z for contour offset
+            min_z = np.min(z)
+
+            # Plot contour first at a lower z offset
+            if show_contour:
+                ax.contour(
+                    x,
+                    y,
+                    z,
+                    num_contours,
+                    zdir="z",
+                    offset=min_z - contour_offset,
+                    cmap="inferno",
+                )
+
+            # Initialize a mask for areas not covered by any circle
+            covered_mask = np.zeros_like(x, dtype=bool)
+
+            # Solid color surface plot configurations
+            if circle_params:
+                for i, (center, radius) in enumerate(circle_params):
+                    squared_distances = (x - center[0]) ** 2 + (y - center[1]) ** 2
+                    mask = squared_distances < radius**2
+
+                    if not remove_circles:
+                        ax.plot_surface(x, y, np.where(mask, z, np.nan), color="grey")
+                    covered_mask |= mask  # Update covered mask
+
+            # Plot the remaining areas not covered by any circle
+            ax.plot_surface(
+                x, y, np.where(~covered_mask, z, np.nan), cmap="inferno", shade=True
+            )  # Default area color
+
+            # Contour plot on the xy plane
+            if show_contour:
+                contour = ax.contour(
+                    x,
+                    y,
+                    z,
+                    num_contours,
+                    zdir="z",
+                    offset=np.min(z) - contour_offset,
+                    cmap="inferno",
+                    zorder=0,
+                )
+
+            ax.xaxis.labelpad = -10  # Increase padding for x-axis label if needed
+            ax.yaxis.labelpad = -10  # Increase padding for y-axis label if needed
+            ax.zaxis.labelpad = -10  # Increase padding for z-axis label if needed
+
+            # Set viewing angle
+            elev, azim = elev_azi
+            ax.view_init(elev=elev, azim=azim)
+
+        ax.set_xlabel(r"$x_1$")
+        ax.set_ylabel(r"$x_2$")
+
+        # Remove axis tick labels by setting them to an empty string
+        ax.set_xticklabels([])
+        ax.set_yticklabels([])
+
+        if not show_2d:
+            ax.set_zlabel(r"$f$")
+            ax.set_zticklabels([])
+
+        # Reduce the number of axis ticks by specifying the desired locations
+        num_ticks = 3
+        ax.set_xticks(np.linspace(xmin, xmax, num_ticks))
+        ax.set_yticks(np.linspace(ymin, ymax, num_ticks))
+        plt.tight_layout()
+
+        if not show_2d:
+            self.apply_custom_grid(ax=ax)
 
         if filepath is not None and self.report_mode:
             self.save_figure(filepath=filepath)
