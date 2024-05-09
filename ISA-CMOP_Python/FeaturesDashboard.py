@@ -234,7 +234,13 @@ class FeaturesDashboard:
         # Define the full path for the PDF
         pdf_path = os.path.join(directory, filename)
 
-        plt.savefig(pdf_path, format="pdf", bbox_inches="tight", pad_inches=0.05)
+        plt.savefig(
+            pdf_path,
+            format=extension[1:],
+            bbox_inches="tight",
+            pad_inches=0.05,
+            dpi=500,
+        )
 
         print(f"PDF saved at {pdf_path}")
 
@@ -303,7 +309,14 @@ class FeaturesDashboard:
         # Text settings
         if self.report_mode:
             plt.rc("text", usetex=True)
-            plt.rc("font", family="serif", serif=["Computer Modern"])
+            plt.rc("font", family="serif")
+            plt.rcParams[
+                "text.latex.preamble"
+            ] = r"""
+                \usepackage{libertine}
+                \usepackage[libertine]{newtxmath}
+                \usepackage{inconsolata}
+                """
 
     @staticmethod
     def get_numerical_data_from_df(df, give_sd=False):
@@ -2519,7 +2532,7 @@ class FeaturesDashboard:
             fig=fig,
             df=df_filtered,
             ignore_aerofoils=ignore_aerofoils,
-            top_box_anchor=1.15,
+            top_box_anchor=1.20,
         )
 
         fig.tight_layout()
@@ -2548,6 +2561,7 @@ class FeaturesDashboard:
         n_neighbors=[15, 30, 60],
         min_dist=0.2,
         random_state=42,
+        plot_random_noise=False,
         ignore_aerofoils=True,
         train_with_aerofoils=False,
         text_annotations_for_suites=None,
@@ -2578,6 +2592,18 @@ class FeaturesDashboard:
 
         # We will use different markers for each dimension.
         marker_dict, unique_d_values = self.get_dimension_markers(df=df_filtered)
+
+        if plot_random_noise:
+            # Replace data with Gaussian noise, except for column "D"
+            np.random.seed(random_state)  # Ensure reproducibility
+            noise = np.random.normal(size=df_filtered.shape)
+            noise_df = pd.DataFrame(
+                noise, index=df_filtered.index, columns=df_filtered.columns
+            )
+            # Retain columns from the original DataFrame
+            noise_df["D"] = df_filtered["D"]
+            noise_df["Suite"] = df_filtered["Suite"]
+            df_filtered = noise_df
 
         # Apply feature scaling
         df_filtered = self.apply_feature_scaling(
@@ -2690,7 +2716,7 @@ class FeaturesDashboard:
             fig=fig,
             df=df_filtered,
             ignore_aerofoils=ignore_aerofoils,
-            top_box_anchor=1.15,
+            top_box_anchor=1.20,
         )
 
         fig.tight_layout()
@@ -2710,7 +2736,6 @@ class FeaturesDashboard:
     def train_random_forest(
         self,
         test_size=0.3,
-        random_state=42,
         ignore_aerofoils=True,
         suite_in_focus=None,
         scaler_type="MinMaxScaler",
@@ -2785,14 +2810,14 @@ class FeaturesDashboard:
         # Splitting the dataset
         if test_size != 0:
             X_train, X_test, y_train, y_test = train_test_split(
-                X, y, test_size=test_size, random_state=random_state
+                X, y, test_size=test_size, random_state=random_seed
             )
         else:
             X_train, X_test = X, X
             y_train, y_test = y, y
 
         # Initializing and training the Random Forest classifier
-        classifier = RandomForestClassifier(random_state=random_state)
+        classifier = RandomForestClassifier(random_state=random_seed)
         classifier.fit(X_train, y_train)
 
         # Making predictions and evaluating the classifier
@@ -2803,30 +2828,51 @@ class FeaturesDashboard:
 
         return classifier
 
-    def get_feature_importances(self, classifier, top_features=None, worst=False):
+    def get_feature_importances(self, classifiers, top_features=None, worst=False):
         """
-        Get a DataFrame of feature importances from the trained Random Forest model.
+        Get a DataFrame of aggregated feature importances from multiple trained Random Forest models.
 
-        :param n: Number of top features to return. If None, returns all features.
-        :return: A DataFrame with feature importances.
+        :param classifiers: A list of trained classifiers or a single classifier.
+        :param top_features: Number of top (or worst, if worst=True) features to return. If None, returns all features.
+        :param worst: If True, return the features with the lowest importance; otherwise, return the top features.
+        :return: A DataFrame with aggregated feature importances.
         """
-        if classifier is None:
+        if not classifiers:
             raise ValueError(
-                "The classifier has not been trained yet. Call train_random_forest first."
+                "No classifiers provided. Please provide at least one trained classifier."
             )
 
-        importances = classifier.feature_importances_
+        if not isinstance(classifiers, list):
+            classifiers = [
+                classifiers
+            ]  # Ensure classifiers is a list even if a single classifier is provided
+
+        # Initialize an array to store importances from all classifiers
+        all_importances = []
+
+        for classifier in classifiers:
+            if hasattr(classifier, "feature_importances_"):
+                all_importances.append(classifier.feature_importances_)
+            else:
+                raise ValueError(
+                    "One of the classifiers does not have feature_importances_ attribute."
+                )
+
+        # Calculate mean feature importances across all classifiers
+        mean_importances = np.mean(all_importances, axis=0)
+
+        # Assuming the feature names are the same for all classifiers and can be obtained from the first one
         feature_names = self.get_feature_names(ignore_features=True)
         feature_importances = pd.DataFrame(
-            importances, index=feature_names, columns=["Importance"]
-        ).sort_values(by="Importance", ascending=False)
+            mean_importances, index=feature_names, columns=["Importance"]
+        ).sort_values(by="Importance", ascending=worst)
 
         if top_features is not None:
-
-            if worst:
-                return feature_importances.tail(top_features)
-            else:
-                return feature_importances.head(top_features)
+            return (
+                feature_importances.head(top_features)
+                if not worst
+                else feature_importances.tail(top_features)
+            )
 
         return feature_importances
 
@@ -2905,6 +2951,7 @@ class FeaturesDashboard:
         run_sensitivity_analysis=False,
         random_seed=1,
         noise_scale_factor=0.1,
+        num_rf_models=10,
     ):
         if coverage_suites is None:
             coverage_suites = self.get_suite_names(ignore_aerofoils=True)
@@ -2961,15 +3008,27 @@ class FeaturesDashboard:
 
         # RF classification model feature importance normalizations.
         for s in rf_suites:
-            classifier = self.train_random_forest(
-                suite_in_focus=s,
-                test_size=0.4,
-                run_sensitivity_analysis=run_sensitivity_analysis,
-                random_seed=random_seed,
-                noise_scale_factor=noise_scale_factor,
-            )
+            rfs = []
+
+            # Use different seed for sensitivity analysis.
+            if run_sensitivity_analysis:
+                min_seed = num_rf_models + 1
+                max_seed = num_rf_models * 2
+            else:
+                min_seed = 0
+                max_seed = num_rf_models
+
+            for n in range(min_seed, max_seed):
+                classifier = self.train_random_forest(
+                    suite_in_focus=s,
+                    test_size=0.2,
+                    run_sensitivity_analysis=run_sensitivity_analysis,
+                    random_seed=n,
+                    noise_scale_factor=noise_scale_factor,
+                )
+                rfs.append(classifier)
             best_rf_cont = self.get_feature_importances(
-                classifier=classifier, top_features=None
+                classifiers=rfs, top_features=None
             )
             feature_scores[f"RF_{s}"] = self.normalize_series(
                 best_rf_cont["Importance"]
@@ -2998,7 +3057,11 @@ class FeaturesDashboard:
         return feature_scores
 
     def run_feature_selection_sensitivity_analysis_single(
-        self, non_noisy_feature_scores, seeds=[1, 2, 3], noise_scale_factor=0.1
+        self,
+        non_noisy_feature_scores,
+        seeds=[1, 2, 3],
+        noise_scale_factor=0.1,
+        run_pca=False,
     ):
         """
         Runs the feature ranking process for multiple random seeds and calculates the average deviation
@@ -3013,6 +3076,7 @@ class FeaturesDashboard:
                 random_seed=seed,
                 noise_scale_factor=noise_scale_factor,
                 run_sensitivity_analysis=True,
+                run_pca=run_pca,
             )
             result.drop("Type", axis=1, inplace=True)
             results.append(result)
@@ -3051,7 +3115,11 @@ class FeaturesDashboard:
         ).T
 
     def run_feature_selection_sensitivity_analysis(
-        self, non_noisy_feature_scores, noise_levels=[0.05, 0.1, 0.2]
+        self,
+        non_noisy_feature_scores,
+        noise_levels=[0.05, 0.1, 0.2],
+        run_pca=False,
+        num_samples=3,
     ):
         """
         Runs sensitivity analysis for multiple noise levels.
@@ -3060,7 +3128,10 @@ class FeaturesDashboard:
         for noise_level in noise_levels:
             print(f"Testing with noise level: {noise_level}")
             deviations = self.run_feature_selection_sensitivity_analysis_single(
-                non_noisy_feature_scores, noise_scale_factor=noise_level
+                non_noisy_feature_scores,
+                noise_scale_factor=noise_level,
+                run_pca=run_pca,
+                seeds=[i for i in range(num_samples)],
             )
             all_deviations[f"Noise {noise_level}"] = deviations
 
@@ -3246,6 +3317,7 @@ class FeaturesDashboard:
         show_contour=True,
         show_2d=False,
         save_fig=False,
+        extension=".pdf",
     ):
 
         xmin, xmax = xlim
@@ -3261,10 +3333,23 @@ class FeaturesDashboard:
         # Recalculate z values with the new range
         z = z_exp(x, y)
 
+        if extension == ".png":
+
+            # Presentation plotting
+            fig_width = 5
+            fig_height = 5
+
+            if show_2d:
+                fig_width += 1
+
+        else:
+            # report plotting
+            fig_width = self.plot_width_half
+            fig_height = self.plot_height_landscape_medium
+
         if show_2d:
-            fig, ax = plt.subplots(
-                figsize=(self.plot_width_half, self.plot_height_landscape_medium)
-            )
+
+            fig, ax = plt.subplots(figsize=(fig_width, fig_height))
             im = ax.imshow(
                 z,
                 extent=(xmin, xmax, ymin, ymax),
@@ -3295,9 +3380,8 @@ class FeaturesDashboard:
         else:
 
             # Create a new 3D plot with the updated range
-            fig = plt.figure(
-                figsize=(self.plot_width_half, self.plot_height_landscape_medium)
-            )
+
+            fig = plt.figure(figsize=(fig_width, fig_height))
             ax = fig.add_subplot(111, projection="3d")
 
             # Calculate minimum z for contour offset
@@ -3375,7 +3459,7 @@ class FeaturesDashboard:
             self.apply_custom_grid(ax=ax)
 
         if filepath is not None and self.report_mode:
-            self.save_figure(filepath=filepath)
+            self.save_figure(filepath=filepath, extension=extension)
         elif save_fig:
             raise ValueError("To save a figure, a filepath must be specified.")
         plt.show()
