@@ -3019,21 +3019,20 @@ class FeaturesDashboard:
                 max_seed = num_rf_models
 
             for n in range(min_seed, max_seed):
-                for noise in [0, 0.05, 0.1]:
 
-                    if run_sensitivity_analysis:
-                        random_seed = n * 100
-                    else:
-                        random_seed = n
+                if run_sensitivity_analysis:
+                    random_seed = n * 100
+                else:
+                    random_seed = n
 
-                    classifier = self.train_random_forest(
-                        suite_in_focus=s,
-                        test_size=0.2,
-                        run_sensitivity_analysis=run_sensitivity_analysis,
-                        random_seed=random_seed,
-                        noise_scale_factor=noise,
-                    )
-                    rfs.append(classifier)
+                classifier = self.train_random_forest(
+                    suite_in_focus=s,
+                    test_size=0.2,
+                    run_sensitivity_analysis=run_sensitivity_analysis,
+                    random_seed=random_seed,
+                    noise_scale_factor=noise_scale_factor,
+                )
+                rfs.append(classifier)
             best_rf_cont = self.get_feature_importances(
                 classifiers=rfs, top_features=None
             )
