@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 import shutil
+from collections import defaultdict
 from matplotlib.backends.backend_pdf import PdfPages
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
@@ -2112,9 +2113,11 @@ class FeaturesDashboard:
         top_features=None,
         ignore_features=True,
         ignore_aerofoils=True,
+        save_fig=False,
+        filepath=None,
     ):
         """
-        Calculate and plot the coverage heatmap.
+        Calculate and plot the coverage heatmap with flipped axes.
 
         :param target_suite: The suite to compare all other suites against. If None, compare against the entire dataset.
         :param analysis_type: The type of analysis to filter features.
@@ -2133,14 +2136,23 @@ class FeaturesDashboard:
             coverage_values = self.get_top_coverage_features(
                 coverage_values=coverage_values, top_features=top_features, aslist=False
             )
+            # coverage_values.rename(columns={"mean_coverage": "Overall"}, inplace=True)
             coverage_values.drop("mean_coverage", axis=1, inplace=True)
 
-        suites = coverage_values.columns
-        features = coverage_values.index
+        # Transpose the DataFrame to flip the axes for plotting
+        coverage_values = coverage_values.T
 
-        # Determine optimal figure size based on the number of features and suites
-        fig_width = max(12, len(suites) * 1.2)
-        fig_height = max(8, len(features) * 0.4)
+        # Features and suites are swapped after transpose
+        suites = coverage_values.index
+        features = coverage_values.columns
+
+        # Determine optimal figure size based on the number of suites and features now
+        if self.report_mode:
+            fig_width = self.plot_width_full
+            fig_height = self.plot_height_landscape_large
+        else:
+            fig_width = max(12, len(features) * 1.2)
+            fig_height = max(8, len(suites) * 0.4)
 
         plt.figure(figsize=(fig_width, fig_height))
 
@@ -2152,24 +2164,31 @@ class FeaturesDashboard:
             cmap = LinearSegmentedColormap.from_list(
                 "custom", [self.suite_color_map[target_suite], "white"], N=256
             )
-        sns.heatmap(
+        ax = sns.heatmap(
             coverage_values.astype(float),
             annot=False,
             cmap=cmap,
-            cbar_kws={"shrink": 0.5},
+            cbar_kws={"shrink": 0.75},
             vmin=0.6,
             vmax=1,
             square=True,
         )
-        plt.title(
-            f"Coverage Heatmap for {analysis_type} features. Relative to {'all suites' if target_suite is None else target_suite}"
-        )
-        plt.xlabel("Suites")
-        plt.ylabel("Features")
-        plt.xticks(
-            rotation=45, fontsize=10
-        )  # Rotate x-axis labels for better readability
+        plt.xlabel("Features")
+        plt.ylabel("Suites")
+        # Update label formatting for y-axis to match the new orientation
+        formatted_labels = [
+            r"$\texttt{" + label.replace("_", "\_") + "}$" for label in features
+        ]
+        plt.yticks(fontsize=10)
+        ax.set_xticks(np.arange(0.5, len(coverage_values.columns)))
+        ax.set_xticklabels(formatted_labels, rotation=60, ha="right")
+
         plt.tight_layout()
+
+        if filepath is not None and self.report_mode:
+            self.save_figure(filepath=filepath)
+        elif save_fig:
+            raise ValueError("To save a figure, a filepath must be specified.")
         plt.show()
 
     def plot_radviz(
@@ -2746,6 +2765,7 @@ class FeaturesDashboard:
         run_sensitivity_analysis=False,
         random_seed=1,
         noise_scale_factor=0.1,
+        return_report=False,
     ):
         """
         Train a Random Forest classifier to predict 'Suite' or perform binary classification
@@ -2767,20 +2787,24 @@ class FeaturesDashboard:
             raise ValueError("DataFrame must contain 'Suite' column")
 
         # Filter and preprocess the data
-        df_filtered = self.custom_drop_na(
-            self.filter_df_by_suite_and_dim(
-                self.ignore_specified_features(self.features_df),
-                suite_names=None,
-                dims=None,
-                ignore_aerofoils=ignore_aerofoils,
-            )
+        # df_filtered = self.custom_drop_na(
+        #     self.filter_df_by_suite_and_dim(
+        #         self.ignore_specified_features(self.features_df),
+        #         suite_names=None,
+        #         dims=None,
+        #         ignore_aerofoils=ignore_aerofoils,
+        #     )
+        # )
+
+        df_filtered, features = self.get_filtered_df_for_dimension_reduced_plot(
+            ignore_aerofoils=ignore_aerofoils,
         )
 
-        features = [
-            col
-            for col in df_filtered.columns
-            if col not in ["Name", "D", "Date", "Suite"]
-        ]
+        # features = [
+        #     col
+        #     for col in df_filtered.columns
+        #     if col not in ["Name", "D", "Date", "Suite"]
+        # ]
 
         # Scale the features based on the specified scaler_type
         if scaler_type == "MinMaxScaler":
@@ -2832,7 +2856,55 @@ class FeaturesDashboard:
         print(classification_report(y_test, y_pred))
         print("Accuracy Score:", accuracy_score(y_test, y_pred))
 
-        return classifier
+        if return_report:
+            acc = accuracy_score(y_test, y_pred)
+            report = classification_report(y_test, y_pred, output_dict=True)
+            return classifier, report, acc
+        else:
+            return classifier
+
+    def aggregate_reports(self, reports):
+        # Initialize a nested defaultdict that ends with a list
+        def recursive_defaultdict():
+            return defaultdict(list)
+
+        # Function to create multiple levels of defaultdicts
+        def multi_level_defaultdict(levels):
+            if levels <= 1:
+                return defaultdict(list)
+            else:
+                return defaultdict(lambda: multi_level_defaultdict(levels - 1))
+
+        # Initialize metrics dictionary with three levels (suite -> metric -> list of values)
+        metrics = multi_level_defaultdict(2)
+
+        # Collect data from each report
+        for report in reports:
+            for suite, values in report.items():
+                if isinstance(
+                    values, dict
+                ):  # Ensure values are dictionary type for metrics
+                    for metric, value in values.items():
+                        metrics[suite][metric].append(value)
+                else:  # Handling single float values directly, like 'accuracy'
+                    metrics[suite]["value"].append(values)
+
+        # Initialize DataFrame
+        data = []
+        for suite, suite_metrics in metrics.items():
+            row = {"Suite": suite}
+            for metric, values in suite_metrics.items():
+                mean = np.mean(values)
+                sd = np.std(values)
+                row[metric] = f"{mean:.3f} ({sd:.3f})"
+            data.append(row)
+
+        # Create DataFrame
+        df = pd.DataFrame(data)
+        df.set_index("Suite", inplace=True)
+        df.sort_index(inplace=True)  # Optionally sort by suite name if required
+
+        return df
 
     def get_feature_importances(self, classifiers, top_features=None, worst=False):
         """
@@ -2866,11 +2938,13 @@ class FeaturesDashboard:
 
         # Calculate mean feature importances across all classifiers
         mean_importances = np.mean(all_importances, axis=0)
+        sd_importances = np.std(all_importances, axis=0)
 
         # Assuming the feature names are the same for all classifiers and can be obtained from the first one
         feature_names = self.get_feature_names(ignore_features=True)
         feature_importances = pd.DataFrame(
-            mean_importances, index=feature_names, columns=["Importance"]
+            {"Importance": mean_importances, "SD": sd_importances},
+            index=feature_names,
         ).sort_values(by="Importance", ascending=worst)
 
         if top_features is not None:
@@ -2882,9 +2956,14 @@ class FeaturesDashboard:
 
         return feature_importances
 
-    def plot_feature_importances(self, feature_importances_df):
+    def plot_feature_importances(
+        self,
+        feature_importances_df,
+        save_fig=False,
+        filepath=None,
+    ):
         """
-        Plot the feature importances in descending order.
+        Plot the feature importances in descending order, coloring bars based on their suffixes.
 
         :param feature_importances_df: A DataFrame containing the feature importances.
         """
@@ -2893,17 +2972,78 @@ class FeaturesDashboard:
             by="Importance", ascending=False
         )
 
-        # Plotting
-        plt.figure(figsize=(10, 6))
-        sns.barplot(
-            x="Importance", y=feature_importances_df.index, data=feature_importances_df
+        all_colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
+
+        # Create a color map based on the suffix of the feature names
+        colors = feature_importances_df.index.map(
+            lambda x: (
+                all_colors[0]
+                if "_glob" in x
+                else (
+                    all_colors[1]
+                    if "_rw" in x
+                    else (all_colors[2] if "_aw" in x else "gray")
+                )
+            )
         )
-        plt.xlabel("Importance")
+
+        # Error bars
+        errors = feature_importances_df["SD"].values / 2
+
+        # Plotting
+        plt.figure(
+            figsize=(
+                self.plot_width_full,
+                self.plot_height_landscape_large,
+            ),
+        )
+        bar_plot = sns.barplot(
+            x="Importance",
+            y=feature_importances_df.index,
+            data=feature_importances_df,
+            palette=colors,
+            xerr=errors,
+            capsize=10,
+        )
+
+        # Set the color of each bar based on the condition
+        for idx, patch in enumerate(bar_plot.patches):
+            patch.set_facecolor(colors[idx])
+
+        # Create legend
+        legend_patches = [
+            mpatches.Patch(color=all_colors[0], label="Global"),
+            mpatches.Patch(color=all_colors[1], label="RW"),
+            mpatches.Patch(color=all_colors[2], label="AW"),
+        ]
+        plt.legend(handles=legend_patches, title="Feature Types")
+        plt.tight_layout()
+
+        plt.xlabel("Average Gini Importance")
         plt.ylabel("Features")
+        # Set y-axis labels to use LaTeX rendering with \texttt for each label
+        formatted_labels = [
+            r"$\texttt{" + label.replace("_", "\_") + "}$"
+            for label in feature_importances_df.index
+        ]
+        plt.yticks(ticks=range(len(formatted_labels)), labels=formatted_labels)
+
+        if filepath is not None and self.report_mode:
+            self.save_figure(filepath=filepath)
+        elif save_fig:
+            raise ValueError("To save a figure, a filepath must be specified.")
         plt.show()
 
-    @staticmethod
-    def generate_scatterplot_matrix(df, columns=None, color_by=None, show=False):
+    def generate_scatterplot_matrix(
+        self,
+        df,
+        columns=None,
+        color_by=None,
+        show=False,
+        save_fig=False,
+        filepath=None,
+        limits=None,
+    ):
         """
         Generate a scatterplot matrix with correlation coefficients on the upper half.
 
@@ -2922,6 +3062,7 @@ class FeaturesDashboard:
 
         # Initialize the pairplot
         g = sns.pairplot(df, hue=color_by)
+        g.figure.set_size_inches(self.plot_width_full, self.plot_height_landscape_large)
 
         # Loop through the upper matrix to annotate with correlation coefficients
         df_num = df.select_dtypes(include=[np.number])
@@ -2929,13 +3070,33 @@ class FeaturesDashboard:
             corr_value = df_num.corr().iloc[i, j]
             g.axes[i, j].annotate(
                 f"{corr_value:.2f}",
-                (0.95, 0.95),
+                (0.9, 0.9),
                 xycoords="axes fraction",
                 ha="center",
                 va="center",
-                color="red",
-                fontsize=20,
+                color="black",
+                fontsize=16,
             )
+
+        # Loop through each axes in the pairplot (i, j indices)
+        for i in range(len(columns) - 1):  # Loop over rows
+            for j in range(len(columns) - 1):  # Loop over columns
+                ax = g.axes[i][j]  # Get specific axes object
+                if i != j:  # Skip the diagonal
+                    self.apply_custom_grid(ax=ax)
+
+        # Axis limits
+        g.figure.subplots_adjust(right=0.875)
+        if limits is not None:
+            for ax in g.axes.flatten():
+                if ax:
+                    ax.set_xlim(limits)
+                    ax.set_ylim(limits)
+
+        if filepath is not None and self.report_mode:
+            self.save_figure(filepath=filepath)
+        elif save_fig:
+            raise ValueError("To save a figure, a filepath must be specified.")
 
         if show:
             plt.show()
