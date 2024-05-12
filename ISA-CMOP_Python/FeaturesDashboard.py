@@ -2817,7 +2817,9 @@ class FeaturesDashboard:
             y_train, y_test = y, y
 
         # Initializing and training the Random Forest classifier
-        classifier = RandomForestClassifier(random_state=random_seed)
+        classifier = RandomForestClassifier(
+            random_state=random_seed, class_weight="balanced"
+        )
         classifier.fit(X_train, y_train)
 
         # Making predictions and evaluating the classifier
