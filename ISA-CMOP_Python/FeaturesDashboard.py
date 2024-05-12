@@ -168,6 +168,10 @@ class FeaturesDashboard:
 
         return suite_colors
 
+    def toggle_report_mode(self):
+        self.report_mode = not self.report_mode
+        self.define_plot_sizes()
+
     def get_suite_names(self, ignore_aerofoils=False):
 
         suite_names = list(self.suites_problems_dict.keys())
@@ -2817,7 +2821,9 @@ class FeaturesDashboard:
             y_train, y_test = y, y
 
         # Initializing and training the Random Forest classifier
-        classifier = RandomForestClassifier(random_state=random_seed)
+        classifier = RandomForestClassifier(
+            random_state=random_seed, class_weight="balanced"
+        )
         classifier.fit(X_train, y_train)
 
         # Making predictions and evaluating the classifier
@@ -2951,7 +2957,7 @@ class FeaturesDashboard:
         run_sensitivity_analysis=False,
         random_seed=1,
         noise_scale_factor=0.1,
-        num_rf_models=10,
+        num_rf_models=100,
     ):
         if coverage_suites is None:
             coverage_suites = self.get_suite_names(ignore_aerofoils=True)
@@ -2974,19 +2980,19 @@ class FeaturesDashboard:
         )
 
         # Coverage normalizations.
-        for s in coverage_suites:
-            coverages = self.get_feature_coverage(
-                target_suite=s,
-                run_sensitivity_analysis=run_sensitivity_analysis,
-                random_seed=random_seed,
-                noise_scale_factor=noise_scale_factor,
-            )
-            coverages["mean_coverage"] = np.float64(coverages.mean(axis=1))
 
-            # Low coverage should mean a high score.
-            feature_scores[f"Coverage_{s}"] = 1 - self.normalize_series(
-                coverages["mean_coverage"]
-            )
+        coverages = self.get_feature_coverage(
+            target_suite=None,
+            run_sensitivity_analysis=run_sensitivity_analysis,
+            random_seed=random_seed,
+            noise_scale_factor=noise_scale_factor,
+        )
+        coverages["mean_coverage"] = np.float64(coverages.mean(axis=1))
+
+        # Low coverage should mean a high score.
+        feature_scores[f"Coverage"] = 1 - self.normalize_series(
+            coverages["mean_coverage"]
+        )
 
         if run_pca:
             # PCA normalizations. Need to rerun PCA quickly.
@@ -3007,32 +3013,28 @@ class FeaturesDashboard:
                 )
 
         # RF classification model feature importance normalizations.
-        for s in rf_suites:
-            rfs = []
+        # for s in rf_suites:
+        rfs = []
 
-            # Use different seed for sensitivity analysis.
-            if run_sensitivity_analysis:
-                min_seed = num_rf_models + 1
-                max_seed = num_rf_models * 2
-            else:
-                min_seed = 0
-                max_seed = num_rf_models
+        # Use different seed for sensitivity analysis.
+        if run_sensitivity_analysis:
+            min_seed = num_rf_models + 1
+            max_seed = num_rf_models * 2
+        else:
+            min_seed = 0
+            max_seed = num_rf_models
 
-            for n in range(min_seed, max_seed):
-                classifier = self.train_random_forest(
-                    suite_in_focus=s,
-                    test_size=0.2,
-                    run_sensitivity_analysis=run_sensitivity_analysis,
-                    random_seed=n,
-                    noise_scale_factor=noise_scale_factor,
-                )
-                rfs.append(classifier)
-            best_rf_cont = self.get_feature_importances(
-                classifiers=rfs, top_features=None
+        for n in range(min_seed, max_seed):
+            classifier = self.train_random_forest(
+                suite_in_focus=None,
+                test_size=0.2,
+                run_sensitivity_analysis=run_sensitivity_analysis,
+                random_seed=n,
+                noise_scale_factor=noise_scale_factor,
             )
-            feature_scores[f"RF_{s}"] = self.normalize_series(
-                best_rf_cont["Importance"]
-            )
+            rfs.append(classifier)
+        best_rf_cont = self.get_feature_importances(classifiers=rfs, top_features=None)
+        feature_scores[f"RF"] = self.normalize_series(best_rf_cont["Importance"])
 
         # Compute means for each method.
         col_names = ["Coverage", "RF"]
