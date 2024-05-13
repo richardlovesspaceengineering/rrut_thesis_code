@@ -30,6 +30,7 @@ from PreSampler import PreSampler
 from pymoo.problems import get_problem
 from multiprocessing_util import *
 from mpl_toolkits.mplot3d import Axes3D
+from sklearn.metrics import silhouette_score
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
@@ -448,7 +449,11 @@ class FeaturesDashboard:
         plt.show()
 
     def get_feature_names(
-        self, shortened=True, ignore_features=False, analysis_type=None
+        self,
+        shortened=True,
+        ignore_features=False,
+        analysis_type=None,
+        ignore_scr=True,
     ):
 
         df = FeaturesDashboard.get_numerical_data_from_df(self.features_df)
@@ -464,6 +469,9 @@ class FeaturesDashboard:
             names = [col.replace("_mean", "") for col in df.columns]
         else:
             names = [col for col in df.columns]
+
+        if ignore_scr:
+            names = [c for c in names if "scr" not in c and "ncr" not in c]
 
         return names
 
@@ -1996,14 +2004,12 @@ class FeaturesDashboard:
             ignore_aerofoils=ignore_aerofoils
         )
 
-        df = self.features_df
-
-        if analysis_type:
-            df = FeaturesDashboard.get_features_for_analysis_type(df, analysis_type)
-
-        # Remove the columns to ignore right at the beginning
-        if ignore_features:
-            df = self.ignore_specified_features(df)
+        # Normalize the features. Drop any NaNs
+        df, features = self.get_filtered_df_for_dimension_reduced_plot(
+            ignore_aerofoils=ignore_aerofoils,
+            analysis_type=analysis_type,
+            ignore_features=ignore_features,
+        )
 
         if features:
             features = [
@@ -2025,12 +2031,6 @@ class FeaturesDashboard:
             suites = [s for s in suites if s != target_suite]
         coverage_values = pd.DataFrame(index=features, columns=suites)
 
-        # Normalize the features. Drop any NaNs
-        df = self.custom_drop_na(
-            self.filter_df_by_suite_and_dim(
-                df, suite_names=None, dims=None, ignore_aerofoils=ignore_aerofoils
-            )
-        )
         scaler = MinMaxScaler()
         df.loc[:, features] = scaler.fit_transform(df[features])
 
@@ -2124,6 +2124,9 @@ class FeaturesDashboard:
         :param features: The features to include in the coverage calculation.
         """
 
+        if self.report_mode:
+            self.apply_custom_matplotlib_style()
+
         coverage_values = self.get_feature_coverage(
             target_suite=target_suite,
             analysis_type=analysis_type,
@@ -2181,7 +2184,7 @@ class FeaturesDashboard:
         ]
         plt.yticks(fontsize=10)
         ax.set_xticks(np.arange(0.5, len(coverage_values.columns)))
-        ax.set_xticklabels(formatted_labels, rotation=60, ha="right")
+        ax.set_xticklabels(formatted_labels, rotation=60, ha="right", fontsize=10)
 
         plt.tight_layout()
 
@@ -2429,15 +2432,18 @@ class FeaturesDashboard:
         features=None,
         suite_names=None,
         dims=None,
+        random_state=1,
         scaler_type="MinMaxScaler",
         use_analytical_problems=False,
         ignore_aerofoils=True,
-        perplexities=[10, 30, 60],  # Add perplexities as an optional argument
+        perplexities=[10],  # Add perplexities as an optional argument
         text_annotations_for_suites=None,
         zoom_to_suite=None,
         zoom_margin=0.2,
+        return_embedding=False,
         save_fig=False,
         filepath=None,
+        run_plotting=True,
     ):
 
         # Check data compatibility.
@@ -2480,9 +2486,21 @@ class FeaturesDashboard:
         if len(perplexities) == 1:  # Adjust if only one subplot
             axes = [axes]
 
+        all_tsne_results = []
+
+        # Extract labels for silhouette score calculation
+        labels = df_filtered["Suite"].values
+
         for ax, perplexity in zip(axes, perplexities):
-            tsne = TSNE(n_components=2, random_state=0, perplexity=perplexity)
+            tsne = TSNE(
+                n_components=2, random_state=random_state, perplexity=perplexity
+            )
             tsne_results = tsne.fit_transform(df_filtered[cols])
+
+            all_tsne_results.append(tsne_results)
+
+            if not run_plotting:
+                continue
 
             # Bounds for zooming initialisation.
             min_x, max_x, min_y, max_y = np.inf, -np.inf, np.inf, -np.inf
@@ -2571,7 +2589,15 @@ class FeaturesDashboard:
         elif save_fig:
             raise ValueError("To save a figure, a filepath must be specified.")
 
-        plt.show()
+        if run_plotting:
+            plt.show()
+
+        if return_embedding:
+
+            if len(all_tsne_results) == 1:
+                all_tsne_results = all_tsne_results[0]
+
+            return all_tsne_results, labels
 
     def plot_UMAP(
         self,
@@ -2581,17 +2607,21 @@ class FeaturesDashboard:
         dims=None,
         scaler_type="MinMaxScaler",
         use_analytical_problems=False,
-        n_neighbors=[15, 30, 60],
-        min_dist=0.2,
+        n_neighbors=[10],
+        min_dist=0.5,
         random_state=42,
+        run_sensitivity_analysis=False,
+        noise_scale_factor=0.1,
         plot_random_noise=False,
         ignore_aerofoils=True,
         train_with_aerofoils=False,
         text_annotations_for_suites=None,
         zoom_to_suite=None,
         zoom_margin=0.2,
+        return_embedding=False,
         save_fig=False,
         filepath=None,
+        run_plotting=True,
     ):
 
         # Get plot style ready.
@@ -2633,6 +2663,19 @@ class FeaturesDashboard:
             df=df_filtered, cols=cols, scaler_type=scaler_type
         )
 
+        # Add some noise to numeric columns.
+        if run_sensitivity_analysis:
+            np.random.seed(random_state)
+
+            # Calculate standard deviation for each feature
+            stds = np.std(df_filtered.loc[:, cols], axis=0)
+
+            # Generate and add noise for each feature
+            noise = np.random.normal(
+                0, stds * noise_scale_factor, df_filtered.loc[:, cols].shape
+            )
+            df_filtered.loc[:, cols] += noise
+
         # Now make plot axes.
         fig, axes = plt.subplots(
             1,
@@ -2645,6 +2688,11 @@ class FeaturesDashboard:
 
         if len(n_neighbors) == 1:  # Adjust if only one subplot
             axes = [axes]
+
+        all_umap_results = []
+
+        # Extract labels for silhouette score calculation
+        labels = df_filtered["Suite"].values
 
         for ax, n_neighbor in zip(axes, n_neighbors):
             umap_model = umap.UMAP(
@@ -2663,6 +2711,11 @@ class FeaturesDashboard:
                 umap_results = umap_model.transform(df_filtered[cols])
             else:
                 umap_results = umap_model.fit_transform(df_filtered[cols])
+
+            all_umap_results.append(umap_results)
+
+            if not run_plotting:
+                continue
 
             # Bounds for zooming initialisation.
             min_x, max_x, min_y, max_y = np.inf, -np.inf, np.inf, -np.inf
@@ -2720,12 +2773,10 @@ class FeaturesDashboard:
                     max_y + zoom_margin * (max_y - min_y),
                 )
 
-            ax.set_title(f"UMAP with n_neighbors = {n_neighbor}")
+            # ax.set_title(f"UMAP with n_neighbors = {n_neighbor}")
 
             # Grid
-            ax.grid(True, which="major", linestyle="-", linewidth=0.75)
-            ax.minorticks_on()
-            ax.grid(True, which="minor", linestyle="--", linewidth=0.15)
+            self.apply_custom_grid(ax=ax)
 
         # Avoid repeated axis labels
         axes[np.floor(len(axes) / 2).astype(int)].set_xlabel("Component 1 [--]")
@@ -2739,7 +2790,7 @@ class FeaturesDashboard:
             fig=fig,
             df=df_filtered,
             ignore_aerofoils=ignore_aerofoils,
-            top_box_anchor=1.20,
+            top_box_anchor=1.1,
         )
 
         fig.tight_layout()
@@ -2754,6 +2805,199 @@ class FeaturesDashboard:
             self.save_figure(filepath=filepath)
         elif save_fig:
             raise ValueError("To save a figure, a filepath must be specified.")
+
+        if run_plotting:
+            plt.show()
+
+        if return_embedding:
+            if len(all_umap_results) == 1:
+                all_umap_results = all_umap_results[0]
+
+            return all_umap_results, labels
+
+    def get_silhouette_score(self, embedding_results, labels):
+
+        # scores = []
+        # for u in embedding_results:
+        #     scores.append(silhouette_score(u, labels, metric="euclidean"))
+
+        # return scores
+
+        return silhouette_score(embedding_results, labels, metric="euclidean")
+
+    def find_best_dimreduced_hyperparameter(
+        self,
+        method,
+        param_values=[2, 5, 10, 15, 20, 30, 50, 100],
+        num_seeds=5,
+        umap_min_dist=0.2,
+    ):
+        # Define your parameters
+        param_values = [2, 5, 10, 15, 20, 30, 50, 100]
+        random_states = range(num_seeds)  # 10 different random states
+        results = []
+
+        # Loop over each perplexity
+        for p in param_values:
+            scores = []
+
+            # Loop over each random state
+            for random_state in random_states:
+
+                if method == "tsne":
+
+                    emb, labels = self.plot_tSNE(
+                        perplexities=[p],
+                        return_embedding=True,
+                        random_state=random_state,
+                        run_plotting=False,
+                    )
+
+                elif method == "umap":
+                    emb, labels = self.plot_UMAP(
+                        min_dist=umap_min_dist,
+                        n_neighbors=[p],
+                        return_embedding=True,
+                        random_state=random_state,
+                        run_plotting=False,
+                    )
+                scores.append(
+                    self.get_silhouette_score(embedding_results=emb, labels=labels)
+                )
+
+            # Store the mean and standard deviation of scores for this perplexity
+
+            if method == "tsne":
+                param_name = "Perplexity"
+            elif method == "umap":
+                param_name = "Number of Neighbours"
+
+            res_dict = {
+                param_name: p,
+                "Mean Silhouette Score": np.mean(scores),
+                "SD": np.std(scores),
+            }
+
+            if method == "umap":
+                res_dict["Min Dist"] = umap_min_dist
+
+            results.append(res_dict)
+
+        # Create a DataFrame from the results
+        silhouette_results = pd.DataFrame(results)
+        return silhouette_results
+
+    def run_dimreduced_sensitivity(
+        self,
+        method,
+        noise_levels=[0.05, 0.1, 0.2, 0.5, 1],
+        num_seeds=5,
+    ):
+        # Define your parameters
+        random_states = range(num_seeds)  # 10 different random states
+        results = []
+
+        # Loop over each perplexity
+        for noise in noise_levels:
+            scores = []
+
+            # Loop over each random state
+            for random_state in random_states:
+
+                if method == "tsne":
+
+                    emb, labels = self.plot_tSNE(
+                        return_embedding=True,
+                        random_state=random_state,
+                        run_plotting=False,
+                    )
+
+                elif method == "umap":
+                    emb, labels = self.plot_UMAP(
+                        return_embedding=True,
+                        random_state=random_state,
+                        run_sensitivity_analysis=True,
+                        noise_scale_factor=noise,
+                        run_plotting=False,
+                    )
+                scores.append(
+                    self.get_silhouette_score(embedding_results=emb, labels=labels)
+                )
+
+            # Store the mean and standard deviation of scores for this perplexity
+
+            res_dict = {
+                "Noise Scale Factor": noise,
+                "Mean Silhouette Score": np.mean(scores),
+                "SD": np.std(scores),
+            }
+
+            results.append(res_dict)
+
+        # Create a DataFrame from the results
+        silhouette_results = pd.DataFrame(results)
+        return silhouette_results
+
+    def plot_silhouette_score(
+        self,
+        silhouette_results_list,
+        save_fig=False,
+        filepath=None,
+        join_points=False,
+        xlabel="Perplexity/Number of Neighbours",
+    ):
+        self.apply_custom_colors(palette="Dries")
+
+        # Get plot style ready.
+        if self.report_mode:
+            self.apply_custom_matplotlib_style()
+
+        # Plotting
+        fig, ax = plt.subplots(
+            figsize=(
+                self.plot_width_full,
+                self.plot_height_landscape_medium,
+            ),
+        )
+
+        all_colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
+
+        for silhouette_results in silhouette_results_list:
+            # Extract the parameter name.
+            param_name = silhouette_results.columns[0]
+
+            if param_name == "Perplexity":
+                label = r"$t$-SNE"
+            elif param_name == "Number of Neighbours":
+                min_dist = silhouette_results["Min Dist"][0]
+                label = rf"UMAP: $d_{{\text{{min}}}}={min_dist}$"
+            else:
+                label = None
+
+            # Using errorbar to show mean and standard deviation
+            line_fmt = "-o" if join_points else "o"
+            ax.errorbar(
+                silhouette_results[param_name],
+                silhouette_results["Mean Silhouette Score"],
+                yerr=silhouette_results["SD"],
+                fmt=line_fmt,  # Line style with circle markers
+                capsize=5,  # Caps on error bars
+                capthick=2,  # Thickness of the error bar caps
+                label=label,
+            )
+
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel("Mean Silhouette Score")
+        self.apply_custom_grid(ax=ax)
+
+        if label is not None:
+            plt.legend()
+
+        if filepath is not None and self.report_mode:
+            self.save_figure(filepath=filepath)
+        elif save_fig and filepath is None:
+            raise ValueError("To save a figure, a filepath must be specified.")
+
         plt.show()
 
     def train_random_forest(
@@ -2786,25 +3030,9 @@ class FeaturesDashboard:
         if "Suite" not in self.features_df.columns:
             raise ValueError("DataFrame must contain 'Suite' column")
 
-        # Filter and preprocess the data
-        # df_filtered = self.custom_drop_na(
-        #     self.filter_df_by_suite_and_dim(
-        #         self.ignore_specified_features(self.features_df),
-        #         suite_names=None,
-        #         dims=None,
-        #         ignore_aerofoils=ignore_aerofoils,
-        #     )
-        # )
-
         df_filtered, features = self.get_filtered_df_for_dimension_reduced_plot(
-            ignore_aerofoils=ignore_aerofoils,
+            ignore_aerofoils=ignore_aerofoils
         )
-
-        # features = [
-        #     col
-        #     for col in df_filtered.columns
-        #     if col not in ["Name", "D", "Date", "Suite"]
-        # ]
 
         # Scale the features based on the specified scaler_type
         if scaler_type == "MinMaxScaler":
@@ -2826,7 +3054,7 @@ class FeaturesDashboard:
             )
             df_filtered.loc[:, features] += noise
 
-        X = self.get_numerical_data_from_df(df_filtered)
+        X = df_filtered.loc[:, features]
         y = df_filtered["Suite"]
 
         # Convert the target variable for binary classification if suite_in_focus is specified
@@ -2961,6 +3189,8 @@ class FeaturesDashboard:
         feature_importances_df,
         save_fig=False,
         filepath=None,
+        variable_name="Importance",
+        xlabel="Average Gini Importance",
     ):
         """
         Plot the feature importances in descending order, coloring bars based on their suffixes.
@@ -2969,8 +3199,10 @@ class FeaturesDashboard:
         """
         # Sort the DataFrame if it's not sorted already
         feature_importances_df = feature_importances_df.sort_values(
-            by="Importance", ascending=False
+            by=variable_name, ascending=False
         )
+
+        self.apply_custom_colors(palette="Dries")
 
         all_colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
 
@@ -2988,7 +3220,10 @@ class FeaturesDashboard:
         )
 
         # Error bars
-        errors = feature_importances_df["SD"].values / 2
+        if "SD" in feature_importances_df.columns:
+            errors = feature_importances_df["SD"].values / 2
+        else:
+            errors = None
 
         # Plotting
         plt.figure(
@@ -2998,7 +3233,7 @@ class FeaturesDashboard:
             ),
         )
         bar_plot = sns.barplot(
-            x="Importance",
+            x=variable_name,
             y=feature_importances_df.index,
             data=feature_importances_df,
             palette=colors,
@@ -3016,10 +3251,10 @@ class FeaturesDashboard:
             mpatches.Patch(color=all_colors[1], label="RW"),
             mpatches.Patch(color=all_colors[2], label="AW"),
         ]
-        plt.legend(handles=legend_patches, title="Feature Types")
+        plt.legend(handles=legend_patches, title="Type")
         plt.tight_layout()
 
-        plt.xlabel("Average Gini Importance")
+        plt.xlabel(xlabel)
         plt.ylabel("Features")
         # Set y-axis labels to use LaTeX rendering with \texttt for each label
         formatted_labels = [
@@ -3086,7 +3321,7 @@ class FeaturesDashboard:
                     self.apply_custom_grid(ax=ax)
 
         # Axis limits
-        g.figure.subplots_adjust(right=0.875)
+        g.figure.subplots_adjust(right=0.85)
         if limits is not None:
             for ax in g.axes.flatten():
                 if ax:
@@ -3626,3 +3861,26 @@ class FeaturesDashboard:
         elif save_fig:
             raise ValueError("To save a figure, a filepath must be specified.")
         plt.show()
+
+    @staticmethod
+    # Convert a DataFrame into a LaTeX-friendly format
+    def convert_to_latex(df, filename, base_dir="../../rrut_thesis_report/Tables/"):
+
+        # Append base_dir to the filepath
+        filepath = os.path.join(base_dir, filename)
+
+        with open(f"{filepath}.txt", "w") as file:
+            ctr = 0
+            for index, row in df.iterrows():
+                # Join the row elements with '&' and add '\\' at the end of each row
+
+                if ctr != len(df) - 1:
+                    suffix = " \\\\"
+                else:
+                    suffix = " "
+
+                row_string = (
+                    f"\\feature{{{index}}} & " + " & ".join(map(str, row)) + suffix
+                )
+                file.write(row_string + "\n")
+                ctr += 1
