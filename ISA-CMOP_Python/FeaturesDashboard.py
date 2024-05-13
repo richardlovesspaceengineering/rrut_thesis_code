@@ -2160,8 +2160,10 @@ class FeaturesDashboard:
         plt.figure(figsize=(fig_width, fig_height))
 
         if target_suite is None:
+            self.apply_custom_colors(palette="Dries")
+            all_colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
             cmap = LinearSegmentedColormap.from_list(
-                "custom_blue", ["blue", "white"], N=256
+                "custom_blue", [all_colors[0], "white"], N=256
             )
         else:
             cmap = LinearSegmentedColormap.from_list(
@@ -2180,7 +2182,12 @@ class FeaturesDashboard:
         plt.ylabel("Suites")
         # Update label formatting for y-axis to match the new orientation
         formatted_labels = [
-            r"$\texttt{" + label.replace("_", "\_") + "}$" for label in features
+            (
+                r"$\texttt{" + label.replace("_", "\_") + "}$"
+                if self.report_mode
+                else label
+            )
+            for label in features
         ]
         plt.yticks(fontsize=10)
         ax.set_xticks(np.arange(0.5, len(coverage_values.columns)))
@@ -2558,7 +2565,6 @@ class FeaturesDashboard:
                     max_y + zoom_margin * (max_y - min_y),
                 )
 
-            ax.set_title(f"$t$-SNE with perplexity = {perplexity}")
             self.apply_custom_grid(ax=ax)
 
         # Avoid repeated axis labels
@@ -2573,7 +2579,7 @@ class FeaturesDashboard:
             fig=fig,
             df=df_filtered,
             ignore_aerofoils=ignore_aerofoils,
-            top_box_anchor=1.20,
+            top_box_anchor=1.10,
         )
 
         fig.tight_layout()
@@ -2960,8 +2966,6 @@ class FeaturesDashboard:
             ),
         )
 
-        all_colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
-
         for silhouette_results in silhouette_results_list:
             # Extract the parameter name.
             param_name = silhouette_results.columns[0]
@@ -3314,8 +3318,9 @@ class FeaturesDashboard:
             )
 
         # Loop through each axes in the pairplot (i, j indices)
-        for i in range(len(columns) - 1):  # Loop over rows
-            for j in range(len(columns) - 1):  # Loop over columns
+        num_cols = len(g.axes)
+        for i in range(num_cols):  # Loop over rows
+            for j in range(num_cols):  # Loop over columns
                 ax = g.axes[i][j]  # Get specific axes object
                 if i != j:  # Skip the diagonal
                     self.apply_custom_grid(ax=ax)
@@ -3863,24 +3868,50 @@ class FeaturesDashboard:
         plt.show()
 
     @staticmethod
-    # Convert a DataFrame into a LaTeX-friendly format
-    def convert_to_latex(df, filename, base_dir="../../rrut_thesis_report/Tables/"):
+    def convert_to_latex(
+        df,
+        filename,
+        base_dir="../../rrut_thesis_report/Tables/",
+        custom_format_index=True,
+        include_columns=False,
+        significant_figures=4,
+    ):
 
         # Append base_dir to the filepath
         filepath = os.path.join(base_dir, filename)
 
         with open(f"{filepath}.txt", "w") as file:
-            ctr = 0
+            if include_columns:
+                column_string = " & ".join(df.columns) + " \\\\"
+                file.write(column_string + "\n")
+
+            # Write data rows
             for index, row in df.iterrows():
                 # Join the row elements with '&' and add '\\' at the end of each row
-
-                if ctr != len(df) - 1:
+                if index != df.index[-1]:
                     suffix = " \\\\"
                 else:
                     suffix = " "
-
-                row_string = (
-                    f"\\feature{{{index}}} & " + " & ".join(map(str, row)) + suffix
-                )
+                if custom_format_index:
+                    formatted_row = [
+                        (
+                            f"{val:.{significant_figures}f}"
+                            if isinstance(val, (int, float))
+                            else str(val)
+                        )
+                        for val in row
+                    ]
+                    row_string = (
+                        f"\\feature{{{index}}} & " + " & ".join(formatted_row) + suffix
+                    )
+                else:
+                    formatted_row = [
+                        (
+                            f"{val:.{significant_figures}f}"
+                            if isinstance(val, (int, float))
+                            else str(val)
+                        )
+                        for val in row
+                    ]
+                    row_string = f"{index} & " + " & ".join(formatted_row) + suffix
                 file.write(row_string + "\n")
-                ctr += 1
