@@ -31,7 +31,7 @@ from pymoo.problems import get_problem
 from multiprocessing_util import *
 from mpl_toolkits.mplot3d import Axes3D
 from sklearn.metrics import silhouette_score
-from sklearn.metrics import trustworthiness
+from sklearn.manifold import trustworthiness
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
@@ -2279,6 +2279,15 @@ class FeaturesDashboard:
         ignore_aerofoils=True,
         ignore_features=True,
         ignore_scr=True,
+        drop_these_rows=[
+            "MW13_d5",
+            "CTP2_d5",
+            "MW13_d10",
+            "MW13_d20",
+            "MW13_d30",
+            "CF2_d20",
+            "RWMOP20_d4",
+        ],  # hard-coded from overall analysis.
     ):
 
         df = self.features_df
@@ -2295,6 +2304,9 @@ class FeaturesDashboard:
 
         if ignore_features:
             df_filtered = self.custom_drop_na(df_filtered)
+
+        if drop_these_rows is not None:
+            df_filtered = df_filtered[~df_filtered["Name"].isin(drop_these_rows)]
 
         if analysis_type:
             df_filtered = self.get_features_for_analysis_type(
@@ -2616,7 +2628,7 @@ class FeaturesDashboard:
         use_analytical_problems=False,
         n_neighbors=[10],
         min_dist=0.5,
-        random_state=42,
+        random_state=45,
         run_sensitivity_analysis=False,
         noise_scale_factor=0.1,
         plot_random_noise=False,
@@ -2823,21 +2835,19 @@ class FeaturesDashboard:
             return all_umap_results, labels
 
     def get_silhouette_score(self, embedding_results, labels):
-
-        # scores = []
-        # for u in embedding_results:
-        #     scores.append(silhouette_score(u, labels, metric="euclidean"))
-
-        # return scores
-
         return silhouette_score(embedding_results, labels, metric="euclidean")
+
+    def get_trustworthiness_score(self, embedding_results, original_data):
+        return trustworthiness(original_data, embedding_results, n_neighbors=10)
 
     def find_best_dimreduced_hyperparameter(
         self,
-        method,
+        method="umap",
+        metric="silhouette",
         param_values=[2, 5, 10, 15, 20, 30, 50, 100],
         num_seeds=5,
         umap_min_dist=0.2,
+        orig_data=None,
     ):
         # Define your parameters
         param_values = [2, 5, 10, 15, 20, 30, 50, 100]
@@ -2868,9 +2878,21 @@ class FeaturesDashboard:
                         random_state=random_state,
                         run_plotting=False,
                     )
-                scores.append(
-                    self.get_silhouette_score(embedding_results=emb, labels=labels)
-                )
+
+                if metric == "silhouette":
+                    score = self.get_silhouette_score(
+                        embedding_results=emb, labels=labels
+                    )
+                else:
+
+                    if orig_data is not None:
+                        score = self.get_trustworthiness_score(
+                            embedding_results=emb, original_data=orig_data
+                        )
+                    else:
+                        print("Input the original high-dimensional data as orig_data=")
+                        return
+                scores.append(score)
 
             # Store the mean and standard deviation of scores for this perplexity
 
@@ -2881,7 +2903,9 @@ class FeaturesDashboard:
 
             res_dict = {
                 param_name: p,
-                "Mean Silhouette Score": np.mean(scores),
+                f"Mean {'Silhouette Score' if metric == 'silhouette' else 'Trustworthiness Score'}": np.mean(
+                    scores
+                ),
                 "SD": np.std(scores),
             }
 
@@ -2899,6 +2923,8 @@ class FeaturesDashboard:
         method,
         noise_levels=[0.05, 0.1, 0.2, 0.5, 1],
         num_seeds=5,
+        metric="silhouette",
+        orig_data=None,
     ):
         # Define your parameters
         random_states = range(num_seeds)  # 10 different random states
@@ -2927,15 +2953,28 @@ class FeaturesDashboard:
                         noise_scale_factor=noise,
                         run_plotting=False,
                     )
-                scores.append(
-                    self.get_silhouette_score(embedding_results=emb, labels=labels)
-                )
+                if metric == "silhouette":
+                    score = self.get_silhouette_score(
+                        embedding_results=emb, labels=labels
+                    )
+                else:
 
-            # Store the mean and standard deviation of scores for this perplexity
+                    if orig_data is not None:
+                        score = self.get_trustworthiness_score(
+                            embedding_results=emb, original_data=orig_data
+                        )
+                    else:
+                        print("Input the original high-dimensional data as orig_data=")
+                        return
+                scores.append(score)
+
+            # Store the mean and standard deviation of scores for this perplexitu
 
             res_dict = {
                 "Noise Scale Factor": noise,
-                "Mean Silhouette Score": np.mean(scores),
+                f"Mean {'Silhouette Score' if metric == 'silhouette' else 'Trustworthiness Score'}": np.mean(
+                    scores
+                ),
                 "SD": np.std(scores),
             }
 
@@ -2945,12 +2984,13 @@ class FeaturesDashboard:
         silhouette_results = pd.DataFrame(results)
         return silhouette_results
 
-    def plot_silhouette_score(
+    def plot_dimreduction_perf_score(
         self,
-        silhouette_results_list,
+        perf_results_list,
         save_fig=False,
         filepath=None,
         join_points=False,
+        labels=None,
         xlabel="Perplexity/Number of Neighbours",
     ):
         self.apply_custom_colors(palette="Dries")
@@ -2967,14 +3007,17 @@ class FeaturesDashboard:
             ),
         )
 
-        for silhouette_results in silhouette_results_list:
+        for i, perf_results in enumerate(perf_results_list):
             # Extract the parameter name.
-            param_name = silhouette_results.columns[0]
+            param_name = perf_results.columns[0]
+            metric = perf_results.columns[1]
 
-            if param_name == "Perplexity":
+            if labels is not None:
+                label = labels[i]
+            elif param_name == "Perplexity":
                 label = r"$t$-SNE"
             elif param_name == "Number of Neighbours":
-                min_dist = silhouette_results["Min Dist"][0]
+                min_dist = perf_results["Min Dist"][0]
                 label = rf"UMAP: $d_{{\text{{min}}}}={min_dist}$"
             else:
                 label = None
@@ -2982,9 +3025,9 @@ class FeaturesDashboard:
             # Using errorbar to show mean and standard deviation
             line_fmt = "-o" if join_points else "o"
             ax.errorbar(
-                silhouette_results[param_name],
-                silhouette_results["Mean Silhouette Score"],
-                yerr=silhouette_results["SD"],
+                perf_results[param_name],
+                perf_results[metric],
+                yerr=perf_results["SD"],
                 fmt=line_fmt,  # Line style with circle markers
                 capsize=5,  # Caps on error bars
                 capthick=2,  # Thickness of the error bar caps
@@ -2992,7 +3035,7 @@ class FeaturesDashboard:
             )
 
         ax.set_xlabel(xlabel)
-        ax.set_ylabel("Mean Silhouette Score")
+        ax.set_ylabel(metric)
         self.apply_custom_grid(ax=ax)
 
         if label is not None:
@@ -3920,3 +3963,18 @@ class FeaturesDashboard:
                     ]
                     row_string = f"{index} & " + " & ".join(formatted_row) + suffix
                 file.write(row_string + "\n")
+
+    def get_comparison_data_for_trustworthiness(
+        self, scaler_type="MinMaxScaler", ignore_aerofoils=True
+    ):
+        # Extract required data.
+        df_filtered, cols = self.get_filtered_df_for_dimension_reduced_plot(
+            ignore_aerofoils=ignore_aerofoils,
+        )
+
+        # Apply feature scaling
+        df_filtered = self.apply_feature_scaling(
+            df=df_filtered, cols=cols, scaler_type=scaler_type
+        )
+
+        return df_filtered[cols]
