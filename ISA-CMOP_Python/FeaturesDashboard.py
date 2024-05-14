@@ -31,6 +31,7 @@ from pymoo.problems import get_problem
 from multiprocessing_util import *
 from mpl_toolkits.mplot3d import Axes3D
 from sklearn.metrics import silhouette_score
+from sklearn.metrics import trustworthiness
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
@@ -3262,7 +3263,11 @@ class FeaturesDashboard:
         plt.ylabel("Features")
         # Set y-axis labels to use LaTeX rendering with \texttt for each label
         formatted_labels = [
-            r"$\texttt{" + label.replace("_", "\_") + "}$"
+            (
+                r"$\texttt{" + label.replace("_", "\_") + "}$"
+                if self.report_mode
+                else label
+            )
             for label in feature_importances_df.index
         ]
         plt.yticks(ticks=range(len(formatted_labels)), labels=formatted_labels)
