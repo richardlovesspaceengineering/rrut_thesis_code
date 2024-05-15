@@ -272,10 +272,10 @@ class FeaturesDashboard:
             # paired
         elif palette == "Dries":
             colors = [
-                    # "#000000",
                     "#2394d6",
                     "#dc3220",
                     "#ffc20a",
+                    "#000000",
                     "#994f00",
                     "#3c69e1",
                     "#8bc34a",
@@ -753,16 +753,20 @@ class FeaturesDashboard:
                         feature + "_mean" if "_mean" not in feature else feature
                     )
 
+    def ignore_ps_pf_features(self):
+        self.append_to_features_to_ignore(
+            [f for f in self.features_df.columns if f.startswith(("PS", "PF"))]
+        )
+
     def use_these_features_only(self, features_to_keep, use_pre_ignored=True):
         names_tracker = copy.deepcopy(features_to_keep)
 
         if not use_pre_ignored:
             self.features_to_ignore = []
 
-        for feature in self.get_feature_names():
-            if (
-                feature not in self.features_to_ignore
-                and feature not in features_to_keep
+        for feature in self.get_feature_names(ignore_scr=False, ignore_features=False):
+            if feature not in self.features_to_ignore and (
+                feature not in features_to_keep
             ):
                 self.features_to_ignore.append(
                     feature + "_mean" if "_mean" not in feature else feature
@@ -1559,6 +1563,7 @@ class FeaturesDashboard:
         run_sensitivity_analysis=False,
         random_seed=1,
         noise_scale_factor=0.1,
+        drop_these_probs=None,
     ):
 
         df = self.custom_drop_na(self.ignore_specified_features(self.features_df))
@@ -1998,6 +2003,7 @@ class FeaturesDashboard:
         run_sensitivity_analysis=False,
         random_seed=1,
         noise_scale_factor=0.1,
+        drop_these_probs=None,
     ):
 
         # Check data compatibility.
@@ -2010,6 +2016,7 @@ class FeaturesDashboard:
             ignore_aerofoils=ignore_aerofoils,
             analysis_type=analysis_type,
             ignore_features=ignore_features,
+            drop_these_probs=drop_these_probs,
         )
 
         if features:
@@ -2279,15 +2286,7 @@ class FeaturesDashboard:
         ignore_aerofoils=True,
         ignore_features=True,
         ignore_scr=True,
-        drop_these_rows=[
-            "MW13_d5",
-            "CTP2_d5",
-            "MW13_d10",
-            "MW13_d20",
-            "MW13_d30",
-            "CF2_d20",
-            "RWMOP20_d4",
-        ],  # hard-coded from overall analysis.
+        drop_these_probs=None,
     ):
 
         df = self.features_df
@@ -2305,8 +2304,8 @@ class FeaturesDashboard:
         if ignore_features:
             df_filtered = self.custom_drop_na(df_filtered)
 
-        if drop_these_rows is not None:
-            df_filtered = df_filtered[~df_filtered["Name"].isin(drop_these_rows)]
+        if drop_these_probs is not None:
+            df_filtered = df_filtered[~df_filtered["Name"].isin(drop_these_probs)]
 
         if analysis_type:
             df_filtered = self.get_features_for_analysis_type(
@@ -2440,11 +2439,13 @@ class FeaturesDashboard:
             title="Suites",
         )
 
-    def apply_custom_grid(self, ax):
+    def apply_custom_grid(self, ax, axis="both"):
         # Grid
-        ax.grid(True, which="major", linestyle="-", linewidth=0.75, zorder=0)
+        ax.grid(True, which="major", axis=axis, linestyle="-", linewidth=0.75, zorder=0)
         ax.minorticks_on()
-        ax.grid(True, which="minor", linestyle="--", linewidth=0.15, zorder=0)
+        ax.grid(
+            True, which="minor", axis=axis, linestyle="--", linewidth=0.15, zorder=0
+        )
 
     def plot_tSNE(
         self,
@@ -2584,6 +2585,11 @@ class FeaturesDashboard:
         axes[np.floor(len(axes) / 2).astype(int)].set_xlabel("Component 1 [--]")
         axes[0].set_ylabel("Component 2 [--]")
 
+        if not ignore_aerofoils:
+            top_anchor = 1.15
+        else:
+            top_anchor = 1.1
+
         # Create legend for suites and dimensions
         self.create_custom_legend_for_dimension(
             fig=fig, marker_dict=marker_dict, bottom_box_anchor=-0.125
@@ -2592,7 +2598,7 @@ class FeaturesDashboard:
             fig=fig,
             df=df_filtered,
             ignore_aerofoils=ignore_aerofoils,
-            top_box_anchor=1.10,
+            top_box_anchor=top_anchor,
         )
 
         fig.tight_layout()
@@ -2633,7 +2639,7 @@ class FeaturesDashboard:
         noise_scale_factor=0.1,
         plot_random_noise=False,
         ignore_aerofoils=True,
-        train_with_aerofoils=False,
+        train_with_aerofoils=True,
         text_annotations_for_suites=None,
         zoom_to_suite=None,
         zoom_margin=0.2,
@@ -2641,6 +2647,8 @@ class FeaturesDashboard:
         save_fig=False,
         filepath=None,
         run_plotting=True,
+        drop_these_probs=None,
+        ignore_scr=True,
     ):
 
         # Get plot style ready.
@@ -2653,6 +2661,7 @@ class FeaturesDashboard:
         )
 
         # Extract required data.
+
         df_filtered, cols = self.get_filtered_df_for_dimension_reduced_plot(
             analysis_type=analysis_type,
             features=features,
@@ -2660,6 +2669,8 @@ class FeaturesDashboard:
             dims=dims,
             use_analytical_problems=use_analytical_problems,
             ignore_aerofoils=ignore_aerofoils,
+            drop_these_probs=drop_these_probs,
+            ignore_scr=ignore_scr,
         )
 
         # We will use different markers for each dimension.
@@ -2805,11 +2816,17 @@ class FeaturesDashboard:
         self.create_custom_legend_for_dimension(
             fig=fig, marker_dict=marker_dict, bottom_box_anchor=-0.125
         )
+
+        if not ignore_aerofoils:
+            top_anchor = 1.15
+        else:
+            top_anchor = 1.1
+
         self.create_custom_legend_for_suite(
             fig=fig,
             df=df_filtered,
             ignore_aerofoils=ignore_aerofoils,
-            top_box_anchor=1.1,
+            top_box_anchor=top_anchor,
         )
 
         fig.tight_layout()
@@ -3058,6 +3075,7 @@ class FeaturesDashboard:
         random_seed=1,
         noise_scale_factor=0.1,
         return_report=False,
+        drop_these_probs=None,
     ):
         """
         Train a Random Forest classifier to predict 'Suite' or perform binary classification
@@ -3079,7 +3097,7 @@ class FeaturesDashboard:
             raise ValueError("DataFrame must contain 'Suite' column")
 
         df_filtered, features = self.get_filtered_df_for_dimension_reduced_plot(
-            ignore_aerofoils=ignore_aerofoils
+            ignore_aerofoils=ignore_aerofoils, drop_these_probs=drop_these_probs
         )
 
         # Scale the features based on the specified scaler_type
@@ -3252,6 +3270,9 @@ class FeaturesDashboard:
 
         self.apply_custom_colors(palette="Dries")
 
+        if self.report_mode:
+            self.apply_custom_matplotlib_style()
+
         all_colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
 
         # Create a color map based on the suffix of the feature names
@@ -3287,6 +3308,7 @@ class FeaturesDashboard:
             palette=colors,
             xerr=errors,
             capsize=10,
+            zorder=6,
         )
 
         # Set the color of each bar based on the condition
@@ -3314,6 +3336,10 @@ class FeaturesDashboard:
             for label in feature_importances_df.index
         ]
         plt.yticks(ticks=range(len(formatted_labels)), labels=formatted_labels)
+        self.apply_custom_grid(ax=bar_plot, axis="x")
+
+        # Turn off minor ticks on yaxis.
+        bar_plot.yaxis.set_tick_params(which="minor", bottom=False)
 
         if filepath is not None and self.report_mode:
             self.save_figure(filepath=filepath)
@@ -3357,7 +3383,7 @@ class FeaturesDashboard:
             corr_value = df_num.corr().iloc[i, j]
             g.axes[i, j].annotate(
                 f"{corr_value:.2f}",
-                (0.9, 0.9),
+                (0.9, 0.15),
                 xycoords="axes fraction",
                 ha="center",
                 va="center",
@@ -3407,6 +3433,7 @@ class FeaturesDashboard:
         random_seed=1,
         noise_scale_factor=0.1,
         num_rf_models=100,
+        drop_these_probs=None,
     ):
         if coverage_suites is None:
             coverage_suites = self.get_suite_names(ignore_aerofoils=True)
@@ -3435,6 +3462,7 @@ class FeaturesDashboard:
             run_sensitivity_analysis=run_sensitivity_analysis,
             random_seed=random_seed,
             noise_scale_factor=noise_scale_factor,
+            drop_these_probs=drop_these_probs,
         )
         coverages["mean_coverage"] = np.float64(coverages.mean(axis=1))
 
@@ -3449,6 +3477,7 @@ class FeaturesDashboard:
                 run_sensitivity_analysis=run_sensitivity_analysis,
                 random_seed=random_seed,
                 noise_scale_factor=noise_scale_factor,
+                drop_these_probs=drop_these_probs,
             )
             for var in pca_var_expl:
                 num_pcs = self.calc_n_principal_compons_for_var(
@@ -3480,6 +3509,7 @@ class FeaturesDashboard:
                 run_sensitivity_analysis=run_sensitivity_analysis,
                 random_seed=n,
                 noise_scale_factor=noise_scale_factor,
+                drop_these_probs=drop_these_probs,
             )
             rfs.append(classifier)
         best_rf_cont = self.get_feature_importances(classifiers=rfs, top_features=None)
