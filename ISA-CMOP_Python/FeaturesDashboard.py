@@ -156,6 +156,26 @@ class FeaturesDashboard:
 
         self.define_plot_sizes()
 
+    # Function to create the mapping dictionary from a file
+    def create_mapping_from_file(
+        self, file_path="../../rrut_thesis_report/feature_names.txt"
+    ):
+        mapping = {}
+        with open(file_path, "r") as f:
+            for line in f:
+                old_name, new_name = line.strip().split(
+                    ",", 1
+                )  # Split on the first comma only
+                mapping[old_name.strip() + "_mean"] = rf"{new_name.strip()}"
+        self.feature_name_map = mapping
+
+    def use_symbols_for_feature_names(
+        self,
+    ):
+        new_df = self.features_df.rename(columns=self.feature_name_map, inplace=False)
+
+        return new_df
+
     def generate_suite_colors(self):
 
         # Get a list of unique suites
@@ -1383,10 +1403,10 @@ class FeaturesDashboard:
         dims=None,
         ignore_aerofoils=True,
         use_analytical_problems=False,
-        figsize=(10, 6),
         text_annotations_for_suites=None,
         zoom_to_suite=None,
         zoom_margin=0.2,
+        filepath=None,
     ):
         """
         Plots two features against each other, with point colors corresponding to either dimension or suite.
@@ -1423,6 +1443,7 @@ class FeaturesDashboard:
         marker_dict, unique_d_values = self.get_dimension_markers(df=df_filtered)
 
         # Plotting
+        figsize = (self.plot_width_full, self.plot_height_landscape_medium)
         fig, ax = plt.subplots(figsize=figsize)
 
         # Bounds for zooming initialisation.
@@ -1485,18 +1506,23 @@ class FeaturesDashboard:
         # Grid
         self.apply_custom_grid(ax=ax)
 
-        plt.title(f"{feature_y} vs. {feature_x}")
         plt.xlabel(feature_x)
         plt.ylabel(feature_y)
         self.create_custom_legend_for_dimension(fig=fig, marker_dict=marker_dict)
-        self.create_custom_legend_for_suite(
-            fig=fig, df=df_filtered, ignore_aerofoils=ignore_aerofoils
-        )
+
+        if len(df_filtered["Suite"].unique()) != 1:
+            self.create_custom_legend_for_suite(
+                fig=fig, df=df_filtered, ignore_aerofoils=ignore_aerofoils
+            )
         plt.tight_layout()
+
+        if filepath is not None and self.report_mode:
+            self.save_figure(filepath=filepath)
+
+        plt.show()
 
         # Adjust the layout to make space for the top legend
         # plt.subplots_adjust(top=1, bottom=0)
-        plt.show()
 
     def plot_problem_features(
         self, problem_name, dim, analysis_type, features=None, path=None
@@ -1957,7 +1983,7 @@ class FeaturesDashboard:
                     mpatches.Patch(
                         color=self.suite_color_map[suite_in_focus], label=suite_in_focus
                     ),
-                    mpatches.Patch(color="grey", alpha=0.8, label="Other"),
+                    mpatches.Patch(color="lightskyblue", alpha=0.8, label="Other"),
                 ]
             )
 
@@ -1971,7 +1997,7 @@ class FeaturesDashboard:
             formatted_labels = [r"$\texttt{" + label + "}$" for label in labels]
         else:
             formatted_labels = labels
-        ax.set_xticklabels(formatted_labels, rotation=30)
+        ax.set_xticklabels(formatted_labels, rotation=45, ha="right")
 
         # custom grid
         self.apply_custom_grid(ax=ax)
@@ -2942,6 +2968,7 @@ class FeaturesDashboard:
         num_seeds=5,
         metric="silhouette",
         orig_data=None,
+        drop_these_probs=None,
     ):
         # Define your parameters
         random_states = range(num_seeds)  # 10 different random states
@@ -2969,6 +2996,7 @@ class FeaturesDashboard:
                         run_sensitivity_analysis=True,
                         noise_scale_factor=noise,
                         run_plotting=False,
+                        drop_these_probs=drop_these_probs,
                     )
                 if metric == "silhouette":
                     score = self.get_silhouette_score(
@@ -3257,6 +3285,7 @@ class FeaturesDashboard:
         filepath=None,
         variable_name="Importance",
         xlabel="Average Gini Importance",
+        show_legend=True,
     ):
         """
         Plot the feature importances in descending order, coloring bars based on their suffixes.
@@ -3321,7 +3350,9 @@ class FeaturesDashboard:
             mpatches.Patch(color=all_colors[1], label="RW"),
             mpatches.Patch(color=all_colors[2], label="AW"),
         ]
-        plt.legend(handles=legend_patches, title="Type")
+
+        if show_legend:
+            plt.legend(handles=legend_patches, title="Type")
         plt.tight_layout()
 
         plt.xlabel(xlabel)
@@ -3568,6 +3599,9 @@ class FeaturesDashboard:
         # Compute average scores across seeds
         mean_scores = combined_results.groupby(level=1).mean()
 
+        # Align mean_scores to have the same indices as non_noisy_feature_scores
+        mean_scores = mean_scores.reindex(non_noisy_feature_scores.index)
+
         # Compute deviations as percentage of non-noisy scores
         deviations = {}
 
@@ -3586,10 +3620,14 @@ class FeaturesDashboard:
                 filtered_scores = mean_scores[column][mask]
                 filtered_non_noisy = non_noisy_feature_scores[column][mask]
 
-                deviation = (
-                    np.abs(filtered_scores - filtered_non_noisy) / filtered_non_noisy
-                )
-                deviations[column] = deviation.mean() * 100  # percentage
+                deviation = np.abs(filtered_scores - filtered_non_noisy)
+
+                if column != "OverallRank":
+                    deviation = deviation / filtered_non_noisy
+
+                    deviations[column] = deviation.mean() * 100  # percentage
+                else:
+                    deviations[column] = deviation.mean()
 
         return pd.DataFrame(
             deviations, index=[f"Average Deviation (%) for SD = {noise_scale_factor}"]
