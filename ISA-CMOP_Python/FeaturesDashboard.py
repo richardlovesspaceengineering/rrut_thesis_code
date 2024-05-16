@@ -2216,11 +2216,7 @@ class FeaturesDashboard:
         plt.ylabel("Suites")
         # Update label formatting for y-axis to match the new orientation
         formatted_labels = [
-            (
-                r"$\texttt{" + label.replace("_", "\_") + "}$"
-                if self.report_mode
-                else label
-            )
+            (self.feature_name_map[label + "_mean"] if self.report_mode else label)
             for label in features
         ]
         plt.yticks(fontsize=10)
@@ -3359,11 +3355,7 @@ class FeaturesDashboard:
         plt.ylabel("Features")
         # Set y-axis labels to use LaTeX rendering with \texttt for each label
         formatted_labels = [
-            (
-                r"$\texttt{" + label.replace("_", "\_") + "}$"
-                if self.report_mode
-                else label
-            )
+            (self.feature_name_map[label + "_mean"] if self.report_mode else label)
             for label in feature_importances_df.index
         ]
         plt.yticks(ticks=range(len(formatted_labels)), labels=formatted_labels)
@@ -3983,8 +3975,8 @@ class FeaturesDashboard:
             raise ValueError("To save a figure, a filepath must be specified.")
         plt.show()
 
-    @staticmethod
     def convert_to_latex(
+        self,
         df,
         filename,
         base_dir="../../rrut_thesis_report/Tables/",
@@ -4017,8 +4009,11 @@ class FeaturesDashboard:
                         )
                         for val in row
                     ]
+                    index_key = index.strip() + "_mean"
                     row_string = (
-                        f"\\feature{{{index}}} & " + " & ".join(formatted_row) + suffix
+                        f"{self.feature_name_map[index_key]} & "
+                        + " & ".join(formatted_row)
+                        + suffix
                     )
                 else:
                     formatted_row = [
