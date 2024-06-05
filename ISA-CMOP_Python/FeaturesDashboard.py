@@ -780,6 +780,9 @@ class FeaturesDashboard:
         return df
 
     def append_to_features_to_ignore(self, features_to_ignore):
+        """
+        Append a list of features to self.features_to_ignore. Any features added here will not be considered for any analysis e.g. plotting, model training.
+        """
 
         # Check if features_to_ignore is neither None nor an empty list
         if features_to_ignore:
@@ -790,9 +793,8 @@ class FeaturesDashboard:
             # Append each feature only if it's not already in the list
             for feature in features_to_ignore:
                 if feature not in self.features_to_ignore:
-                    self.features_to_ignore.append(
-                        feature + "_mean" if "_mean" not in feature else feature
-                    )
+                    feature_name = self.append_mean_to_feature_name(feature)
+                    self.features_to_ignore.append(feature_name)
 
     def ignore_ps_pf_features(self):
         self.append_to_features_to_ignore(
@@ -841,8 +843,7 @@ class FeaturesDashboard:
 
         self.features_df = self.filter_df_by_suite_and_dim(self.features_df, dims=d)
 
-    @staticmethod
-    def get_features_for_analysis_type(df, analysis_type):
+    def get_features_for_analysis_type(self, df, analysis_type):
         """
         Filters a DataFrame to return only columns related to a specified analysis type,
         but always includes 'D' and 'Name' columns.
@@ -909,9 +910,6 @@ class FeaturesDashboard:
         """
         Generates a 1xN grid of violin plots for a specified feature across different suites, with points overlaying the violin plots.
         Each violin plot represents a different suite, with distinct colors used for each dimension.
-        :param feature_name: The name of the feature to plot. Can be a landscape feature or algo performance.
-        :param dims: A list of dimensions to plot.
-        :param suite_names: Optional. A list of benchmark suite names to filter the features by.
         """
 
         # Check data compatibility.
@@ -922,7 +920,10 @@ class FeaturesDashboard:
         # Get plot style ready.
         self.apply_custom_matplotlib_style()
 
-        feature_name_with_mean = feature_name + "_mean"
+        # Append "_mean" to feature name to access from dataframe.
+        feature_name_with_mean = self.append_mean_to_feature_name(
+            feature_name=feature_name
+        )
 
         if not suite_names:
             suite_names = self.get_suite_names(ignore_aerofoils=ignore_aerofoils)
@@ -1019,7 +1020,9 @@ class FeaturesDashboard:
         method="pearson",
         min_corr_magnitude=0,
     ):
-
+        """
+        Generate a correlation matrix of the features data. Can also filter to take all correlations greater than a user-defined minimum correlation magnitude. Note that this will still return a nxn matrix but with NaNs for all correlations below the minimum threshold.
+        """
         if ignore_features:
             df = self.ignore_specified_features(self.features_df)
         else:
@@ -1034,7 +1037,7 @@ class FeaturesDashboard:
         )
 
         if analysis_type:
-            df = FeaturesDashboard.get_features_for_analysis_type(df, analysis_type)
+            df = self.get_features_for_analysis_type(df, analysis_type)
 
         if method not in ["pearson", "spearman"]:
             raise ValueError("Method must be either 'pearson' or 'spearman'")
@@ -1062,9 +1065,9 @@ class FeaturesDashboard:
         ignore_aerofoils=True,
     ):
         """
-        Returns the top n correlation pairs from the correlation matrix, sorted by absolute correlation value.
+        Returns the top n correlation pairs from the correlation matrix, sorted by absolute correlation value. min_corr_magnitude is the minimum overall correlation threshold, and filtered_err_pct is the maximum deviation of a suite (in percentage terms) from min_corr_magnitude.
 
-        :param n: Number of top correlation pairs to return.
+        See report section 4.1.3 for more details.
         """
 
         # Check data compatibility.
@@ -1082,12 +1085,14 @@ class FeaturesDashboard:
         )
 
         au_corr = correlation_matrix.unstack()
+
         # Create a set to hold pairs to drop (diagonal and lower triangular)
         pairs_to_drop = set()
         cols = correlation_matrix.columns
         for i in range(correlation_matrix.shape[1]):
             for j in range(i + 1):
                 pairs_to_drop.add((cols[i], cols[j]))
+
         # Drop redundant pairs and sort
         au_corr = (
             au_corr.drop(labels=pairs_to_drop).sort_values(ascending=False).dropna()
@@ -1230,9 +1235,9 @@ class FeaturesDashboard:
     ):
         """
         Generates a heatmap of the correlation matrix for the numeric columns of the provided DataFrame.
-        :param df: The DataFrame for which the correlation matrix heatmap is to be generated.
         """
 
+        # Get correlation matrix.
         correlation_matrix = self.get_correlation_matrix(
             analysis_type,
             ignore_features,
@@ -1268,6 +1273,17 @@ class FeaturesDashboard:
         if show_plot:
             plt.show()
 
+    def append_mean_to_feature_name(self, feature_name):
+        """
+        Append "_mean"  to a feature name if it is not already there. This ensures column name compatibility with  features_df.
+        """
+        if "_mean" not in feature_name:
+            feature_name_with_mean = feature_name + "_mean"
+        else:
+            feature_name_with_mean = feature_name
+
+        return feature_name_with_mean
+
     def plot_feature_across_dims(
         self, feature_name, dims=None, suite_names=None, show_plot=True
     ):
@@ -1279,16 +1295,9 @@ class FeaturesDashboard:
         :param suite_names: Optional. A list of benchmark suite names to filter the features by.
         """
         plt.figure(figsize=(15, 6))
-        feature_name_with_mean = feature_name + "_mean"
 
         # Define colors for different suites.
-        suite_colors = {
-            "MW": "#1f77b4",
-            "CTP": "#ff7f0e",
-            "DASCMOP": "#2ca02c",
-            "DCDTLZ": "#d62728",
-            "CDTLZ": "#e62728",
-        }
+        suite_colors = self.suite_color_map
         marker_type = "o"
 
         if not suite_names:
@@ -1301,6 +1310,10 @@ class FeaturesDashboard:
         df = self.features_df
         df_filtered = self.filter_df_by_suite_and_dim(
             df, suite_names=suite_names, dims=dims
+        )
+
+        feature_name_with_mean = self.append_mean_to_feature_name(
+            feature_name=feature_name
         )
 
         global_min, global_max = self.compute_global_maxmin_for_plot(
@@ -1442,8 +1455,8 @@ class FeaturesDashboard:
             ignore_aerofoils=ignore_aerofoils
         )
 
-        feature_x = feature_x + "_mean"
-        feature_y = feature_y + "_mean"
+        feature_x = self.append_mean_to_feature_name(feature_name=feature_x)
+        feature_y = self.append_mean_to_feature_name(feature_name=feature_y)
 
         if not suite_names:
             suite_names = self.get_suite_names(ignore_aerofoils=False)
@@ -2415,15 +2428,6 @@ class FeaturesDashboard:
             if d not in marker_dict.keys():
                 marker_dict[d] = "o"
 
-        # marker_dict = {
-        #     d: markers[i] if d in special_d_values else "o"
-        #     for i, d in enumerate(
-        #         special_d_values
-        #         + [d for d in df["D"].unique() if d not in special_d_values]
-        #     )
-        # }
-        # unique_d_values = df["D"].unique()
-
         return marker_dict, unique_d_values
 
     def apply_feature_scaling(self, df, cols, scaler_type):
@@ -2915,7 +2919,7 @@ class FeaturesDashboard:
     def get_trustworthiness_score(self, embedding_results, original_data):
         return trustworthiness(original_data, embedding_results, n_neighbors=10)
 
-    def find_best_dimreduced_hyperparameter(
+    def grid_search_low_dim_hyperparameter(
         self,
         method="umap",
         metric="silhouette",
@@ -2924,6 +2928,17 @@ class FeaturesDashboard:
         umap_min_dist=0.2,
         orig_data=None,
     ):
+        """
+        Method to determine the best hyperparameter for a dimension-reduction method relative to a relevant metric.
+
+        Procedure involves gemerating num_seeds embeddings with different random states before aggregating metric scores. Returns a dataframe of scores for each parameter value tested.
+
+        Note for UMAP that min_dist must be fixed.
+        """
+
+        if metric not in ["silhouette", "trustworthiness"]:
+            raise ValueError("metric can be either 'silhouette' or 'trustworthiness'.")
+
         # Define your parameters
         param_values = [2, 5, 10, 15, 20, 30, 50, 100]
         random_states = range(num_seeds)  # 10 different random states
@@ -3324,7 +3339,7 @@ class FeaturesDashboard:
 
         :param feature_importances_df: A DataFrame containing the feature importances.
         """
-        # Sort the DataFrame if it's not sorted already
+        # Sort the DataFrame in descending order of importance.
         feature_importances_df = feature_importances_df.sort_values(
             by=variable_name, ascending=False
         )
@@ -4133,6 +4148,9 @@ class FeaturesDashboard:
     def get_comparison_data_for_trustworthiness(
         self, scaler_type="MinMaxScaler", ignore_aerofoils=True
     ):
+        """
+        This returns a reference landscapes dataset, containing the feature values (that aren't being ignored) for all suites. All low-dimensional embeddings are compared to this high-dimensional dataset for trustworthiness scoring.
+        """
         # Extract required data.
         df_filtered, cols = self.get_filtered_df_for_dimension_reduced_plot(
             ignore_aerofoils=ignore_aerofoils,
