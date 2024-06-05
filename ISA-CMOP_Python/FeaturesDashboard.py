@@ -90,7 +90,7 @@ class FeaturesDashboard:
 
         # Generate suite colours using custom colour palette.
         self.apply_custom_colors()
-        self.suite_color_map = self.generate_suite_colors()
+        self.generate_suite_colors()
 
         # Define plot sizes - especially useful if report_mode is True.
         self.define_plot_sizes()
@@ -194,6 +194,8 @@ class FeaturesDashboard:
 
     def generate_suite_colors(self):
 
+        self.apply_custom_colors(palette="Paired")
+
         # Get a list of unique suites
         suites = list(self.get_suite_names(ignore_aerofoils=False))
 
@@ -205,7 +207,7 @@ class FeaturesDashboard:
             suite: colors[i % len(colors)] for i, suite in enumerate(suites)
         }
 
-        return suite_colors
+        self.suite_color_map = suite_colors
 
     def toggle_report_mode(self):
         self.report_mode = not self.report_mode
@@ -301,9 +303,9 @@ class FeaturesDashboard:
                     "#e31a1c",
                     "#fdbf6f",
                     "#ff7f00",
-                    # "#cab2d6",
-                    # "#6a3d9a",
-                    "#dc3220",
+                    # "#cab2d6", # light purple/lavender
+                    "#6a3d9a", # violet
+                    # "#dc3220", # red
                     "#0e0354",  # navy
                 ]
             # paired
@@ -2864,8 +2866,6 @@ class FeaturesDashboard:
                     min_y - zoom_margin * (max_y - min_y),
                     max_y + zoom_margin * (max_y - min_y),
                 )
-
-            # ax.set_title(f"UMAP with n_neighbors = {n_neighbor}")
 
             # Grid
             self.apply_custom_grid(ax=ax)
