@@ -56,13 +56,13 @@ def get_df_from_filepath(filepath, give_sd):
 
 
 class FeaturesDashboard:
-    def __init__(self, results_dict, new_save_path, report_mode):
+    def __init__(self, results_dir_dict, new_save_path, report_mode):
         """
         Initialize the FeaturesDashboard with a dictionary mapping problem names to lists of result storage folders.
-        :param results_dict: Dictionary where keys are problem names and values are lists of storage folder names.
+        :param results_dir_dict: Dictionary where keys are problem names and values are lists of storage folder names.
         :param new_save_path: Path to the directory where new files will be saved.
         """
-        self.results_dict = results_dict
+        self.results_dir_dict = results_dir_dict
         self.new_save_path = new_save_path
         self.report_mode = report_mode
 
@@ -73,6 +73,52 @@ class FeaturesDashboard:
         self.features_path_list = []
         # Base directory where instance results are stored
         self.base_results_dir = "instance_results"
+
+        # Define feature suites and names.
+        self.define_problem_suites()
+
+        # Process the results_dir_dict to populate features_path_list
+        self.look_for_missing_results_folders(results_dir_dict=results_dir_dict)
+
+        # Collate all results into one folder.
+        self.wipe_features_directory()
+        self.copy_directory_contents()
+        self.features_df = self.get_landscape_features_df(give_sd=False)
+
+        # Initialise directory for ignoring features.
+        self.features_to_ignore = []
+
+        # Generate suite colours using custom colour palette.
+        self.apply_custom_colors()
+        self.suite_color_map = self.generate_suite_colors()
+
+        # Define plot sizes - especially useful if report_mode is True.
+        self.define_plot_sizes()
+
+    def look_for_missing_results_folders(self, results_dir_dict):
+        """
+        Parse the results folders listed as values in results_dir_dict and append any folders containing valid results to the path.
+        """
+        missing_folders = []
+        for folders in results_dir_dict.values():
+            if folders is not None:
+                for folder in folders:
+                    full_path = os.path.join(self.base_results_dir, folder)
+                    # Check if the directory exists before appending
+                    if os.path.isdir(full_path):
+                        if full_path not in self.features_path_list:
+                            self.features_path_list.append(full_path)
+                    else:
+
+                        # Ensures warning only gets printed once.
+                        if folder not in missing_folders:
+                            missing_folders.append(folder)
+                            print(f"Warning: The directory {full_path} does not exist.")
+
+    def define_problem_suites(self):
+        """
+        Define the suites/problem names and distinguish between the synthetic/real-world problems. Can add new suites as required.
+        """
 
         self.suites_problems_dict = {
             "MW": [f"MW{x}" for x in range(1, 15, 1)],
@@ -124,42 +170,12 @@ class FeaturesDashboard:
             if f not in ["MODAct", "RWMOP", "XA"]
         ]
 
-        # Process the results_dict to populate features_path_list
-        missing_folders = []
-        for folders in results_dict.values():
-            if folders is not None:
-                for folder in folders:
-                    full_path = os.path.join(self.base_results_dir, folder)
-                    # Check if the directory exists before appending
-                    if os.path.isdir(full_path):
-                        if full_path not in self.features_path_list:
-                            self.features_path_list.append(full_path)
-                    else:
-
-                        # Ensures warning only gets printed once.
-                        if folder not in missing_folders:
-                            missing_folders.append(folder)
-                            print(f"Warning: The directory {full_path} does not exist.")
-
-        # Collate all results into one folder.
-        self.wipe_features_directory()
-        self.copy_directory_contents()
-        self.features_df = self.get_landscape_features_df(give_sd=False)
-
-        # Models/results objects.
-        pca = None
-        self.features_to_ignore = []
-
-        # Generate suite colours using custom colour palette.
-        self.apply_custom_colors()
-        self.suite_color_map = self.generate_suite_colors()
-
-        self.define_plot_sizes()
-
-    # Function to create the mapping dictionary from a file
     def create_mapping_from_file(
         self, file_path="../../rrut_thesis_report/feature_names.txt"
     ):
+        """
+        Method to create the dictionary which maps the feature names with underscores to those with mathematical symbols. The definitions are provided in a text file which can be altered.
+        """
         mapping = {}
         with open(file_path, "r") as f:
             for line in f:
@@ -285,8 +301,9 @@ class FeaturesDashboard:
                     "#e31a1c",
                     "#fdbf6f",
                     "#ff7f00",
-                    "#cab2d6",
+                    # "#cab2d6",
                     # "#6a3d9a",
+                    "#dc3220",
                     "#0e0354",  # navy
                 ]
             # paired
@@ -313,7 +330,12 @@ class FeaturesDashboard:
         )
 
     def apply_custom_matplotlib_style(
-        self, fontsize=12, legendfontsize=10, linewidth=1.25, markersize=4
+        self,
+        fontsize=12,
+        legendfontsize=10,
+        linewidth=1.25,
+        markersize=4,
+        axiswidth=1.75,
     ):
         # Line settings
         plt.rc("lines", linewidth=linewidth, markersize=markersize)
@@ -321,7 +343,7 @@ class FeaturesDashboard:
         # Axes settings
         plt.rc(
             "axes",
-            linewidth=1.75,
+            linewidth=axiswidth,
             labelsize=fontsize,
             titlesize=fontsize,
         )
@@ -401,21 +423,16 @@ class FeaturesDashboard:
             self.features_df[column].fillna(value, inplace=True)
             print(f"NaN values in column '{column}' have been replaced with '{value}'.")
 
-    def compare_results_dict_to_df(self):
+    def compare_results_dict_to_df(self, return_dict=False):
         """
-        This method checks if the keys of the dictionary exist in the specified column of the dataframe.
-
-        :param keys_dict: Dictionary whose keys will be checked.
-        :param dataframe: DataFrame where the column is located.
-        :param column_name: The name of the column to search for the keys.
-        :return: A dictionary with the keys and a boolean value indicating if the key was found in the column.
+        This method checks if the keys of the dictionary exist in the specified column of the dataframe, printing messages for any missing values.
         """
 
         # Initialize a result dictionary
         result = {}
 
         # Iterate through the dictionary keys
-        for instance in self.results_dict.keys():
+        for instance in self.results_dir_dict.keys():
             # Check if the key is in the self.features_df column
             found = instance in self.features_df["Name"].values
             result[instance] = found
@@ -424,13 +441,17 @@ class FeaturesDashboard:
             if not found:
                 print(f"Missing data for {instance}")
 
-        return result
+        if return_dict:
+            return result
 
     def plot_missingness(
         self, show_only_nans=False, show_ignored_features=True, ignore_aerofoils=True
     ):
-        # Create a DataFrame indicating where NaNs are located (True for NaN, False for non-NaN)
+        """
+        Plot a heatmap of missingness in the features_df.
+        """
 
+        # Filter full dataframe to only look at suites of interest.
         df_filtered = self.filter_df_by_suite_and_dim(
             self.features_df,
             suite_names=None,
@@ -443,8 +464,8 @@ class FeaturesDashboard:
         else:
             df = df_filtered
 
+        # Create a DataFrame indicating where NaNs are located (True for NaN, False for non-NaN)
         missingness = FeaturesDashboard.get_numerical_data_from_df(df).isnull()
-
         row_has_nan = missingness.any(axis=1)
 
         # Filter columns to show only those that contain at least one NaN value if the flag is set
@@ -532,11 +553,11 @@ class FeaturesDashboard:
                 # Add suite column based on problem name
                 temp_df["Suite"] = temp_df["Name"].apply(self.get_suite_for_problem)
 
-                # Filter rows based on 'Name' and 'Date'. For each problem, we only want to keep results from the dates given in results_dict.
+                # Filter rows based on 'Name' and 'Date'. For each problem, we only want to keep results from the dates given in results_dir_dict.
                 temp_df = temp_df[
                     temp_df.apply(
-                        lambda row: row["Name"] in self.results_dict
-                        and row["Date"] in self.results_dict[row["Name"]],
+                        lambda row: row["Name"] in self.results_dir_dict
+                        and row["Date"] in self.results_dir_dict[row["Name"]],
                         axis=1,
                     )
                 ]
@@ -708,7 +729,7 @@ class FeaturesDashboard:
         :return: A pandas DataFrame containing the data from the specific features.csv file.
         """
         problem_key = f"{problem_name}_d{dim}"
-        folders = self.results_dict.get(problem_key)
+        folders = self.results_dir_dict.get(problem_key)
 
         # Check for multiple folders and no timestamp specified
         if folders and len(folders) > 1 and timestamp is None:
@@ -1842,7 +1863,7 @@ class FeaturesDashboard:
         self,
         class_column="Suite",
         separate_rw_analytical=False,
-        suite_in_focus=None,
+        suites_in_focus=None,
         features=None,
         suite_names=None,
         dims=None,
@@ -1917,28 +1938,31 @@ class FeaturesDashboard:
         # Sort the DataFrame by 'Suite' to ensure it follows the custom order
         data_to_plot = data_to_plot.sort_values("Suite")
 
-        # Sort the DataFrame to ensure the suite_in_focus is at the end
-        if suite_in_focus is not None:
-            # Create a boolean series to determine if each row is in the suite_in_focus
-            is_suite_in_focus = data_to_plot["Suite"] == suite_in_focus
+        # Sort the DataFrame to ensure the suites_in_focus are at the end
+        if suites_in_focus is not None:
+            # Create a boolean series to determine if each row is in the suites_in_focus
+            is_suite_in_focus = data_to_plot["Suite"].isin(suites_in_focus)
 
-            # Split the DataFrame into two: one for the suite_in_focus and one for the others
-            df_suite_in_focus = data_to_plot[is_suite_in_focus]
+            # Split the DataFrame into two: one for the suites_in_focus and one for the others
+            df_suites_in_focus = data_to_plot[is_suite_in_focus]
             df_others = data_to_plot[~is_suite_in_focus]
 
-            # Concatenate the DataFrames, placing the suite_in_focus at the end
-            data_to_plot = pd.concat([df_others, df_suite_in_focus])
+            # Concatenate the DataFrames, placing the suites_in_focus at the end
+            data_to_plot = pd.concat([df_others, df_suites_in_focus])
 
-            # Update suite_colors to have the suite_in_focus color last
+            # Update suite_colors to have the suites_in_focus colors last
             suite_colors = [
                 (
                     "lightskyblue"
-                    if suite != suite_in_focus
-                    else self.suite_color_map[suite_in_focus]
+                    if suite not in suites_in_focus
+                    else self.suite_color_map[suite]
                 )
                 for suite in unique_suites
             ]
-            suite_colors.sort(key=lambda x: x == self.suite_color_map[suite_in_focus])
+            suite_colors.sort(
+                key=lambda x: x
+                in [self.suite_color_map[suite] for suite in suites_in_focus]
+            )
 
         # Create a colormap with the updated colors
         colormap = ListedColormap(suite_colors)
@@ -1969,22 +1993,30 @@ class FeaturesDashboard:
             linewidth=1.25,
         )
 
-        if suite_in_focus is None:
+        if suites_in_focus is None:
             title_text = "Parallel Coordinates Plot"
         else:
             ax.legend_.remove()
-            title_text = suite_in_focus
+            title_text = suites_in_focus
 
             # Create custom patches that will be used in the legend
 
             # Create the legend with the custom patches
+            handles = []
+            for s in suites_in_focus:
+                handles.append(
+                    mpatches.Patch(color=self.suite_color_map[s], label=s),
+                )
+
+            handles.append(
+                mpatches.Patch(color="lightskyblue", alpha=0.7, label="Other")
+            )
+
             plt.legend(
-                handles=[
-                    mpatches.Patch(
-                        color=self.suite_color_map[suite_in_focus], label=suite_in_focus
-                    ),
-                    mpatches.Patch(color="lightskyblue", alpha=0.8, label="Other"),
-                ]
+                handles=handles,
+                ncol=len(handles),
+                loc="upper center",
+                bbox_to_anchor=(0.5, 1.225),
             )
 
             # Make custom legend for parallel coordaintes plot.
@@ -1994,7 +2026,9 @@ class FeaturesDashboard:
         labels = [item.get_text() for item in ax.get_xticklabels()]
 
         if self.report_mode:
-            formatted_labels = [r"$\texttt{" + label + "}$" for label in labels]
+            formatted_labels = [
+                self.feature_name_map[label + "_mean"] for label in labels
+            ]
         else:
             formatted_labels = labels
         ax.set_xticklabels(formatted_labels, rotation=45, ha="right")
@@ -2116,7 +2150,9 @@ class FeaturesDashboard:
         :param top_features: The number of features to consider with the lowest coverage. If None, all features are considered.
         """
         # Find the mean coverage across all suites for each feature
-        coverage_values["mean_coverage"] = coverage_values.mean(axis=1)
+        coverage_values["mean_coverage"] = coverage_values[
+            [c for c in coverage_values.columns if "XA" not in c]
+        ].mean(axis=1)
 
         # Sort the features by their mean coverage
         sorted_features = coverage_values.sort_values(
@@ -2785,7 +2821,7 @@ class FeaturesDashboard:
                         x_values,
                         y_values,
                         color=self.suite_color_map[suite],
-                        s=6,
+                        s=8,
                         marker=marker_dict[d_value],
                         zorder=3,  # renders on top of grid
                     )
@@ -3411,7 +3447,7 @@ class FeaturesDashboard:
                 ha="center",
                 va="center",
                 color="black",
-                fontsize=16,
+                fontsize=12,
             )
 
         # Loop through each axes in the pairplot (i, j indices)
@@ -3814,6 +3850,62 @@ class FeaturesDashboard:
             raise ValueError("To save a figure, a filepath must be specified.")
         plt.show()
 
+    def plot_multiple_random_walks_for_report(
+        self, walk_type="simple", filepath=None, save_fig=False
+    ):
+        dim = 2
+        num_steps = 100
+        step_size = 0.05
+        neighbourhood_size = 10
+
+        ps = PreSampler(dim, num_samples=1, mode="eval", is_aerofoil=False)
+        rwGenerator = RandomWalk(dim, num_steps, step_size, neighbourhood_size)
+
+        self.apply_custom_matplotlib_style(markersize=3)
+
+        fig, ax = plt.subplots(
+            figsize=(self.plot_width_half, self.plot_height_landscape_medium)
+        )
+
+        start_zones = ps.generate_binary_patterns()
+        self.apply_custom_colors("Dries")
+        prop_cycle = plt.rcParams["axes.prop_cycle"]
+        colors = prop_cycle.by_key()["color"]
+
+        # Generate random walks
+        for i in range(4):
+            simple_walk = rwGenerator.do_simple_walk(seed=i + 1)
+            prog_walk = rwGenerator.do_progressive_walk(
+                starting_zone=start_zones[i % 2], seed=i + 1
+            )
+
+            walk_to_plot = simple_walk if walk_type == "simple" else prog_walk
+
+            ax.plot(walk_to_plot[:, 0], walk_to_plot[:, 1], marker="o")
+
+        ax.set_xlim([0, 1])
+        ax.set_ylim([0, 1])
+
+        if "obj" in walk_type:
+            var_str = "f"
+        else:
+            var_str = "x"
+
+        ax.set_xlabel(rf"${var_str}_1$")
+        ax.set_ylabel(rf"${var_str}_2$")
+        # ax.set_aspect("equal")  # Keep the scaling consistent
+        # ax.set_xticklabels([0, 1])
+        # ax.set_yticklabels([0, 1])
+
+        self.apply_custom_grid(ax)
+        plt.tight_layout()
+
+        if filepath is not None and self.report_mode:
+            self.save_figure(filepath=filepath)
+        elif save_fig:
+            raise ValueError("To save a figure, a filepath must be specified.")
+        plt.show()
+
     def plot_landscape_for_report(
         self,
         z_exp,
@@ -3829,6 +3921,7 @@ class FeaturesDashboard:
         show_2d=False,
         save_fig=False,
         extension=".pdf",
+        zlabel=None,
     ):
 
         xmin, xmax = xlim
@@ -3941,9 +4034,9 @@ class FeaturesDashboard:
                     zorder=0,
                 )
 
-            ax.xaxis.labelpad = -10  # Increase padding for x-axis label if needed
-            ax.yaxis.labelpad = -10  # Increase padding for y-axis label if needed
-            ax.zaxis.labelpad = -10  # Increase padding for z-axis label if needed
+            ax.xaxis.labelpad = -13  # Increase padding for x-axis label if needed
+            ax.yaxis.labelpad = -13  # Increase padding for y-axis label if needed
+            ax.zaxis.labelpad = -13  # Increase padding for z-axis label if needed
 
             # Set viewing angle
             elev, azim = elev_azi
@@ -3957,7 +4050,10 @@ class FeaturesDashboard:
         ax.set_yticklabels([])
 
         if not show_2d:
-            ax.set_zlabel(r"$f$")
+
+            zlabel = zlabel if zlabel is not None else r"$f$"
+
+            ax.set_zlabel(zlabel)
             ax.set_zticklabels([])
 
         # Reduce the number of axis ticks by specifying the desired locations
@@ -3965,6 +4061,9 @@ class FeaturesDashboard:
         ax.set_xticks(np.linspace(xmin, xmax, num_ticks))
         ax.set_yticks(np.linspace(ymin, ymax, num_ticks))
         plt.tight_layout()
+
+        # Adjust layout
+        # fig.subplots_adjust(left=0.1, right=0.95, top=0.95, bottom=0.05)
 
         if not show_2d:
             self.apply_custom_grid(ax=ax)
@@ -3981,6 +4080,7 @@ class FeaturesDashboard:
         filename,
         base_dir="../../rrut_thesis_report/Tables/",
         custom_format_index=True,
+        include_index=True,
         include_columns=False,
         significant_figures=4,
     ):
@@ -4024,7 +4124,10 @@ class FeaturesDashboard:
                         )
                         for val in row
                     ]
-                    row_string = f"{index} & " + " & ".join(formatted_row) + suffix
+                    if include_index:
+                        row_string = f"{index} & " + " & ".join(formatted_row) + suffix
+                    else:
+                        row_string = f" & ".join(formatted_row) + suffix
                 file.write(row_string + "\n")
 
     def get_comparison_data_for_trustworthiness(
