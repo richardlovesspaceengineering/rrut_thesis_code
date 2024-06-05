@@ -55,6 +55,14 @@ def get_df_from_filepath(filepath, give_sd):
     return features_df
 
 
+def remove_unnec_df_data(df):
+    filtered_df = df
+    filtered_df = filtered_df[
+        [c for c in filtered_df.columns if c not in ["D", "Suite", "Date", "Name"]]
+    ]
+    return filtered_df
+
+
 class FeaturesDashboard:
     def __init__(self, results_dir_dict, new_save_path, report_mode):
         """
@@ -833,10 +841,10 @@ class FeaturesDashboard:
             return df
 
     def set_dashboard_analysis_type(self, analysis_type):
+        self.analysis_type = analysis_type
         self.features_df = self.get_features_for_analysis_type(
             self.features_df, analysis_type=analysis_type
         )
-        self.analysis_type = analysis_type
 
     def set_dashboard_dimensionality(self, d):
 
@@ -856,7 +864,7 @@ class FeaturesDashboard:
                  plus 'D' and 'Name' columns.
         """
         # Validate analysis_type
-        valid_analysis_types = ["rw", "glob", "aw"]
+        valid_analysis_types = ["all", "rw", "glob", "aw"]
         if analysis_type not in valid_analysis_types:
             raise ValueError(
                 f"Invalid analysis type '{analysis_type}'. Valid types are: {', '.join(valid_analysis_types)}"
@@ -3443,9 +3451,6 @@ class FeaturesDashboard:
                 columns.append(color_by)
 
             df = df[columns]
-        # else:
-        #     # Select only numerical columns if no columns specified
-        #     # df = df.select_dtypes(include=[np.number])
 
         # Initialize the pairplot
         g = sns.pairplot(df, hue=color_by)
@@ -4162,3 +4167,80 @@ class FeaturesDashboard:
         )
 
         return df_filtered[cols]
+
+    def plot_trustworthiness_comparison_of_feature_sets(
+        self,
+        trust_df,
+        filepath=None,
+    ):
+        filepath = "Results/LiteratureComparison_Trustworthiness"
+        variable_name = "Mean Trustworthiness Score"
+        xlabel = "Mean Trustworthiness Score"
+        self.apply_custom_colors(palette="Dries")
+
+        if self.report_mode:
+            self.apply_custom_matplotlib_style()
+
+        all_colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
+
+        # Create a color map based on the suffix of the feature names
+        colors = (
+            trust_df["Feature Set"]
+            .map(
+                lambda x: (
+                    all_colors[0]
+                    if "Overall" in x or "Global" in x or "RW" in x
+                    else (all_colors[1])
+                )
+            )
+            .values
+        )
+
+        # Error bars
+        errors = trust_df["SD"].values
+
+        # Plotting
+        plt.figure(
+            figsize=(
+                self.plot_width_full,
+                self.plot_height_landscape_large,
+            ),
+        )
+        bar_plot = sns.barplot(
+            x=variable_name,
+            y=trust_df["Feature Set"],
+            data=trust_df,
+            palette=colors,
+            xerr=errors,
+            capsize=10,
+            zorder=6,
+        )
+
+        # Set the color of each bar based on the condition
+        for idx, patch in enumerate(bar_plot.patches):
+            patch.set_facecolor(colors[idx])
+
+        # Create legend
+        legend_patches = [
+            mpatches.Patch(color=all_colors[0], label="Novel"),
+            mpatches.Patch(color=all_colors[1], label="Literature"),
+        ]
+        plt.legend(
+            handles=legend_patches,
+            title="Origin",
+            loc="lower center",
+            ncol=2,
+            bbox_to_anchor=(0.5, 1),
+        )
+        plt.tight_layout()
+
+        plt.xlabel(xlabel)
+        plt.ylabel("Reduced Feature Set")
+        plt.xlim([0.7, 0.97])
+        self.apply_custom_grid(ax=bar_plot, axis="x")
+        bar_plot.yaxis.set_tick_params(which="minor", bottom=False)
+        # Set y-axis labels to use LaTeX rendering with \texttt for each label
+
+        if filepath is not None and self.report_mode:
+            self.save_figure(filepath=filepath)
+        plt.show()
