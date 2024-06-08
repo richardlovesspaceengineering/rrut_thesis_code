@@ -439,8 +439,7 @@ class FeaturesDashboard:
         """
         Replace all NaN values in a specific column of self.features_df with a user-specified value.
 
-        :param column: The column in which to replace NaN values.
-        :param value: The value to replace NaNs with.
+        Note that the replacing of NaNs will only be done for the first run of this function.
         """
         if column not in self.features_df.columns:
             print(f"Column '{column}' does not exist in the DataFrame.")
@@ -618,8 +617,10 @@ class FeaturesDashboard:
         Replaces values in the numerical columns of df grouped by the "Suite" column with np.nan
         if their orders of magnitude are outside the 1.75 * IQR range of the orders of magnitude
         of the rest of the points in the grouped column, and logs the column name, Suite, Name value, and the outlier value.
+
+        Must be run before dropping any NaNs.
         """
-        df = self.features_df
+        df = self.get_landscape_features_df(give_sd=False)
         outlier_log = []  # Initialize a list to store the log information
 
         # Iterate through each group determined by 'Suite'
@@ -658,7 +659,7 @@ class FeaturesDashboard:
         # Optionally, print the log information
         for log_entry in outlier_log:
             print(
-                f"Column: {log_entry[0]}, Suite: {log_entry[1]}, Name: {log_entry[2]}, Outlier Value: {log_entry[3]}"
+                f"Feature: {log_entry[0]}, Problem: {log_entry[2]}, Outlier Value: {log_entry[3]}"
             )
 
         # Save back
