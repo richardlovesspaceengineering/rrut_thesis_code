@@ -8,3 +8,5 @@ pregen_samples
 temp_pops
 features_results
 MODAct_files
+id_rsa_megatron
+id_rsa_megatron.pub

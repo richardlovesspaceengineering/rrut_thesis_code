@@ -13,9 +13,9 @@
         "name": "Python: Run Single Problem",
         "type": "python",
         "request": "launch",
-        "program": "/home/kj66/Documents/Richard/rrut_thesis_code/ISA-CMOP_Python/runner.py",
-        // "program": "C:/Users/richa/Documents/Thesis/rrut_thesis_code/ISA-CMOP_Python/runner.py",
-        // "program": "/Users/richardrutherford/Documents/Thesis Code/rrut_thesis_code/ISA-CMOP_Python2/runner.py",
+        "program": "/home/kj66/Documents/Richard/rrut_thesis_code/LandscapeAnalysisPython/runner.py",
+        // "program": "C:/Users/richa/Documents/Thesis/rrut_thesis_code/LandscapeAnalysisPython/runner.py",
+        // "program": "/Users/richardrutherford/Documents/Thesis Code/rrut_thesis_code/LandscapeAnalysisPython2/runner.py",
         "args": [
             "XA3",
             "10",
@@ -27,9 +27,9 @@
             "3",
         ],
         "console": "integratedTerminal",
-        // "cwd": "/Users/richardrutherford/Documents/Thesis Code/rrut_thesis_code/ISA-CMOP_Python",
-        // "cwd": "C:/Users/richa/Documents/Thesis/rrut_thesis_code/ISA-CMOP_Python",
-        "cwd": "/home/kj66/Documents/Richard/rrut_thesis_code/ISA-CMOP_Python",
+        // "cwd": "/Users/richardrutherford/Documents/Thesis Code/rrut_thesis_code/LandscapeAnalysisPython",
+        // "cwd": "C:/Users/richa/Documents/Thesis/rrut_thesis_code/LandscapeAnalysisPython",
+        "cwd": "/home/kj66/Documents/Richard/rrut_thesis_code/LandscapeAnalysisPython",
         "justMyCode": false
     }
     
