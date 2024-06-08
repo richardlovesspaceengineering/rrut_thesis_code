@@ -1,8 +1,5 @@
 import numpy as np
-import time
 import os
-import os
-from datetime import datetime
 import pandas as pd
 import numpy as np
 import copy
@@ -11,9 +8,6 @@ import scipy.stats
 from scipy.stats import pearsonr, spearmanr
 from sklearn.linear_model import LinearRegression
 from collections.abc import Iterable
-from optimisation.model.population import Population
-
-import datetime
 
 
 def flatten_list(nested_list):
@@ -211,7 +205,6 @@ class Analysis:
         else:
             return (var - fmin) / ((fmax - fmin) * scale)
 
-    # TODO: move this
     def normalise_objective_space_for_hv_calc(
         pop_walk, pop_neighbours, PF, scale_offset=1.1, region_of_interest=False
     ):

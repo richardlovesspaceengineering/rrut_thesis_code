@@ -29,7 +29,6 @@ from optimisation.operators.sampling.AdaptiveWalk import AdaptiveWalk
 from PreSampler import PreSampler
 from pymoo.problems import get_problem
 from multiprocessing_util import *
-from mpl_toolkits.mplot3d import Axes3D
 from sklearn.metrics import silhouette_score
 from sklearn.manifold import trustworthiness
 
@@ -100,7 +99,7 @@ class FeaturesDashboard:
         self.apply_custom_colors()
         self.generate_suite_colors()
 
-        # Define plot sizes - especially useful if report_mode is True.
+        # Define plot sizes - will set report plots to correct sizes (without the need for scaling in Latex).
         self.define_plot_sizes()
 
     def look_for_missing_results_folders(self, results_dir_dict):
@@ -182,7 +181,7 @@ class FeaturesDashboard:
         self, file_path="../../rrut_thesis_report/feature_names.txt"
     ):
         """
-        Method to create the dictionary which maps the feature names with underscores to those with mathematical symbols. The definitions are provided in a text file which can be altered.
+        Method to create the dictionary which maps the feature names with underscores to those with mathematical symbols. The definitions are provided in a text file at file_path which can be altered.
         """
         mapping = {}
         with open(file_path, "r") as f:
@@ -230,7 +229,13 @@ class FeaturesDashboard:
 
         return suite_names
 
-    def check_dashboard_is_global_only_for_aerofoils(self, ignore_aerofoils):
+    def check_dashboard_is_global_only_for_aerofoils(
+        self, ignore_aerofoils, show_output=True
+    ):
+
+        if not show_output:
+            return
+
         if self.analysis_type == "glob" and not ignore_aerofoils:
             print("Aerofoils are being considered for this global only feature set.")
         elif self.analysis_type != "glob" and not ignore_aerofoils:
@@ -243,6 +248,11 @@ class FeaturesDashboard:
             )
 
     def define_plot_sizes(self):
+        """
+        Mostly useful for when self.report_mode = True. The figures are just made big enough to be visible when self.report_mode = False.
+
+        Plot with width = plot_width_half can be put in a two-column subfigure environment in LaTeX without needing to rescale figures.
+        """
 
         # For landscape plots that will use smaller fontsize.
 
@@ -301,8 +311,8 @@ class FeaturesDashboard:
 
         # fmt: off
         if palette == "Paired":
+            # Used for suite colouring.
             colors = [
-                    # "#000000",
                     "#a6cee3",
                     "#1f78b4",
                     "#b2df8a",
@@ -318,6 +328,8 @@ class FeaturesDashboard:
                 ]
             # paired
         elif palette == "Dries":
+            
+            # Used for generating all other figures.
             colors = [
                     "#2394d6",
                     "#dc3220",
@@ -347,6 +359,10 @@ class FeaturesDashboard:
         markersize=4,
         axiswidth=1.75,
     ):
+        """
+        Apply customised linewidths, marker sizes, font sizes for beautiful report-ready figures.
+        """
+
         # Line settings
         plt.rc("lines", linewidth=linewidth, markersize=markersize)
 
@@ -369,6 +385,8 @@ class FeaturesDashboard:
         if self.report_mode:
             plt.rc("text", usetex=True)
             plt.rc("font", family="serif")
+
+            # Ensure figure font matches report font. Can comment out these lines to get standard LaTeX font.
             plt.rcParams[
                 "text.latex.preamble"
             ] = r"""
@@ -394,7 +412,7 @@ class FeaturesDashboard:
         return df[filtered_columns]
 
     @staticmethod
-    def custom_drop_na(df):
+    def custom_drop_na(df, show_output=True):
 
         # Calculate the initial length of the dataframe
         initial_length = len(df)
@@ -409,10 +427,11 @@ class FeaturesDashboard:
         num_dropped_rows = initial_length - len(df_clean)
 
         # Display the names of the dropped rows, number of dropped rows, and initial length
-        print("Dropped instances:")
-        print(rows_with_nans.to_list())
-        print(f"Initial length of the dataframe: {initial_length}")
-        print(f"Total number of dropped instances: {num_dropped_rows}")
+        if show_output:
+            print("Dropped instances:")
+            print(rows_with_nans.to_list())
+            print(f"Initial length of the dataframe: {initial_length}")
+            print(f"Total number of dropped instances: {num_dropped_rows}")
 
         return df_clean
 
@@ -495,7 +514,8 @@ class FeaturesDashboard:
         )
         if show_only_nans:
             ax.set_xticklabels(ax.get_xticklabels(), fontsize=24, rotation=90)
-        plt.title("Missingness Plot")
+
+        ax.set_yticklabels(ax.get_yticklabels(), fontsize=24)
         plt.xlabel("Features")
         plt.ylabel("Observations")
         plt.show()
@@ -811,7 +831,9 @@ class FeaturesDashboard:
             [f for f in self.features_df.columns if f.startswith(("PS", "PF"))]
         )
 
-    def use_these_features_only(self, features_to_keep, use_pre_ignored=True):
+    def use_these_features_only(
+        self, features_to_keep, use_pre_ignored=True, show_output=True
+    ):
         names_tracker = copy.deepcopy(features_to_keep)
 
         if not use_pre_ignored:
@@ -827,11 +849,12 @@ class FeaturesDashboard:
             else:
                 names_tracker.remove(feature)
 
-        if len(names_tracker) == 0:
-            print("All specified features have been considered")
-        else:
-            print("The following features were not added: ")
-            print(names_tracker)
+        if show_output:
+            if len(names_tracker) == 0:
+                print("All specified features have been considered")
+            else:
+                print("The following features were not added: ")
+                print(names_tracker)
 
     def ignore_specified_features(self, df):
         if self.features_to_ignore:
@@ -1451,6 +1474,7 @@ class FeaturesDashboard:
         zoom_to_suite=None,
         zoom_margin=0.2,
         filepath=None,
+        show_output=True,
     ):
         """
         Plots two features against each other, with point colors corresponding to either dimension or suite.
@@ -1481,6 +1505,7 @@ class FeaturesDashboard:
             ignore_aerofoils=ignore_aerofoils,
             ignore_scr=False,
             ignore_features=False,
+            show_output=show_output,
         )
 
         # We will use different markers for each dimension.
@@ -2087,11 +2112,12 @@ class FeaturesDashboard:
         random_seed=1,
         noise_scale_factor=0.1,
         drop_these_probs=None,
+        show_output=True,
     ):
 
         # Check data compatibility.
         self.check_dashboard_is_global_only_for_aerofoils(
-            ignore_aerofoils=ignore_aerofoils
+            ignore_aerofoils=ignore_aerofoils, show_output=show_output
         )
 
         # Normalize the features. Drop any NaNs
@@ -2100,6 +2126,7 @@ class FeaturesDashboard:
             analysis_type=analysis_type,
             ignore_features=ignore_features,
             drop_these_probs=drop_these_probs,
+            show_output=show_output,
         )
 
         if features:
@@ -2208,6 +2235,7 @@ class FeaturesDashboard:
         ignore_aerofoils=True,
         save_fig=False,
         filepath=None,
+        show_output=True,
     ):
         """
         Calculate and plot the coverage heatmap with flipped axes.
@@ -2226,6 +2254,7 @@ class FeaturesDashboard:
             features=features,
             ignore_features=ignore_features,
             ignore_aerofoils=ignore_aerofoils,
+            show_output=show_output,
         )
 
         if top_features is not None:
@@ -2290,73 +2319,6 @@ class FeaturesDashboard:
             raise ValueError("To save a figure, a filepath must be specified.")
         plt.show()
 
-    def plot_radviz(
-        self,
-        class_column="Suite",
-        features=None,
-        suite_names=None,
-        dims=None,
-        scaler_type="MinMaxScaler",
-        colormap="Set1",
-        use_analytical_problems=False,
-    ):
-        """
-        Generate a RadViz plot.
-
-        :param class_column: The column name in df to use for coloring the lines in the plot. Default is 'Suite'.
-        :param features: A list of column names to include in the plot. If None, all numeric columns are included.
-        :param suite_names: Suites to filter by (not used in this snippet but assumed to be part of your filtering logic).
-        :param dims: Dimensions to filter by (not used in this snippet but assumed to be part of your filtering logic).
-        :param colormap: The colormap to use for different classes.
-        """
-
-        df_filtered = self.custom_drop_na(
-            self.filter_df_by_suite_and_dim(
-                self.ignore_specified_features(self.features_df),
-                suite_names=suite_names,
-                dims=dims,
-            )
-        )
-
-        if features:
-            # Append "_mean" to each feature if it's not already there and ensure the feature exists in the DataFrame
-            cols = [f if f in df_filtered.columns else f for f in features]
-        else:
-            # If no features specified, use all numeric columns
-            cols = df_filtered.select_dtypes(include=[np.number]).columns.tolist()
-
-        # Further filtering.
-        cols = [c for c in cols if not df_filtered[c].nunique() == 1]
-
-        cols.append("Suite")
-
-        # if scaler_type == "MinMaxScaler":
-        #     scaler = MinMaxScaler()
-        #     df_filtered[cols] = scaler.fit_transform(df_filtered[cols])
-        # elif scaler_type == "StandardScaler":
-        #     scaler = StandardScaler()
-        #     df_filtered[cols] = scaler.fit_transform(df_filtered[cols])
-
-        if use_analytical_problems:
-            df_filtered["Suite"] = df_filtered["Suite"].apply(
-                lambda x: "Analytical" if x in self.analytical_problems else x
-            )
-
-        # Create a subset DataFrame with the selected features and class_column
-        data_to_plot = df_filtered[cols]
-
-        # Check if the class_column exists
-        if class_column not in data_to_plot.columns:
-            raise ValueError(
-                f"The specified class_column '{class_column}' does not exist in the DataFrame."
-            )
-
-        # Generate the parallel coordinates plot
-        plt.figure(figsize=(12, 9))
-        pd.plotting.radviz(data_to_plot, "Suite", colormap=colormap, s=2)
-        plt.title("RadViz Plot")
-        plt.show()
-
     def get_filtered_df_for_dimension_reduced_plot(
         self,
         analysis_type=None,
@@ -2368,6 +2330,7 @@ class FeaturesDashboard:
         ignore_features=True,
         ignore_scr=True,
         drop_these_probs=None,
+        show_output=True,
     ):
 
         df = self.features_df
@@ -2383,7 +2346,7 @@ class FeaturesDashboard:
         )
 
         if ignore_features:
-            df_filtered = self.custom_drop_na(df_filtered)
+            df_filtered = self.custom_drop_na(df_filtered, show_output=show_output)
 
         if drop_these_probs is not None:
             df_filtered = df_filtered[~df_filtered["Name"].isin(drop_these_probs)]
@@ -2418,7 +2381,8 @@ class FeaturesDashboard:
         if "D" in cols:
             cols.remove("D")
 
-        print(f"This dataframe contains {len(cols)} features.")
+        if show_output:
+            print(f"This dataframe contains {len(cols)} features.")
 
         return df_filtered, cols
 
@@ -2537,11 +2501,12 @@ class FeaturesDashboard:
         save_fig=False,
         filepath=None,
         run_plotting=True,
+        show_output=True,
     ):
 
         # Check data compatibility.
         self.check_dashboard_is_global_only_for_aerofoils(
-            ignore_aerofoils=ignore_aerofoils
+            ignore_aerofoils=ignore_aerofoils, show_output=show_output
         )
 
         # Get plot style ready.
@@ -2556,6 +2521,7 @@ class FeaturesDashboard:
             dims=dims,
             use_analytical_problems=use_analytical_problems,
             ignore_aerofoils=ignore_aerofoils,
+            show_output=show_output,
         )
 
         # We will use different markers for each dimension.
@@ -2581,7 +2547,7 @@ class FeaturesDashboard:
 
         all_tsne_results = []
 
-        # Extract labels for silhouette score calculation
+        # Extract labels for dimensioning.
         labels = df_filtered["Suite"].values
 
         for ax, perplexity in zip(axes, perplexities):
@@ -2688,6 +2654,8 @@ class FeaturesDashboard:
 
         if run_plotting:
             plt.show()
+        else:
+            plt.close()
 
         if return_embedding:
 
@@ -2721,6 +2689,7 @@ class FeaturesDashboard:
         run_plotting=True,
         drop_these_probs=None,
         ignore_scr=True,
+        show_output=True,
     ):
 
         # Get plot style ready.
@@ -2729,7 +2698,7 @@ class FeaturesDashboard:
 
         # Check data compatibility.
         self.check_dashboard_is_global_only_for_aerofoils(
-            ignore_aerofoils=ignore_aerofoils
+            ignore_aerofoils=ignore_aerofoils, show_output=show_output
         )
 
         # Extract required data.
@@ -2743,6 +2712,7 @@ class FeaturesDashboard:
             ignore_aerofoils=ignore_aerofoils,
             drop_these_probs=drop_these_probs,
             ignore_scr=ignore_scr,
+            show_output=show_output,
         )
 
         # We will use different markers for each dimension.
@@ -2909,11 +2879,11 @@ class FeaturesDashboard:
 
         if filepath is not None and self.report_mode:
             self.save_figure(filepath=filepath)
-        elif save_fig:
-            raise ValueError("To save a figure, a filepath must be specified.")
 
         if run_plotting:
             plt.show()
+        else:
+            plt.close()
 
         if return_embedding:
             if len(all_umap_results) == 1:
@@ -3024,17 +2994,18 @@ class FeaturesDashboard:
         metric="silhouette",
         orig_data=None,
         drop_these_probs=None,
+        show_output=True,
     ):
         # Define your parameters
         random_states = range(num_seeds)  # 10 different random states
         results = []
 
         # Loop over each perplexity
-        for noise in noise_levels:
+        for i, noise in enumerate(noise_levels):
             scores = []
 
             # Loop over each random state
-            for random_state in random_states:
+            for j, random_state in enumerate(random_states):
 
                 if method == "tsne":
 
@@ -3042,6 +3013,7 @@ class FeaturesDashboard:
                         return_embedding=True,
                         random_state=random_state,
                         run_plotting=False,
+                        show_output=False,
                     )
 
                 elif method == "umap":
@@ -3052,6 +3024,7 @@ class FeaturesDashboard:
                         noise_scale_factor=noise,
                         run_plotting=False,
                         drop_these_probs=drop_these_probs,
+                        show_output=False,
                     )
                 if metric == "silhouette":
                     score = self.get_silhouette_score(
@@ -3067,6 +3040,10 @@ class FeaturesDashboard:
                         print("Input the original high-dimensional data as orig_data=")
                         return
                 scores.append(score)
+            if show_output:
+                print(
+                    f"Completed feature ranking for noise level {i + 1} out of {len(noise_levels)}"
+                )
 
             # Store the mean and standard deviation of scores for this perplexitu
 
@@ -3159,6 +3136,7 @@ class FeaturesDashboard:
         noise_scale_factor=0.1,
         return_report=False,
         drop_these_probs=None,
+        show_output=False,
     ):
         """
         Train a Random Forest classifier to predict 'Suite' or perform binary classification
@@ -3172,7 +3150,7 @@ class FeaturesDashboard:
 
         # Check data compatibility.
         self.check_dashboard_is_global_only_for_aerofoils(
-            ignore_aerofoils=ignore_aerofoils
+            ignore_aerofoils=ignore_aerofoils, show_output=show_output
         )
 
         # Ensure that 'Suite' is one of the columns in the dataframe
@@ -3180,7 +3158,9 @@ class FeaturesDashboard:
             raise ValueError("DataFrame must contain 'Suite' column")
 
         df_filtered, features = self.get_filtered_df_for_dimension_reduced_plot(
-            ignore_aerofoils=ignore_aerofoils, drop_these_probs=drop_these_probs
+            ignore_aerofoils=ignore_aerofoils,
+            drop_these_probs=drop_these_probs,
+            show_output=False,
         )
 
         # Scale the features based on the specified scaler_type
@@ -3210,8 +3190,6 @@ class FeaturesDashboard:
         if suite_in_focus is not None:
             y = y.apply(lambda x: 1 if x == suite_in_focus else 0)
 
-        print(f"This RF model training has considered {len(X.columns)} features.")
-
         # Splitting the dataset
         if test_size != 0:
             X_train, X_test, y_train, y_test = train_test_split(
@@ -3229,9 +3207,12 @@ class FeaturesDashboard:
 
         # Making predictions and evaluating the classifier
         y_pred = classifier.predict(X_test)
-        print("Classification Report:")
-        print(classification_report(y_test, y_pred))
-        print("Accuracy Score:", accuracy_score(y_test, y_pred))
+
+        if show_output:
+            print(f"This RF model training has considered {len(X.columns)} features.")
+            print("Classification Report:")
+            print(classification_report(y_test, y_pred))
+            print("Accuracy Score:", accuracy_score(y_test, y_pred))
 
         if return_report:
             acc = accuracy_score(y_test, y_pred)
@@ -3241,9 +3222,6 @@ class FeaturesDashboard:
             return classifier
 
     def aggregate_reports(self, reports):
-        # Initialize a nested defaultdict that ends with a list
-        def recursive_defaultdict():
-            return defaultdict(list)
 
         # Function to create multiple levels of defaultdicts
         def multi_level_defaultdict(levels):
@@ -3513,6 +3491,7 @@ class FeaturesDashboard:
         noise_scale_factor=0.1,
         num_rf_models=100,
         drop_these_probs=None,
+        show_output=True,
     ):
         if coverage_suites is None:
             coverage_suites = self.get_suite_names(ignore_aerofoils=True)
@@ -3542,6 +3521,7 @@ class FeaturesDashboard:
             random_seed=random_seed,
             noise_scale_factor=noise_scale_factor,
             drop_these_probs=drop_these_probs,
+            show_output=False,
         )
         coverages["mean_coverage"] = np.float64(coverages.mean(axis=1))
 
@@ -3549,6 +3529,9 @@ class FeaturesDashboard:
         feature_scores[f"Coverage"] = 1 - self.normalize_series(
             coverages["mean_coverage"]
         )
+
+        if show_output:
+            print(f"Completed coverage calculation.")
 
         if run_pca:
             # PCA normalizations. Need to rerun PCA quickly.
@@ -3568,6 +3551,8 @@ class FeaturesDashboard:
                 feature_scores[f"PCAVar{var*100:.0f}"] = self.normalize_series(
                     best_pca_cont
                 )
+            if show_output:
+                print(f"Completed PCA.")
 
         # RF classification model feature importance normalizations.
         # for s in rf_suites:
@@ -3589,10 +3574,14 @@ class FeaturesDashboard:
                 random_seed=n,
                 noise_scale_factor=noise_scale_factor,
                 drop_these_probs=drop_these_probs,
+                show_output=False,
             )
             rfs.append(classifier)
         best_rf_cont = self.get_feature_importances(classifiers=rfs, top_features=None)
         feature_scores[f"RF"] = self.normalize_series(best_rf_cont["Importance"])
+
+        if show_output:
+            print(f"Completed RF training.")
 
         # Compute means for each method.
         col_names = ["Coverage", "RF"]
@@ -3629,14 +3618,12 @@ class FeaturesDashboard:
         """
         results = []
         for seed in seeds:
-            print(
-                f"----------- Performing feature selection for SEED {seed} -----------"
-            )
             result = self.rank_each_feature(
                 random_seed=seed,
                 noise_scale_factor=noise_scale_factor,
                 run_sensitivity_analysis=True,
                 run_pca=run_pca,
+                show_output=False,
             )
             result.drop("Type", axis=1, inplace=True)
             results.append(result)
@@ -3687,13 +3674,18 @@ class FeaturesDashboard:
         noise_levels=[0.05, 0.1, 0.2],
         run_pca=False,
         num_samples=3,
+        show_output=True,
     ):
         """
-        Runs sensitivity analysis for multiple noise levels.
+        Runs sensitivity analysis of feature selection process for multiple noise levels.
         """
         all_deviations = {}
         for noise_level in noise_levels:
-            print(f"Testing with noise level: {noise_level}")
+            if show_output:
+                print(
+                    f"Running feature selection using {num_samples} seeds with noise level: {noise_level}",
+                    end="\r",
+                )
             deviations = self.run_feature_selection_sensitivity_analysis_single(
                 non_noisy_feature_scores,
                 noise_scale_factor=noise_level,
@@ -3851,8 +3843,6 @@ class FeaturesDashboard:
             ax.set_yticklabels([])
 
         # Show plot and apply formatting
-        # Plotting
-
         if "obj" in walk_type:
             var_str = "f"
         else:
@@ -3889,8 +3879,6 @@ class FeaturesDashboard:
 
         start_zones = ps.generate_binary_patterns()
         self.apply_custom_colors("Dries")
-        prop_cycle = plt.rcParams["axes.prop_cycle"]
-        colors = prop_cycle.by_key()["color"]
 
         # Generate random walks
         for i in range(4):
@@ -3913,9 +3901,6 @@ class FeaturesDashboard:
 
         ax.set_xlabel(rf"${var_str}_1$")
         ax.set_ylabel(rf"${var_str}_2$")
-        # ax.set_aspect("equal")  # Keep the scaling consistent
-        # ax.set_xticklabels([0, 1])
-        # ax.set_yticklabels([0, 1])
 
         self.apply_custom_grid(ax)
         plt.tight_layout()
@@ -4149,6 +4134,7 @@ class FeaturesDashboard:
                     else:
                         row_string = f" & ".join(formatted_row) + suffix
                 file.write(row_string + "\n")
+        print(f"LaTeX table has been successfully written to {filepath}.txt")
 
     def get_comparison_data_for_trustworthiness(
         self, scaler_type="MinMaxScaler", ignore_aerofoils=True
@@ -4171,9 +4157,8 @@ class FeaturesDashboard:
     def plot_trustworthiness_comparison_of_feature_sets(
         self,
         trust_df,
-        filepath=None,
+        filepath="Results/LiteratureComparison_Trustworthiness",
     ):
-        filepath = "Results/LiteratureComparison_Trustworthiness"
         variable_name = "Mean Trustworthiness Score"
         xlabel = "Mean Trustworthiness Score"
         self.apply_custom_colors(palette="Dries")
