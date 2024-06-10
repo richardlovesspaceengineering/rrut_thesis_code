@@ -92,7 +92,7 @@ class PlatEMOSetup(Setup):
         # Add PlatEMO cases to path.
         self.matlab_engine.addpath(
             self.matlab_engine.genpath(
-                "~/Documents/Richard/rrut_thesis_code/PlatEMO/PlatEMO_Problems"
+                "~/Documents/Richard/rrut_thesis_code/cases/PlatEMO_Problems"
             ),
             nargout=0,
         )
