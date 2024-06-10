@@ -1,5 +1,5 @@
 # Richard's Landscape Analysis Code Guide
-Hopefully this guide is detailed enough to get everything running without me! I have tested everything is working on megatron2, but in case you need to move this code over to a new machine, the steps for a new installation have also been included.
+Hopefully this guide is detailed enough to get everything running without me! I have tested everything is working on megatron2, but in case you need to move this code over to a new machine, the steps for a new installation on a Linux machine have also been included.
 
 In this guide, I will try and cover how the code works, as well as how to add new problems/suites and features.
 
@@ -36,7 +36,7 @@ Steps to run:
 {
   "debug": {
     // These problems will run in debug mode.
-    "MW1_d5": "true", // this will run
+    "MW1_d5": "true", // this will run  
     "LIRCMOP_d10": "false", // this will not run
     // and more...
   },
@@ -48,7 +48,8 @@ Steps to run:
   }
 }
 ```
-2. Run the shell-script using ``.\run_problems.sh`` in a terminal. Take note of what the datetime code is e.g. ``Jan1_1200`` as you will access results from a subdirectory with this name later.
+2. Create a screen environment so that logging out of the terminal does not end the runs.
+2. Within this screen env, run the shell-script using ``.\run_problems.sh`` in a terminal. Take note of what the datetime code is e.g. ``Jan1_1200`` as you will access results from a subdirectory with this name later.
    1. On a fresh install of this repository, you might need to make this script executable with a ``chmod +x run_problems.sh`` command. The only setting you should change within this file is ``mode``. If ``mode = "debug"``, the features evaluation code runs on much smaller sample sizes, while ``mode = "eval"`` runs the full evaluation.
    2. A note on sibling directories: the feature evaluation saves pregenerated random walks/global samples in a sibling directory called ``pregen_samples``, located in ``rrut_thesis_code\pregen_samples``, and it also saves evaluated populations for problems that take a while to run (PLATEMO, XA, MODAct) in a sibling directory called ``temp_pops``. These directories can contain very large files, so if you're running out of storage, feel free to start deleting specific problem files from ``temp_pops``.
    3. If you're having issues with memory usage (e.g. the machine starts swapping), you can reduce the number of cores used for evaluation in the ``initialize_number_of_cores`` method in ``ProblemEvaluator``. Due to my time constraints, I instead just reduced the number of samples for the high-dimensional ($\geq 20$) PLATEMO, MODAct and XA instances.
@@ -151,9 +152,12 @@ The landscape analysis code accesses multiple repositories. To access these, clo
 
 ### Python virtual environment
 
-We use the same virtual environment (venv) for features evaluation and post-processing. These installation steps will install all packages other than the MATLAB Engine for Python. The install instructions for this specific package can be found here: https://au.mathworks.com/help/matlab/matlab_external/python-setup-script-to-install-matlab-engine-api.html
+We use the same virtual environment (venv) for features evaluation and post-processing. These installation steps will install all packages other than the MATLAB Engine for Python and MODAct. The install instructions for these specific packages can be found here: 
+* MATLAB: https://au.mathworks.com/help/matlab/matlab_external/python-setup-script-to-install-matlab-engine-api.html
+* MODAct: https://github.com/epfl-lamd/modact
 
-1. In the same directory as the git repositories (``Landscapes``), create a new environment using the following terminal command: ``python3.8.10 -m venv venv``. 
+1. Install Python 3.8.10. 
+1. In the same directory as the git repositories (``Landscapes``), create a new environment using the following terminal command: ``python3.8 -m venv venv``. 
 2. Then activate with ``source venv/bin/activate``. 
 3. Install the required packages with ``pip install -r rrut_thesis_code/venv_requirements.txt``.
 
