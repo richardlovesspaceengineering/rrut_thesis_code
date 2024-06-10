@@ -152,14 +152,16 @@ The landscape analysis code accesses multiple repositories. To access these, clo
 
 ### Python virtual environment
 
-We use the same virtual environment (venv) for features evaluation and post-processing. These installation steps will install all packages other than the MATLAB Engine for Python and MODAct. The install instructions for these specific packages can be found here: 
-* MATLAB: https://au.mathworks.com/help/matlab/matlab_external/python-setup-script-to-install-matlab-engine-api.html
-* MODAct: https://github.com/epfl-lamd/modact
+We use the same virtual environment (venv) for features evaluation and post-processing. 
 
 1. Install Python 3.8.10. 
-1. In the same directory as the git repositories (``Landscapes``), create a new environment using the following terminal command: ``python3.8 -m venv venv``. 
-2. Then activate with ``source venv/bin/activate``. 
-3. Install the required packages with ``pip install -r rrut_thesis_code/venv_requirements.txt``.
+2. In the same directory as the git repositories (``Landscapes``), create a new environment using the following terminal command: ``python3.8 -m venv venv``. 
+3. Then activate with ``source venv/bin/activate``. 
+4. Install the required packages with ``pip install -r rrut_thesis_code/venv_requirements.txt``. These installation steps will install all packages other than the MATLAB Engine for Python, MODAct and pyGMO.
+5. T The install instructions for these specific packages can be found here: 
+* MATLAB: https://au.mathworks.com/help/matlab/matlab_external/python-setup-script-to-install-matlab-engine-api.html
+* MODAct: https://github.com/epfl-lamd/modact
+* pyGMO: https://esa.github.io/pygmo/install.html
 
 
 <!-- We use separate environments for features evaluation and post-processing. These have both been set up on 
