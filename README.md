@@ -79,7 +79,8 @@ results_dict = {
     # and more...
 }
 ```
-3. Rerun each cell as required. Much more detailed instructions are provided within the notebook.
+3. Run the next cell, where the ``FeaturesDashboard`` class is initialised. This essentially concatenates all results into a single ``pandas`` dataframe, and all data post-processing is done on this dataframe. There is a huge amount of methods in ``FeaturesDashboard``, so if you want to navigate around the methods without scrolling, I'd recommend using the "Outline" tab in the sidebar in VSCode (or whatever equivalent in your IDE of choice). Note: if you were planning on releasing this code, I would make this class more modular.
+4. Rerun the other notebook cells as necessary. There are clear instructions in the notebook about the purpose of each cell, and I've done my best to include comments to show at what point certain figures/tables in the report are generated with code. I would definitely have my report open while you navigate this notebook at first.
 
 ## Adding new problems
 
@@ -128,8 +129,7 @@ results_dict = {
 }
 ```
 2. Modify the ``define_problem_suites`` method to include the new problem. The existing examples should make clear how to do this. Note that if the problem is from a new suite, you will also need to add an associated plotting colour for this suite to the ``"Paired"`` palette in ``apply_custom_colours``. 
-3. Run the next cell, where the ``FeaturesDashboard`` class is initialised. This essentially concatenates all results into a single ``pandas`` dataframe, and all data post-processing is done on this dataframe. There is a huge amount of methods in ``FeaturesDashboard``, so if you want to navigate around the methods without scrolling, I'd recommend using the "Outline" tab in the sidebar in VSCode (or whatever equivalent in your IDE of choice). Note: if you were planning on releasing this code, I would make this class more modular.
-4. Rerun the notebook cells as necessary. There are clear instructions in the notebook about the purpose of each cell, and I've done my best to include comments to show at what point certain figures/tables in the report are generated with code. I would definitely have my report open while you navigate this notebook at first.
+3. Run the cell where `FeaturesDashboard` is initialised and any other cells you want to rerun. 
 
 ## Adding new features
 Add a new method to ``GlobalAnalysis`` or ``RandomWalkAnalysis``, depending on the sampling type. It should become obvious what to do upon inspection of these classes.
@@ -157,8 +157,8 @@ We use the same virtual environment (venv) for features evaluation and post-proc
 1. Install Python 3.8.10. 
 2. In the same directory as the git repositories (``Landscapes``), create a new environment using the following terminal command: ``python3.8 -m venv venv``. 
 3. Then activate with ``source venv/bin/activate``. 
-4. Install the required packages with ``pip install -r rrut_thesis_code/venv_requirements.txt``. These installation steps will install all packages other than the MATLAB Engine for Python, MODAct and pyGMO.
-5. T The install instructions for these specific packages can be found here: 
+4. Install the required packages with ``pip install -r rrut_thesis_code/venv_requirements.txt``. These installation steps will allow the post-processing notebook to be run. 
+5. To run the landscape features, we also need to follow the following steps to install the MATLAB Engine for Python, MODAct and pyGMO. The install instructions for these specific packages can be found here: 
 * MATLAB: https://au.mathworks.com/help/matlab/matlab_external/python-setup-script-to-install-matlab-engine-api.html
 * MODAct: https://github.com/epfl-lamd/modact
 * pyGMO: https://esa.github.io/pygmo/install.html
@@ -180,6 +180,8 @@ Your final directory should have the following subdirectories (with these exact 
 * ``AirfoilBenchmarkSuite``
 * ``MODAct``
 * ``venv``
+
+You will notice the directory ``~/kj66/Documents/Richard`` is structured exactly like this on megatron2.
 
 All code is run from ``rrut_thesis_code``.
 
