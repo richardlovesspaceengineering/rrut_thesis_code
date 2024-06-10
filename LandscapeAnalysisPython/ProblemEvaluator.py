@@ -62,7 +62,7 @@ class ProblemEvaluator:
         self.num_samples_user_input = num_samples
         print("Initialising evaluator in {} mode.".format(self.mode))
 
-        # Gmail account credentials for email updates.
+        # Gmail account credentials for email updates. Update these with own email.
         self.gmail_user = "rrutthesisupdates@gmail.com"  # Your full Gmail address
         self.gmail_app_password = "binsjoipgwzyszxe "  # Your generated App Password
 

@@ -3684,8 +3684,7 @@ class FeaturesDashboard:
         for noise_level in noise_levels:
             if show_output:
                 print(
-                    f"Running feature selection using {num_samples} seeds with noise level: {noise_level}",
-                    end="\r",
+                    f"Running feature selection using {num_samples} seeds with noise level: {noise_level}"
                 )
             deviations = self.run_feature_selection_sensitivity_analysis_single(
                 non_noisy_feature_scores,
